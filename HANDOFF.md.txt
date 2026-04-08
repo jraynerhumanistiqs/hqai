@@ -1,0 +1,65 @@
+HANDOFF.md
+
+## What this is
+HQ.ai is an AI-powered HR and recruitment SaaS product built under 
+the parent brand Humanistiqs. It serves Australian SMEs (10-250 staff) 
+with AI-driven HR compliance, document generation, recruitment support, 
+and human advisor escalation.
+
+## Owner
+Jimmy Rayner — Humanistiqs
+Entity: Rayner Consulting Group Pty Ltd t/as Humanistiqs
+
+## Live URL
+https://hqai.vercel.app
+
+## GitHub
+https://github.com/jraynerhumanistiqs/hqai
+
+## Supabase
+https://rbuxsuuvbeojxcxwxcjf.supabase.co
+
+## Tech stack
+- Next.js 16 (App Router)
+- Tailwind CSS
+- Supabase (auth + database)
+- Anthropic Claude API (claude-sonnet-4)
+- Vercel (hosting)
+
+## What's built and working
+- Auth: login, signup, magic link
+- 3-step business onboarding
+- HQ People chat (Claude API, streaming)
+- HQ Recruit chat (Claude API, streaming)
+- Document auto-save to library
+- Document library page
+- Settings page
+- Sidebar navigation
+- Escalation detection with advisor card
+
+## What needs to be built next
+1. Stripe subscription payments ($99/$199/$379/month tiers)
+2. DOCX document download (proper Word files)
+3. Calendly advisor booking embed
+4. Team seat management (multiple users per business)
+5. Advisory hours tracking
+6. Email notifications via Resend
+
+## Pricing model
+- Essentials: $99/month (3 seats)
+- Growth: $199/month (6 seats)
+- Scale: $379/month (12 seats)
+- Advisory add-ons: $250/$400/$680/$1,100/month
+
+## Brand positioning
+Anti-Employsure — humanised AI with a dedicated named advisor.
+AI handles self-service, human handles complexity.
+Australian employment law only (Fair Work Act, NES, Modern Awards).
+
+## Important notes
+- Supabase RLS is currently disabled for beta — re-enable before 
+  commercial launch
+- API keys are hardcoded in lib/supabase/server.ts and client.ts 
+  temporarily — move back to env vars before going live
+- TypeScript strict errors are suppressed in next.config.js — 
+  clean up before commercial launch
