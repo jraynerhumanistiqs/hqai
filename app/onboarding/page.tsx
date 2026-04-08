@@ -44,7 +44,7 @@ export default function OnboardingPage() {
 
       if (userError || !user) {
         setError('Session expired. Please sign in again.')
-        router.push('/login')
+        window.location.href = '/login'
         return
       }
 
@@ -87,7 +87,7 @@ export default function OnboardingPage() {
         return
       }
 
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
 
     } catch (err) {
       console.error('Onboarding error:', err)
