@@ -36,65 +36,69 @@ export default function OnboardingPage() {
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   async function completeOnboarding() {
-    setSaving(true)
-    setError('')
+  setSaving(true)
+  setError('')
 
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+  try {
+    // Refresh session first to make sure we have a valid token
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-      if (userError || !user) {
-        setError('Session expired. Please sign in again.')
-        window.location.href = '/login'
-        return
-      }
-
-      const { data: business, error: bizError } = await supabase
-        .from('businesses')
-        .insert({
-          name: form.bizName || 'My Business',
-          industry: form.industry,
-          state: form.state,
-          award: form.award,
-          headcount: form.headcount,
-          employment_types: form.empTypes,
-          advisor_name: form.advisorName || 'Hugo',
-          plan: form.plan,
-        })
-        .select()
-        .single()
-
-      if (bizError) {
-        console.error('Business error:', bizError.message)
-        setError('Could not save business details. Please try again.')
-        setSaving(false)
-        return
-      }
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          business_id: business.id,
-          full_name: form.userName || '',
-          email: user.email,
-          role: 'owner',
-        })
-
-      if (profileError) {
-        console.error('Profile error:', profileError.message)
-        setError('Could not save profile. Please try again.')
-        setSaving(false)
-        return
-      }
-
-      window.location.href = '/dashboard'
-
-    } catch (err) {
-      console.error('Onboarding error:', err)
-      setError('Something went wrong. Please try again.')
-      setSaving(false)
+    if (sessionError || !session) {
+      setError('Your session expired. Please sign in again.')
+      window.location.href = '/login'
+      return
     }
+
+    const user = session.user
+
+    const { data: business, error: bizError } = await supabase
+      .from('businesses')
+      .insert({
+        name: form.bizName || 'My Business',
+        industry: form.industry,
+        state: form.state,
+        award: form.award,
+        headcount: form.headcount,
+        employment_types: form.empTypes,
+        advisor_name: form.advisorName || 'Hugo',
+        plan: form.plan,
+      })
+      .select()
+      .single()
+
+    if (bizError) {
+      console.error('Business error:', bizError.message)
+      setError('Could not save business details: ' + bizError.message)
+      setSaving(false)
+      return
+    }
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        business_id: business.id,
+        full_name: form.userName || '',
+        email: user.email,
+        role: 'owner',
+      })
+
+    if (profileError) {
+      console.error('Profile error:', profileError.message)
+      setError('Could not save profile: ' + profileError.message)
+      setSaving(false)
+      return
+    }
+
+    // Force hard navigation to dashboard
+    window.location.replace('/dashboard')
+
+  } catch (err: any) {
+    console.error('Onboarding error:', err)
+    setError('Something went wrong: ' + err.message)
+    setSaving(false)
   }
+}
 
   const inputCls = "w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
   const selectCls = inputCls + " appearance-none"
