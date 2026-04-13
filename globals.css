@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --black:   #0A0A0A;
+    --white:   #FFFFFF;
+    --bg:      #F7F7F5;
+    --charcoal:#1F1F1F;
+    --mid:     #6B6B6B;
+    --light:   #EAEAEA;
+    --border:  #E4E4E2;
+    --accent:  #6F8F7A;
+    --accent2: #5A7A65;
+    --accent3: #EAF0EC;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--black);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* Selection */
+  ::selection {
+    background: var(--accent3);
+    color: var(--accent2);
+  }
+}
+
+@layer utilities {
+  /* Scrollbar */
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--light); border-radius: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+
+  /* Typography */
+  .font-serif { font-family: 'Fraunces', serif; }
+  .text-display { font-size: 48px; line-height: 1.1; letter-spacing: -0.03em; }
+  .text-h1 { font-size: 40px; line-height: 1.15; letter-spacing: -0.02em; }
+  .text-h2 { font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; }
+  .text-h3 { font-size: 22px; line-height: 1.3; letter-spacing: -0.01em; }
+
+  /* Skeleton loading */
+  .skeleton {
+    background: linear-gradient(90deg, var(--light) 25%, #F0F0EE 50%, var(--light) 75%);
+    background-size: 200% 100%;
+    animation: skeleton 1.5s infinite;
+    border-radius: 6px;
+  }
+  @keyframes skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Hover lift */
+  .hover-lift {
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(10,10,10,0.08);
+  }
+
+  /* Click compression */
+  .click-compress:active { transform: scale(0.98); }
+
+  /* Accent glow on focus */
+  .focus-accent:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(111, 143, 122, 0.2);
+    border-color: var(--accent) !important;
+  }
+
+  /* Fade in */
+  .fade-in {
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Slide up */
+  .slide-up {
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-small font-medium rounded-md transition-all duration-150 hover:bg-charcoal active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white text-small font-medium rounded-md transition-all duration-150 hover:bg-accent2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#1F1F1F] text-small font-medium rounded-md border border-border transition-all duration-150 hover:bg-bg active:scale-95;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 text-mid text-small font-medium rounded-md transition-all duration-150 hover:bg-light hover:text-black;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white border border-border rounded-lg p-5 shadow-card;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full px-3 py-2.5 bg-bg border border-border rounded-md text-small text-black placeholder-mid focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all;
+  }
+
+  /* Select */
+  .select {
+    @apply w-full px-3 py-2.5 bg-bg border border-border rounded-md text-small text-black focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all appearance-none;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+  .badge-accent { @apply badge bg-accent3 text-accent2; }
+  .badge-black  { @apply badge bg-black text-white; }
+  .badge-gray   { @apply badge bg-light text-mid; }
+}
