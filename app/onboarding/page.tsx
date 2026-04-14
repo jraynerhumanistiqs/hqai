@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -24,8 +24,20 @@ export default function OnboardingPage() {
     empTypes: '',
     advisorName: 'Hugo', userName: '', plan: 'free'
   })
+  const [authReady, setAuthReady] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+
+  // Check auth on page load — redirect to login if no session
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        window.location.href = '/login'
+      } else {
+        setAuthReady(true)
+      }
+    })
+  }, [])
 
   const steps = [
     { label: 'Business' },
@@ -40,16 +52,14 @@ export default function OnboardingPage() {
   setError('')
 
   try {
-    // Refresh session first to make sure we have a valid token
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Verify user is still authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    if (sessionError || !session) {
+    if (userError || !user) {
       setError('Your session expired. Please sign in again.')
       window.location.href = '/login'
       return
     }
-
-    const user = session.user
 
     const { data: business, error: bizError } = await supabase
       .from('businesses')
@@ -102,6 +112,14 @@ export default function OnboardingPage() {
 
   const inputCls = "w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
   const selectCls = inputCls + " appearance-none"
+
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-sm text-gray-400">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
