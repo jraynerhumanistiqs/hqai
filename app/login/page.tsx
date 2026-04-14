@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError('')
 
     if (mode === 'signup') {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { full_name: name } }
@@ -30,7 +30,13 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      router.push('/onboarding')
+      // If email confirmation is required, user won't have a session yet
+      if (!signUpData.session) {
+        setError('Check your email to confirm your account, then sign in.')
+        setLoading(false)
+        return
+      }
+      window.location.href = '/onboarding'
     } else {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
       if (signInError) {
@@ -45,11 +51,13 @@ export default function LoginPage() {
           .eq('id', data.user.id)
           .single()
 
+        // Hard navigation so middleware refreshes session cookies
         if (profile?.business_id) {
-          router.push('/dashboard')
+          window.location.href = '/dashboard'
         } else {
-          router.push('/onboarding')
+          window.location.href = '/onboarding'
         }
+        return
       }
     }
     setLoading(false)

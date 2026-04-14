@@ -63,6 +63,13 @@ export default function DocumentsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function downloadAsDocx(doc: Doc) {
+    const a = document.createElement('a')
+    a.href = `/api/documents/download?id=${doc.id}`
+    a.download = `${doc.title.replace(/[^a-z0-9]/gi, '_')}.docx`
+    a.click()
+  }
+
   function downloadAsText(doc: Doc) {
     const blob = new Blob([doc.content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -141,9 +148,13 @@ export default function DocumentsPage() {
                 className="px-3 py-1.5 bg-sand2 border border-sand3 rounded-lg text-xs font-medium text-ink2 hover:bg-sand3 transition-colors">
                 {copied ? '✓ Copied' : 'Copy'}
               </button>
-              <button onClick={() => downloadAsText(selected)}
+              <button onClick={() => downloadAsDocx(selected)}
                 className="px-3 py-1.5 bg-teal text-white rounded-lg text-xs font-medium hover:bg-teal2 transition-colors">
-                Download
+                DOCX
+              </button>
+              <button onClick={() => downloadAsText(selected)}
+                className="px-3 py-1.5 bg-sand2 border border-sand3 rounded-lg text-xs font-medium text-ink2 hover:bg-sand3 transition-colors">
+                TXT
               </button>
             </div>
           </div>

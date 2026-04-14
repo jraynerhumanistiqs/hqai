@@ -12,7 +12,8 @@ interface SidebarProps {
 }
 
 const NAV = [
-  { href: '/dashboard', label: 'HQ People', icon: PeopleIcon, badge: 'HR', exact: true },
+  { href: '/dashboard', label: 'Home', icon: HomeIcon, exact: true },
+  { href: '/dashboard/people', label: 'HQ People', icon: PeopleIcon, badge: 'HR' },
   { href: '/dashboard/recruit', label: 'HQ Recruit', icon: RecruitIcon },
   { href: '/dashboard/documents', label: 'Documents', icon: DocsIcon },
 ]
@@ -116,10 +117,10 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
               <p className="text-[10px] text-white/40">Senior HR Advisor</p>
             </div>
           </div>
-          <a href="https://calendly.com" target="_blank" rel="noreferrer"
+          <Link href="/dashboard/booking"
             className="block w-full text-center bg-teal hover:bg-teal2 text-white text-xs font-medium py-1.5 rounded-lg transition-colors">
             Book a call
-          </a>
+          </Link>
         </div>
 
         {/* Sign out */}
@@ -136,6 +137,11 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
 }
 
 // Icons
+function HomeIcon({ active }: { active: boolean }) {
+  return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
+    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+  </svg>
+}
 function PeopleIcon({ active }: { active: boolean }) {
   return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>

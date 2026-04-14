@@ -5,16 +5,16 @@ import Sidebar from '@/components/sidebar/Sidebar'
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/login')
   }
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('*, businesses(*)')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   if (!profile?.business_id) {
