@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -10,56 +9,94 @@ export default function LoginPage() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [debug, setDebug] = useState('')
   const [magicSent, setMagicSent] = useState(false)
   const supabase = createClient()
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setDebug('')
 
-    if (mode === 'signup') {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } }
-      })
-      if (signUpError) {
-        setError(signUpError.message)
-        setLoading(false)
+    try {
+      if (mode === 'signup') {
+        setDebug('Signing up...')
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } }
+        })
+
+        if (signUpError) {
+          setError(signUpError.message)
+          setDebug(`Signup error: ${signUpError.message}`)
+          setLoading(false)
+          return
+        }
+
+        setDebug(`Signup OK. Session: ${signUpData.session ? 'YES' : 'NO'}. User: ${signUpData.user?.id?.slice(0, 8) || 'none'}. Confirmed: ${signUpData.user?.confirmed_at ? 'YES' : 'NO'}`)
+
+        // If email confirmation is required, user won't have a session yet
+        if (!signUpData.session) {
+          // Check if user exists but is unconfirmed (identities array empty = fake signup response)
+          if (signUpData.user && (!signUpData.user.identities || signUpData.user.identities.length === 0)) {
+            setError('An account with this email already exists. Try signing in instead.')
+          } else {
+            setError('Check your email to confirm your account, then sign in.')
+          }
+          setLoading(false)
+          return
+        }
+
+        // Session exists — go to onboarding
+        setDebug('Redirecting to /onboarding...')
+        window.location.href = '/onboarding'
         return
-      }
-      // If email confirmation is required, user won't have a session yet
-      if (!signUpData.session) {
-        setError('Check your email to confirm your account, then sign in.')
-        setLoading(false)
-        return
-      }
-      window.location.href = '/onboarding'
-    } else {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-      if (signInError) {
-        setError(signInError.message)
-        setLoading(false)
-        return
-      }
-      if (data?.user) {
-        const { data: profile } = await supabase
+
+      } else {
+        setDebug('Signing in...')
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+
+        if (signInError) {
+          setError(signInError.message)
+          setDebug(`Login error: ${signInError.message} (status: ${signInError.status})`)
+          setLoading(false)
+          return
+        }
+
+        if (!data?.user) {
+          setError('Sign in failed — no user returned')
+          setDebug('No user in response')
+          setLoading(false)
+          return
+        }
+
+        setDebug(`Login OK. User: ${data.user.id.slice(0, 8)}. Checking profile...`)
+
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('business_id')
           .eq('id', data.user.id)
           .single()
 
+        setDebug(`Profile: ${profile ? `business_id=${profile.business_id?.slice(0, 8) || 'NULL'}` : 'NOT FOUND'}${profileError ? ` Error: ${profileError.message}` : ''}`)
+
         // Hard navigation so middleware refreshes session cookies
         if (profile?.business_id) {
+          setDebug('Redirecting to /dashboard...')
           window.location.href = '/dashboard'
         } else {
+          setDebug('Redirecting to /onboarding...')
           window.location.href = '/onboarding'
         }
         return
       }
+    } catch (err: any) {
+      setError('Unexpected error: ' + err.message)
+      setDebug(`Catch: ${err.message}`)
     }
+
     setLoading(false)
   }
 
@@ -139,6 +176,13 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {/* Debug output — remove after fixing */}
+              {debug && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700 font-mono">
+                  {debug}
+                </div>
+              )}
+
               <button
                 type="submit" disabled={loading}
                 className="w-full bg-black hover:bg-gray-800 text-white font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60"
@@ -167,7 +211,7 @@ export default function LoginPage() {
           <p className="text-center text-xs text-gray-400 mt-6">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
-              onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
+              onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setDebug('') }}
               className="text-black font-medium hover:underline"
             >
               {mode === 'login' ? 'Sign up free' : 'Sign in'}
