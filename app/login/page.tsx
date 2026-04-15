@@ -97,7 +97,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-block mb-3">
-            <Image src="/logo.svg" alt="HQ.ai" width={140} height={46} className="opacity-90" />
+            <Image src="/logo.svg" alt="HQ.ai" width={150} height={50} className="opacity-90 w-[150px] max-w-full h-auto" />
           </div>
           <p className="text-sm text-gray-500">by Humanistiqs</p>
         </div>

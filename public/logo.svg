@@ -1,5 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
-  <text x="30" y="350" font-family="'Bebas Neue', 'Impact', sans-serif" font-weight="700" font-size="320" fill="#FFFFFF" letter-spacing="-10">HQ</text>
-  <text x="355" y="350" font-family="'DM Sans', sans-serif" font-weight="400" font-size="120" fill="#999999">.</text>
-  <text x="375" y="350" font-family="'DM Sans', sans-serif" font-weight="500" font-size="120" fill="#999999">ai</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" fill="none">
+  <!-- H - outlined/stroke style -->
+  <path d="M30 30 L30 170 M30 100 L90 100 M90 30 L90 170"
+        stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Q - outlined/stroke circle with tail -->
+  <circle cx="195" cy="105" r="68" stroke="#FFFFFF" stroke-width="18" fill="none"/>
+  <line x1="230" y1="140" x2="275" y2="175" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Period -->
+  <circle cx="310" cy="158" r="10" fill="#999999"/>
+
+  <!-- a - outlined -->
+  <path d="M340 105 C340 80, 380 70, 390 90 L390 160 M390 110 C370 95, 340 100, 340 120 C340 145, 370 150, 390 135"
+        stroke="#999999" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- i - with dot -->
+  <line x1="420" y1="95" x2="420" y2="160" stroke="#999999" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="420" cy="70" r="8" fill="#999999"/>
 </svg>

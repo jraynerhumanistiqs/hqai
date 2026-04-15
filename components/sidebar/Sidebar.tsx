@@ -50,7 +50,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
     <aside className="w-[252px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8">
-        <Image src="/logo.svg" alt="HQ.ai" width={120} height={40} className="opacity-90" />
+        <Image src="/logo.svg" alt="HQ.ai" width={150} height={50} className="opacity-90 w-[150px] max-w-full h-auto" />
       </div>
 
       {/* Business pill */}
