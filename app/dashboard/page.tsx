@@ -51,20 +51,20 @@ export default async function DashboardHome() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#000000]">
-      <div className="max-w-4xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
         {/* Welcome */}
-        <div className="mb-10">
-          <h1 className="font-display text-h1 font-bold text-white uppercase tracking-wide">
+        <div className="mb-6 sm:mb-10">
+          <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide">
             {greeting}, {firstName}
           </h1>
-          <p className="text-body text-gray-400">
+          <p className="text-sm sm:text-body text-gray-400">
             Welcome to {business?.name || 'HQ.ai'} - here&apos;s what&apos;s happening.
           </p>
         </div>
 
         {/* Quick Actions — 3 only */}
-        <div className="mb-10">
+        <div className="mb-6 sm:mb-10">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Quick actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <QuickAction
@@ -89,7 +89,7 @@ export default async function DashboardHome() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-10">
 
           {/* Recent Conversations */}
           <div>
@@ -157,9 +157,9 @@ export default async function DashboardHome() {
         </div>
 
         {/* Recent News & Information */}
-        <div className="mb-10">
+        <div className="mb-6 sm:mb-10">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent applicable news &amp; information</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             <NewsCard
               image="/news/fair-work-update.jpg"
               title="Fair Work minimum wage increase — what it means for your business"

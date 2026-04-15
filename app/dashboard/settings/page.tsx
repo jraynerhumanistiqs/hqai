@@ -127,12 +127,12 @@ export default function SettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
-      <div className="max-w-2xl mx-auto px-8 py-8">
-        <h1 className="font-display text-h1 font-bold text-white uppercase tracking-wide mb-1">Settings</h1>
-        <p className="text-sm text-gray-400 mb-8">Update your business profile and advisor details</p>
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
+        <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide mb-1">Settings</h1>
+        <p className="text-xs sm:text-sm text-gray-400 mb-6 sm:mb-8">Update your business profile and advisor details</p>
 
         {/* Company Logo */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Company logo</h2>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-[#1a1a1a] border-2 border-dashed border-[#333333] rounded-xl flex items-center justify-center overflow-hidden">
@@ -158,7 +158,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Personal */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Your profile</h2>
           <Field label="Your name">
             <input className={inputCls} value={userName} onChange={e => setUserName(e.target.value)} placeholder="James Smith" />
@@ -166,7 +166,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Business */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Business details</h2>
           <div className="space-y-4">
             <Field label="Business name">
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 {INDUSTRIES.map(i => <option key={i}>{i}</option>)}
               </select>
             </Field>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="State / Territory">
                 <select className={selectCls} value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))}>
                   <option value="">Select state</option>
@@ -202,7 +202,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Advisor — subscription gated */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5 relative">
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Advisor details</h2>
           <p className="text-xs text-gray-500 mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
           {plan === 'free' && (
@@ -214,7 +214,7 @@ export default function SettingsPage() {
             </div>
           )}
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Advisor name">
                 <input className={inputCls} value={form.advisor_name} onChange={e => setForm(f => ({ ...f, advisor_name: e.target.value }))} placeholder="Sarah" />
               </Field>

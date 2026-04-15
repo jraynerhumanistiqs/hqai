@@ -514,16 +514,16 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   return (
     <div className="flex flex-col h-full bg-[#000000]">
       {/* Topbar */}
-      <div className="flex items-center gap-4 px-6 py-3.5 border-b border-[#222222] bg-[#0a0a0a] flex-shrink-0">
-        <div>
-          <h1 className="font-display text-lg font-bold text-white uppercase tracking-wider">{moduleLabel}</h1>
-          <p className="text-xs text-gray-500">{moduleDesc}</p>
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-[#222222] bg-[#0a0a0a] flex-shrink-0">
+        <div className="min-w-0">
+          <h1 className="font-display text-base sm:text-lg font-bold text-white uppercase tracking-wider truncate">{moduleLabel}</h1>
+          <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block">{moduleDesc}</p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="bg-[#1a1a1a] border border-[#333333] rounded-full px-3 py-1 text-xs font-bold text-gray-400">{bizName}</div>
+        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+          <div className="bg-[#1a1a1a] border border-[#333333] rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-gray-400 hidden sm:block">{bizName}</div>
           <button
             onClick={() => setMessages([])}
-            className="bg-[#1a1a1a] border border-[#333333] rounded-lg px-3 py-1.5 text-xs font-bold text-gray-400 hover:bg-[#222222] transition-colors"
+            className="bg-[#1a1a1a] border border-[#333333] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-gray-400 hover:bg-[#222222] transition-colors whitespace-nowrap"
           >
             + New chat
           </button>
@@ -531,16 +531,16 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-6 space-y-5">
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         {messages.length === 0 && (
           <div className="max-w-2xl mx-auto">
             {/* Welcome */}
-            <div className="text-center mb-8 pt-4">
-              <div className="w-12 h-12 bg-[#fd7325]/20 border border-[#fd7325]/30 rounded-2xl flex items-center justify-center mx-auto mb-4 font-serif text-[#fd7325] text-xl">HQ</div>
-              <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-2">
+            <div className="text-center mb-6 sm:mb-8 pt-2 sm:pt-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#fd7325]/20 border border-[#fd7325]/30 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 font-serif text-[#fd7325] text-lg sm:text-xl">HQ</div>
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-white uppercase tracking-wider mb-2">
                 {userName ? `Good morning, ${userName}` : 'Welcome to HQ.ai'}
               </h2>
-              <p className="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
                 {module === 'recruit'
                   ? 'I\'m your AI recruitment advisor. I\'ll help you write job ads, screen candidates, run reference checks, and shortlist the right people — faster.'
                   : 'I\'m your AI HR advisor. Ask me anything about employment law, awards, contracts, leave, or managing your team — and I\'ll give you a straight answer.'
@@ -549,13 +549,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             </div>
 
             {/* Quick actions */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               {quickActions.map((qa, i) => (
                 <button key={i} onClick={() => sendMessage(qa.prompt)}
-                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-4 hover:border-[#fd7325]/40 hover:bg-[#1a1a1a] transition-all group">
-                  <span className="text-xl block mb-2">{qa.icon}</span>
-                  <span className="text-sm font-bold text-white block mb-1">{qa.label}</span>
-                  <span className="text-xs text-gray-500">{qa.desc}</span>
+                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-3 sm:p-4 hover:border-[#fd7325]/40 hover:bg-[#1a1a1a] transition-all group">
+                  <span className="text-lg sm:text-xl block mb-1.5 sm:mb-2">{qa.icon}</span>
+                  <span className="text-sm font-bold text-white block mb-0.5 sm:mb-1">{qa.label}</span>
+                  <span className="text-[11px] sm:text-xs text-gray-500">{qa.desc}</span>
                 </button>
               ))}
             </div>
@@ -696,16 +696,16 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 px-6 pb-5 pt-3 border-t border-[#222222] bg-[#0a0a0a]">
-        <div className="flex items-end gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-4 py-3 focus-within:border-[#fd7325] transition-colors">
+      <div className="flex-shrink-0 px-3 sm:px-6 pb-4 sm:pb-5 pt-2.5 sm:pt-3 border-t border-[#222222] bg-[#0a0a0a] pb-safe">
+        <div className="flex items-end gap-2 sm:gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 focus-within:border-[#fd7325] transition-colors">
           <textarea
             ref={inputRef}
             value={input}
             onChange={autoResize}
             onKeyDown={handleKey}
             placeholder={module === 'recruit'
-              ? 'Ask about job ads, screening, candidates, offers…'
-              : 'Ask about awards, contracts, leave, performance, compliance…'
+              ? 'Ask about job ads, screening, candidates…'
+              : 'Ask about awards, contracts, leave, compliance…'
             }
             rows={1}
             className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none leading-relaxed max-h-[120px]"
@@ -720,13 +720,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             </svg>
           </button>
         </div>
-        <div className="flex items-center justify-center gap-3 mt-2">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2">
           <Link href="/dashboard/booking"
-            className="bg-[#fd7325] text-white rounded-lg px-3 py-1 text-xs font-bold hover:bg-[#e5671f] transition-colors">
+            className="bg-[#fd7325] text-white rounded-lg px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#e5671f] transition-colors">
             Talk to a HQ Partner
           </Link>
           <button
-            className="border border-[#333333] text-gray-400 rounded-lg px-3 py-1 text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
+            className="border border-[#333333] text-gray-400 rounded-lg px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
             Continue with {advisorName}
           </button>
         </div>

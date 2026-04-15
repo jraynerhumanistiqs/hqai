@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/sidebar/Sidebar'
+import MobileShell from '@/components/layout/MobileShell'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -23,17 +24,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const business = profile.businesses as any
 
+  const sidebarProps = {
+    userName: profile.full_name || '',
+    bizName: business?.name || 'My Business',
+    advisorName: business?.advisor_name || 'Hugo',
+    plan: business?.plan || 'free',
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#000000]">
-      <Sidebar
-        userName={profile.full_name || ''}
-        bizName={business?.name || 'My Business'}
-        advisorName={business?.advisor_name || 'Hugo'}
-        plan={business?.plan || 'free'}
-      />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </div>
-    </div>
+    <MobileShell sidebarProps={sidebarProps}>
+      {children}
+    </MobileShell>
   )
 }
