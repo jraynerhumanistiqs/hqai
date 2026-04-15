@@ -57,12 +57,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
     <aside className="w-[252px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8">
-        <div className="flex items-center gap-2.5 mb-1">
-          {/* TODO: Replace with uploaded logo image when available */}
-          <Image src="/logo.svg" alt="HQ.ai" width={32} height={32} className="rounded-lg" />
-          <span className="font-serif text-lg text-white tracking-tight">HQ.ai</span>
-        </div>
-        <p className="text-[10px] text-white/30 uppercase tracking-widest pl-[42px]">by Humanistiqs</p>
+        <Image src="/logo.svg" alt="HQ.ai" width={120} height={40} className="opacity-90" />
       </div>
 
       {/* Business pill */}
