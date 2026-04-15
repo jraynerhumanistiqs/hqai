@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
     const business = profile?.businesses as any
     const { messages, conversationId, module } = await req.json()
 
+    // Check if user is requesting a document — increase token limit for full docs
+    const lastUserMsg = messages[messages.length - 1]?.content || ''
+    const requestedDoc = detectDocumentRequest(lastUserMsg)
+
     const systemPrompt = buildSystemPrompt(module || 'people', {
       name: business?.name || 'Unknown',
       industry: business?.industry || 'General',
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
         try {
           const response = await anthropic.messages.create({
             model: 'claude-sonnet-4-20250514',
-            max_tokens: 1500,
+            max_tokens: requestedDoc ? 4096 : 1500,
             system: systemPrompt,
             messages: claudeMessages,
             stream: true,

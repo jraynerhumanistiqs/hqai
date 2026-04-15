@@ -79,17 +79,42 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [logoError, setLogoError] = useState('')
+
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !bizId) return
-    if (file.size > 2 * 1024 * 1024) { alert('File must be under 2MB'); return }
-    const ext = file.name.split('.').pop()
-    const path = `logos/${bizId}.${ext}`
-    const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
-    if (error) { console.error(error); return }
-    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
-    setLogoUrl(publicUrl)
-    await supabase.from('businesses').update({ logo_url: publicUrl }).eq('id', bizId)
+    if (file.size > 2 * 1024 * 1024) { setLogoError('File must be under 2MB'); return }
+    setLogoUploading(true)
+    setLogoError('')
+
+    try {
+      const ext = file.name.split('.').pop() || 'png'
+      const path = `${bizId}/logo.${ext}`
+
+      // Try uploading to the 'logos' bucket
+      const { error: uploadError } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+
+      if (uploadError) {
+        // If bucket doesn't exist, try the default 'public' bucket or show helpful error
+        if (uploadError.message?.includes('not found') || uploadError.message?.includes('Bucket')) {
+          setLogoError('Storage bucket "logos" not found. Please create a public bucket named "logos" in your Supabase dashboard (Storage → New bucket → name: logos, public: on).')
+          setLogoUploading(false)
+          return
+        }
+        setLogoError(`Upload failed: ${uploadError.message}`)
+        setLogoUploading(false)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+      setLogoUrl(publicUrl)
+      await supabase.from('businesses').update({ logo_url: publicUrl }).eq('id', bizId)
+    } catch (err: any) {
+      setLogoError(`Upload failed: ${err?.message || 'Unknown error'}`)
+    }
+    setLogoUploading(false)
   }
 
   async function openPortal() {
@@ -128,11 +153,14 @@ export default function SettingsPage() {
               )}
             </div>
             <div>
-              <label className="cursor-pointer bg-[#1a1a1a] border border-[#333333] rounded-lg px-4 py-2 text-sm font-bold text-white hover:bg-[#222222] transition-colors inline-block">
-                Upload logo
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              <label className={`cursor-pointer bg-[#1a1a1a] border border-[#333333] rounded-lg px-4 py-2 text-sm font-bold text-white hover:bg-[#222222] transition-colors inline-block ${logoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                {logoUploading ? 'Uploading…' : 'Upload logo'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={logoUploading} />
               </label>
               <p className="text-xs text-gray-500 mt-1">PNG or JPG, max 2MB</p>
+              {logoError && (
+                <p className="text-xs text-[#fd7325] mt-1">{logoError}</p>
+              )}
             </div>
           </div>
         </section>

@@ -320,14 +320,26 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 </>
               )}
 
-              {/* Document saved indicator */}
+              {/* Document saved indicator with download */}
               {msg.docType && savedDocId && msg.role === 'assistant' && (
-                <div className="mt-2 bg-[#fd7325]/10 border border-[#fd7325]/20 rounded-xl px-3.5 py-2.5 flex items-center gap-2.5">
-                  <span className="text-sm">✅</span>
-                  <p className="text-xs text-[#fd7325] flex-1">
-                    <strong>{msg.docType}</strong> saved to your documents library
-                  </p>
-                  <a href="/dashboard/documents" className="text-xs font-medium text-[#fd7325] hover:underline">View →</a>
+                <div className="mt-2 bg-[#fd7325]/10 border border-[#fd7325]/20 rounded-xl px-3.5 py-2.5">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className="text-sm">✅</span>
+                    <p className="text-xs text-[#fd7325] flex-1">
+                      <strong>{msg.docType}</strong> saved to your documents library
+                    </p>
+                  </div>
+                  <div className="flex gap-2 ml-6">
+                    <a href={`/api/documents/download?id=${savedDocId}`}
+                      download
+                      className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#e5671f] transition-colors inline-flex items-center gap-1">
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                      Download DOCX
+                    </a>
+                    <a href="/dashboard/documents" className="border border-[#333333] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                      View in library →
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
