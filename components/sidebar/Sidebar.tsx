@@ -44,7 +44,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
   }
 
   return (
-    <aside className="w-[252px] flex-shrink-0 bg-ink flex flex-col overflow-hidden">
+    <aside className="w-[252px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8">
         <div className="flex items-center gap-2.5 mb-1">
@@ -69,10 +69,10 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
 
       {/* Main nav */}
       <nav className="px-2 mt-2">
-        <p className="text-[10px] font-medium text-white/25 uppercase tracking-widest px-2 mb-1.5">Modules</p>
+        <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Modules</p>
         {NAV.map(({ href, label, icon: Icon, badge, exact }) => (
           <Link key={href} href={href}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all group
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all group
               ${isActive(href, exact)
                 ? 'bg-white/11 text-white'
                 : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -87,10 +87,10 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
 
       {/* Tools nav */}
       <nav className="px-2 mt-4">
-        <p className="text-[10px] font-medium text-white/25 uppercase tracking-widest px-2 mb-1.5">Tools</p>
+        <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Tools</p>
         {TOOLS.map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
               ${isActive(href)
                 ? 'bg-white/11 text-white'
                 : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>

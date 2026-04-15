@@ -36,22 +36,22 @@ export default async function DashboardHome() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto bg-[#000000]">
       <div className="max-w-4xl mx-auto px-6 py-10">
 
         {/* Welcome */}
         <div className="mb-10">
-          <h1 className="font-serif text-h2 text-black mb-1">
+          <h1 className="font-display text-h1 font-bold text-white uppercase tracking-wide">
             {greeting}, {firstName}
           </h1>
-          <p className="text-body text-mid">
+          <p className="text-body text-gray-400">
             Welcome to {business?.name || 'HQ.ai'} — here&apos;s what&apos;s happening.
           </p>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-10">
-          <h2 className="text-xs font-medium text-mid uppercase tracking-wider mb-3">Quick actions</h2>
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Quick actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <QuickAction
               href="/dashboard/people"
@@ -97,17 +97,17 @@ export default async function DashboardHome() {
 
           {/* Recent Conversations */}
           <div>
-            <h2 className="text-xs font-medium text-mid uppercase tracking-wider mb-3">Recent conversations</h2>
-            <div className="bg-white rounded-xl border border-border shadow-card">
+            <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent conversations</h2>
+            <div className="bg-[#111111] rounded-xl border border-[#222222]">
               {recentConvos && recentConvos.length > 0 ? (
-                <ul className="divide-y divide-border">
+                <ul className="divide-y divide-[#222222]">
                   {recentConvos.map((c: any) => (
-                    <li key={c.id} className="px-4 py-3 hover:bg-bg transition-colors">
+                    <li key={c.id} className="px-4 py-3 hover:bg-[#1a1a1a] transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-accent'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-black truncate">{c.title}</p>
-                          <p className="text-xs text-mid">
+                          <p className="text-sm font-medium text-white truncate">{c.title}</p>
+                          <p className="text-xs text-gray-500">
                             {c.module === 'recruit' ? 'HQ Recruit' : 'HQ People'} &middot; {formatDate(c.created_at)}
                           </p>
                         </div>
@@ -120,7 +120,7 @@ export default async function DashboardHome() {
                 </ul>
               ) : (
                 <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-mid">No conversations yet</p>
+                  <p className="text-sm text-gray-500">No conversations yet</p>
                   <Link href="/dashboard/people" className="text-sm text-accent font-medium hover:underline mt-1 inline-block">
                     Start your first chat
                   </Link>
@@ -131,19 +131,19 @@ export default async function DashboardHome() {
 
           {/* Recent Documents */}
           <div>
-            <h2 className="text-xs font-medium text-mid uppercase tracking-wider mb-3">Recent documents</h2>
-            <div className="bg-white rounded-xl border border-border shadow-card">
+            <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent documents</h2>
+            <div className="bg-[#111111] rounded-xl border border-[#222222]">
               {recentDocs && recentDocs.length > 0 ? (
-                <ul className="divide-y divide-border">
+                <ul className="divide-y divide-[#222222]">
                   {recentDocs.map((d: any) => (
-                    <li key={d.id} className="px-4 py-3 hover:bg-bg transition-colors">
+                    <li key={d.id} className="px-4 py-3 hover:bg-[#1a1a1a] transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-accent3 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
                           <DocsIcon />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-black truncate">{d.title}</p>
-                          <p className="text-xs text-mid">{d.type || 'Document'} &middot; {formatDate(d.created_at)}</p>
+                          <p className="text-sm font-medium text-white truncate">{d.title}</p>
+                          <p className="text-xs text-gray-500">{d.type || 'Document'} &middot; {formatDate(d.created_at)}</p>
                         </div>
                       </div>
                     </li>
@@ -151,8 +151,8 @@ export default async function DashboardHome() {
                 </ul>
               ) : (
                 <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-mid">No documents yet</p>
-                  <p className="text-xs text-mid mt-1">Documents are auto-saved when HQ generates them</p>
+                  <p className="text-sm text-gray-500">No documents yet</p>
+                  <p className="text-xs text-gray-600 mt-1">Documents are auto-saved when HQ generates them</p>
                 </div>
               )}
             </div>
@@ -160,8 +160,8 @@ export default async function DashboardHome() {
         </div>
 
         {/* Business Info Card */}
-        <div className="mt-8 bg-white rounded-xl border border-border shadow-card p-5">
-          <h2 className="text-xs font-medium text-mid uppercase tracking-wider mb-3">Your business</h2>
+        <div className="mt-8 bg-[#111111] rounded-xl border border-[#222222] p-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Your business</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <InfoItem label="Business" value={business?.name || '—'} />
             <InfoItem label="Industry" value={business?.industry || '—'} />
@@ -177,14 +177,14 @@ export default async function DashboardHome() {
 function QuickAction({ href, title, desc, icon }: { href: string; title: string; desc: string; icon: React.ReactNode }) {
   return (
     <Link href={href}
-      className="group bg-white rounded-xl border border-border shadow-card p-4 hover:shadow-float hover:-translate-y-0.5 transition-all">
+      className="group bg-[#111111] rounded-xl border border-[#222222] p-4 hover:border-accent/40 hover:-translate-y-0.5 transition-all">
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 bg-accent3 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-accent/10 transition-colors">
+        <div className="w-9 h-9 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-accent/30 transition-colors">
           {icon}
         </div>
         <div>
-          <p className="text-sm font-medium text-black">{title}</p>
-          <p className="text-xs text-mid mt-0.5">{desc}</p>
+          <p className="text-sm font-bold text-white">{title}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
         </div>
       </div>
     </Link>
@@ -194,8 +194,8 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-mid">{label}</p>
-      <p className="text-sm font-medium text-black mt-0.5">{value}</p>
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-sm font-medium text-white mt-0.5">{value}</p>
     </div>
   )
 }

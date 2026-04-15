@@ -66,31 +66,31 @@ export default function SettingsPage() {
 
   const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div>
-      <label className="block text-xs font-medium text-ink2 mb-1.5">{label}</label>
+      <label className="block text-xs font-bold text-gray-400 mb-1.5">{label}</label>
       {children}
     </div>
   )
 
-  const inputCls = "w-full px-3 py-2.5 bg-sand border border-sand3 rounded-lg text-sm text-ink placeholder-stone focus:outline-none focus:border-teal2 transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent transition-colors"
   const selectCls = inputCls + " appearance-none"
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-cream">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
       <div className="max-w-2xl mx-auto px-8 py-8">
-        <h1 className="font-serif text-2xl font-normal text-ink mb-1">Settings</h1>
-        <p className="text-sm text-ink3 mb-8">Update your business profile and advisor details</p>
+        <h1 className="font-display text-h1 font-bold text-white uppercase tracking-wide mb-1">Settings</h1>
+        <p className="text-sm text-gray-400 mb-8">Update your business profile and advisor details</p>
 
         {/* Personal */}
-        <section className="bg-cream border border-sand3 rounded-2xl p-6 mb-5">
-          <h2 className="font-medium text-ink mb-4">Your profile</h2>
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Your profile</h2>
           <Field label="Your name">
             <input className={inputCls} value={userName} onChange={e => setUserName(e.target.value)} placeholder="James Smith" />
           </Field>
         </section>
 
         {/* Business */}
-        <section className="bg-cream border border-sand3 rounded-2xl p-6 mb-5">
-          <h2 className="font-medium text-ink mb-4">Business details</h2>
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Business details</h2>
           <div className="space-y-4">
             <Field label="Business name">
               <input className={inputCls} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="My Business Pty Ltd" />
@@ -125,9 +125,9 @@ export default function SettingsPage() {
         </section>
 
         {/* Advisor */}
-        <section className="bg-cream border border-sand3 rounded-2xl p-6 mb-5">
-          <h2 className="font-medium text-ink mb-1">Advisor details</h2>
-          <p className="text-xs text-ink3 mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Advisor details</h2>
+          <p className="text-xs text-gray-500 mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Advisor name">
@@ -144,14 +144,14 @@ export default function SettingsPage() {
         </section>
 
         <button onClick={save} disabled={saving}
-          className="bg-teal hover:bg-teal2 text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
+          className="bg-accent hover:bg-accent2 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
           {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
 
         {/* Billing */}
-        <section className="bg-cream border border-sand3 rounded-2xl p-6 mt-5">
-          <h2 className="font-medium text-ink mb-1">Billing & subscription</h2>
-          <p className="text-xs text-ink3 mb-4">Manage your HQ.ai plan and payment method</p>
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mt-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Billing & subscription</h2>
+          <p className="text-xs text-gray-500 mb-4">Manage your HQ.ai plan and payment method</p>
 
           {searchParams.get('billing') === 'success' && (
             <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700 mb-4">
@@ -159,10 +159,10 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="bg-sand rounded-xl p-4 flex items-center justify-between mb-4">
+          <div className="bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm font-medium text-ink">{PLAN_DETAILS[plan]?.name || plan} plan</p>
-              <p className="text-xs text-ink3">
+              <p className="text-sm font-bold text-white">{PLAN_DETAILS[plan]?.name || plan} plan</p>
+              <p className="text-xs text-gray-500">
                 {subscriptionStatus === 'active' ? 'Active' :
                  subscriptionStatus === 'trialing' ? '14-day free trial' :
                  subscriptionStatus === 'cancelled' ? 'Cancelled' : subscriptionStatus}
@@ -171,12 +171,12 @@ export default function SettingsPage() {
             </div>
             {hasStripe ? (
               <button onClick={openPortal} disabled={billingLoading}
-                className="bg-ink hover:bg-charcoal text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+                className="bg-white hover:bg-gray-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading…' : 'Manage billing'}
               </button>
             ) : (
               <button onClick={openPortal} disabled={billingLoading}
-                className="bg-teal hover:bg-teal2 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+                className="bg-accent hover:bg-accent2 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading…' : 'Upgrade plan'}
               </button>
             )}
@@ -187,11 +187,11 @@ export default function SettingsPage() {
               {(['essentials', 'growth', 'scale'] as const).map(pid => {
                 const p = PLAN_DETAILS[pid]
                 return (
-                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-teal bg-teal/5' : 'border-sand3'}`}>
-                    <p className="text-sm font-medium text-ink">{p.name}</p>
-                    <p className="text-lg font-semibold text-ink mt-1">{p.price}</p>
-                    <p className="text-xs text-ink3 mt-1">{p.seats} seats</p>
-                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-ink text-white px-2 py-0.5 rounded-full">Popular</span>}
+                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-accent bg-accent/10' : 'border-[#333333]'}`}>
+                    <p className="text-sm font-bold text-white">{p.name}</p>
+                    <p className="text-lg font-bold text-white mt-1">{p.price}</p>
+                    <p className="text-xs text-gray-500 mt-1">{p.seats} seats</p>
+                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-accent text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
                   </div>
                 )
               })}

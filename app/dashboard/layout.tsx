@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const business = profile.businesses as any
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-[#000000]">
       <Sidebar
         userName={profile.full_name || ''}
         bizName={business?.name || 'My Business'}

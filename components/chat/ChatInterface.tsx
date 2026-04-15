@@ -187,18 +187,18 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : 'HR compliance & advisory'
 
   return (
-    <div className="flex flex-col h-full bg-cream">
+    <div className="flex flex-col h-full bg-[#000000]">
       {/* Topbar */}
-      <div className="flex items-center gap-4 px-6 py-3.5 border-b border-sand3 bg-cream flex-shrink-0">
+      <div className="flex items-center gap-4 px-6 py-3.5 border-b border-[#222222] bg-[#0a0a0a] flex-shrink-0">
         <div>
-          <h1 className="font-serif text-lg font-normal text-ink tracking-tight">{moduleLabel}</h1>
-          <p className="text-xs text-ink3">{moduleDesc}</p>
+          <h1 className="font-display text-lg font-bold text-white uppercase tracking-wider">{moduleLabel}</h1>
+          <p className="text-xs text-gray-500">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <div className="bg-sand2 border border-sand3 rounded-full px-3 py-1 text-xs font-medium text-ink2">{bizName}</div>
+          <div className="bg-[#1a1a1a] border border-[#333333] rounded-full px-3 py-1 text-xs font-bold text-gray-400">{bizName}</div>
           <button
             onClick={() => setMessages([])}
-            className="bg-sand2 border border-sand3 rounded-lg px-3 py-1.5 text-xs font-medium text-ink2 hover:bg-sand3 transition-colors"
+            className="bg-[#1a1a1a] border border-[#333333] rounded-lg px-3 py-1.5 text-xs font-bold text-gray-400 hover:bg-[#222222] transition-colors"
           >
             + New chat
           </button>
@@ -211,11 +211,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <div className="max-w-2xl mx-auto">
             {/* Welcome */}
             <div className="text-center mb-8 pt-4">
-              <div className="w-12 h-12 bg-teal3 border border-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-4 font-serif text-teal text-xl">HQ</div>
-              <h2 className="font-serif text-2xl font-normal text-ink mb-2">
+              <div className="w-12 h-12 bg-accent/20 border border-accent/30 rounded-2xl flex items-center justify-center mx-auto mb-4 font-serif text-accent text-xl">HQ</div>
+              <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-2">
                 {userName ? `Good morning, ${userName}` : 'Welcome to HQ.ai'}
               </h2>
-              <p className="text-sm text-ink3 max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
                 {module === 'recruit'
                   ? 'I\'m your AI recruitment advisor. I\'ll help you write job ads, screen candidates, run reference checks, and shortlist the right people — faster.'
                   : 'I\'m your AI HR advisor. Ask me anything about employment law, awards, contracts, leave, or managing your team — and I\'ll give you a straight answer.'
@@ -227,10 +227,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((qa, i) => (
                 <button key={i} onClick={() => sendMessage(qa.prompt)}
-                  className="text-left bg-cream border border-sand3 rounded-xl p-4 hover:border-teal2 hover:bg-teal3/30 transition-all group">
+                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-4 hover:border-accent/40 hover:bg-[#1a1a1a] transition-all group">
                   <span className="text-xl block mb-2">{qa.icon}</span>
-                  <span className="text-sm font-medium text-ink block mb-1">{qa.label}</span>
-                  <span className="text-xs text-ink3">{qa.desc}</span>
+                  <span className="text-sm font-bold text-white block mb-1">{qa.label}</span>
+                  <span className="text-xs text-gray-500">{qa.desc}</span>
                 </button>
               ))}
             </div>
@@ -240,23 +240,23 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-3 max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
             {/* Avatar */}
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-medium flex-shrink-0 mt-0.5
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5
               ${msg.role === 'user'
-                ? 'bg-sand2 text-ink2 border border-sand3'
-                : 'bg-teal3 text-teal font-serif text-base border border-teal/20'}`}>
+                ? 'bg-[#1a1a1a] text-gray-400 border border-[#333333]'
+                : 'bg-accent/20 text-accent font-serif text-base border border-accent/30'}`}>
               {msg.role === 'user' ? (userName?.[0]?.toUpperCase() || 'U') : 'HQ'}
             </div>
 
             <div className="flex-1">
-              <p className={`text-[11px] font-medium text-ink3 mb-1.5 ${msg.role === 'user' ? 'text-right' : ''}`}>
+              <p className={`text-[11px] font-bold text-gray-500 mb-1.5 ${msg.role === 'user' ? 'text-right' : ''}`}>
                 {msg.role === 'user' ? (userName || 'You') : `HQ · ${moduleLabel}`}
               </p>
 
               {/* Bubble */}
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
                 ${msg.role === 'user'
-                  ? 'bg-teal text-white rounded-tr-sm'
-                  : 'bg-sand border border-sand3 text-ink rounded-tl-sm'}`}>
+                  ? 'bg-accent text-white rounded-tr-sm'
+                  : 'bg-[#111111] border border-[#222222] text-gray-300 rounded-tl-sm'}`}>
                 <MessageContent content={msg.content} isUser={msg.role === 'user'} />
               </div>
 
@@ -300,11 +300,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex gap-3 max-w-3xl">
-            <div className="w-8 h-8 rounded-xl bg-teal3 border border-teal/20 flex items-center justify-center font-serif text-teal text-base flex-shrink-0">HQ</div>
-            <div className="bg-sand border border-sand3 rounded-2xl rounded-tl-sm px-4 py-3.5">
+            <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center font-serif text-accent text-base flex-shrink-0">HQ</div>
+            <div className="bg-[#111111] border border-[#222222] rounded-2xl rounded-tl-sm px-4 py-3.5">
               <div className="flex gap-1.5 items-center">
                 {[0, 1, 2].map(i => (
-                  <span key={i} className="w-1.5 h-1.5 bg-stone rounded-full animate-bounce"
+                  <span key={i} className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
@@ -315,8 +315,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 px-6 pb-5 pt-3 border-t border-sand3 bg-cream">
-        <div className="flex items-end gap-3 bg-sand border-[1.5px] border-sand3 rounded-2xl px-4 py-3 focus-within:border-teal2 transition-colors">
+      <div className="flex-shrink-0 px-6 pb-5 pt-3 border-t border-[#222222] bg-[#0a0a0a]">
+        <div className="flex items-end gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-4 py-3 focus-within:border-accent transition-colors">
           <textarea
             ref={inputRef}
             value={input}
@@ -327,47 +327,47 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               : 'Ask about awards, contracts, leave, performance, compliance…'
             }
             rows={1}
-            className="flex-1 bg-transparent text-sm text-ink placeholder-stone resize-none outline-none leading-relaxed max-h-[120px]"
+            className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none leading-relaxed max-h-[120px]"
           />
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="w-8 h-8 bg-teal rounded-xl flex items-center justify-center text-white flex-shrink-0 hover:bg-teal2 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+            className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center text-white flex-shrink-0 hover:bg-accent2 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
           >
             <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
             </svg>
           </button>
         </div>
-        <p className="text-[11px] text-stone text-center mt-2">
+        <p className="text-[11px] text-gray-600 text-center mt-2">
           HQ.ai provides guidance, not legal advice. Complex matters → speak with {advisorName} at Humanistiqs.
         </p>
       </div>
 
       {/* Advisor modal */}
       {showAdvisorModal && (
-        <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
-          <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-serif text-xl font-normal text-ink mb-2">Talk to {advisorName}</h3>
-            <p className="text-sm text-ink3 mb-4 leading-relaxed">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
+          <div className="bg-[#111111] border border-[#222222] rounded-2xl p-7 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-xl font-bold text-white uppercase tracking-wider mb-2">Talk to {advisorName}</h3>
+            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
               HQ.ai has prepared a summary of your conversation. {advisorName} will have full context before your call — no repeating yourself.
             </p>
-            <div className="bg-sand rounded-xl p-4 mb-4 text-sm text-ink2 leading-relaxed space-y-1">
-              <p><strong className="font-medium text-ink">Business:</strong> {bizName}</p>
-              <p><strong className="font-medium text-ink">Industry:</strong> {industry}</p>
-              <p><strong className="font-medium text-ink">State:</strong> {state}</p>
-              <p><strong className="font-medium text-ink">Award:</strong> {award || 'Not specified'}</p>
+            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4 text-sm text-gray-400 leading-relaxed space-y-1">
+              <p><strong className="font-bold text-white">Business:</strong> {bizName}</p>
+              <p><strong className="font-bold text-white">Industry:</strong> {industry}</p>
+              <p><strong className="font-bold text-white">State:</strong> {state}</p>
+              <p><strong className="font-bold text-white">Award:</strong> {award || 'Not specified'}</p>
               {messages.length > 0 && (
-                <p><strong className="font-medium text-ink">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
+                <p><strong className="font-bold text-white">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
               )}
             </div>
             <div className="flex gap-3">
               <button onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-sand2 hover:bg-sand3 text-ink2 rounded-xl text-sm font-medium border border-sand3 transition-colors">
+                className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-xl text-sm font-bold border border-[#333333] transition-colors">
                 Close
               </button>
               <a href="https://calendly.com" target="_blank" rel="noreferrer"
-                className="flex-1 py-2.5 bg-teal hover:bg-teal2 text-white rounded-xl text-sm font-medium text-center transition-colors"
+                className="flex-1 py-2.5 bg-accent hover:bg-accent2 text-white rounded-xl text-sm font-bold text-center transition-colors"
                 onClick={() => setShowAdvisorModal(false)}>
                 📅 Book a call
               </a>

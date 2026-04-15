@@ -30,8 +30,9 @@ const config: Config = {
         success:  '#3D8A5E',
       },
       fontFamily: {
-        sans:  ['DM Sans', 'sans-serif'],
-        serif: ['Fraunces', 'serif'],
+        sans:    ['DM Sans', 'sans-serif'],
+        serif:   ['Fraunces', 'serif'],
+        display: ['Bebas Neue', 'sans-serif'],
       },
       fontSize: {
         'display': ['48px', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
