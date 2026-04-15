@@ -16,24 +16,38 @@ export default async function DashboardHome() {
   const business = profile?.businesses as any
   const firstName = (profile?.full_name || '').split(' ')[0] || 'there'
 
-  // Fetch recent documents
-  const { data: recentDocs } = await supabase
-    .from('documents')
-    .select('id, title, type, created_at')
-    .eq('business_id', business?.id)
+  // Fetch recent conversations - use user.id fallback if business.id missing
+  const convoQuery = supabase
+    .from('conversations')
+    .select('id, title, module, created_at, escalated')
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // Fetch recent conversations
-  const { data: recentConvos } = await supabase
-    .from('conversations')
-    .select('id, title, module, created_at, escalated')
-    .eq('business_id', business?.id)
+  if (business?.id) {
+    convoQuery.eq('business_id', business.id)
+  } else {
+    convoQuery.eq('user_id', user.id)
+  }
+
+  const { data: recentConvos } = await convoQuery
+
+  // Fetch recent documents
+  const docQuery = supabase
+    .from('documents')
+    .select('id, title, type, created_at')
     .order('created_at', { ascending: false })
     .limit(5)
+
+  if (business?.id) {
+    docQuery.eq('business_id', business.id)
+  }
+
+  const { data: recentDocs } = await docQuery
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  const hasConversations = recentConvos && recentConvos.length > 0
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#000000]">
@@ -45,43 +59,25 @@ export default async function DashboardHome() {
             {greeting}, {firstName}
           </h1>
           <p className="text-body text-gray-400">
-            Welcome to {business?.name || 'HQ.ai'} — here&apos;s what&apos;s happening.
+            Welcome to {business?.name || 'HQ.ai'} - here&apos;s what&apos;s happening.
           </p>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — 3 only */}
         <div className="mb-10">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Quick actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <QuickAction
               href="/dashboard/people"
-              title="Ask HQ People"
+              title="HQ People"
               desc="HR advice, compliance, Fair Work guidance"
               icon={<PeopleIcon />}
             />
             <QuickAction
               href="/dashboard/recruit"
-              title="Ask HQ Recruit"
+              title="HQ Recruit"
               desc="Job ads, screening, interview questions"
               icon={<RecruitIcon />}
-            />
-            <QuickAction
-              href="/dashboard/documents"
-              title="View documents"
-              desc="Contracts, policies, and templates"
-              icon={<DocsIcon />}
-            />
-            <QuickAction
-              href="/dashboard/awards"
-              title="Award interpreter"
-              desc="Modern Award rates, entitlements, NES"
-              icon={<AwardIcon />}
-            />
-            <QuickAction
-              href="/dashboard/performance"
-              title="Performance tools"
-              desc="Reviews, PIPs, coaching frameworks"
-              icon={<PerfIcon />}
             />
             <QuickAction
               href="/dashboard/settings"
@@ -93,13 +89,13 @@ export default async function DashboardHome() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
 
           {/* Recent Conversations */}
           <div>
             <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent conversations</h2>
             <div className="bg-[#111111] rounded-xl border border-[#222222]">
-              {recentConvos && recentConvos.length > 0 ? (
+              {hasConversations ? (
                 <ul className="divide-y divide-[#222222]">
                   {recentConvos.map((c: any) => (
                     <li key={c.id} className="px-4 py-3 hover:bg-[#1a1a1a] transition-colors">
@@ -120,8 +116,9 @@ export default async function DashboardHome() {
                 </ul>
               ) : (
                 <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-gray-500">No conversations yet</p>
-                  <Link href="/dashboard/people" className="text-sm text-[#fd7325] font-medium hover:underline mt-1 inline-block">
+                  <p className="text-sm text-gray-500 mb-3">No conversations yet</p>
+                  <Link href="/dashboard/people"
+                    className="inline-block bg-[#fd7325] hover:bg-[#e5671f] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
                     Start your first chat
                   </Link>
                 </div>
@@ -159,16 +156,29 @@ export default async function DashboardHome() {
           </div>
         </div>
 
-        {/* Business Info Card */}
-        <div className="mt-8 bg-[#111111] rounded-xl border border-[#222222] p-5">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Your business</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <InfoItem label="Business" value={business?.name || '—'} />
-            <InfoItem label="Industry" value={business?.industry || '—'} />
-            <InfoItem label="State" value={business?.state || '—'} />
-            <InfoItem label="Employees" value={business?.headcount || '—'} />
+        {/* Recent News & Information */}
+        <div className="mb-10">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent applicable news &amp; information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <NewsCard
+              image="/news/fair-work-update.jpg"
+              title="Fair Work minimum wage increase — what it means for your business"
+              date="April 2026"
+            />
+            <NewsCard
+              image="/news/right-to-disconnect.jpg"
+              title="Right to Disconnect: 6 months on — compliance checklist for SMEs"
+              date="March 2026"
+            />
+            <NewsCard
+              image="/news/casual-conversion.jpg"
+              title="Casual conversion changes: updated obligations from 1 January 2026"
+              date="February 2026"
+            />
           </div>
+          <p className="text-xs text-gray-600 mt-3">Curated by your HQ.ai advisory team. Updated regularly.</p>
         </div>
+
       </div>
     </div>
   )
@@ -191,11 +201,21 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
   )
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-sm font-medium text-white mt-0.5">{value}</p>
+    <div className="bg-[#111111] rounded-xl border border-[#222222] overflow-hidden hover:border-[#333333] transition-colors group">
+      <div className="h-32 bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
+        <div className="w-full h-full bg-gradient-to-br from-[#fd7325]/20 to-[#fd7325]/5 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#fd7325]/40" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>
+            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z"/>
+          </svg>
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="text-xs text-gray-500 mb-1">{date}</p>
+        <p className="text-sm font-medium text-white leading-snug line-clamp-2">{title}</p>
+      </div>
     </div>
   )
 }
@@ -228,16 +248,6 @@ function RecruitIcon() {
 function DocsIcon() {
   return <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-  </svg>
-}
-function AwardIcon() {
-  return <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clipRule="evenodd"/>
-  </svg>
-}
-function PerfIcon() {
-  return <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
   </svg>
 }
 function SettingsIcon() {

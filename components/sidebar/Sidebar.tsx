@@ -12,23 +12,16 @@ interface SidebarProps {
   plan: string
 }
 
-const NAV = [
-  { href: '/dashboard', label: 'Home', icon: HomeIcon, exact: true },
-  { href: '/dashboard/people', label: 'HQ People', icon: PeopleIcon },
-  { href: '/dashboard/recruit', label: 'HQ Recruit', icon: RecruitIcon },
-]
-
-const TOOLS = [
-  { href: '/dashboard/awards', label: 'Award Interpreter', icon: AwardIcon },
-  { href: '/dashboard/performance', label: 'Performance', icon: PerfIcon },
-  { href: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
-]
-
 export default function Sidebar({ userName, bizName, advisorName, plan }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [peopleOpen, setPeopleOpen] = useState(false)
+  const [recruitOpen, setRecruitOpen] = useState(false)
   const [docsOpen, setDocsOpen] = useState(false)
+  const [complianceOpen, setComplianceOpen] = useState(false)
+  const [leadershipOpen, setLeadershipOpen] = useState(false)
+  const [recruitmentToolsOpen, setRecruitmentToolsOpen] = useState(false)
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
 
   async function signOut() {
@@ -73,31 +66,80 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
         </div>
       </div>
 
-      {/* Main nav */}
-      <nav className="px-2 mt-2">
+      {/* Scrollable nav area */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2">
+        {/* Modules */}
         <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Modules</p>
-        {NAV.map(({ href, label, icon: Icon, exact }) => (
-          <Link key={href} href={href}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all group
-              ${isActive(href, exact)
-                ? 'bg-white/11 text-white'
-                : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-            <Icon active={isActive(href, exact)} />
-            <span className="flex-1">{label}</span>
-          </Link>
-        ))}
+
+        {/* Home */}
+        <Link href="/dashboard"
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all group
+            ${isActive('/dashboard', true)
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <HomeIcon active={isActive('/dashboard', true)} />
+          <span className="flex-1">Home</span>
+        </Link>
+
+        {/* HQ People dropdown */}
+        <button onClick={() => setPeopleOpen(!peopleOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/people') || isActive('/dashboard/templates')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <PeopleIcon active={isActive('/dashboard/people')} />
+          <span className="flex-1 text-left">HQ People</span>
+          <ChevronIcon open={peopleOpen} />
+        </button>
+        {peopleOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/people"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/people') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Chat with {advisorName || 'HQ'}
+            </Link>
+            <Link href="/dashboard/templates"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              HR Templates
+            </Link>
+          </div>
+        )}
+
+        {/* HQ Recruit dropdown */}
+        <button onClick={() => setRecruitOpen(!recruitOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/recruit')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <RecruitIcon active={isActive('/dashboard/recruit')} />
+          <span className="flex-1 text-left">HQ Recruit</span>
+          <ChevronIcon open={recruitOpen} />
+        </button>
+        {recruitOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/recruit"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/recruit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Chat with {advisorName || 'HQ'}
+            </Link>
+            <Link href="/dashboard/recruit/campaigns"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/recruit/campaigns') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Campaigns
+            </Link>
+          </div>
+        )}
 
         {/* Documents dropdown */}
         <button onClick={() => setDocsOpen(!docsOpen)}
           className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
-            ${isActive('/dashboard/documents') || isActive('/dashboard/templates')
+            ${isActive('/dashboard/documents')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <DocsIcon active={isActive('/dashboard/documents') || isActive('/dashboard/templates')} />
+          <DocsIcon active={isActive('/dashboard/documents')} />
           <span className="flex-1 text-left">Documents</span>
-          <svg className={`w-3 h-3 transition-transform ${docsOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-          </svg>
+          <ChevronIcon open={docsOpen} />
         </button>
         {docsOpen && (
           <div className="ml-6 space-y-0.5">
@@ -105,49 +147,123 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
                 ${isActive('/dashboard/documents') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               <span>My Documents</span>
-              <span className="relative group ml-auto">
-                <svg className="w-3.5 h-3.5 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                </svg>
-                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                  Documents your HQ.ai Advisor has created in chat
-                </span>
-              </span>
+              <InfoTooltip text="Documents your HQ.ai Advisor has created in chat" />
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
                 ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               <span>Templates</span>
-              <span className="relative group ml-auto">
-                <svg className="w-3.5 h-3.5 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                </svg>
-                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                  Best practice templates curated by HQ.ai experts (subscribers only)
-                </span>
-              </span>
+              <InfoTooltip text="Best practice templates curated by HQ.ai experts (subscribers only)" />
             </Link>
           </div>
         )}
-      </nav>
 
-      {/* Tools nav */}
-      <nav className="px-2 mt-4">
-        <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Tools</p>
-        {TOOLS.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href}
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
-              ${isActive(href)
-                ? 'bg-white/11 text-white'
-                : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-            <Icon active={isActive(href)} />
-            <span>{label}</span>
-          </Link>
-        ))}
-      </nav>
+        {/* Tools — 3 categories */}
+        <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 mt-4 font-display">Tools</p>
+
+        {/* Compliance */}
+        <button onClick={() => setComplianceOpen(!complianceOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
+          <span className="flex-1 text-left">Compliance</span>
+          <ChevronIcon open={complianceOpen} />
+        </button>
+        {complianceOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/compliance/assessment"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/compliance/assessment') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Workplace Compliance Assessment
+            </Link>
+            <Link href="/dashboard/compliance/audit"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Workplace Compliance Audit
+            </Link>
+            <Link href="/dashboard/awards"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Award Interpreter
+            </Link>
+          </div>
+        )}
+
+        {/* Leadership */}
+        <button onClick={() => setLeadershipOpen(!leadershipOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
+          <span className="flex-1 text-left">Leadership</span>
+          <ChevronIcon open={leadershipOpen} />
+        </button>
+        {leadershipOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/performance"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Performance Management
+            </Link>
+            <Link href="/dashboard/leadership/development"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Performance Development
+            </Link>
+            <Link href="/dashboard/leadership/coaching"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Coaching
+            </Link>
+          </div>
+        )}
+
+        {/* Recruitment Tools */}
+        <button onClick={() => setRecruitmentToolsOpen(!recruitmentToolsOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/recruitment-tools')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <SearchIcon active={isActive('/dashboard/recruitment-tools')} />
+          <span className="flex-1 text-left">Recruitment</span>
+          <ChevronIcon open={recruitmentToolsOpen} />
+        </button>
+        {recruitmentToolsOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/recruitment-tools/shortlist"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/recruitment-tools/shortlist') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Shortlist Agent
+            </Link>
+            <Link href="/dashboard/recruitment-tools/screening"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/recruitment-tools/screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Candidate Screening
+            </Link>
+            <Link href="/dashboard/recruitment-tools/campaign-coach"
+              className={`block px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/recruitment-tools/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Campaign Coach
+            </Link>
+          </div>
+        )}
+
+        {/* Settings */}
+        <Link href="/dashboard/settings"
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all mt-2
+            ${isActive('/dashboard/settings')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <SettingsIcon active={isActive('/dashboard/settings')} />
+          <span>Settings</span>
+        </Link>
+      </div>
 
       {/* Footer */}
-      <div className="mt-auto px-3 pb-4 space-y-2">
+      <div className="px-3 pb-4 space-y-2 flex-shrink-0">
         {/* Advisor card */}
         <div className="bg-[#111111] border border-[#222222] rounded-xl p-3">
           <p className="text-[10px] text-[#fd7325] font-bold uppercase tracking-wider mb-2">Your HQ.ai Advisor</p>
@@ -208,6 +324,28 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
   )
 }
 
+// Reusable tooltip that positions below instead of left (prevents cut-off)
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <span className="relative group ml-auto">
+      <svg className="w-3.5 h-3.5 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+      </svg>
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+        {text}
+      </span>
+    </span>
+  )
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+    </svg>
+  )
+}
+
 // Icons
 function HomeIcon({ active }: { active: boolean }) {
   return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
@@ -229,14 +367,19 @@ function DocsIcon({ active }: { active: boolean }) {
     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
   </svg>
 }
-function AwardIcon({ active }: { active: boolean }) {
+function ShieldIcon({ active }: { active: boolean }) {
   return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clipRule="evenodd"/>
+    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
   </svg>
 }
-function PerfIcon({ active }: { active: boolean }) {
+function LeaderIcon({ active }: { active: boolean }) {
   return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+  </svg>
+}
+function SearchIcon({ active }: { active: boolean }) {
+  return <svg className={`w-4 h-4 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
   </svg>
 }
 function SettingsIcon({ active }: { active: boolean }) {
