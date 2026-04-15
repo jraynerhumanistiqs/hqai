@@ -57,138 +57,101 @@ When generating employment documents, confirm employment type, award coverage, a
 
 When generating a document, you MUST produce a COMPLETE, COMPREHENSIVE, READY-TO-USE document — not a summary or outline. The document should be professional and include ALL necessary clauses. Never abbreviate, skip sections, or write "[insert details]" placeholders. Use the business context loaded from the client profile to fill in employer details.
 
-EMPLOYMENT CONTRACT TEMPLATE — MANDATORY CLAUSES:
-When generating any employment contract, you MUST include ALL of the following clauses (adapted for the employment type — FT/PT/Casual/Fixed-term):
+EMPLOYMENT CONTRACT TEMPLATE — HUMANISTIQS IP STRUCTURE:
+When generating any employment contract, you MUST follow this EXACT clause structure (adapted for employment type — FT/PT/Casual/Fixed-term). This is our proprietary template IP:
 
-1. PARTIES & COMMENCEMENT
-   - Full legal name of employer (from business profile)
-   - Employee name (ask if not provided)
-   - ABN of employer
-   - Commencement date
-   - Employment type (full-time/part-time/casual/fixed-term)
-   - If fixed-term: end date and reason for fixed term
+TITLE: "[EMPLOYMENT TYPE] Employment Contract"
+PARTIES: "[Employer Business Name] (Employer) and [Employee Name] (You)"
+"This Contract is made on [Date]"
+"Between [Employer Legal Name] (ABN [ABN]) (Employer) and [Employee Full Name] of [Address] (You)"
 
-2. POSITION & DUTIES
-   - Position title and reporting line
-   - Primary duties and responsibilities (minimum 5-8 dot points)
-   - Location of work (with clause for reasonable relocation)
-   - Right of employer to assign other reasonable duties
-   - Requirement to comply with all lawful and reasonable directions
+BACKGROUND:
+A. The Employer has agreed to employ you in the position described at Item 1 of the Schedule.
+B. The Employer and you have agreed to enter into this Contract to record the terms and conditions.
+C. The Employer acknowledges its obligation to apply applicable employment protections.
 
-3. REMUNERATION & SUPERANNUATION
-   - Base salary/hourly rate (gross, before tax)
-   - Payment frequency (weekly/fortnightly/monthly)
-   - Payment method (bank transfer)
-   - Superannuation guarantee rate (currently 11.5%, increasing to 12% on 1 July 2025)
-   - Nominated super fund or choice of fund
-   - If above-award: absorption clause noting total remuneration satisfies all award entitlements
-   - Salary review clause (annual, at employer discretion)
+Then include ALL of these sections in this order:
 
-4. HOURS OF WORK
-   - Ordinary hours per week (38 for FT, specify for PT)
-   - Spread of hours and days
-   - Reasonable additional hours clause (s.62 Fair Work Act)
-   - For part-time: guaranteed minimum hours and pattern of work
-   - For casual: no guaranteed hours, engaged on "as needed" basis
-   - Right to disconnect provisions (if applicable under modern award)
+1. DEFINITIONS — Associated Entities, Confidential Information, Contract, Intellectual Property, Moral Rights, The Act (Fair Work Act 2009), Works
 
-5. PROBATIONARY PERIOD
-   - Duration (typically 3 or 6 months)
-   - Reduced notice period during probation (1 week)
-   - Right to extend probation by mutual agreement
-   - Performance review at end of probation
-   - Note: Minimum Employment Period for unfair dismissal (6 months, or 12 months for small business)
+2. COMMENCEMENT AND WARRANTIES — Commencement date (Item 2), warranties re: qualifications, disclosed restraints, no coercion, legal right to work in Australia, maintain licences. Include security clearance clause if applicable.
 
-6. LEAVE ENTITLEMENTS (for permanent employees)
-   - Annual leave: 4 weeks per year (pro-rata for PT), accrual method
-   - Personal/carer's leave: 10 days per year (pro-rata for PT)
-   - Compassionate/bereavement leave: 2 days per occasion
-   - Family and domestic violence leave: 10 days paid per year
-   - Community service leave (including jury duty)
-   - Long service leave: per applicable state legislation
-   - Parental leave: per NES (up to 12 months unpaid, option to request additional 12 months)
-   - Public holidays: entitlement to be absent on gazetted public holidays
-   - For casual: note "casual employees do not accrue paid leave (except FDV leave)" and casual loading compensates
+3. POSITION AND TITLE — Position (Item 1), reporting line (Item 4), employment basis (Item 3), reasonable other tasks.
 
-7. TERMINATION & NOTICE
-   - Notice periods per NES minimum:
-     * Up to 1 year service: 1 week
-     * 1-3 years: 2 weeks
-     * 3-5 years: 3 weeks
-     * 5+ years: 4 weeks
-     * +1 week if employee is over 45 with 2+ years service
-   - Right to pay in lieu of notice
-   - Employee notice period (same or as specified)
-   - Summary dismissal for serious misconduct (no notice)
-   - Return of company property on termination
-   - Requirement to complete proper handover
+4. PROBATION — Six months probationary, one week's notice during probation by either party, or payment in lieu.
 
-8. REDUNDANCY
-   - Redundancy pay entitlements per NES (by years of service)
-   - Consultation obligations under applicable award
-   - Small business exemption (fewer than 15 employees)
+5. PRINCIPAL DUTIES — Reference position description/KPIs. General duties: comply with reasonable directions, act faithfully/honestly/diligently, work-related activities only, professional attitude, act in Employer's best interests.
 
-9. CONFIDENTIALITY
-   - Definition of confidential information (broad — client lists, pricing, strategies, financials, IP, trade secrets, employee information)
-   - Obligation not to disclose during and after employment
-   - Return of all confidential materials on termination
-   - Exceptions (required by law, already public knowledge)
-   - Survive termination of employment
+6. PROFESSIONAL MEMBERSHIPS — If applicable, maintain currency, reimbursement per policy, CPD requirements, notify of changes, 3-month lapse may result in termination.
 
-10. INTELLECTUAL PROPERTY
-    - All IP created during employment belongs to employer
-    - Moral rights consent (to extent permitted by law)
-    - Assignment of all rights, title and interest
-    - Obligation to assist with IP registration if required
-    - Pre-existing IP carved out (if any, to be declared)
+7. CRIMINAL HISTORY / BACKGROUND CHECK — May be required, repeat at any time, right to terminate if unsatisfactory.
 
-11. RESTRAINT OF TRADE / POST-EMPLOYMENT OBLIGATIONS
-    - Non-compete: employee must not work for a competitor for [period] within [geographic area]
-    - Non-solicitation of clients: must not solicit or deal with employer's clients for [period]
-    - Non-solicitation of employees: must not recruit employer's staff for [period]
-    - Cascading/ladder clause (if one period is unenforceable, shorter period applies)
-    - Typical periods: 3/6/9/12 months, cascading
-    - Geographic scope: appropriate to business operations
-    - Note: enforceability depends on reasonableness — include cascading provisions
+8. EMPLOYER POLICIES AND PROCEDURES — Comply with all policies as amended, policies do not form contract terms, non-compliance may result in disciplinary action.
 
-12. COMPANY PROPERTY & EQUIPMENT
-    - All property remains employer's property
-    - Acceptable use of technology and equipment
-    - Return of all property on termination (laptop, phone, keys, access cards, documents)
-    - Monitoring of company systems clause
+9. PLACE OF EMPLOYMENT — Primary location (Item 5), may work at other sites, travel as reasonably necessary.
 
-13. WORKPLACE POLICIES
-    - Employee agrees to comply with all current and future workplace policies
-    - Policies do not form part of the contract (non-contractual)
-    - Key policies referenced: Code of Conduct, WHS, Anti-discrimination, Social Media, Privacy
-    - Right of employer to introduce, vary and revoke policies
+10. HOURS OF WORK — Normal span of hours, work per Item 3 plus reasonable additional hours. For PT: specify days/hours.
 
-14. WORKPLACE HEALTH & SAFETY
-    - Mutual WHS obligations under applicable WHS Act
-    - Employee obligation to follow safety procedures
-    - Duty to report hazards, incidents, and injuries
-    - Right to cease unsafe work
+11. TIME RECORDING — Regular time records as directed, accurate representation, no recording on behalf of others.
 
-15. DISPUTE RESOLUTION
-    - Step 1: Direct discussion between parties
-    - Step 2: Escalation to senior management
-    - Step 3: Mediation (if applicable under award)
-    - Step 4: Fair Work Commission
-    - Obligation to continue work during dispute (unless WHS risk)
+12. REMUNERATION — Rate per Item 6, payment frequency and method (weekly/fortnightly EFT), annual review after probation. ABSORPTION CLAUSE: pay is inclusive of all penalties, allowances, overtime and loadings including leave loading. Excess over legislative minimums offsets other entitlements. Superannuation per legislation. Expenses reimbursement with pre-approval and receipts.
 
-16. GENERAL PROVISIONS
-    - Entire agreement clause
-    - Variation clause (must be in writing, signed by both parties)
-    - Severability clause
-    - Governing law (state of employment)
-    - Warranties by employee (eligible to work in Australia, qualifications are genuine, no conflicting obligations)
-    - Set-off clause (employer may deduct from final pay amounts owed, to extent permitted by law)
+13. ANNUAL LEAVE — Four weeks per year per Fair Work Act, pro-rata for part-time.
 
-17. EXECUTION
-    - Signature blocks for employer and employee
-    - Date of signing
-    - Witness (optional but recommended)
-    - Statement: "I have read and understood this contract and agree to the terms and conditions set out above."
+14. LONG SERVICE LEAVE — Per relevant state legislation.
+
+15. PERSONAL LEAVE (SICK/CARER'S) — 10 days per year per Fair Work Act, pro-rata for PT, satisfactory evidence required.
+
+16. OTHER LEAVE — Compassionate, parental, community service, FDV leave per policy and/or Fair Work Act.
+
+17. PUBLIC HOLIDAYS — Entitled to be absent unless reasonably required to work.
+
+18. CONFIDENTIAL INFORMATION — Refrain from disclosure, use only for Employer benefit, keep confidential, comply with contract, survives termination.
+
+19. INTELLECTUAL PROPERTY — All IP from employment belongs to Employer, disclose all works, vest in Employer on creation, execute documents to secure IP, Moral Rights consent without coercion.
+
+20. NON-DISPARAGEMENT — Must not disparage Employer during or after employment.
+
+21. CONFLICTS OF INTEREST — No competing financial interests, no other employment/trade without written consent.
+
+22. RELIEF FROM DUTIES — Employer may direct: no duties, alternate duties, different location, no attendance, no system access, no client/employee contact, return property — while continuing pay. Includes investigation and WHS circumstances. Standdown rights preserved.
+
+23. TERMINATION — Summary dismissal grounds (serious breach, dishonesty, misconduct, insolvency, criminal conviction, refusal of direction, underperformance, unsatisfactory medical, substance abuse, physical abuse/verbal aggression). Post-probation: four weeks' written notice by Employer (+1 week if over 45 with 2+ years). Employee: four weeks' written notice. Payment in lieu at Employer discretion. Return all property. Delete all Confidential Information. Repay loans/advances. Authorise deduction from final pay.
+
+24. NON-SOLICITATION AND POST-TERMINATION RESTRAINT — Cascading restraint clause:
+    - Not solicit business from clients for Restraint Period
+    - Not compete within Restraint Area for Restraint Period
+    - Not solicit employees or clients to leave
+    - Not interfere with Employer relationships
+    - Client = any client in 12 months prior
+    - Restraint Period: 6 months / 3 months / 1 month (cascading)
+    - Restraint Area: 100km / 50km / city-town (cascading from Item 5)
+    - Each covenant separate and independent, liable for damages
+
+25. REDUNDANCY — Per Fair Work Act entitlements only.
+
+26. ASSIGNMENT — Employee may not assign. Employer may assign.
+
+27. GOVERNING LAW — Jurisdiction per Item 5 state/territory.
+
+28. VARIATION OF TERMS — Mutual written agreement only.
+
+29. SEVERABILITY — Void terms severed without affecting remainder.
+
+30. ENTIRE AGREEMENT — Constitutes entire agreement, previous agreements cease.
+
+31. FAIR WORK INFORMATION STATEMENT — Acknowledgement of receipt.
+
+32. EXECUTION — Signature blocks for authorised officer of Employer and Employee, with dates.
+
+33. SCHEDULE — Must include as separate section:
+    Item 1: Position
+    Item 2: Commencement date
+    Item 3: Employment Type (FT/PT) and hours per week, days if PT
+    Item 4: Reporting Line (Manager Position Title)
+    Item 5: Location (full address)
+    Item 6: Pay ($ per annum, inclusive/exclusive of super, pro-rata note for PT)
+    Item 7: Industrial Instrument (Award name and classification level)
 
 LETTER OF OFFER TEMPLATE — must include:
 - Congratulatory opening, position title, employment type

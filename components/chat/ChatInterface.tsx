@@ -299,31 +299,93 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setSavedDocId(data.id)
   }
 
-  // Handle form submission — builds structured prompt and sends to AI
+  // Handle form submission — generate DOCX backend-side and deliver download
   const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
     setActiveForm(null)
 
-    // Build a detailed prompt from the form data
-    const formDef = DOC_FORMS[docType]
-    let prompt = `Please generate a complete ${docType} with the following details:\n\n`
-    for (const field of formDef.fields) {
-      const val = formData[field.key]
-      if (val && val.trim()) {
-        prompt += `**${field.label}:** ${val}\n`
-      }
-    }
-    prompt += `\nPlease generate the FULL, COMPLETE ${docType} document — every clause, every section. Do not abbreviate or summarise. Use my business details from the profile.`
-
-    // Mark form as completed in messages
+    // Mark form as completed
     setMessages(prev => prev.map(m =>
       m.formType === docType && !m.formCompleted
         ? { ...m, formCompleted: true }
         : m
     ))
 
-    // Send as a regular message
-    await sendMessageDirect(prompt)
-  }, [])
+    // Add a "generating" message
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `Generating your **${docType}** as a Word document. This may take a moment...`,
+      docType: null,
+    }])
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/documents/contract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formData, docType }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Generation failed' }))
+        throw new Error(err.error || 'Generation failed')
+      }
+
+      // Download the DOCX blob
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const filename = `${docType.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
+
+      // Trigger download
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+
+      // Update message to show success with re-download option
+      setMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = {
+          role: 'assistant',
+          content: `Your **${docType}** has been generated and downloaded as a Word document. It's also been saved to your documents library.\n\nThe document includes your company logo and all required clauses tailored to your business. Please review it carefully and make any necessary adjustments before issuing to the employee.`,
+          docType: docType,
+        }
+        return updated
+      })
+
+      // Clean up
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+      setSavedDocId('generated') // Flag for UI
+
+    } catch (err: any) {
+      setMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = {
+          role: 'assistant',
+          content: `I wasn't able to generate the document: ${err.message}. Let me try creating it here in chat instead.`,
+        }
+        return updated
+      })
+
+      // Fallback to chat-based generation
+      const formDef = DOC_FORMS[docType]
+      let prompt = `Please generate a complete ${docType} with the following details:\n\n`
+      if (formDef) {
+        for (const field of formDef.fields) {
+          const val = formData[field.key]
+          if (val && val.trim()) {
+            prompt += `**${field.label}:** ${val}\n`
+          }
+        }
+      }
+      prompt += `\nGenerate the FULL, COMPLETE document. Do not abbreviate.`
+      await sendMessageDirect(prompt)
+      return
+    }
+
+    setIsLoading(false)
+  }, [sendMessageDirect])
 
   // Direct message send (no form interception)
   const sendMessageDirect = useCallback(async (content: string) => {
