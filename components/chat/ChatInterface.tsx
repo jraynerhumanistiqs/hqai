@@ -130,22 +130,95 @@ const DOC_FORMS: Record<string, { title: string; description: string; fields: Fo
   },
 }
 
-// Client-side document request detection (mirrors server-side detectDocumentRequest)
+// Client-side document request detection — broad matching with regex
 function detectDocType(text: string): string | null {
-  const docs: [string[], string][] = [
-    [['employment contract', 'contract of employment', 'generate a contract', 'create a contract', 'draft a contract', 'need a contract'], 'Employment Contract'],
-    [['letter of offer', 'offer letter', 'generate an offer', 'create an offer'], 'Letter of Offer'],
-    [['job advertisement', 'job ad', 'job advert', 'write a job ad', 'create a job ad'], 'Job Advertisement'],
-    [['warning letter', 'first warning', 'final warning', 'written warning', 'generate a warning'], 'Warning Letter'],
-    [['performance improvement plan', 'pip', 'create a pip'], 'Performance Improvement Plan'],
-    [['contract variation', 'variation letter', 'vary the contract'], 'Contract Variation Letter'],
-    [['reference check'], 'Reference Check Template'],
-    [['screening questions'], 'Candidate Screening Questions'],
-  ]
   const lower = text.toLowerCase()
-  for (const [keywords, docType] of docs) {
-    if (keywords.some(k => lower.includes(k))) return docType
+
+  // Each entry: [regex patterns, exact phrases, docType]
+  const docs: { patterns: RegExp[]; keywords: string[]; type: string }[] = [
+    {
+      type: 'Employment Contract',
+      keywords: ['employment contract', 'contract of employment'],
+      patterns: [
+        /\bcontract\b/i, // any mention of "contract" (most common request)
+        /\bemployment\s+agreement\b/i,
+      ],
+    },
+    {
+      type: 'Letter of Offer',
+      keywords: ['letter of offer', 'offer letter'],
+      patterns: [
+        /\boffer\s+(letter|template)\b/i,
+        /\b(write|create|generate|draft|make|prepare|send)\b.*\boffer\b/i,
+      ],
+    },
+    {
+      type: 'Job Advertisement',
+      keywords: ['job advertisement', 'job ad', 'job advert', 'job posting', 'job listing'],
+      patterns: [
+        /\bjob\s+(ad|advertisement|advert|posting|listing)\b/i,
+        /\b(write|create|generate|draft|make)\b.*\b(ad|advertisement|posting)\b.*\b(role|position|job)\b/i,
+        /\b(advertise|post)\b.*\b(role|position|job|vacancy)\b/i,
+      ],
+    },
+    {
+      type: 'Warning Letter',
+      keywords: ['warning letter', 'first warning', 'final warning', 'written warning', 'formal warning'],
+      patterns: [
+        /\bwarning\b/i,
+        /\bdisciplin/i,
+      ],
+    },
+    {
+      type: 'Performance Improvement Plan',
+      keywords: ['performance improvement plan', 'pip'],
+      patterns: [
+        /\bpip\b/i,
+        /\bperformance\s+(improvement|management)\s+plan\b/i,
+        /\b(create|generate|draft|write|make|prepare)\b.*\bpip\b/i,
+      ],
+    },
+    {
+      type: 'Contract Variation Letter',
+      keywords: ['contract variation', 'variation letter'],
+      patterns: [
+        /\bvari(ation|y)\b.*\b(contract|letter|terms)\b/i,
+        /\b(change|update|amend|modify)\b.*\bcontract\b/i,
+      ],
+    },
+    {
+      type: 'Reference Check Template',
+      keywords: ['reference check', 'referee check'],
+      patterns: [
+        /\breference\s+(check|template|questions)\b/i,
+        /\breferee\b/i,
+      ],
+    },
+    {
+      type: 'Candidate Screening Questions',
+      keywords: ['screening questions', 'screening template'],
+      patterns: [
+        /\bscreening\s+(question|template)\b/i,
+        /\bcandidate\s+screen/i,
+      ],
+    },
+  ]
+
+  // Priority: check variation BEFORE contract (since "change contract" should be variation not contract)
+  // Check exact keywords first (high confidence)
+  for (const doc of docs) {
+    if (doc.keywords.some(k => lower.includes(k))) return doc.type
   }
+
+  // Then check regex patterns — but for "contract" specifically, disambiguate
+  // If user mentions "vary/change/amend contract", it's a variation not a new contract
+  const isVariation = /\b(vary|change|amend|modify|update)\b.*\bcontract\b/i.test(lower)
+  if (isVariation) return 'Contract Variation Letter'
+
+  for (const doc of docs) {
+    if (doc.patterns.some(p => p.test(lower))) return doc.type
+  }
+
   return null
 }
 
