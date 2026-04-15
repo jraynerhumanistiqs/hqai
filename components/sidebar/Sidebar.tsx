@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -13,9 +14,8 @@ interface SidebarProps {
 
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: HomeIcon, exact: true },
-  { href: '/dashboard/people', label: 'HQ People', icon: PeopleIcon, badge: 'HR' },
+  { href: '/dashboard/people', label: 'HQ People', icon: PeopleIcon },
   { href: '/dashboard/recruit', label: 'HQ Recruit', icon: RecruitIcon },
-  { href: '/dashboard/documents', label: 'Documents', icon: DocsIcon },
 ]
 
 const TOOLS = [
@@ -28,6 +28,8 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [docsOpen, setDocsOpen] = useState(false)
+  const [showPartnerPopup, setShowPartnerPopup] = useState(false)
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -43,12 +45,21 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
     essentials: 'Essentials', growth: 'Growth', scale: 'Scale'
   }
 
+  function handleContactPartner() {
+    if (plan === 'free') {
+      setShowPartnerPopup(true)
+    } else {
+      router.push('/dashboard/booking')
+    }
+  }
+
   return (
     <aside className="w-[252px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="w-8 h-8 bg-teal2 rounded-lg flex items-center justify-center text-white font-serif text-sm">HQ</div>
+          {/* TODO: Replace with uploaded logo image when available */}
+          <Image src="/logo.svg" alt="HQ.ai" width={32} height={32} className="rounded-lg" />
           <span className="font-serif text-lg text-white tracking-tight">HQ.ai</span>
         </div>
         <p className="text-[10px] text-white/30 uppercase tracking-widest pl-[42px]">by Humanistiqs</p>
@@ -57,11 +68,11 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
       {/* Business pill */}
       <div className="px-4 pt-4 pb-2">
         <div className="bg-white/6 rounded-lg px-3 py-2.5 flex items-center gap-2">
-          <div className="w-5 h-5 bg-teal/30 rounded-md flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] text-teal3 font-medium">{bizName[0]?.toUpperCase()}</span>
+          <div className="w-5 h-5 bg-[#fd7325]/30 rounded-md flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] text-[#fd7325] font-medium">{bizName[0]?.toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-white/80 truncate">{bizName}</p>
+            <p className="text-xs font-bold text-white/80 truncate font-display">{bizName}</p>
             <p className="text-[10px] text-white/35">{planLabel[plan] || 'Growth'} plan</p>
           </div>
         </div>
@@ -70,7 +81,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
       {/* Main nav */}
       <nav className="px-2 mt-2">
         <p className="text-[10px] font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Modules</p>
-        {NAV.map(({ href, label, icon: Icon, badge, exact }) => (
+        {NAV.map(({ href, label, icon: Icon, exact }) => (
           <Link key={href} href={href}
             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all group
               ${isActive(href, exact)
@@ -78,11 +89,51 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
                 : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
             <Icon active={isActive(href, exact)} />
             <span className="flex-1">{label}</span>
-            {badge && (
-              <span className="text-[10px] font-medium bg-teal2/80 text-white px-2 py-0.5 rounded-full">{badge}</span>
-            )}
           </Link>
         ))}
+
+        {/* Documents dropdown */}
+        <button onClick={() => setDocsOpen(!docsOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/documents') || isActive('/dashboard/templates')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <DocsIcon active={isActive('/dashboard/documents') || isActive('/dashboard/templates')} />
+          <span className="flex-1 text-left">Documents</span>
+          <svg className={`w-3 h-3 transition-transform ${docsOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+          </svg>
+        </button>
+        {docsOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/documents"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/documents') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              <span>My Documents</span>
+              <span className="relative group ml-auto">
+                <svg className="w-3.5 h-3.5 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                </svg>
+                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  Documents your HQ.ai Advisor has created in chat
+                </span>
+              </span>
+            </Link>
+            <Link href="/dashboard/templates"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              <span>Templates</span>
+              <span className="relative group ml-auto">
+                <svg className="w-3.5 h-3.5 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                </svg>
+                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  Best practice templates curated by HQ.ai experts (subscribers only)
+                </span>
+              </span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Tools nav */}
@@ -103,24 +154,23 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
       {/* Footer */}
       <div className="mt-auto px-3 pb-4 space-y-2">
         {/* Advisor card */}
-        <div className="bg-teal/15 border border-teal/20 rounded-xl p-3">
-          <p className="text-[10px] text-white/35 uppercase tracking-wider mb-2">Your advisor</p>
+        <div className="bg-[#111111] border border-[#222222] rounded-xl p-3">
+          <p className="text-[10px] text-[#fd7325] font-bold uppercase tracking-wider mb-2">Your HQ.ai Advisor</p>
           <div className="flex items-center gap-2 mb-2">
             <div className="relative">
-              <div className="w-7 h-7 bg-teal2/40 rounded-full flex items-center justify-center text-xs font-medium text-teal3">
+              <div className="w-7 h-7 bg-[#fd7325]/20 rounded-full flex items-center justify-center text-xs font-medium text-[#fd7325]">
                 {advisorName[0]}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-ink animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-[#000000] animate-pulse" />
             </div>
             <div>
               <p className="text-sm font-medium text-white">{advisorName}</p>
-              <p className="text-[10px] text-white/40">Senior HR Advisor</p>
             </div>
           </div>
-          <Link href="/dashboard/booking"
-            className="block w-full text-center bg-teal hover:bg-teal2 text-white text-xs font-medium py-1.5 rounded-lg transition-colors">
-            Book a call
-          </Link>
+          <button onClick={handleContactPartner}
+            className="block w-full text-center bg-[#ffffff] hover:bg-gray-100 text-[#fd7325] text-xs font-bold py-1.5 rounded-lg transition-colors">
+            Contact HQ Partner
+          </button>
         </div>
 
         {/* Sign out */}
@@ -132,6 +182,33 @@ export default function Sidebar({ userName, bizName, advisorName, plan }: Sideba
           Sign out
         </button>
       </div>
+
+      {/* Partner popup for free plan */}
+      {showPartnerPopup && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowPartnerPopup(false)}>
+          <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-2">Partner Support</h3>
+            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+              Your current subscription does not include HQ Partner support.
+            </p>
+            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4">
+              <p className="text-xs text-gray-500 mb-1">Hourly rates</p>
+              <p className="text-sm font-bold text-white">Phone consultation — $250+GST/hr</p>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">Would you like to book a call with a HQ Partner?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowPartnerPopup(false)}
+                className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-xl text-sm font-bold border border-[#333333] transition-colors">
+                Maybe later
+              </button>
+              <Link href="/dashboard/booking" onClick={() => setShowPartnerPopup(false)}
+                className="flex-1 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-xl text-sm font-bold text-center transition-colors">
+                Book a call
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }

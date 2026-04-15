@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -43,6 +44,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [showAdvisorModal, setShowAdvisorModal] = useState(false)
   const [savedDocId, setSavedDocId] = useState<string | null>(null)
+  const [showContextInput, setShowContextInput] = useState(false)
+  const [extraContext, setExtraContext] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -183,6 +186,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
   }
 
+  function handleSendContext() {
+    if (extraContext.trim()) {
+      sendMessage(`Additional context: ${extraContext}`)
+      setExtraContext('')
+      setShowContextInput(false)
+    }
+  }
+
   const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'HQ People'
   const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : 'HR compliance & advisory'
 
@@ -211,7 +222,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <div className="max-w-2xl mx-auto">
             {/* Welcome */}
             <div className="text-center mb-8 pt-4">
-              <div className="w-12 h-12 bg-accent/20 border border-accent/30 rounded-2xl flex items-center justify-center mx-auto mb-4 font-serif text-accent text-xl">HQ</div>
+              <div className="w-12 h-12 bg-[#fd7325]/20 border border-[#fd7325]/30 rounded-2xl flex items-center justify-center mx-auto mb-4 font-serif text-[#fd7325] text-xl">HQ</div>
               <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-2">
                 {userName ? `Good morning, ${userName}` : 'Welcome to HQ.ai'}
               </h2>
@@ -227,7 +238,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((qa, i) => (
                 <button key={i} onClick={() => sendMessage(qa.prompt)}
-                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-4 hover:border-accent/40 hover:bg-[#1a1a1a] transition-all group">
+                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-4 hover:border-[#fd7325]/40 hover:bg-[#1a1a1a] transition-all group">
                   <span className="text-xl block mb-2">{qa.icon}</span>
                   <span className="text-sm font-bold text-white block mb-1">{qa.label}</span>
                   <span className="text-xs text-gray-500">{qa.desc}</span>
@@ -243,7 +254,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5
               ${msg.role === 'user'
                 ? 'bg-[#1a1a1a] text-gray-400 border border-[#333333]'
-                : 'bg-accent/20 text-accent font-serif text-base border border-accent/30'}`}>
+                : 'bg-[#fd7325]/20 text-[#fd7325] font-serif text-base border border-[#fd7325]/30'}`}>
               {msg.role === 'user' ? (userName?.[0]?.toUpperCase() || 'U') : 'HQ'}
             </div>
 
@@ -255,42 +266,68 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               {/* Bubble */}
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
                 ${msg.role === 'user'
-                  ? 'bg-accent text-white rounded-tr-sm'
+                  ? 'bg-[#fd7325] text-white rounded-tr-sm'
                   : 'bg-[#111111] border border-[#222222] text-gray-300 rounded-tl-sm'}`}>
                 <MessageContent content={msg.content} isUser={msg.role === 'user'} />
               </div>
 
               {/* Escalation card */}
               {msg.escalate && msg.role === 'assistant' && (
-                <div className="mt-2 bg-coral2 border border-orange-200 rounded-xl p-3.5 flex gap-3">
-                  <span className="text-lg flex-shrink-0">⚠️</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-coral mb-1">Advisor recommended for this situation</p>
-                    <p className="text-xs text-ink2 leading-relaxed mb-2.5">
-                      This involves real legal exposure. {advisorName} knows your business and can give you specific, protected advice before you act.
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      <button onClick={() => setShowAdvisorModal(true)}
-                        className="bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">
-                        📅 Book a call with {advisorName}
-                      </button>
-                      <button onClick={() => setShowAdvisorModal(true)}
-                        className="bg-white text-ink2 text-xs font-medium px-3 py-1.5 rounded-lg border border-sand3 hover:bg-sand2 transition-colors">
-                        Prepare context summary
-                      </button>
+                <>
+                  <div className="mt-2 bg-[#1a1a1a] border border-[#fd7325]/30 rounded-xl p-3.5 flex gap-3">
+                    <span className="text-lg flex-shrink-0">⚠️</span>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-[#fd7325] mb-1">Advisor recommended for this situation</p>
+                      <p className="text-xs text-gray-400 leading-relaxed mb-2.5">
+                        This involves real legal exposure. A HQ Partner can give you specific, protected advice before you act.
+                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        <button onClick={() => setShowAdvisorModal(true)}
+                          className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-[#fd7325] hover:bg-[#e5671f] transition-colors">
+                          Book a call with a HQ Partner
+                        </button>
+                        <button onClick={() => setShowAdvisorModal(false)}
+                          className="bg-[#111111] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-[#333333] hover:bg-[#222222] transition-colors">
+                          Continue talking with {advisorName}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Add more context */}
+                  <div className="mt-2">
+                    <button onClick={() => setShowContextInput(!showContextInput)}
+                      className="text-xs text-[#fd7325] font-bold hover:underline">
+                      + Add more context
+                    </button>
+                    {showContextInput && (
+                      <div className="mt-2 space-y-2">
+                        <textarea
+                          value={extraContext}
+                          onChange={e => setExtraContext(e.target.value)}
+                          placeholder="Add additional context about your situation..."
+                          rows={3}
+                          className="w-full px-3 py-2 bg-[#111111] border border-[#222222] rounded-lg text-sm text-white placeholder-gray-500 resize-none outline-none focus:border-[#fd7325] transition-colors"
+                        />
+                        <button onClick={handleSendContext}
+                          disabled={!extraContext.trim()}
+                          className="bg-[#fd7325] text-white text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-[#e5671f] disabled:opacity-40 transition-colors">
+                          Send context
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {/* Document saved indicator */}
               {msg.docType && savedDocId && msg.role === 'assistant' && (
-                <div className="mt-2 bg-teal3 border border-teal/20 rounded-xl px-3.5 py-2.5 flex items-center gap-2.5">
+                <div className="mt-2 bg-[#fd7325]/10 border border-[#fd7325]/20 rounded-xl px-3.5 py-2.5 flex items-center gap-2.5">
                   <span className="text-sm">✅</span>
-                  <p className="text-xs text-teal flex-1">
+                  <p className="text-xs text-[#fd7325] flex-1">
                     <strong>{msg.docType}</strong> saved to your documents library
                   </p>
-                  <a href="/dashboard/documents" className="text-xs font-medium text-teal hover:underline">View →</a>
+                  <a href="/dashboard/documents" className="text-xs font-medium text-[#fd7325] hover:underline">View →</a>
                 </div>
               )}
             </div>
@@ -300,7 +337,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex gap-3 max-w-3xl">
-            <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center font-serif text-accent text-base flex-shrink-0">HQ</div>
+            <div className="w-8 h-8 rounded-xl bg-[#fd7325]/20 border border-[#fd7325]/30 flex items-center justify-center font-serif text-[#fd7325] text-base flex-shrink-0">HQ</div>
             <div className="bg-[#111111] border border-[#222222] rounded-2xl rounded-tl-sm px-4 py-3.5">
               <div className="flex gap-1.5 items-center">
                 {[0, 1, 2].map(i => (
@@ -316,7 +353,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       {/* Input */}
       <div className="flex-shrink-0 px-6 pb-5 pt-3 border-t border-[#222222] bg-[#0a0a0a]">
-        <div className="flex items-end gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-4 py-3 focus-within:border-accent transition-colors">
+        <div className="flex items-end gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-4 py-3 focus-within:border-[#fd7325] transition-colors">
           <textarea
             ref={inputRef}
             value={input}
@@ -332,25 +369,32 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center text-white flex-shrink-0 hover:bg-accent2 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+            className="w-8 h-8 bg-[#fd7325] rounded-xl flex items-center justify-center text-white flex-shrink-0 hover:bg-[#e5671f] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
           >
             <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
             </svg>
           </button>
         </div>
-        <p className="text-[11px] text-gray-600 text-center mt-2">
-          HQ.ai provides guidance, not legal advice. Complex matters → speak with {advisorName} at Humanistiqs.
-        </p>
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <Link href="/dashboard/booking"
+            className="bg-[#fd7325] text-white rounded-lg px-3 py-1 text-xs font-bold hover:bg-[#e5671f] transition-colors">
+            Talk to a HQ Partner
+          </Link>
+          <button
+            className="border border-[#333333] text-gray-400 rounded-lg px-3 py-1 text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
+            Continue with {advisorName}
+          </button>
+        </div>
       </div>
 
       {/* Advisor modal */}
       {showAdvisorModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
           <div className="bg-[#111111] border border-[#222222] rounded-2xl p-7 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-bold text-white uppercase tracking-wider mb-2">Talk to {advisorName}</h3>
+            <h3 className="font-display text-xl font-bold text-white uppercase tracking-wider mb-2">Talk to a HQ Partner</h3>
             <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-              HQ.ai has prepared a summary of your conversation. {advisorName} will have full context before your call — no repeating yourself.
+              HQ.ai has prepared a summary of your conversation. Your HQ Partner will have full context before your call — no repeating yourself.
             </p>
             <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4 text-sm text-gray-400 leading-relaxed space-y-1">
               <p><strong className="font-bold text-white">Business:</strong> {bizName}</p>
@@ -366,11 +410,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-xl text-sm font-bold border border-[#333333] transition-colors">
                 Close
               </button>
-              <a href="https://calendly.com" target="_blank" rel="noreferrer"
-                className="flex-1 py-2.5 bg-accent hover:bg-accent2 text-white rounded-xl text-sm font-bold text-center transition-colors"
-                onClick={() => setShowAdvisorModal(false)}>
-                📅 Book a call
-              </a>
+              <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
+                className="flex-1 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-xl text-sm font-bold text-center transition-colors border-2 border-[#fd7325]">
+                Book a call with a HQ Partner
+              </Link>
             </div>
           </div>
         </div>
@@ -381,7 +424,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
 // Render markdown-lite message content
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
-  if (!content) return <span className="text-stone text-xs">Thinking…</span>
+  if (!content) return <span className="text-gray-500 text-xs">Thinking…</span>
 
   const lines = content.split('\n')
   const elements: React.ReactNode[] = []

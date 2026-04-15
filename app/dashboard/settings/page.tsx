@@ -14,6 +14,18 @@ const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number 
   scale: { name: 'Scale', price: '$379/mo', seats: 12 },
 }
 
+const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#fd7325] transition-colors"
+const selectCls = inputCls + " appearance-none"
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-bold text-gray-400 mb-1.5">{label}</label>
+      {children}
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const [form, setForm] = useState({ name: '', industry: '', state: '', award: '', headcount: '', employment_types: '', advisor_name: '', advisor_email: '', calendly_link: '' })
   const [userName, setUserName] = useState('')
@@ -25,6 +37,8 @@ export default function SettingsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('trialing')
   const [hasStripe, setHasStripe] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
+  const [billingError, setBillingError] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   const searchParams = useSearchParams()
   const supabase = createClient()
 
@@ -43,6 +57,7 @@ export default function SettingsPage() {
         setPlan(biz.plan || 'free')
         setSubscriptionStatus(biz.subscription_status || 'trialing')
         setHasStripe(!!biz.stripe_customer_id)
+        setLogoUrl(biz.logo_url || '')
         setForm({
           name: biz.name || '', industry: biz.industry || '', state: biz.state || '',
           award: biz.award || '', headcount: biz.headcount || '',
@@ -64,21 +79,63 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div>
-      <label className="block text-xs font-bold text-gray-400 mb-1.5">{label}</label>
-      {children}
-    </div>
-  )
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !bizId) return
+    if (file.size > 2 * 1024 * 1024) { alert('File must be under 2MB'); return }
+    const ext = file.name.split('.').pop()
+    const path = `logos/${bizId}.${ext}`
+    const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+    if (error) { console.error(error); return }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+    setLogoUrl(publicUrl)
+    await supabase.from('businesses').update({ logo_url: publicUrl }).eq('id', bizId)
+  }
 
-  const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent transition-colors"
-  const selectCls = inputCls + " appearance-none"
+  async function openPortal() {
+    setBillingLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else if (data.error === 'No billing account') {
+        setBillingError('Stripe billing is being configured. Please contact support@humanistiqs.com.au to upgrade your plan.')
+      }
+    } catch {
+      setBillingError('Something went wrong. Please try again or contact support@humanistiqs.com.au.')
+    }
+    setBillingLoading(false)
+  }
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
       <div className="max-w-2xl mx-auto px-8 py-8">
         <h1 className="font-display text-h1 font-bold text-white uppercase tracking-wide mb-1">Settings</h1>
         <p className="text-sm text-gray-400 mb-8">Update your business profile and advisor details</p>
+
+        {/* Company Logo */}
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Company logo</h2>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#1a1a1a] border-2 border-dashed border-[#333333] rounded-xl flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Company logo" className="w-full h-full object-contain rounded-xl" />
+              ) : (
+                <svg className="w-6 h-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
+                </svg>
+              )}
+            </div>
+            <div>
+              <label className="cursor-pointer bg-[#1a1a1a] border border-[#333333] rounded-lg px-4 py-2 text-sm font-bold text-white hover:bg-[#222222] transition-colors inline-block">
+                Upload logo
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+              <p className="text-xs text-gray-500 mt-1">PNG or JPG, max 2MB</p>
+            </div>
+          </div>
+        </section>
 
         {/* Personal */}
         <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
@@ -124,10 +181,18 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Advisor */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5">
+        {/* Advisor — subscription gated */}
+        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-5 relative">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Advisor details</h2>
           <p className="text-xs text-gray-500 mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
+          {plan === 'free' && (
+            <div className="absolute inset-0 bg-[#111111]/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+              <button onClick={openPortal}
+                className="bg-[#ffffff] text-[#fd7325] font-display font-bold text-lg px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors uppercase tracking-wider">
+                Upgrade to unlock
+              </button>
+            </div>
+          )}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Advisor name">
@@ -144,7 +209,7 @@ export default function SettingsPage() {
         </section>
 
         <button onClick={save} disabled={saving}
-          className="bg-accent hover:bg-accent2 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
+          className="bg-[#fd7325] hover:bg-[#e5671f] text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
           {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
 
@@ -153,8 +218,15 @@ export default function SettingsPage() {
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Billing & subscription</h2>
           <p className="text-xs text-gray-500 mb-4">Manage your HQ.ai plan and payment method</p>
 
+          {billingError && (
+            <div className="bg-[#fd7325]/10 border border-[#fd7325]/30 rounded-lg px-4 py-3 text-sm text-[#fd7325] mb-4 flex items-center">
+              <span className="flex-1">{billingError}</span>
+              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-[#fd7325] hover:text-white">✕</button>
+            </div>
+          )}
+
           {searchParams.get('billing') === 'success' && (
-            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700 mb-4">
+            <div className="bg-green-900/30 border border-green-700 rounded-lg px-3 py-2 text-sm text-green-400 mb-4">
               Subscription activated successfully!
             </div>
           )}
@@ -176,7 +248,7 @@ export default function SettingsPage() {
               </button>
             ) : (
               <button onClick={openPortal} disabled={billingLoading}
-                className="bg-accent hover:bg-accent2 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+                className="bg-[#fd7325] hover:bg-[#e5671f] text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading…' : 'Upgrade plan'}
               </button>
             )}
@@ -187,11 +259,11 @@ export default function SettingsPage() {
               {(['essentials', 'growth', 'scale'] as const).map(pid => {
                 const p = PLAN_DETAILS[pid]
                 return (
-                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-accent bg-accent/10' : 'border-[#333333]'}`}>
+                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-[#fd7325] bg-[#fd7325]/10' : 'border-[#333333]'}`}>
                     <p className="text-sm font-bold text-white">{p.name}</p>
                     <p className="text-lg font-bold text-white mt-1">{p.price}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.seats} seats</p>
-                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-accent text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
+                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-[#fd7325] text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
                   </div>
                 )
               })}
@@ -201,22 +273,4 @@ export default function SettingsPage() {
       </div>
     </div>
   )
-
-  async function openPortal() {
-    setBillingLoading(true)
-    try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else if (data.error === 'No billing account') {
-        // No Stripe customer yet — this would need a Stripe price ID configured
-        // For now, show a message
-        alert('Stripe is not yet configured. Please contact support to upgrade.')
-      }
-    } catch {
-      alert('Something went wrong. Please try again.')
-    }
-    setBillingLoading(false)
-  }
 }
