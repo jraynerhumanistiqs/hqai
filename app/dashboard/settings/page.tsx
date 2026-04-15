@@ -90,27 +90,19 @@ export default function SettingsPage() {
     setLogoError('')
 
     try {
-      const ext = file.name.split('.').pop() || 'png'
-      const path = `${bizId}/logo.${ext}`
+      const formData = new FormData()
+      formData.append('file', file)
 
-      // Try uploading to the 'logos' bucket
-      const { error: uploadError } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+      const res = await fetch('/api/upload-logo', { method: 'POST', body: formData })
+      const data = await res.json()
 
-      if (uploadError) {
-        // If bucket doesn't exist, try the default 'public' bucket or show helpful error
-        if (uploadError.message?.includes('not found') || uploadError.message?.includes('Bucket')) {
-          setLogoError('Storage bucket "logos" not found. Please create a public bucket named "logos" in your Supabase dashboard (Storage → New bucket → name: logos, public: on).')
-          setLogoUploading(false)
-          return
-        }
-        setLogoError(`Upload failed: ${uploadError.message}`)
+      if (!res.ok) {
+        setLogoError(data.error || 'Upload failed')
         setLogoUploading(false)
         return
       }
 
-      const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
-      setLogoUrl(publicUrl)
-      await supabase.from('businesses').update({ logo_url: publicUrl }).eq('id', bizId)
+      setLogoUrl(data.url)
     } catch (err: any) {
       setLogoError(`Upload failed: ${err?.message || 'Unknown error'}`)
     }

@@ -7,6 +7,146 @@ interface Message {
   content: string
   escalate?: boolean
   docType?: string | null
+  formType?: string | null
+  formCompleted?: boolean
+}
+
+interface FormField {
+  key: string
+  label: string
+  type: 'text' | 'select' | 'date' | 'textarea' | 'number'
+  placeholder?: string
+  options?: string[]
+  required?: boolean
+}
+
+// Document form definitions — fields required for each document type
+const DOC_FORMS: Record<string, { title: string; description: string; fields: FormField[] }> = {
+  'Employment Contract': {
+    title: 'Employment Contract',
+    description: 'Complete the details below and HQ will generate a fully compliant employment contract tailored to your business.',
+    fields: [
+      { key: 'employeeName', label: 'Employee full name', type: 'text', placeholder: 'e.g. Sarah Johnson', required: true },
+      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Retail Sales Assistant', required: true },
+      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Fixed-term'], required: true },
+      { key: 'startDate', label: 'Commencement date', type: 'date', required: true },
+      { key: 'salary', label: 'Base salary / hourly rate (gross)', type: 'text', placeholder: 'e.g. $65,000 per annum or $32.50/hr', required: true },
+      { key: 'hoursPerWeek', label: 'Hours per week', type: 'text', placeholder: 'e.g. 38 (FT) or 25 (PT)' },
+      { key: 'reportingTo', label: 'Reports to (manager/position)', type: 'text', placeholder: 'e.g. Store Manager' },
+      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. 123 Main St, Brisbane QLD 4000' },
+      { key: 'probation', label: 'Probation period', type: 'select', options: ['3 months', '6 months', 'No probation'] },
+      { key: 'award', label: 'Applicable Modern Award', type: 'text', placeholder: 'e.g. General Retail Industry Award (or leave blank to use business default)' },
+      { key: 'additionalNotes', label: 'Additional notes or special conditions', type: 'textarea', placeholder: 'e.g. Company car provided, specific roster days, restraint of trade requirements' },
+    ]
+  },
+  'Letter of Offer': {
+    title: 'Letter of Offer',
+    description: 'Complete the details below and HQ will generate a professional offer letter ready to send.',
+    fields: [
+      { key: 'candidateName', label: 'Candidate full name', type: 'text', placeholder: 'e.g. Sarah Johnson', required: true },
+      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Marketing Coordinator', required: true },
+      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Fixed-term'], required: true },
+      { key: 'startDate', label: 'Proposed start date', type: 'date', required: true },
+      { key: 'salary', label: 'Salary package (gross)', type: 'text', placeholder: 'e.g. $75,000 + super', required: true },
+      { key: 'reportingTo', label: 'Reporting manager', type: 'text', placeholder: 'e.g. Head of Marketing' },
+      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. Sydney CBD office' },
+      { key: 'acceptanceDeadline', label: 'Offer acceptance deadline', type: 'date' },
+      { key: 'conditions', label: 'Conditions of offer', type: 'textarea', placeholder: 'e.g. Subject to satisfactory reference checks, right to work verification' },
+    ]
+  },
+  'Warning Letter': {
+    title: 'Warning Letter',
+    description: 'Provide the details below for HQ to generate a compliant warning letter.',
+    fields: [
+      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
+      { key: 'positionTitle', label: 'Employee position', type: 'text', required: true },
+      { key: 'warningLevel', label: 'Warning level', type: 'select', options: ['First written warning', 'Final written warning'], required: true },
+      { key: 'issueDescription', label: 'Describe the conduct or performance issue', type: 'textarea', placeholder: 'Be specific — include dates, examples, and what policy or standard was breached', required: true },
+      { key: 'previousDiscussions', label: 'Previous discussions or warnings (with dates)', type: 'textarea', placeholder: 'e.g. Verbal discussion on 1 March 2026 regarding...' },
+      { key: 'expectedStandard', label: 'Expected standard going forward', type: 'textarea', placeholder: 'What specifically needs to change?' },
+      { key: 'supportOffered', label: 'Support offered to employee', type: 'text', placeholder: 'e.g. Additional training, EAP referral, adjusted workload' },
+      { key: 'reviewDate', label: 'Review meeting date', type: 'date' },
+    ]
+  },
+  'Job Advertisement': {
+    title: 'Job Advertisement',
+    description: 'Fill in the role details and HQ will create a compelling, compliant job ad.',
+    fields: [
+      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Senior Barista', required: true },
+      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Full-time or Part-time'], required: true },
+      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. Surfers Paradise, Gold Coast', required: true },
+      { key: 'salaryRange', label: 'Salary range or award rate', type: 'text', placeholder: 'e.g. $60,000-$70,000 or Award rate + penalties', required: true },
+      { key: 'keyDuties', label: 'Key duties (top 5)', type: 'textarea', placeholder: 'What will this person actually do day to day?', required: true },
+      { key: 'mustHaves', label: 'Must-have requirements', type: 'textarea', placeholder: 'e.g. 2+ years experience, food safety cert, RSA' },
+      { key: 'niceToHaves', label: 'Nice-to-have requirements', type: 'textarea', placeholder: 'e.g. barista experience, second language' },
+      { key: 'benefits', label: 'Benefits and perks', type: 'textarea', placeholder: 'e.g. Free parking, staff discounts, flexible roster' },
+      { key: 'platform', label: 'Where will this be posted?', type: 'select', options: ['SEEK', 'LinkedIn', 'Indeed', 'Multiple platforms', 'Company website'] },
+    ]
+  },
+  'Performance Improvement Plan': {
+    title: 'Performance Improvement Plan (PIP)',
+    description: 'Provide the details below for a structured PIP with measurable goals.',
+    fields: [
+      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
+      { key: 'positionTitle', label: 'Employee position', type: 'text', required: true },
+      { key: 'performanceIssues', label: 'Performance issues to address', type: 'textarea', placeholder: 'Specific areas of underperformance with examples', required: true },
+      { key: 'expectedStandards', label: 'Expected performance standards', type: 'textarea', placeholder: 'What does "good" look like? Be measurable', required: true },
+      { key: 'supportProvided', label: 'Support and resources to be provided', type: 'textarea', placeholder: 'e.g. Weekly check-ins, training sessions, mentoring' },
+      { key: 'reviewPeriod', label: 'Review period', type: 'select', options: ['2 weeks', '4 weeks', '6 weeks', '8 weeks'], required: true },
+      { key: 'startDate', label: 'PIP start date', type: 'date' },
+    ]
+  },
+  'Contract Variation Letter': {
+    title: 'Contract Variation Letter',
+    description: 'Provide the details of the contract change.',
+    fields: [
+      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
+      { key: 'positionTitle', label: 'Current position', type: 'text', required: true },
+      { key: 'variationType', label: 'What is changing?', type: 'select', options: ['Hours of work', 'Remuneration', 'Position/duties', 'Work location', 'Multiple changes'], required: true },
+      { key: 'currentTerms', label: 'Current terms', type: 'textarea', placeholder: 'What are the current arrangements?', required: true },
+      { key: 'newTerms', label: 'New terms', type: 'textarea', placeholder: 'What will the new arrangements be?', required: true },
+      { key: 'effectiveDate', label: 'Effective date of change', type: 'date', required: true },
+      { key: 'reason', label: 'Reason for variation', type: 'textarea', placeholder: 'e.g. Business restructure, employee request, promotion' },
+    ]
+  },
+  'Reference Check Template': {
+    title: 'Reference Check Template',
+    description: 'Provide details about the role to generate targeted reference check questions.',
+    fields: [
+      { key: 'positionTitle', label: 'Position the candidate is being considered for', type: 'text', required: true },
+      { key: 'keyCompetencies', label: 'Key competencies to verify', type: 'textarea', placeholder: 'e.g. Team leadership, attention to detail, customer service', required: true },
+      { key: 'specificConcerns', label: 'Any specific areas to probe?', type: 'textarea', placeholder: 'e.g. Gap in employment, short tenure at previous role' },
+    ]
+  },
+  'Candidate Screening Questions': {
+    title: 'Candidate Screening Questions',
+    description: 'Provide role details to generate compliant screening questions.',
+    fields: [
+      { key: 'positionTitle', label: 'Position title', type: 'text', required: true },
+      { key: 'keyRequirements', label: 'Key requirements for the role', type: 'textarea', placeholder: 'What are the must-haves?', required: true },
+      { key: 'numberOfQuestions', label: 'Number of questions', type: 'select', options: ['5', '8', '10', '12'] },
+      { key: 'focusAreas', label: 'Focus areas', type: 'textarea', placeholder: 'e.g. Technical skills, cultural fit, availability, salary expectations' },
+    ]
+  },
+}
+
+// Client-side document request detection (mirrors server-side detectDocumentRequest)
+function detectDocType(text: string): string | null {
+  const docs: [string[], string][] = [
+    [['employment contract', 'contract of employment', 'generate a contract', 'create a contract', 'draft a contract', 'need a contract'], 'Employment Contract'],
+    [['letter of offer', 'offer letter', 'generate an offer', 'create an offer'], 'Letter of Offer'],
+    [['job advertisement', 'job ad', 'job advert', 'write a job ad', 'create a job ad'], 'Job Advertisement'],
+    [['warning letter', 'first warning', 'final warning', 'written warning', 'generate a warning'], 'Warning Letter'],
+    [['performance improvement plan', 'pip', 'create a pip'], 'Performance Improvement Plan'],
+    [['contract variation', 'variation letter', 'vary the contract'], 'Contract Variation Letter'],
+    [['reference check'], 'Reference Check Template'],
+    [['screening questions'], 'Candidate Screening Questions'],
+  ]
+  const lower = text.toLowerCase()
+  for (const [keywords, docType] of docs) {
+    if (keywords.some(k => lower.includes(k))) return docType
+  }
+  return null
 }
 
 interface ChatInterfaceProps {
@@ -46,6 +186,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [savedDocId, setSavedDocId] = useState<string | null>(null)
   const [showContextInput, setShowContextInput] = useState(false)
   const [extraContext, setExtraContext] = useState('')
+  const [activeForm, setActiveForm] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -85,13 +226,37 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setSavedDocId(data.id)
   }
 
-  const sendMessage = useCallback(async (text?: string) => {
-    const content = text || input.trim()
+  // Handle form submission — builds structured prompt and sends to AI
+  const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
+    setActiveForm(null)
+
+    // Build a detailed prompt from the form data
+    const formDef = DOC_FORMS[docType]
+    let prompt = `Please generate a complete ${docType} with the following details:\n\n`
+    for (const field of formDef.fields) {
+      const val = formData[field.key]
+      if (val && val.trim()) {
+        prompt += `**${field.label}:** ${val}\n`
+      }
+    }
+    prompt += `\nPlease generate the FULL, COMPLETE ${docType} document — every clause, every section. Do not abbreviate or summarise. Use my business details from the profile.`
+
+    // Mark form as completed in messages
+    setMessages(prev => prev.map(m =>
+      m.formType === docType && !m.formCompleted
+        ? { ...m, formCompleted: true }
+        : m
+    ))
+
+    // Send as a regular message
+    await sendMessageDirect(prompt)
+  }, [])
+
+  // Direct message send (no form interception)
+  const sendMessageDirect = useCallback(async (content: string) => {
     if (!content || isLoading) return
 
-    setInput('')
     setIsLoading(true)
-
     const newMessages: Message[] = [...messages, { role: 'user', content }]
     setMessages(newMessages)
 
@@ -116,16 +281,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       let finalEscalate = false
       let finalDocType: string | null = null
 
-      // Add placeholder assistant message
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-
         const chunk = decoder.decode(value)
         const lines = chunk.split('\n')
-
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           try {
@@ -134,10 +296,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               assistantContent += data.text
               setMessages(prev => {
                 const updated = [...prev]
-                updated[updated.length - 1] = {
-                  role: 'assistant',
-                  content: assistantContent,
-                }
+                updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
                 return updated
               })
             }
@@ -149,7 +308,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         }
       }
 
-      // Update final message with escalation/doc metadata
       setMessages(prev => {
         const updated = [...prev]
         updated[updated.length - 1] = {
@@ -161,11 +319,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         return updated
       })
 
-      // Auto-save document if generated
       if (finalDocType && assistantContent.length > 200) {
         await saveDocument(assistantContent, finalDocType)
       }
-
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -174,7 +330,30 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
 
     setIsLoading(false)
-  }, [input, messages, isLoading, conversationId, module])
+  }, [messages, isLoading, conversationId, module])
+
+  const sendMessage = useCallback(async (text?: string) => {
+    const content = text || input.trim()
+    if (!content || isLoading) return
+
+    // Check if this is a document request — show form instead
+    const detectedDoc = detectDocType(content)
+    if (detectedDoc && DOC_FORMS[detectedDoc] && !activeForm) {
+      setInput('')
+      // Add user message + form message
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content },
+        { role: 'assistant', content: '', formType: detectedDoc, formCompleted: false },
+      ])
+      setActiveForm(detectedDoc)
+      await ensureConversation(content)
+      return
+    }
+
+    setInput('')
+    await sendMessageDirect(content)
+  }, [input, isLoading, activeForm, sendMessageDirect])
 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
@@ -263,13 +442,34 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 {msg.role === 'user' ? (userName || 'You') : `HQ · ${moduleLabel}`}
               </p>
 
-              {/* Bubble */}
-              <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
-                ${msg.role === 'user'
-                  ? 'bg-[#fd7325] text-white rounded-tr-sm'
-                  : 'bg-[#111111] border border-[#222222] text-gray-300 rounded-tl-sm'}`}>
-                <MessageContent content={msg.content} isUser={msg.role === 'user'} />
-              </div>
+              {/* Form or Bubble */}
+              {msg.formType && !msg.formCompleted ? (
+                <DocumentFormCard
+                  docType={msg.formType}
+                  onSubmit={handleFormSubmit}
+                  onSkip={() => {
+                    setActiveForm(null)
+                    setMessages(prev => prev.map(m =>
+                      m.formType === msg.formType && !m.formCompleted
+                        ? { ...m, formCompleted: true }
+                        : m
+                    ))
+                    sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
+                  }}
+                  bizName={bizName}
+                />
+              ) : msg.formType && msg.formCompleted ? (
+                <div className="bg-[#111111] border border-[#222222] rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-400">
+                  <span className="text-[#fd7325] font-bold">{msg.formType}</span> details submitted — generating your document...
+                </div>
+              ) : (
+                <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
+                  ${msg.role === 'user'
+                    ? 'bg-[#fd7325] text-white rounded-tr-sm'
+                    : 'bg-[#111111] border border-[#222222] text-gray-300 rounded-tl-sm'}`}>
+                  <MessageContent content={msg.content} isUser={msg.role === 'user'} />
+                </div>
+              )}
 
               {/* Escalation card */}
               {msg.escalate && msg.role === 'assistant' && (
@@ -321,24 +521,21 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               )}
 
               {/* Document saved indicator with download */}
-              {msg.docType && savedDocId && msg.role === 'assistant' && (
+              {msg.docType && msg.role === 'assistant' && msg.content.length > 200 && (
                 <div className="mt-2 bg-[#fd7325]/10 border border-[#fd7325]/20 rounded-xl px-3.5 py-2.5">
                   <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-sm">✅</span>
+                    <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
                     <p className="text-xs text-[#fd7325] flex-1">
-                      <strong>{msg.docType}</strong> saved to your documents library
+                      <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
                     </p>
                   </div>
                   <div className="flex gap-2 ml-6">
-                    <a href={`/api/documents/download?id=${savedDocId}`}
-                      download
-                      className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#e5671f] transition-colors inline-flex items-center gap-1">
-                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
-                      Download DOCX
-                    </a>
-                    <a href="/dashboard/documents" className="border border-[#333333] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
-                      View in library →
-                    </a>
+                    <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
+                    {savedDocId && (
+                      <a href="/dashboard/documents" className="border border-[#333333] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                        View in library →
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -481,4 +678,169 @@ function formatInline(text: string, isUser: boolean): string {
     .replace(/\*\*(.*?)\*\*/g, `<strong class="font-medium">$1</strong>`)
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`(.*?)`/g, `<code class="bg-black/10 px-1 rounded text-xs font-mono">$1</code>`)
+}
+
+function DocumentFormCard({
+  docType,
+  onSubmit,
+  onSkip,
+  bizName,
+}: {
+  docType: string
+  onSubmit: (docType: string, data: Record<string, string>) => void
+  onSkip: () => void
+  bizName: string
+}) {
+  const formDef = DOC_FORMS[docType]
+  const [formData, setFormData] = useState<Record<string, string>>({})
+
+  if (!formDef) return null
+
+  const updateField = (key: string, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Check required fields
+    const missing = formDef.fields.filter(f => f.required && !formData[f.key]?.trim())
+    if (missing.length > 0) return
+    onSubmit(docType, formData)
+  }
+
+  const inputCls = "w-full px-3 py-2.5 bg-[#0a0a0a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#fd7325] transition-colors"
+
+  return (
+    <div className="bg-[#111111] border border-[#fd7325]/30 rounded-2xl rounded-tl-sm overflow-hidden">
+      {/* Header */}
+      <div className="bg-[#fd7325]/10 border-b border-[#fd7325]/20 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#fd7325]/20 rounded-xl flex items-center justify-center">
+            <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-display text-base font-bold text-white uppercase tracking-wider">{formDef.title}</h3>
+            <p className="text-xs text-gray-400 mt-0.5">{bizName}</p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-3 leading-relaxed">{formDef.description}</p>
+      </div>
+
+      {/* Form fields */}
+      <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
+        {formDef.fields.map(field => (
+          <div key={field.key}>
+            <label className="block text-xs font-bold text-gray-400 mb-1.5">
+              {field.label}
+              {field.required && <span className="text-[#fd7325] ml-0.5">*</span>}
+            </label>
+            {field.type === 'select' ? (
+              <select
+                className={inputCls + " appearance-none"}
+                value={formData[field.key] || ''}
+                onChange={e => updateField(field.key, e.target.value)}
+                required={field.required}
+              >
+                <option value="">Select...</option>
+                {field.options?.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : field.type === 'textarea' ? (
+              <textarea
+                className={inputCls + " resize-none"}
+                rows={3}
+                value={formData[field.key] || ''}
+                onChange={e => updateField(field.key, e.target.value)}
+                placeholder={field.placeholder}
+                required={field.required}
+              />
+            ) : field.type === 'date' ? (
+              <input
+                type="date"
+                className={inputCls}
+                value={formData[field.key] || ''}
+                onChange={e => updateField(field.key, e.target.value)}
+                required={field.required}
+              />
+            ) : (
+              <input
+                type={field.type === 'number' ? 'number' : 'text'}
+                className={inputCls}
+                value={formData[field.key] || ''}
+                onChange={e => updateField(field.key, e.target.value)}
+                placeholder={field.placeholder}
+                required={field.required}
+              />
+            )}
+          </div>
+        ))}
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            className="flex-1 bg-[#fd7325] hover:bg-[#e5671f] text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+          >
+            Generate {formDef.title}
+          </button>
+          <button
+            type="button"
+            onClick={onSkip}
+            className="bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 font-bold py-2.5 px-4 rounded-xl text-sm border border-[#333333] transition-colors"
+          >
+            Skip form
+          </button>
+        </div>
+        <p className="text-[10px] text-gray-600 text-center">
+          HQ will use your business profile details for employer information, award, and state jurisdiction.
+        </p>
+      </form>
+    </div>
+  )
+}
+
+function DownloadDocxButton({ content, title, docType }: { content: string; title: string; docType: string }) {
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const res = await fetch('/api/documents/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, title: `${title} — ${new Date().toLocaleDateString('en-AU')}`, docType }),
+      })
+
+      if (!res.ok) throw new Error('Generation failed')
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      alert('Could not generate document. Please try again.')
+    }
+    setDownloading(false)
+  }
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={downloading}
+      className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#e5671f] transition-colors inline-flex items-center gap-1 disabled:opacity-60"
+    >
+      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+      </svg>
+      {downloading ? 'Generating…' : 'Download DOCX'}
+    </button>
+  )
 }
