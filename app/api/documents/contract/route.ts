@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { buildSystemPrompt } from '@/lib/prompts'
+import { TEMPLATE_BY_ID, ALL_TEMPLATES } from '@/lib/template-ip'
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Header, PageBreak } from 'docx'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -22,7 +23,12 @@ export async function POST(req: NextRequest) {
 
   const business = profile?.businesses as any
 
-  const { formData, docType } = await req.json()
+  const { formData, docType, templateId } = await req.json()
+
+  // Look up template-specific prompt instructions
+  const matchedTemplate = templateId
+    ? TEMPLATE_BY_ID[templateId]
+    : ALL_TEMPLATES.find(t => t.title === docType)
 
   // Build the prompt from form data
   let detailsPrompt = `Generate a COMPLETE ${docType || 'Employment Contract'} with the following details:\n\n`
@@ -33,7 +39,14 @@ export async function POST(req: NextRequest) {
       }
     }
   }
-  detailsPrompt += `\nGenerate the FULL, COMPLETE document using the Humanistiqs contract template structure. Include EVERY clause — definitions, commencement, position, probation, duties, policies, hours, remuneration, all leave types, confidentiality, IP, non-disparagement, conflicts, relief from duties, termination, restraint, redundancy, assignment, governing law, variation, severability, entire agreement, Fair Work statement, execution blocks, and the Schedule with all Items filled in.\n\nDo NOT truncate, abbreviate, or summarise. Write every clause in full. The document should be 2500-4000 words. Use the business profile details for the employer information.`
+
+  if (matchedTemplate?.promptInstructions) {
+    // Use template-specific instructions from Humanistiqs IP
+    detailsPrompt += `\n${matchedTemplate.promptInstructions}\n\nDo NOT truncate, abbreviate, or summarise. Write every section in full. Use the business profile details for the employer information.`
+  } else {
+    // Fallback for employment contracts or unknown doc types
+    detailsPrompt += `\nGenerate the FULL, COMPLETE document using the Humanistiqs contract template structure. Include EVERY clause — definitions, commencement, position, probation, duties, policies, hours, remuneration, all leave types, confidentiality, IP, non-disparagement, conflicts, relief from duties, termination, restraint, redundancy, assignment, governing law, variation, severability, entire agreement, Fair Work statement, execution blocks, and the Schedule with all Items filled in.\n\nDo NOT truncate, abbreviate, or summarise. Write every clause in full. The document should be 2500-4000 words. Use the business profile details for the employer information.`
+  }
 
   const systemPrompt = buildSystemPrompt('people', {
     name: business?.name || 'Unknown',

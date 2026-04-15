@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -11,215 +12,18 @@ interface Message {
   formCompleted?: boolean
 }
 
-interface FormField {
-  key: string
-  label: string
-  type: 'text' | 'select' | 'date' | 'textarea' | 'number'
-  placeholder?: string
-  options?: string[]
-  required?: boolean
-}
+// Build DOC_FORMS lookup from template-ip definitions
+const DOC_FORMS: Record<string, { title: string; description: string; fields: TemplateFormField[] }> = Object.fromEntries(
+  ALL_TEMPLATES
+    .filter(t => t.formFields.length > 0)
+    .map(t => [t.title, { title: t.title, description: t.description, fields: t.formFields }])
+)
 
-// Document form definitions — fields required for each document type
-const DOC_FORMS: Record<string, { title: string; description: string; fields: FormField[] }> = {
-  'Employment Contract': {
-    title: 'Employment Contract',
-    description: 'Complete the details below and HQ will generate a fully compliant employment contract tailored to your business.',
-    fields: [
-      { key: 'employeeName', label: 'Employee full name', type: 'text', placeholder: 'e.g. Sarah Johnson', required: true },
-      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Retail Sales Assistant', required: true },
-      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Fixed-term'], required: true },
-      { key: 'startDate', label: 'Commencement date', type: 'date', required: true },
-      { key: 'salary', label: 'Base salary / hourly rate (gross)', type: 'text', placeholder: 'e.g. $65,000 per annum or $32.50/hr', required: true },
-      { key: 'hoursPerWeek', label: 'Hours per week', type: 'text', placeholder: 'e.g. 38 (FT) or 25 (PT)' },
-      { key: 'reportingTo', label: 'Reports to (manager/position)', type: 'text', placeholder: 'e.g. Store Manager' },
-      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. 123 Main St, Brisbane QLD 4000' },
-      { key: 'probation', label: 'Probation period', type: 'select', options: ['3 months', '6 months', 'No probation'] },
-      { key: 'award', label: 'Applicable Modern Award', type: 'text', placeholder: 'e.g. General Retail Industry Award (or leave blank to use business default)' },
-      { key: 'additionalNotes', label: 'Additional notes or special conditions', type: 'textarea', placeholder: 'e.g. Company car provided, specific roster days, restraint of trade requirements' },
-    ]
-  },
-  'Letter of Offer': {
-    title: 'Letter of Offer',
-    description: 'Complete the details below and HQ will generate a professional offer letter ready to send.',
-    fields: [
-      { key: 'candidateName', label: 'Candidate full name', type: 'text', placeholder: 'e.g. Sarah Johnson', required: true },
-      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Marketing Coordinator', required: true },
-      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Fixed-term'], required: true },
-      { key: 'startDate', label: 'Proposed start date', type: 'date', required: true },
-      { key: 'salary', label: 'Salary package (gross)', type: 'text', placeholder: 'e.g. $75,000 + super', required: true },
-      { key: 'reportingTo', label: 'Reporting manager', type: 'text', placeholder: 'e.g. Head of Marketing' },
-      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. Sydney CBD office' },
-      { key: 'acceptanceDeadline', label: 'Offer acceptance deadline', type: 'date' },
-      { key: 'conditions', label: 'Conditions of offer', type: 'textarea', placeholder: 'e.g. Subject to satisfactory reference checks, right to work verification' },
-    ]
-  },
-  'Warning Letter': {
-    title: 'Warning Letter',
-    description: 'Provide the details below for HQ to generate a compliant warning letter.',
-    fields: [
-      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
-      { key: 'positionTitle', label: 'Employee position', type: 'text', required: true },
-      { key: 'warningLevel', label: 'Warning level', type: 'select', options: ['First written warning', 'Final written warning'], required: true },
-      { key: 'issueDescription', label: 'Describe the conduct or performance issue', type: 'textarea', placeholder: 'Be specific — include dates, examples, and what policy or standard was breached', required: true },
-      { key: 'previousDiscussions', label: 'Previous discussions or warnings (with dates)', type: 'textarea', placeholder: 'e.g. Verbal discussion on 1 March 2026 regarding...' },
-      { key: 'expectedStandard', label: 'Expected standard going forward', type: 'textarea', placeholder: 'What specifically needs to change?' },
-      { key: 'supportOffered', label: 'Support offered to employee', type: 'text', placeholder: 'e.g. Additional training, EAP referral, adjusted workload' },
-      { key: 'reviewDate', label: 'Review meeting date', type: 'date' },
-    ]
-  },
-  'Job Advertisement': {
-    title: 'Job Advertisement',
-    description: 'Fill in the role details and HQ will create a compelling, compliant job ad.',
-    fields: [
-      { key: 'positionTitle', label: 'Position title', type: 'text', placeholder: 'e.g. Senior Barista', required: true },
-      { key: 'employmentType', label: 'Employment type', type: 'select', options: ['Full-time', 'Part-time', 'Casual', 'Full-time or Part-time'], required: true },
-      { key: 'location', label: 'Work location', type: 'text', placeholder: 'e.g. Surfers Paradise, Gold Coast', required: true },
-      { key: 'salaryRange', label: 'Salary range or award rate', type: 'text', placeholder: 'e.g. $60,000-$70,000 or Award rate + penalties', required: true },
-      { key: 'keyDuties', label: 'Key duties (top 5)', type: 'textarea', placeholder: 'What will this person actually do day to day?', required: true },
-      { key: 'mustHaves', label: 'Must-have requirements', type: 'textarea', placeholder: 'e.g. 2+ years experience, food safety cert, RSA' },
-      { key: 'niceToHaves', label: 'Nice-to-have requirements', type: 'textarea', placeholder: 'e.g. barista experience, second language' },
-      { key: 'benefits', label: 'Benefits and perks', type: 'textarea', placeholder: 'e.g. Free parking, staff discounts, flexible roster' },
-      { key: 'platform', label: 'Where will this be posted?', type: 'select', options: ['SEEK', 'LinkedIn', 'Indeed', 'Multiple platforms', 'Company website'] },
-    ]
-  },
-  'Performance Improvement Plan': {
-    title: 'Performance Improvement Plan (PIP)',
-    description: 'Provide the details below for a structured PIP with measurable goals.',
-    fields: [
-      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
-      { key: 'positionTitle', label: 'Employee position', type: 'text', required: true },
-      { key: 'performanceIssues', label: 'Performance issues to address', type: 'textarea', placeholder: 'Specific areas of underperformance with examples', required: true },
-      { key: 'expectedStandards', label: 'Expected performance standards', type: 'textarea', placeholder: 'What does "good" look like? Be measurable', required: true },
-      { key: 'supportProvided', label: 'Support and resources to be provided', type: 'textarea', placeholder: 'e.g. Weekly check-ins, training sessions, mentoring' },
-      { key: 'reviewPeriod', label: 'Review period', type: 'select', options: ['2 weeks', '4 weeks', '6 weeks', '8 weeks'], required: true },
-      { key: 'startDate', label: 'PIP start date', type: 'date' },
-    ]
-  },
-  'Contract Variation Letter': {
-    title: 'Contract Variation Letter',
-    description: 'Provide the details of the contract change.',
-    fields: [
-      { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
-      { key: 'positionTitle', label: 'Current position', type: 'text', required: true },
-      { key: 'variationType', label: 'What is changing?', type: 'select', options: ['Hours of work', 'Remuneration', 'Position/duties', 'Work location', 'Multiple changes'], required: true },
-      { key: 'currentTerms', label: 'Current terms', type: 'textarea', placeholder: 'What are the current arrangements?', required: true },
-      { key: 'newTerms', label: 'New terms', type: 'textarea', placeholder: 'What will the new arrangements be?', required: true },
-      { key: 'effectiveDate', label: 'Effective date of change', type: 'date', required: true },
-      { key: 'reason', label: 'Reason for variation', type: 'textarea', placeholder: 'e.g. Business restructure, employee request, promotion' },
-    ]
-  },
-  'Reference Check Template': {
-    title: 'Reference Check Template',
-    description: 'Provide details about the role to generate targeted reference check questions.',
-    fields: [
-      { key: 'positionTitle', label: 'Position the candidate is being considered for', type: 'text', required: true },
-      { key: 'keyCompetencies', label: 'Key competencies to verify', type: 'textarea', placeholder: 'e.g. Team leadership, attention to detail, customer service', required: true },
-      { key: 'specificConcerns', label: 'Any specific areas to probe?', type: 'textarea', placeholder: 'e.g. Gap in employment, short tenure at previous role' },
-    ]
-  },
-  'Candidate Screening Questions': {
-    title: 'Candidate Screening Questions',
-    description: 'Provide role details to generate compliant screening questions.',
-    fields: [
-      { key: 'positionTitle', label: 'Position title', type: 'text', required: true },
-      { key: 'keyRequirements', label: 'Key requirements for the role', type: 'textarea', placeholder: 'What are the must-haves?', required: true },
-      { key: 'numberOfQuestions', label: 'Number of questions', type: 'select', options: ['5', '8', '10', '12'] },
-      { key: 'focusAreas', label: 'Focus areas', type: 'textarea', placeholder: 'e.g. Technical skills, cultural fit, availability, salary expectations' },
-    ]
-  },
-}
-
-// Client-side document request detection — broad matching with regex
+// Legacy compatibility block — replaced by template-ip.ts
+// Client-side document detection — powered by template-ip.ts (33 template types)
 function detectDocType(text: string): string | null {
-  const lower = text.toLowerCase()
-
-  // Each entry: [regex patterns, exact phrases, docType]
-  const docs: { patterns: RegExp[]; keywords: string[]; type: string }[] = [
-    {
-      type: 'Employment Contract',
-      keywords: ['employment contract', 'contract of employment'],
-      patterns: [
-        /\bcontract\b/i, // any mention of "contract" (most common request)
-        /\bemployment\s+agreement\b/i,
-      ],
-    },
-    {
-      type: 'Letter of Offer',
-      keywords: ['letter of offer', 'offer letter'],
-      patterns: [
-        /\boffer\s+(letter|template)\b/i,
-        /\b(write|create|generate|draft|make|prepare|send)\b.*\boffer\b/i,
-      ],
-    },
-    {
-      type: 'Job Advertisement',
-      keywords: ['job advertisement', 'job ad', 'job advert', 'job posting', 'job listing'],
-      patterns: [
-        /\bjob\s+(ad|advertisement|advert|posting|listing)\b/i,
-        /\b(write|create|generate|draft|make)\b.*\b(ad|advertisement|posting)\b.*\b(role|position|job)\b/i,
-        /\b(advertise|post)\b.*\b(role|position|job|vacancy)\b/i,
-      ],
-    },
-    {
-      type: 'Warning Letter',
-      keywords: ['warning letter', 'first warning', 'final warning', 'written warning', 'formal warning'],
-      patterns: [
-        /\bwarning\b/i,
-        /\bdisciplin/i,
-      ],
-    },
-    {
-      type: 'Performance Improvement Plan',
-      keywords: ['performance improvement plan', 'pip'],
-      patterns: [
-        /\bpip\b/i,
-        /\bperformance\s+(improvement|management)\s+plan\b/i,
-        /\b(create|generate|draft|write|make|prepare)\b.*\bpip\b/i,
-      ],
-    },
-    {
-      type: 'Contract Variation Letter',
-      keywords: ['contract variation', 'variation letter'],
-      patterns: [
-        /\bvari(ation|y)\b.*\b(contract|letter|terms)\b/i,
-        /\b(change|update|amend|modify)\b.*\bcontract\b/i,
-      ],
-    },
-    {
-      type: 'Reference Check Template',
-      keywords: ['reference check', 'referee check'],
-      patterns: [
-        /\breference\s+(check|template|questions)\b/i,
-        /\breferee\b/i,
-      ],
-    },
-    {
-      type: 'Candidate Screening Questions',
-      keywords: ['screening questions', 'screening template'],
-      patterns: [
-        /\bscreening\s+(question|template)\b/i,
-        /\bcandidate\s+screen/i,
-      ],
-    },
-  ]
-
-  // Priority: check variation BEFORE contract (since "change contract" should be variation not contract)
-  // Check exact keywords first (high confidence)
-  for (const doc of docs) {
-    if (doc.keywords.some(k => lower.includes(k))) return doc.type
-  }
-
-  // Then check regex patterns — but for "contract" specifically, disambiguate
-  // If user mentions "vary/change/amend contract", it's a variation not a new contract
-  const isVariation = /\b(vary|change|amend|modify|update)\b.*\bcontract\b/i.test(lower)
-  if (isVariation) return 'Contract Variation Letter'
-
-  for (const doc of docs) {
-    if (doc.patterns.some(p => p.test(lower))) return doc.type
-  }
-
-  return null
+  const tmpl = detectTemplate(text)
+  return tmpl ? tmpl.title : null
 }
 
 interface ChatInterfaceProps {
@@ -230,6 +34,7 @@ interface ChatInterfaceProps {
   industry: string
   state: string
   award: string
+  initialPrompt?: string
 }
 
 const QUICK_ACTIONS_PEOPLE = [
@@ -250,7 +55,7 @@ const QUICK_ACTIONS_RECRUIT = [
   { icon: '✉️', label: 'Rejection email', desc: 'Professional, compliant', prompt: 'Can you write an unsuccessful candidate email?' },
 ]
 
-export default function ChatInterface({ module, userName, bizName, advisorName, industry, state, award }: ChatInterfaceProps) {
+export default function ChatInterface({ module, userName, bizName, advisorName, industry, state, award, initialPrompt }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -402,7 +207,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       const res = await fetch('/api/documents/contract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formData, docType }),
+        body: JSON.stringify({ formData, docType, templateId: ALL_TEMPLATES.find(t => t.title === docType)?.id }),
       })
 
       if (!res.ok) {
@@ -489,6 +294,15 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setInput('')
     await sendMessageDirect(content)
   }, [input, isLoading, activeForm, sendMessageDirect])
+
+  // Auto-send initial prompt (e.g. from templates page "Customise" button)
+  const initialPromptSent = useRef(false)
+  useEffect(() => {
+    if (initialPrompt && !initialPromptSent.current && messages.length === 0) {
+      initialPromptSent.current = true
+      sendMessage(initialPrompt)
+    }
+  }, [initialPrompt, sendMessage, messages.length])
 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }

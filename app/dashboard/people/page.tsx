@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ChatInterface from '@/components/chat/ChatInterface'
 
-export default async function PeoplePage() {
+export default async function PeoplePage({ searchParams }: { searchParams: Promise<{ prompt?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -14,6 +14,7 @@ export default async function PeoplePage() {
     .single()
 
   const business = profile?.businesses as any
+  const params = await searchParams
 
   return (
     <ChatInterface
@@ -24,6 +25,7 @@ export default async function PeoplePage() {
       industry={business?.industry || ''}
       state={business?.state || ''}
       award={business?.award || ''}
+      initialPrompt={params.prompt}
     />
   )
 }
