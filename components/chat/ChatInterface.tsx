@@ -299,6 +299,86 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setSavedDocId(data.id)
   }
 
+  // Direct message send (no form interception) — must be defined before handleFormSubmit
+  const sendMessageDirect = useCallback(async (content: string) => {
+    if (!content || isLoading) return
+
+    setIsLoading(true)
+    const newMessages: Message[] = [...messages, { role: 'user', content }]
+    setMessages(newMessages)
+
+    const convId = await ensureConversation(content)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: newMessages,
+          conversationId: convId,
+          module,
+        })
+      })
+
+      if (!res.ok || !res.body) throw new Error('Stream failed')
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let assistantContent = ''
+      let finalEscalate = false
+      let finalDocType: string | null = null
+
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }])
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          try {
+            const data = JSON.parse(line.slice(6))
+            if (data.text) {
+              assistantContent += data.text
+              setMessages(prev => {
+                const updated = [...prev]
+                updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
+                return updated
+              })
+            }
+            if (data.done) {
+              finalEscalate = data.escalate
+              finalDocType = data.docType
+            }
+          } catch {}
+        }
+      }
+
+      setMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = {
+          role: 'assistant',
+          content: assistantContent,
+          escalate: finalEscalate,
+          docType: finalDocType,
+        }
+        return updated
+      })
+
+      if (finalDocType && assistantContent.length > 200) {
+        await saveDocument(assistantContent, finalDocType)
+      }
+    } catch {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'I\'m having trouble connecting right now. Please try again in a moment.',
+      }])
+    }
+
+    setIsLoading(false)
+  }, [messages, isLoading, conversationId, module])
+
   // Handle form submission — generate DOCX backend-side and deliver download
   const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
     setActiveForm(null)
@@ -386,86 +466,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
     setIsLoading(false)
   }, [sendMessageDirect])
-
-  // Direct message send (no form interception)
-  const sendMessageDirect = useCallback(async (content: string) => {
-    if (!content || isLoading) return
-
-    setIsLoading(true)
-    const newMessages: Message[] = [...messages, { role: 'user', content }]
-    setMessages(newMessages)
-
-    const convId = await ensureConversation(content)
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: newMessages,
-          conversationId: convId,
-          module,
-        })
-      })
-
-      if (!res.ok || !res.body) throw new Error('Stream failed')
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let assistantContent = ''
-      let finalEscalate = false
-      let finalDocType: string | null = null
-
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }])
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue
-          try {
-            const data = JSON.parse(line.slice(6))
-            if (data.text) {
-              assistantContent += data.text
-              setMessages(prev => {
-                const updated = [...prev]
-                updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
-                return updated
-              })
-            }
-            if (data.done) {
-              finalEscalate = data.escalate
-              finalDocType = data.docType
-            }
-          } catch {}
-        }
-      }
-
-      setMessages(prev => {
-        const updated = [...prev]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: assistantContent,
-          escalate: finalEscalate,
-          docType: finalDocType,
-        }
-        return updated
-      })
-
-      if (finalDocType && assistantContent.length > 200) {
-        await saveDocument(assistantContent, finalDocType)
-      }
-    } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'I\'m having trouble connecting right now. Please try again in a moment.',
-      }])
-    }
-
-    setIsLoading(false)
-  }, [messages, isLoading, conversationId, module])
 
   const sendMessage = useCallback(async (text?: string) => {
     const content = text || input.trim()
