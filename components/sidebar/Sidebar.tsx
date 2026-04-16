@@ -51,7 +51,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
     <aside className="w-[252px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8 flex items-center justify-between">
-        <Image src="/logo.svg" alt="HQ.ai" width={150} height={50} className="opacity-90 w-[150px] max-w-full h-auto" />
+        <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[120px] h-auto" />
         {onClose && (
           <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50">

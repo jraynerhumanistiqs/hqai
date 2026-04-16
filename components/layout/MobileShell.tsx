@@ -52,7 +52,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
               <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
             </svg>
           </button>
-          <Image src="/logo.svg" alt="HQ.ai" width={100} height={33} className="opacity-90 h-7 w-auto" />
+          <Image src="/logo.svg" alt="HQ.ai" width={100} height={100} className="opacity-90 h-8 w-auto" />
           <div className="ml-auto">
             <span className="bg-[#1a1a1a] border border-[#333333] rounded-full px-2.5 py-1 text-[10px] font-bold text-gray-400 truncate max-w-[120px] block">
               {sidebarProps.bizName}
