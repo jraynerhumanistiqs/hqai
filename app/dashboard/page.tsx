@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { LocalGreeting } from '@/components/dashboard/LocalGreeting'
 
 export default async function DashboardHome() {
   const supabase = await createClient()
@@ -44,24 +45,14 @@ export default async function DashboardHome() {
 
   const { data: recentDocs } = await docQuery
 
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-
   const hasConversations = recentConvos && recentConvos.length > 0
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#000000]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
-        {/* Welcome */}
-        <div className="mb-6 sm:mb-10">
-          <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide">
-            {greeting}, {firstName}
-          </h1>
-          <p className="text-sm sm:text-body text-gray-400">
-            Welcome to {business?.name || 'HQ.ai'} - here&apos;s what&apos;s happening.
-          </p>
-        </div>
+        {/* Welcome — greeting uses client's local time */}
+        <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
 
         {/* Quick Actions — 3 only */}
         <div className="mb-6 sm:mb-10">
