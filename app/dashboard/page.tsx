@@ -83,9 +83,9 @@ export default async function DashboardHome() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-10">
 
           {/* Recent Conversations */}
-          <div>
+          <div className="flex flex-col">
             <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent conversations</h2>
-            <div className="bg-[#111111] rounded-xl border border-[#222222]">
+            <div className="bg-[#111111] rounded-xl border border-[#222222] flex-1">
               {hasConversations ? (
                 <ul className="divide-y divide-[#222222]">
                   {recentConvos.map((c: any) => (
@@ -118,22 +118,24 @@ export default async function DashboardHome() {
           </div>
 
           {/* Recent Documents */}
-          <div>
+          <div className="flex flex-col">
             <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Recent documents</h2>
-            <div className="bg-[#111111] rounded-xl border border-[#222222]">
+            <div className="bg-[#111111] rounded-xl border border-[#222222] flex-1">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-[#222222]">
                   {recentDocs.map((d: any) => (
-                    <li key={d.id} className="px-4 py-3 hover:bg-[#1a1a1a] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#fd7325]/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <DocsIcon />
+                    <li key={d.id}>
+                      <Link href="/dashboard/documents" className="block px-4 py-3 hover:bg-[#1a1a1a] transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-[#fd7325]/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <DocsIcon />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{d.title}</p>
+                            <p className="text-xs text-gray-500">{d.type || 'Document'} &middot; {formatDate(d.created_at)}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{d.title}</p>
-                          <p className="text-xs text-gray-500">{d.type || 'Document'} &middot; {formatDate(d.created_at)}</p>
-                        </div>
-                      </div>
+                      </Link>
                     </li>
                   ))}
                 </ul>
