@@ -19,7 +19,6 @@ const DOC_FORMS: Record<string, { title: string; description: string; fields: Te
     .map(t => [t.title, { title: t.title, description: t.description, fields: t.formFields }])
 )
 
-// Legacy compatibility block — replaced by template-ip.ts
 // Client-side document detection — powered by template-ip.ts (33 template types)
 function detectDocType(text: string): string | null {
   const tmpl = detectTemplate(text)
@@ -37,23 +36,27 @@ interface ChatInterfaceProps {
   initialPrompt?: string
 }
 
-const QUICK_ACTIONS_PEOPLE = [
-  { icon: '📄', label: 'Employment contract', desc: 'Full-time, part-time or casual', prompt: 'I need to generate an employment contract for a new employee.' },
-  { icon: '⚖️', label: 'Award & pay rates', desc: 'Penalty rates, overtime, allowances', prompt: 'What penalty rates and entitlements apply to my employees?' },
-  { icon: '📊', label: 'Performance management', desc: 'PIP, warnings, coaching scripts', prompt: 'I need to manage a performance issue with an employee. Where do I start?' },
-  { icon: '🔄', label: 'Casual conversion', desc: 'Fair Work 2023 obligations', prompt: 'What are my casual conversion obligations and when do they apply?' },
-  { icon: '📋', label: 'Leave entitlements', desc: 'Annual, personal, parental, LSL', prompt: 'Can you explain all the leave entitlements my employees are entitled to?' },
-  { icon: '🔔', label: 'Redundancy process', desc: 'Consultation, pay, genuine test', prompt: 'I need to make a role redundant. What process do I need to follow?' },
+// Short prompt chips for empty state (pill-shaped, scenario-framed)
+const SUGGESTIONS_PEOPLE = [
+  'Draft a termination letter',
+  'Casual to permanent conversion',
+  'Calculate redundancy pay',
+  'Write a formal warning notice',
 ]
 
-const QUICK_ACTIONS_RECRUIT = [
-  { icon: '📢', label: 'Write a job ad', desc: 'SEEK & LinkedIn ready', prompt: 'I need to write a job advertisement for a new role.' },
-  { icon: '🔍', label: 'Screening questions', desc: 'Role-relevant, compliant', prompt: 'Can you generate screening questions for a role I\'m recruiting for?' },
-  { icon: '📞', label: 'Phone interview guide', desc: 'Structured call template', prompt: 'I need a phone interview guide for screening candidates.' },
-  { icon: '⭐', label: 'Candidate scorecard', desc: 'Standardised evaluation', prompt: 'Can you create a candidate scorecard for evaluating applicants?' },
-  { icon: '📋', label: 'Reference check', desc: 'Structured referee questions', prompt: 'I need a reference check template for a candidate.' },
-  { icon: '✉️', label: 'Rejection email', desc: 'Professional, compliant', prompt: 'Can you write an unsuccessful candidate email?' },
+const SUGGESTIONS_RECRUIT = [
+  'Write a job ad for SEEK',
+  'Screening questions for a senior role',
+  'Reference check template',
+  'Unsuccessful candidate email',
 ]
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
 
 export default function ChatInterface({ module, userName, bizName, advisorName, industry, state, award, initialPrompt }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
@@ -65,10 +68,12 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [showContextInput, setShowContextInput] = useState(false)
   const [extraContext, setExtraContext] = useState('')
   const [activeForm, setActiveForm] = useState<string | null>(null)
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
-  const quickActions = module === 'recruit' ? QUICK_ACTIONS_RECRUIT : QUICK_ACTIONS_PEOPLE
+  const suggestions = module === 'recruit' ? SUGGESTIONS_RECRUIT : SUGGESTIONS_PEOPLE
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -104,9 +109,26 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setSavedDocId(data.id)
   }
 
+  function stopGeneration() {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setIsLoading(false)
+  }
+
+  async function copyMessage(content: string, idx: number) {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedIdx(idx)
+      setTimeout(() => setCopiedIdx(null), 1500)
+    } catch {}
+  }
+
   // Direct message send (no form interception) — must be defined before handleFormSubmit
   const sendMessageDirect = useCallback(async (content: string) => {
     if (!content || isLoading) return
+
+    const controller = new AbortController()
+    abortRef.current = controller
 
     setIsLoading(true)
     const newMessages: Message[] = [...messages, { role: 'user', content }]
@@ -122,7 +144,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           messages: newMessages,
           conversationId: convId,
           module,
-        })
+        }),
+        signal: controller.signal,
       })
 
       if (!res.ok || !res.body) throw new Error('Stream failed')
@@ -174,13 +197,18 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       if (finalDocType && assistantContent.length > 200) {
         await saveDocument(assistantContent, finalDocType)
       }
-    } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'I\'m having trouble connecting right now. Please try again in a moment.',
-      }])
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        // User stopped — keep partial content, no error message
+      } else {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'I\'m having trouble connecting right now. Please try again in a moment.',
+        }])
+      }
     }
 
+    abortRef.current = null
     setIsLoading(false)
   }, [messages, isLoading, conversationId, module])
 
@@ -280,7 +308,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     const detectedDoc = detectDocType(content)
     if (detectedDoc && DOC_FORMS[detectedDoc] && !activeForm) {
       setInput('')
-      // Add user message + form message
       setMessages(prev => [
         ...prev,
         { role: 'user', content },
@@ -292,6 +319,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
 
     setInput('')
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     await sendMessageDirect(content)
   }, [input, isLoading, activeForm, sendMessageDirect])
 
@@ -311,7 +339,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   function autoResize(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value)
     e.target.style.height = 'auto'
-    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
   }
 
   function handleSendContext() {
@@ -324,6 +352,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
   const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'HQ People'
   const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : 'HR compliance & advisory'
+  const greeting = getGreeting()
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -334,10 +363,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <div className="bg-light border border-border rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-mid hidden sm:block">{bizName}</div>
+          <div className="bg-light rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-mid hidden sm:block">{bizName}</div>
           <button
-            onClick={() => setMessages([])}
-            className="bg-light border border-border rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap"
+            onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
+            className="bg-light rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap"
           >
             + New chat
           </button>
@@ -345,204 +374,233 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-10">
         {messages.length === 0 && (
           <div className="max-w-2xl mx-auto">
-            {/* Welcome */}
-            <div className="text-center mb-6 sm:mb-8 pt-2 sm:pt-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 font-sans text-white text-lg sm:text-xl font-bold">HQ</div>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal uppercase tracking-wider mb-2">
-                {userName ? `Good morning, ${userName}` : 'Welcome to HQ.ai'}
+            {/* Centred greeting */}
+            <div className="text-center pt-8 sm:pt-16 pb-8">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
+                {userName ? `${greeting}, ${userName}` : greeting}
               </h2>
-              <p className="text-xs sm:text-sm text-mid max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
                 {module === 'recruit'
-                  ? 'I\'m your AI recruitment advisor. I\'ll help you write job ads, screen candidates, run reference checks, and shortlist the right people — faster.'
-                  : 'I\'m your AI HR advisor. Ask me anything about employment law, awards, contracts, leave, or managing your team — and I\'ll give you a straight answer.'
+                  ? 'Ask me anything about hiring — I\'ll help you write ads, screen candidates, and shortlist faster.'
+                  : 'Ask me anything about HR, Fair Work, awards, contracts, leave, or managing your team.'
                 }
               </p>
             </div>
 
-            {/* Quick actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-              {quickActions.map((qa, i) => (
-                <button key={i} onClick={() => sendMessage(qa.prompt)}
-                  className="text-left bg-white shadow-card rounded-xl p-3 sm:p-4 hover:shadow-float transition-all group">
-                  <span className="text-lg sm:text-xl block mb-1.5 sm:mb-2">{qa.icon}</span>
-                  <span className="text-sm font-bold text-charcoal block mb-0.5 sm:mb-1">{qa.label}</span>
-                  <span className="text-[11px] sm:text-xs text-muted">{qa.desc}</span>
+            {/* Pill-chip suggestions */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(s)}
+                  className="bg-light hover:bg-border text-charcoal text-sm font-medium px-4 py-2 rounded-full transition-colors"
+                >
+                  {s}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex gap-3 max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-            {/* Avatar */}
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5
-              ${msg.role === 'user'
-                ? 'bg-light text-mid'
-                : 'bg-black text-white text-base'}`}>
-              {msg.role === 'user' ? (userName?.[0]?.toUpperCase() || 'U') : 'HQ'}
-            </div>
-
-            <div className="flex-1">
-              <p className={`text-[11px] font-bold text-muted mb-1.5 ${msg.role === 'user' ? 'text-right' : ''}`}>
-                {msg.role === 'user' ? (userName || 'You') : `HQ · ${moduleLabel}`}
-              </p>
-
-              {/* Form or Bubble */}
-              {msg.formType && !msg.formCompleted ? (
-                <DocumentFormCard
-                  docType={msg.formType}
-                  onSubmit={handleFormSubmit}
-                  onSkip={() => {
-                    setActiveForm(null)
-                    setMessages(prev => prev.map(m =>
-                      m.formType === msg.formType && !m.formCompleted
-                        ? { ...m, formCompleted: true }
-                        : m
-                    ))
-                    sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
-                  }}
-                  bizName={bizName}
-                />
-              ) : msg.formType && msg.formCompleted ? (
-                <div className="bg-light rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-mid">
-                  <span className="text-black font-bold">{msg.formType}</span> details submitted — generating your document...
-                </div>
-              ) : (
-                <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
-                  ${msg.role === 'user'
-                    ? 'bg-black text-white rounded-tr-sm'
-                    : 'bg-light text-charcoal rounded-tl-sm'}`}>
-                  <MessageContent content={msg.content} isUser={msg.role === 'user'} />
+        <div className="max-w-3xl mx-auto space-y-5">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} group`}>
+              {/* User messages: contained bg-black bubble, right-aligned */}
+              {msg.role === 'user' && (
+                <div className="bg-black text-white text-sm leading-relaxed px-4 py-2.5 rounded-2xl rounded-tr-md max-w-[85%]">
+                  <MessageContent content={msg.content} isUser />
                 </div>
               )}
 
-              {/* Escalation card */}
-              {msg.escalate && msg.role === 'assistant' && (
-                <>
-                  <div className="mt-2 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                    <span className="text-lg flex-shrink-0">⚠️</span>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
-                      <p className="text-xs text-mid leading-relaxed mb-2.5">
-                        This involves real legal exposure. A HQ Partner can give you specific, protected advice before you act.
-                      </p>
-                      <div className="flex gap-2 flex-wrap">
-                        <button onClick={() => setShowAdvisorModal(true)}
-                          className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
-                          Book a call with a HQ Partner
+              {/* Assistant: flat prose full-width with small label */}
+              {msg.role === 'assistant' && (
+                <div className="w-full">
+                  <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
+                    {moduleLabel}
+                  </p>
+
+                  {/* Form or flat prose */}
+                  {msg.formType && !msg.formCompleted ? (
+                    <DocumentFormCard
+                      docType={msg.formType}
+                      onSubmit={handleFormSubmit}
+                      onSkip={() => {
+                        setActiveForm(null)
+                        setMessages(prev => prev.map(m =>
+                          m.formType === msg.formType && !m.formCompleted
+                            ? { ...m, formCompleted: true }
+                            : m
+                        ))
+                        sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
+                      }}
+                      bizName={bizName}
+                    />
+                  ) : msg.formType && msg.formCompleted ? (
+                    <p className="text-sm text-mid">
+                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted — generating your document…
+                    </p>
+                  ) : msg.content ? (
+                    <div className="text-sm text-charcoal leading-relaxed">
+                      <MessageContent content={msg.content} isUser={false} />
+                    </div>
+                  ) : (
+                    // Pre-stream: pulsing dot where tokens will land
+                    <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
+                  )}
+
+                  {/* Hover action row (Copy) — only for non-form completed assistant messages with content */}
+                  {!msg.formType && msg.content && !(isLoading && i === messages.length - 1) && (
+                    <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => copyMessage(msg.content, i)}
+                        title="Copy"
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-mid hover:bg-light hover:text-charcoal transition-colors"
+                      >
+                        {copiedIdx === i ? (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                          </svg>
+                        )}
+                      </button>
+                      {copiedIdx === i && <span className="text-[10px] text-mid font-medium">Copied</span>}
+                    </div>
+                  )}
+
+                  {/* Escalation card */}
+                  {msg.escalate && (
+                    <>
+                      <div className="mt-3 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
+                        <span className="text-lg flex-shrink-0">⚠️</span>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
+                          <p className="text-xs text-mid leading-relaxed mb-2.5">
+                            This involves real legal exposure. A HQ Partner can give you specific, protected advice before you act.
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            <button onClick={() => setShowAdvisorModal(true)}
+                              className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
+                              Book a call with a HQ Partner
+                            </button>
+                            <button onClick={() => setShowAdvisorModal(false)}
+                              className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
+                              Continue talking with {advisorName}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Add more context */}
+                      <div className="mt-2">
+                        <button onClick={() => setShowContextInput(!showContextInput)}
+                          className="text-xs text-mid font-bold hover:underline">
+                          + Add more context
                         </button>
-                        <button onClick={() => setShowAdvisorModal(false)}
-                          className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
-                          Continue talking with {advisorName}
-                        </button>
+                        {showContextInput && (
+                          <div className="mt-2 space-y-2">
+                            <textarea
+                              value={extraContext}
+                              onChange={e => setExtraContext(e.target.value)}
+                              placeholder="Add additional context about your situation..."
+                              rows={3}
+                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-black transition-colors"
+                            />
+                            <button onClick={handleSendContext}
+                              disabled={!extraContext.trim()}
+                              className="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors">
+                              Send context
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Document saved indicator with download */}
+                  {msg.docType && msg.content.length > 200 && (
+                    <div className="mt-3 bg-light rounded-xl px-3.5 py-2.5">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
+                        <p className="text-xs text-charcoal flex-1">
+                          <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 ml-6">
+                        <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
+                        {savedDocId && (
+                          <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
+                            View in library →
+                          </a>
+                        )}
                       </div>
                     </div>
-                  </div>
-
-                  {/* Add more context */}
-                  <div className="mt-2">
-                    <button onClick={() => setShowContextInput(!showContextInput)}
-                      className="text-xs text-mid font-bold hover:underline">
-                      + Add more context
-                    </button>
-                    {showContextInput && (
-                      <div className="mt-2 space-y-2">
-                        <textarea
-                          value={extraContext}
-                          onChange={e => setExtraContext(e.target.value)}
-                          placeholder="Add additional context about your situation..."
-                          rows={3}
-                          className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-black transition-colors"
-                        />
-                        <button onClick={handleSendContext}
-                          disabled={!extraContext.trim()}
-                          className="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors">
-                          Send context
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Document saved indicator with download */}
-              {msg.docType && msg.role === 'assistant' && msg.content.length > 200 && (
-                <div className="mt-2 bg-light rounded-xl px-3.5 py-2.5">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
-                    <p className="text-xs text-black flex-1">
-                      <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 ml-6">
-                    <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
-                    {savedDocId && (
-                      <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
-                        View in library →
-                      </a>
-                    )}
-                  </div>
+                  )}
                 </div>
               )}
             </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Typing indicator */}
-        {isLoading && (
-          <div className="flex gap-3 max-w-3xl">
-            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white text-base font-bold flex-shrink-0">HQ</div>
-            <div className="bg-light rounded-2xl rounded-tl-sm px-4 py-3.5">
-              <div className="flex gap-1.5 items-center">
-                {[0, 1, 2].map(i => (
-                  <span key={i} className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </div>
+          {/* Pre-stream thinking indicator (only when no assistant placeholder is present yet) */}
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
+            <div className="flex flex-col items-start">
+              <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">{moduleLabel}</p>
+              <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
             </div>
-          </div>
-        )}
+          )}
+        </div>
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 px-3 sm:px-6 pb-4 sm:pb-5 pt-2.5 sm:pt-3 border-t border-border bg-white pb-safe">
-        <div className="flex items-end gap-2 sm:gap-3 bg-white border border-border rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 focus-within:border-black transition-colors">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={autoResize}
-            onKeyDown={handleKey}
-            placeholder={module === 'recruit'
-              ? 'Ask about job ads, screening, candidates…'
-              : 'Ask about awards, contracts, leave, compliance…'
-            }
-            rows={1}
-            className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[120px]"
-          />
-          <button
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || isLoading}
-            className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-          >
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-            </svg>
-          </button>
-        </div>
-        <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2">
-          <Link href="/dashboard/booking"
-            className="bg-black text-white rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
-            Talk to a HQ Partner
-          </Link>
-          <button
-            className="border border-border text-mid rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-light transition-colors">
-            Continue with {advisorName}
-          </button>
+      <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-white pb-safe">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-end gap-2 bg-white border border-border rounded-3xl px-4 py-2.5 focus-within:border-black transition-colors shadow-sm">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={autoResize}
+              onKeyDown={handleKey}
+              placeholder={module === 'recruit'
+                ? 'Ask HQ Recruit about ads, screening, candidates…'
+                : 'Ask HQ People about HR, Fair Work, payroll…'
+              }
+              rows={1}
+              className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1.5"
+            />
+            {isLoading ? (
+              <button
+                onClick={stopGeneration}
+                title="Stop generating"
+                className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] transition-all"
+              >
+                <span className="w-3 h-3 bg-white rounded-sm" />
+              </button>
+            ) : (
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                title="Send"
+                className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] disabled:bg-muted disabled:cursor-not-allowed transition-all"
+              >
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 3a1 1 0 01.707.293l5 5a1 1 0 01-1.414 1.414L11 6.414V16a1 1 0 11-2 0V6.414L5.707 9.707a1 1 0 01-1.414-1.414l5-5A1 1 0 0110 3z"/>
+                </svg>
+              </button>
+            )}
+          </div>
+          <p className="text-[10px] text-muted text-center mt-2 leading-relaxed px-4">
+            {moduleLabel} provides general guidance grounded in Australian employment law — not legal advice. Verify critical decisions.{' '}
+            <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
+              Talk to a HQ Partner
+            </Link>
+          </p>
         </div>
       </div>
 
@@ -582,7 +640,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
 // Render markdown-lite message content
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
-  if (!content) return <span className="text-muted text-xs">Thinking…</span>
+  if (!content) return null
 
   const lines = content.split('\n')
   const elements: React.ReactNode[] = []
@@ -591,7 +649,7 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
   const flushList = () => {
     if (listItems.length) {
       elements.push(
-        <ul key={elements.length} className="list-disc pl-4 space-y-1 my-1">
+        <ul key={elements.length} className="list-disc pl-5 space-y-1 my-2">
           {listItems.map((item, i) => (
             <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item, isUser) }} />
           ))}
@@ -609,24 +667,37 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
       listItems.push(trimmed.slice(2))
     } else if (trimmed.match(/^\d+\. /)) {
       listItems.push(trimmed.replace(/^\d+\. /, ''))
+    } else if (trimmed.startsWith('## ')) {
+      flushList()
+      elements.push(
+        <h3 key={elements.length} className="font-bold text-[15px] mt-3 mb-1 first:mt-0"
+          dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(3), isUser) }} />
+      )
+    } else if (trimmed.startsWith('# ')) {
+      flushList()
+      elements.push(
+        <h2 key={elements.length} className="font-bold text-base mt-3 mb-1 first:mt-0"
+          dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(2), isUser) }} />
+      )
     } else {
       flushList()
       elements.push(
-        <p key={elements.length} className="mb-1 last:mb-0"
+        <p key={elements.length} className="mb-2 last:mb-0"
           dangerouslySetInnerHTML={{ __html: formatInline(trimmed, isUser) }} />
       )
     }
   }
   flushList()
 
-  return <div className="space-y-0.5">{elements}</div>
+  return <div>{elements}</div>
 }
 
 function formatInline(text: string, isUser: boolean): string {
+  const codeCls = isUser ? 'bg-white/15 px-1 rounded text-xs font-mono' : 'bg-light px-1 rounded text-xs font-mono'
   return text
-    .replace(/\*\*(.*?)\*\*/g, `<strong class="font-medium">$1</strong>`)
+    .replace(/\*\*(.*?)\*\*/g, `<strong class="font-semibold">$1</strong>`)
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, `<code class="bg-black/10 px-1 rounded text-xs font-mono">$1</code>`)
+    .replace(/`(.*?)`/g, `<code class="${codeCls}">$1</code>`)
 }
 
 function DocumentFormCard({
@@ -651,7 +722,6 @@ function DocumentFormCard({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Check required fields
     const missing = formDef.fields.filter(f => f.required && !formData[f.key]?.trim())
     if (missing.length > 0) return
     onSubmit(docType, formData)
@@ -660,7 +730,7 @@ function DocumentFormCard({
   const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
 
   return (
-    <div className="bg-white shadow-card rounded-2xl rounded-tl-sm overflow-hidden">
+    <div className="bg-white shadow-card rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="bg-light border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">

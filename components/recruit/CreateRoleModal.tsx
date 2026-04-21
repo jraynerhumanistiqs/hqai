@@ -158,13 +158,42 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-black mb-1.5">Time per Answer</label>
-                  <select className={selectCls} value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))}>
-                    <option value={60}>60 seconds</option>
-                    <option value={90}>90 seconds</option>
-                    <option value={120}>2 minutes</option>
-                    <option value={180}>3 minutes</option>
-                  </select>
+                  <label className="block text-xs font-bold text-black mb-1.5">
+                    Time per Answer
+                    <span className="text-mid font-normal ml-1">({timeLimit < 60 ? `${timeLimit}s` : `${Math.floor(timeLimit / 60)}m${timeLimit % 60 ? ` ${timeLimit % 60}s` : ''}`})</span>
+                  </label>
+                  <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                    {[60, 90, 120, 180, 300].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setTimeLimit(val)}
+                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
+                          timeLimit === val
+                            ? 'bg-black text-white'
+                            : 'bg-light text-mid hover:bg-border'
+                        }`}
+                      >
+                        {val < 60 ? `${val}s` : val % 60 === 0 ? `${val / 60}m` : `${Math.floor(val / 60)}m ${val % 60}s`}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={10}
+                      max={600}
+                      step={5}
+                      className={inputCls}
+                      value={timeLimit}
+                      onChange={e => {
+                        const v = Number(e.target.value)
+                        if (Number.isFinite(v)) setTimeLimit(Math.max(10, Math.min(600, v)))
+                      }}
+                      placeholder="Custom seconds"
+                    />
+                    <span className="text-xs text-mid whitespace-nowrap">seconds</span>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-black mb-1.5">Questions</label>

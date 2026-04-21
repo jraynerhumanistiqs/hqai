@@ -7,11 +7,27 @@ interface Props {
   onComplete: (videoIds: string[]) => Promise<void>
 }
 
-type RecorderState = 'idle' | 'recording' | 'uploading' | 'done' | 'error'
+type RecorderState = 'init' | 'idle' | 'recording' | 'uploading' | 'done' | 'error'
+
+// Pick a supported mimeType with graceful fallback (Safari/iOS compat)
+function pickMimeType(): string | undefined {
+  if (typeof MediaRecorder === 'undefined') return undefined
+  const candidates = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm',
+    'video/mp4;codecs=h264,aac',
+    'video/mp4',
+  ]
+  for (const mt of candidates) {
+    try { if (MediaRecorder.isTypeSupported(mt)) return mt } catch {}
+  }
+  return undefined
+}
 
 export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props) {
   const [currentQ, setCurrentQ]     = useState(0)
-  const [recState, setRecState]     = useState<RecorderState>('idle')
+  const [recState, setRecState]     = useState<RecorderState>('init')
   const [elapsed, setElapsed]       = useState(0)
   const [errorMsg, setErrorMsg]     = useState('')
   const [videoIds, setVideoIds]     = useState<(string | null)[]>(questions.map(() => null))
@@ -22,41 +38,93 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef  = useRef<ReturnType<typeof setInterval> | null>(null)
+  const mimeRef   = useRef<string | undefined>(undefined)
+
+  const initCamera = useCallback(async () => {
+    setErrorMsg('')
+    setRecState('init')
+    try {
+      // Stop any existing stream
+      streamRef.current?.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        try { await videoRef.current.play() } catch {}
+      }
+      mimeRef.current = pickMimeType()
+      if (!mimeRef.current) {
+        setRecState('error')
+        setErrorMsg('Your browser does not support video recording. Please try Chrome, Edge or Safari 14+.')
+        return
+      }
+      setRecState('idle')
+    } catch (err: any) {
+      setRecState('error')
+      const name = err?.name || ''
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setErrorMsg('Camera and microphone access was blocked. Please allow access in your browser settings and try again.')
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        setErrorMsg('No camera or microphone found. Please connect one and try again.')
+      } else if (name === 'NotReadableError') {
+        setErrorMsg('Your camera is already in use by another app. Close it and try again.')
+      } else {
+        setErrorMsg('Could not start your camera. Please check permissions and try again.')
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        streamRef.current = stream
-        if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play() }
-      })
-      .catch(() => {
-        setRecState('error')
-        setErrorMsg('Camera or microphone not available. Please check browser permissions and try again.')
-      })
-    return () => streamRef.current?.getTracks().forEach(t => t.stop())
+    initCamera()
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      streamRef.current?.getTracks().forEach(t => t.stop())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function startRecording() {
-    if (!streamRef.current) return
+    if (!streamRef.current) {
+      setRecState('error')
+      setErrorMsg('Camera is not ready. Please try again.')
+      return
+    }
     chunksRef.current = []
-    const mr = new MediaRecorder(streamRef.current, { mimeType: 'video/webm;codecs=vp9,opus' })
-    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-    mr.onstop = handleUpload
-    mr.start(1000)
-    mediaRef.current = mr
-    setRecState('recording')
-    setElapsed(0)
-    timerRef.current = setInterval(() => {
-      setElapsed(prev => {
-        if (prev + 1 >= timeLimitSeconds) stopRecording()
-        return prev + 1
-      })
-    }, 1000)
+    try {
+      const options = mimeRef.current ? { mimeType: mimeRef.current } : undefined
+      const mr = new MediaRecorder(streamRef.current, options)
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = handleUpload
+      mr.onerror = () => {
+        if (timerRef.current) clearInterval(timerRef.current)
+        setRecState('error')
+        setErrorMsg('Recording stopped unexpectedly. Please try again.')
+      }
+      mr.start(1000)
+      mediaRef.current = mr
+      setRecState('recording')
+      setElapsed(0)
+      timerRef.current = setInterval(() => {
+        setElapsed(prev => {
+          if (prev + 1 >= timeLimitSeconds) stopRecording()
+          return prev + 1
+        })
+      }, 1000)
+    } catch (err) {
+      console.error('Failed to start recording', err)
+      setRecState('error')
+      setErrorMsg('Could not start recording. Your browser may not support it. Please try a different browser.')
+    }
   }
 
   function stopRecording() {
     if (timerRef.current) clearInterval(timerRef.current)
-    mediaRef.current?.stop()
+    try { mediaRef.current?.stop() } catch {}
     setRecState('uploading')
   }
 
@@ -67,7 +135,8 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       if (!urlRes.ok) throw new Error('Failed to get upload URL')
       const { uploadUrl, videoId } = await urlRes.json()
 
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+      const blobType = mimeRef.current?.startsWith('video/mp4') ? 'video/mp4' : 'video/webm'
+      const blob = new Blob(chunksRef.current, { type: blobType })
       const uploadRes = await fetch(uploadUrl, { method: 'POST', body: blob })
       if (!uploadRes.ok) throw new Error('Video upload failed')
 
@@ -76,7 +145,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
     } catch (err) {
       console.error(err)
       setRecState('error')
-      setErrorMsg('Upload failed. Please re-record your response.')
+      setErrorMsg('Upload failed. Check your connection and try again.')
     }
   }, [currentQ])
 
@@ -125,6 +194,14 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       <div className="bg-gray-900 rounded-2xl overflow-hidden mb-4 aspect-video relative">
         <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
 
+        {/* Camera initialising */}
+        {recState === 'init' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-3" />
+            <p className="text-white text-sm font-medium">Starting camera…</p>
+          </div>
+        )}
+
         {/* Recording indicator */}
         {recState === 'recording' && (
           <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -161,8 +238,8 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
           </div>
         )}
         {recState === 'error' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 p-6">
-            <p className="text-white text-sm text-center">{errorMsg}</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-6">
+            <p className="text-white text-sm text-center max-w-sm">{errorMsg}</p>
           </div>
         )}
       </div>
@@ -178,23 +255,37 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       <div className="flex items-center justify-center gap-3 mb-8">
         {recState === 'idle' && (
           <button onClick={startRecording}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold px-8 py-3 rounded-xl transition-colors flex items-center gap-2">
+            className="bg-red-500 hover:bg-red-600 text-white font-bold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-white/80" />
             Record
           </button>
         )}
         {recState === 'recording' && (
           <button onClick={stopRecording}
-            className="bg-gray-800 hover:bg-gray-900 text-white font-bold px-8 py-3 rounded-xl transition-colors flex items-center gap-2">
+            className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
             <span className="w-3 h-3 bg-white" />
             Stop
           </button>
         )}
         {recState === 'done' && (
           <button onClick={redoRecording}
-            className="bg-white hover:bg-gray-50 text-gray-700 font-bold px-6 py-3 rounded-xl border border-gray-300 transition-colors text-sm">
+            className="bg-white hover:bg-light text-charcoal font-bold px-6 py-3 rounded-full border border-border transition-colors text-sm">
             Re-record
           </button>
+        )}
+        {recState === 'error' && (
+          <div className="flex items-center gap-3">
+            <button onClick={initCamera}
+              className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-3 rounded-full transition-colors text-sm">
+              Try again
+            </button>
+            {videoIds[currentQ] == null && streamRef.current && (
+              <button onClick={() => { setRecState('idle'); setErrorMsg('') }}
+                className="bg-white hover:bg-light text-charcoal font-bold px-6 py-3 rounded-full border border-border transition-colors text-sm">
+                Cancel
+              </button>
+            )}
+          </div>
         )}
       </div>
 
