@@ -1,0 +1,186 @@
+'use client'
+import { useState, useEffect, useCallback } from 'react'
+import type { PrescreenSession, CandidateResponse } from '@/lib/recruit-types'
+import { CreateRoleModal } from './CreateRoleModal'
+import { RoleDetail } from './RoleDetail'
+
+export function RecruitDashboard() {
+  const [sessions, setSessions]         = useState<PrescreenSession[]>([])
+  const [selected, setSelected]         = useState<PrescreenSession | null>(null)
+  const [responses, setResponses]       = useState<CandidateResponse[]>([])
+  const [loadingResponses, setLoadingResponses] = useState(false)
+  const [loadingSessions, setLoadingSessions]   = useState(true)
+  const [showCreate, setShowCreate]     = useState(false)
+  const [candidateUrl, setCandidateUrl] = useState('')
+
+  useEffect(() => {
+    fetch('/api/prescreen/sessions')
+      .then(r => r.json())
+      .then(d => {
+        const list: PrescreenSession[] = d.sessions ?? []
+        setSessions(list)
+        if (list.length > 0) setSelected(list[0])
+      })
+      .catch(console.error)
+      .finally(() => setLoadingSessions(false))
+  }, [])
+
+  const loadResponses = useCallback(async (session: PrescreenSession) => {
+    setLoadingResponses(true)
+    try {
+      const d = await fetch(`/api/prescreen/sessions/${session.id}/responses`).then(r => r.json())
+      setResponses(d.responses ?? [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingResponses(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selected) return
+    setResponses([])
+    loadResponses(selected)
+  }, [selected, loadResponses])
+
+  function handleCreated(session: PrescreenSession, url: string) {
+    setSessions(prev => [session, ...prev])
+    setSelected(session)
+    setCandidateUrl(url)
+    setResponses([])
+    setShowCreate(false)
+  }
+
+  async function handlePatchResponse(id: string, patch: Partial<CandidateResponse>) {
+    await fetch(`/api/prescreen/responses/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    setResponses(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+  }
+
+  async function handleShareResponse(id: string): Promise<string> {
+    const data = await fetch(`/api/prescreen/responses/${id}/share-export`, { method: 'POST' }).then(r => r.json())
+    setResponses(prev => prev.map(r => r.id === id ? { ...r, status: 'shared' } : r))
+    return data.shareUrl
+  }
+
+  const activeCount = sessions.filter(s => s.status === 'active').length
+
+  return (
+    <div className="flex h-full overflow-hidden bg-bg">
+
+      {/* ── Left panel: role list ── */}
+      <div className="w-64 flex-shrink-0 border-r border-border bg-white flex flex-col">
+
+        {/* Header */}
+        <div className="px-4 pt-5 pb-4 border-b border-border">
+          <div className="flex items-center justify-between mb-0.5">
+            <h1 className="font-serif text-base font-bold text-black tracking-tight">HQ Recruit</h1>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="bg-accent hover:bg-accent2 text-white text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors"
+            >
+              + New
+            </button>
+          </div>
+          <p className="text-xs text-mid">
+            {activeCount} active {activeCount === 1 ? 'role' : 'roles'}
+          </p>
+        </div>
+
+        {/* Role list */}
+        <div className="flex-1 overflow-y-auto">
+          {loadingSessions ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-5 h-5 border-2 border-border border-t-accent rounded-full animate-spin" />
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <p className="text-sm text-mid mb-2">No roles yet</p>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="text-xs text-accent hover:text-accent2 font-bold transition-colors"
+              >
+                Create your first role →
+              </button>
+            </div>
+          ) : (
+            sessions.map(s => (
+              <button
+                key={s.id}
+                onClick={() => { setSelected(s); setCandidateUrl('') }}
+                className={`w-full text-left px-4 py-3 transition-all border-l-2 ${
+                  selected?.id === s.id
+                    ? 'bg-accent3 border-l-accent'
+                    : 'border-l-transparent hover:bg-bg'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className={`text-sm font-bold truncate leading-snug ${
+                      selected?.id === s.id ? 'text-accent2' : 'text-black'
+                    }`}>
+                      {s.role_title}
+                    </p>
+                    <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
+                    s.status === 'active'
+                      ? 'bg-success/10 text-success'
+                      : 'bg-light text-mid'
+                  }`}>
+                    {s.status}
+                  </span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* ── Right panel: role detail ── */}
+      <div className="flex-1 overflow-hidden">
+        {selected ? (
+          <RoleDetail
+            session={selected}
+            responses={responses}
+            loadingResponses={loadingResponses}
+            initialCandidateUrl={candidateUrl}
+            onPatchResponse={handlePatchResponse}
+            onShareResponse={handleShareResponse}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-xs px-4">
+              <div className="w-14 h-14 bg-accent3 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+              </div>
+              <h2 className="font-serif text-xl font-bold text-black mb-1">Select a role</h2>
+              <p className="text-sm text-mid mb-5">
+                Choose a role from the left panel, or create a new one to start receiving video pre-screens.
+              </p>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="bg-accent hover:bg-accent2 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
+              >
+                + New Role
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Create role modal */}
+      {showCreate && (
+        <CreateRoleModal
+          onClose={() => setShowCreate(false)}
+          onCreated={handleCreated}
+        />
+      )}
+    </div>
+  )
+}

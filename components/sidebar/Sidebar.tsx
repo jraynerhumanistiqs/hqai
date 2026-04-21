@@ -129,12 +129,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
             <Link href="/dashboard/recruit"
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
                 ${isActive('/dashboard/recruit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Chat with {advisorName || 'HQ'}
-            </Link>
-            <Link href="/dashboard/recruit/campaigns"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all
-                ${isActive('/dashboard/recruit/campaigns') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Campaigns
+              Dashboard
             </Link>
           </div>
         )}
