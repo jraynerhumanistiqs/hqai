@@ -24,12 +24,17 @@ function initials(name: string) {
 }
 
 export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse }: Props) {
-  const [copied, setCopied]         = useState(false)
-  const [filter, setFilter]         = useState<Filter>('all')
-  const [expanded, setExpanded]     = useState<string | null>(null)
-  const [shareUrls, setShareUrls]   = useState<Record<string, string>>({})
-  const [copying, setCopying]       = useState<string | null>(null)
+  const [copied, setCopied]               = useState(false)
+  const [filter, setFilter]               = useState<Filter>('all')
+  const [expanded, setExpanded]           = useState<string | null>(null)
+  const [shareUrls, setShareUrls]         = useState<Record<string, string>>({})
+  const [copying, setCopying]             = useState<string | null>(null)
   const [questionsOpen, setQuestionsOpen] = useState(false)
+  const [showInvite, setShowInvite]       = useState(false)
+  const [inviteEmail, setInviteEmail]     = useState('')
+  const [inviteName, setInviteName]       = useState('')
+  const [sendingInvite, setSendingInvite] = useState(false)
+  const [inviteSent, setInviteSent]       = useState(false)
 
   const candidateUrl = initialCandidateUrl ||
     `${typeof window !== 'undefined' ? window.location.origin : 'https://hqai.vercel.app'}/prescreen/${session.id}`
@@ -38,6 +43,24 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     await navigator.clipboard.writeText(candidateUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function sendInvite() {
+    if (!inviteEmail.trim()) return
+    setSendingInvite(true)
+    try {
+      await fetch(`/api/prescreen/sessions/${session.id}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidate_email: inviteEmail.trim(), candidate_name: inviteName.trim() }),
+      })
+      setInviteSent(true)
+      setInviteEmail('')
+      setInviteName('')
+      setTimeout(() => { setInviteSent(false); setShowInvite(false) }, 2500)
+    } finally {
+      setSendingInvite(false)
+    }
   }
 
   const filtered = filter === 'all' ? responses : responses.filter(r => r.status === filter)
@@ -112,9 +135,58 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 {copied ? '✓ Copied' : 'Copy Link'}
               </button>
             </div>
-            <p className="text-xs text-mid mt-2">
-              Share this link with candidates. They record video responses directly in their browser — no app needed.
-            </p>
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => setShowInvite(!showInvite)}
+                className="text-xs font-bold text-accent hover:text-accent2 transition-colors"
+              >
+                ✉ Email invite to candidate
+              </button>
+              <span className="text-mid text-xs">·</span>
+              <p className="text-xs text-mid">
+                Or copy and share the link above
+              </p>
+            </div>
+
+            {showInvite && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-black mb-1">Candidate Name</label>
+                      <input
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg"
+                        placeholder="e.g. Jane Smith"
+                        value={inviteName}
+                        onChange={e => setInviteName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-black mb-1">Email Address</label>
+                      <input
+                        type="email"
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg"
+                        placeholder="jane@example.com"
+                        value={inviteEmail}
+                        onChange={e => setInviteEmail(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && sendInvite()}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={sendInvite}
+                    disabled={sendingInvite || !inviteEmail.trim()}
+                    className={`text-sm font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
+                      inviteSent
+                        ? 'bg-success/10 text-success border border-success/20'
+                        : 'bg-accent hover:bg-accent2 disabled:opacity-40 text-white'
+                    }`}
+                  >
+                    {inviteSent ? '✓ Sent' : sendingInvite ? 'Sending…' : 'Send'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Questions accordion */}

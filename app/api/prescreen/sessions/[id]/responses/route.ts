@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { sendCandidateSubmittedEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
 
@@ -29,6 +30,39 @@ export async function POST(
       .single()
 
     if (error) throw error
+
+    // Fire-and-forget: notify staff that a candidate submitted
+    try {
+      const { data: session } = await supabaseAdmin
+        .from('prescreen_sessions')
+        .select('role_title, company, created_by')
+        .eq('id', session_id)
+        .single()
+
+      if (session?.created_by) {
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', session.created_by)
+          .single()
+
+        if (profile?.email) {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+          void sendCandidateSubmittedEmail({
+            staffEmail: profile.email,
+            staffName: profile.full_name || '',
+            candidateName: body.candidate_name,
+            roleTitle: session.role_title,
+            company: session.company,
+            reviewUrl: `${baseUrl}/dashboard/recruit`,
+          })
+        }
+      }
+    } catch (notifyErr) {
+      // Notification failure must never block the response
+      console.error('[responses/POST] notification error:', notifyErr)
+    }
+
     return NextResponse.json({ response: data })
   } catch (err) {
     console.error('[POST /api/prescreen/sessions/:id/responses]', err)
