@@ -18,10 +18,10 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
 
   return (
     <div className="mb-6 sm:mb-10">
-      <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide">
+      <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide">
         {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
       </h1>
-      <p className="text-sm sm:text-body text-gray-400">
+      <p className="text-sm sm:text-body text-mid">
         Welcome to {bizName} &mdash; here&apos;s what&apos;s happening.
       </p>
     </div>

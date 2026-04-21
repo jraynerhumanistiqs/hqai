@@ -64,8 +64,8 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
       {/* Business pill */}
       <div className="px-4 pt-4 pb-2">
         <div className="bg-white/6 rounded-lg px-3 py-2.5 flex items-center gap-2">
-          <div className="w-5 h-5 bg-[#fd7325]/30 rounded-md flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] text-[#fd7325] font-medium">{bizName[0]?.toUpperCase()}</span>
+          <div className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] text-white font-medium">{bizName[0]?.toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-white/80 truncate font-display">{bizName}</p>
@@ -269,10 +269,10 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
       <div className="px-3 pb-4 space-y-2 flex-shrink-0">
         {/* Advisor card */}
         <div className="bg-[#111111] border border-[#222222] rounded-xl p-3">
-          <p className="text-[10px] text-[#fd7325] font-bold uppercase tracking-wider mb-2">Your HQ.ai Advisor</p>
+          <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider mb-2">Your HQ.ai Advisor</p>
           <div className="flex items-center gap-2 mb-2">
             <div className="relative">
-              <div className="w-7 h-7 bg-[#fd7325]/20 rounded-full flex items-center justify-center text-xs font-medium text-[#fd7325]">
+              <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-medium text-white">
                 {advisorName[0]}
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-[#000000] animate-pulse" />
@@ -282,7 +282,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
             </div>
           </div>
           <button onClick={handleContactPartner}
-            className="block w-full text-center bg-[#ffffff] hover:bg-gray-100 text-[#fd7325] text-xs font-bold py-1.5 rounded-lg transition-colors">
+            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-1.5 rounded-lg transition-colors">
             Contact HQ Partner
           </button>
         </div>
@@ -316,7 +316,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
                 Maybe later
               </button>
               <Link href="/dashboard/booking" onClick={() => setShowPartnerPopup(false)}
-                className="flex-1 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-xl text-sm font-bold text-center transition-colors">
+                className="flex-1 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-xl text-sm font-bold text-center transition-colors">
                 Book a call
               </Link>
             </div>

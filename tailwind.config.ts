@@ -8,53 +8,61 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Primary
-        black:    '#0A0A0A',
-        white:    '#FFFFFF',
-        bg:       '#F7F7F5',
+        // ── Uber Design System ──────────────────────────────────
+        // Primary surfaces
+        black:    '#000000',   // Primary buttons, headings, nav text
+        white:    '#FFFFFF',   // Page backgrounds, card surfaces
 
-        // Depth
-        charcoal: '#1F1F1F',
-        mid:      '#6B6B6B',
-        light:    '#EAEAEA',
-        border:   '#E4E4E2',
+        // Content area bg (pure white per Uber spec)
+        bg:       '#FFFFFF',
 
-        // Accent — Deep Sage
-        accent:   '#6F8F7A',
-        accent2:  '#5A7A65',
-        accent3:  '#EAF0EC',
+        // Text hierarchy
+        charcoal: '#1F1F1F',   // Deepest text on dark surfaces
+        mid:      '#4b4b4b',   // Body gray — secondary text
+        muted:    '#afafaf',   // Tertiary text, placeholders
+        light:    '#efefef',   // Chip gray — filter chips, secondary nav
+        border:   '#e2e2e2',   // Hover gray — used on borders and hover
 
-        // Semantic
+        // CTA accent → Uber black (no color accent in chrome)
+        accent:   '#000000',   // Primary CTA (was sage green)
+        accent2:  '#1a1a1a',   // CTA hover
+        accent3:  '#efefef',   // Chip/pill background
+
+        // Semantic (unchanged)
         danger:   '#D94F4F',
         warning:  '#C8850A',
         success:  '#3D8A5E',
       },
       fontFamily: {
+        // DM Sans for all roles per Uber spec (geometric sans-serif substitute)
         sans:    ['DM Sans', 'sans-serif'],
-        serif:   ['Fraunces', 'serif'],
-        display: ['Bebas Neue', 'sans-serif'],
+        display: ['DM Sans', 'sans-serif'],   // Was Bebas Neue — now DM Sans bold
+        serif:   ['DM Sans', 'sans-serif'],   // Was Fraunces — now DM Sans bold
       },
       fontSize: {
-        'display': ['48px', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
-        'h1':      ['40px', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
-        'h2':      ['30px', { lineHeight: '1.2',  letterSpacing: '-0.02em' }],
-        'h3':      ['22px', { lineHeight: '1.3',  letterSpacing: '-0.01em' }],
-        'body':    ['15px', { lineHeight: '1.65' }],
-        'small':   ['13px', { lineHeight: '1.5'  }],
-        'xs':      ['11px', { lineHeight: '1.4'  }],
+        // Uber type scale
+        'display': ['52px', { lineHeight: '1.23', letterSpacing: '-0.01em' }],
+        'h1':      ['36px', { lineHeight: '1.22', letterSpacing: '-0.01em' }],
+        'h2':      ['32px', { lineHeight: '1.25', letterSpacing: '-0.01em' }],
+        'h3':      ['24px', { lineHeight: '1.33' }],
+        'body':    ['16px', { lineHeight: '1.50' }],
+        'small':   ['14px', { lineHeight: '1.43' }],
+        'xs':      ['12px', { lineHeight: '1.67' }],
       },
       borderRadius: {
-        'sm':  '6px',
-        'md':  '10px',
-        'lg':  '12px',
+        'sm':  '4px',
+        'md':  '8px',    // Standard cards, inputs
+        'lg':  '12px',   // Featured cards
         'xl':  '16px',
         '2xl': '20px',
+        // 'full' is Tailwind's built-in 9999px — used for all buttons/chips
       },
       boxShadow: {
-        'card':   '0 1px 3px rgba(10,10,10,0.06), 0 1px 2px rgba(10,10,10,0.04)',
-        'float':  '0 4px 16px rgba(10,10,10,0.08), 0 2px 4px rgba(10,10,10,0.04)',
-        'modal':  '0 20px 60px rgba(10,10,10,0.15), 0 4px 16px rgba(10,10,10,0.08)',
-        'cmd':    '0 32px 80px rgba(10,10,10,0.2), 0 8px 24px rgba(10,10,10,0.1)',
+        // Uber shadow spec — whisper-soft
+        'card':   '0 4px 16px rgba(0,0,0,0.12)',
+        'float':  '0 2px 8px rgba(0,0,0,0.16)',
+        'modal':  '0 8px 40px rgba(0,0,0,0.18)',
+        'cmd':    '0 32px 80px rgba(0,0,0,0.2)',
       },
       spacing: {
         'sidebar': '248px',

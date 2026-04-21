@@ -14,13 +14,13 @@ const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number 
   scale: { name: 'Scale', price: '$379/mo', seats: 12 },
 }
 
-const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#fd7325] transition-colors"
+const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
 const selectCls = inputCls + " appearance-none"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-gray-400 mb-1.5">{label}</label>
+      <label className="block text-xs font-bold text-mid mb-1.5">{label}</label>
       {children}
     </div>
   )
@@ -126,48 +126,48 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-white">
       <div className="max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide mb-1">Settings</h1>
-        <p className="text-xs sm:text-sm text-gray-400 mb-6 sm:mb-8">Update your business profile and advisor details</p>
+        <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide mb-1">Settings</h1>
+        <p className="text-xs sm:text-sm text-mid mb-6 sm:mb-8">Update your business profile and advisor details</p>
 
         {/* Company Logo */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Company logo</h2>
+        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Company logo</h2>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#1a1a1a] border-2 border-dashed border-[#333333] rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 bg-light border-2 border-dashed border-border rounded-xl flex items-center justify-center overflow-hidden">
               {logoUrl ? (
                 <img src={logoUrl} alt="Company logo" className="w-full h-full object-contain rounded-xl" />
               ) : (
-                <svg className="w-6 h-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="w-6 h-6 text-muted" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
                 </svg>
               )}
             </div>
             <div>
-              <label className={`cursor-pointer bg-[#1a1a1a] border border-[#333333] rounded-lg px-4 py-2 text-sm font-bold text-white hover:bg-[#222222] transition-colors inline-block ${logoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <label className={`cursor-pointer bg-white border border-border rounded-lg px-4 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors inline-block ${logoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
                 {logoUploading ? 'Uploading…' : 'Upload logo'}
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={logoUploading} />
               </label>
-              <p className="text-xs text-gray-500 mt-1">PNG or JPG, max 2MB</p>
+              <p className="text-xs text-muted mt-1">PNG or JPG, max 2MB</p>
               {logoError && (
-                <p className="text-xs text-[#fd7325] mt-1">{logoError}</p>
+                <p className="text-xs text-danger mt-1">{logoError}</p>
               )}
             </div>
           </div>
         </section>
 
         {/* Personal */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Your profile</h2>
+        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Your profile</h2>
           <Field label="Your name">
             <input className={inputCls} value={userName} onChange={e => setUserName(e.target.value)} placeholder="James Smith" />
           </Field>
         </section>
 
         {/* Business */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-4">Business details</h2>
+        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Business details</h2>
           <div className="space-y-4">
             <Field label="Business name">
               <input className={inputCls} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="My Business Pty Ltd" />
@@ -202,13 +202,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Advisor — subscription gated */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Advisor details</h2>
-          <p className="text-xs text-gray-500 mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
+        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Advisor details</h2>
+          <p className="text-xs text-muted mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
           {plan === 'free' && (
-            <div className="absolute inset-0 bg-[#111111]/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
               <button onClick={openPortal}
-                className="bg-[#ffffff] text-[#fd7325] font-display font-bold text-lg px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors uppercase tracking-wider">
+                className="bg-black text-white font-display font-bold text-lg px-6 py-3 rounded-full hover:bg-[#1a1a1a] transition-colors uppercase tracking-wider">
                 Upgrade to unlock
               </button>
             </div>
@@ -229,19 +229,19 @@ export default function SettingsPage() {
         </section>
 
         <button onClick={save} disabled={saving}
-          className="bg-[#fd7325] hover:bg-[#e5671f] text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
+          className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors disabled:opacity-60">
           {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
 
         {/* Billing */}
-        <section className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mt-5">
-          <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-1">Billing & subscription</h2>
-          <p className="text-xs text-gray-500 mb-4">Manage your HQ.ai plan and payment method</p>
+        <section className="bg-white shadow-card rounded-2xl p-6 mt-5">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Billing & subscription</h2>
+          <p className="text-xs text-muted mb-4">Manage your HQ.ai plan and payment method</p>
 
           {billingError && (
-            <div className="bg-[#fd7325]/10 border border-[#fd7325]/30 rounded-lg px-4 py-3 text-sm text-[#fd7325] mb-4 flex items-center">
+            <div className="bg-danger/10 border border-danger/30 rounded-lg px-4 py-3 text-sm text-danger mb-4 flex items-center">
               <span className="flex-1">{billingError}</span>
-              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-[#fd7325] hover:text-white">✕</button>
+              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-danger hover:text-charcoal">✕</button>
             </div>
           )}
 
@@ -251,10 +251,10 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between mb-4">
+          <div className="bg-light rounded-xl p-4 flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm font-bold text-white">{PLAN_DETAILS[plan]?.name || plan} plan</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm font-bold text-charcoal">{PLAN_DETAILS[plan]?.name || plan} plan</p>
+              <p className="text-xs text-muted">
                 {subscriptionStatus === 'active' ? 'Active' :
                  subscriptionStatus === 'trialing' ? '14-day free trial' :
                  subscriptionStatus === 'cancelled' ? 'Cancelled' : subscriptionStatus}
@@ -268,7 +268,7 @@ export default function SettingsPage() {
               </button>
             ) : (
               <button onClick={openPortal} disabled={billingLoading}
-                className="bg-[#fd7325] hover:bg-[#e5671f] text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+                className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading…' : 'Upgrade plan'}
               </button>
             )}
@@ -279,11 +279,11 @@ export default function SettingsPage() {
               {(['essentials', 'growth', 'scale'] as const).map(pid => {
                 const p = PLAN_DETAILS[pid]
                 return (
-                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-[#fd7325] bg-[#fd7325]/10' : 'border-[#333333]'}`}>
-                    <p className="text-sm font-bold text-white">{p.name}</p>
-                    <p className="text-lg font-bold text-white mt-1">{p.price}</p>
-                    <p className="text-xs text-gray-500 mt-1">{p.seats} seats</p>
-                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-[#fd7325] text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
+                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-black bg-black/5' : 'border-border'}`}>
+                    <p className="text-sm font-bold text-charcoal">{p.name}</p>
+                    <p className="text-lg font-bold text-charcoal mt-1">{p.price}</p>
+                    <p className="text-xs text-muted mt-1">{p.seats} seats</p>
+                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
                   </div>
                 )
               })}

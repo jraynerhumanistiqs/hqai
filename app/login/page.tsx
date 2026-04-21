@@ -88,25 +88,25 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#fd7325] transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-block mb-3">
-            <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[140px] h-auto" />
+            <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="w-[140px] h-auto" />
           </div>
-          <p className="text-sm text-gray-500">by Humanistiqs</p>
+          <p className="text-sm text-muted">by Humanistiqs</p>
         </div>
 
-        <div className="bg-[#111111] rounded-2xl border border-[#222222] p-8">
-          <h1 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-1">
+        <div className="bg-white shadow-modal rounded-2xl p-8">
+          <h1 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-mid mb-6">
             {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Start your free trial — no credit card required'}
           </p>
 
@@ -150,48 +150,48 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="bg-[#fd7325]/10 border border-[#fd7325]/30 rounded-lg px-3 py-2 text-sm text-[#fd7325]">
+                <div className="bg-danger/10 border border-danger/30 rounded-lg px-3 py-2 text-sm text-danger">
                   {error}
                 </div>
               )}
 
               <button
                 type="submit" disabled={loading}
-                className="w-full bg-[#fd7325] hover:bg-[#e5671f] text-white font-bold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60"
+                className="w-full bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60"
               >
                 {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
               </button>
 
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#333333]" />
+                  <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative text-center">
-                  <span className="bg-[#111111] px-3 text-xs text-gray-500">or</span>
+                  <span className="bg-white px-3 text-xs text-muted">or</span>
                 </div>
               </div>
 
               <button
                 type="button" onClick={handleMagicLink} disabled={loading}
-                className="w-full bg-[#1a1a1a] hover:bg-[#222222] text-gray-300 font-bold py-2.5 rounded-lg text-sm transition-colors border border-[#333333]"
+                className="w-full bg-white hover:bg-light text-charcoal font-bold py-2.5 rounded-full text-sm transition-colors border border-border"
               >
                 ✉️ Send magic link instead
               </button>
             </form>
           )}
 
-          <p className="text-center text-xs text-gray-500 mt-6">
+          <p className="text-center text-xs text-muted mt-6">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
-              className="text-[#fd7325] font-bold hover:underline"
+              className="text-black font-bold hover:underline"
             >
               {mode === 'login' ? 'Sign up free' : 'Sign in'}
             </button>
           </p>
         </div>
 
-        <p className="text-center text-xs text-gray-600 mt-6">
+        <p className="text-center text-xs text-muted mt-6">
           By signing in you agree to Humanistiqs{' '}
           <a href="#" className="underline hover:text-gray-400">Terms of Service</a> and{' '}
           <a href="#" className="underline hover:text-gray-400">Privacy Policy</a>

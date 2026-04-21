@@ -117,40 +117,40 @@ export default function OnboardingPage() {
     }
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#fd7325] transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
   const selectCls = inputCls + " appearance-none"
 
   if (!authReady) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-sm text-muted">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
 
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block">
-            <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[140px] h-auto" />
+            <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="w-[140px] h-auto" />
           </div>
         </div>
 
-        <div className="bg-[#111111] rounded-2xl border border-[#222222] p-8">
+        <div className="bg-white shadow-modal rounded-2xl border border-border p-8">
 
           {/* Progress */}
           <div className="flex items-center gap-2 mb-8">
             {steps.map((s, i) => (
               <div key={i} className="flex items-center gap-2 flex-1">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 transition-colors
-                  ${step > i + 1 ? 'bg-[#fd7325] text-white' : step === i + 1 ? 'bg-[#fd7325] text-white' : 'bg-[#1a1a1a] text-gray-500 border border-[#333333]'}`}>
+                  ${step > i + 1 ? 'bg-black text-white' : step === i + 1 ? 'bg-black text-white' : 'bg-light text-muted border border-border'}`}>
                   {step > i + 1 ? '✓' : i + 1}
                 </div>
-                <span className={`text-xs font-bold ${step === i + 1 ? 'text-white' : 'text-gray-500'}`}>{s.label}</span>
-                {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-[#fd7325]' : 'bg-[#333333]'}`} />}
+                <span className={`text-xs font-bold ${step === i + 1 ? 'text-charcoal' : 'text-muted'}`}>{s.label}</span>
+                {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-black' : 'bg-border'}`} />}
               </div>
             ))}
           </div>
@@ -158,22 +158,22 @@ export default function OnboardingPage() {
           {/* Step 1 — Business */}
           {step === 1 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-1">Tell us about your business</h2>
-              <p className="text-sm text-gray-500 mb-6">HQ uses this to tailor every response to your specific situation.</p>
+              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Tell us about your business</h2>
+              <p className="text-sm text-mid mb-6">HQ uses this to tailor every response to your specific situation.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Business name</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Business name</label>
                   <input className={inputCls} value={form.bizName} onChange={e => update('bizName', e.target.value)} placeholder="e.g. Sunrise Pharmacy" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Industry</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Industry</label>
                   <select className={selectCls} value={form.industry} onChange={e => update('industry', e.target.value)}>
                     <option value="">Select industry</option>
                     {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Number of employees</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Number of employees</label>
                   <input
                     className={inputCls}
                     type="text"
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
                     onChange={e => update('headcount', e.target.value)}
                     placeholder="e.g. 25"
                   />
-                  <p className="text-[10px] text-gray-600 mt-1">Enter an approximate number</p>
+                  <p className="text-[10px] text-muted mt-1">Enter an approximate number</p>
                 </div>
               </div>
             </div>
@@ -190,56 +190,56 @@ export default function OnboardingPage() {
           {/* Step 2 — Employment */}
           {step === 2 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-1">Employment details</h2>
-              <p className="text-sm text-gray-500 mb-6">HQ applies the right awards and compliance rules automatically.</p>
+              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Employment details</h2>
+              <p className="text-sm text-mid mb-6">HQ applies the right awards and compliance rules automatically.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">State / Territory</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
                   <div className="flex flex-wrap gap-2">
                     {STATES.map(s => (
                       <button key={s} type="button" onClick={() => update('state', s)}
                         className={`px-4 py-2 rounded-lg text-sm border font-bold transition-colors
-                          ${form.state === s ? 'bg-[#fd7325] text-white border-[#fd7325]' : 'bg-[#1a1a1a] border-[#333333] text-gray-400 hover:border-[#fd7325]'}`}>
+                          ${form.state === s ? 'bg-black text-white border-black' : 'bg-white border-border text-mid hover:border-black'}`}>
                         {s}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Applicable Modern Awards (select all that apply)</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Applicable Modern Awards (select all that apply)</label>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin pr-1">
                     {AWARDS.map(a => (
                       <button key={a} type="button" onClick={() => toggleAward(a)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.awards.includes(a) ? 'border-[#fd7325] bg-[#fd7325]/10' : 'border-[#333333] hover:border-[#444444]'}`}>
+                          ${form.awards.includes(a) ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                          ${form.awards.includes(a) ? 'border-[#fd7325] bg-[#fd7325]' : 'border-[#444444]'}`}>
+                          ${form.awards.includes(a) ? 'border-black bg-black' : 'border-border'}`}>
                           {form.awards.includes(a) && (
                             <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                             </svg>
                           )}
                         </div>
-                        <span className="text-sm text-gray-300">{a}</span>
+                        <span className="text-sm text-charcoal">{a}</span>
                       </button>
                     ))}
                   </div>
                   {form.awards.length > 0 && (
-                    <p className="text-[10px] text-[#fd7325] mt-2">{form.awards.length} award{form.awards.length > 1 ? 's' : ''} selected</p>
+                    <p className="text-[10px] text-black font-bold mt-2">{form.awards.length} award{form.awards.length > 1 ? 's' : ''} selected</p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2">Employment types in your business</label>
+                  <label className="block text-xs font-bold text-mid mb-2">Employment types in your business</label>
                   <div className="space-y-2">
                     {EMP_TYPES.map(t => (
                       <button key={t} type="button" onClick={() => update('empTypes', t)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.empTypes === t ? 'border-[#fd7325] bg-[#fd7325]/10' : 'border-[#333333] hover:border-[#444444]'}`}>
+                          ${form.empTypes === t ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                          ${form.empTypes === t ? 'border-[#fd7325] bg-[#fd7325]' : 'border-[#444444]'}`}>
+                          ${form.empTypes === t ? 'border-black bg-black' : 'border-border'}`}>
                           {form.empTypes === t && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                         </div>
-                        <span className="text-sm text-gray-300">{t}</span>
+                        <span className="text-sm text-charcoal">{t}</span>
                       </button>
                     ))}
                   </div>
@@ -251,35 +251,35 @@ export default function OnboardingPage() {
           {/* Step 3 — Advisor */}
           {step === 3 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-white uppercase tracking-wider mb-1">Your Humanistiqs advisor</h2>
-              <p className="text-sm text-gray-500 mb-6">When HQ detects something complex, it connects you directly — same advisor every time.</p>
+              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Your Humanistiqs advisor</h2>
+              <p className="text-sm text-mid mb-6">When HQ detects something complex, it connects you directly — same advisor every time.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Your name</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Your name</label>
                   <input className={inputCls} value={form.userName} onChange={e => update('userName', e.target.value)} placeholder="e.g. James" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Your advisor&apos;s name</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Your advisor&apos;s name</label>
                   <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="e.g. Hugo" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2">Your HQ.ai plan</label>
+                  <label className="block text-xs font-bold text-mid mb-2">Your HQ.ai plan</label>
                   <div className="space-y-2">
                     {PLANS.map(p => (
                       <button key={p.id} type="button" onClick={() => update('plan', p.id)}
                         className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.plan === p.id ? 'border-[#fd7325] bg-[#fd7325]/10' : 'border-[#333333] hover:border-[#444444]'}`}>
+                          ${form.plan === p.id ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
                         <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                          ${form.plan === p.id ? 'border-[#fd7325] bg-[#fd7325]' : 'border-[#444444]'}`}>
+                          ${form.plan === p.id ? 'border-black bg-black' : 'border-border'}`}>
                           {form.plan === p.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white">{p.label}</span>
-                            {p.recommended && <span className="text-xs bg-[#fd7325] text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
-                            <span className="text-sm font-bold text-white ml-auto">{p.price}</span>
+                            <span className="text-sm font-bold text-charcoal">{p.label}</span>
+                            {p.recommended && <span className="text-xs bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
+                            <span className="text-sm font-bold text-charcoal ml-auto">{p.price}</span>
                           </div>
-                          <p className="text-xs text-gray-500 mt-0.5">{p.desc}</p>
+                          <p className="text-xs text-muted mt-0.5">{p.desc}</p>
                         </div>
                       </button>
                     ))}
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
 
           {/* Error message */}
           {error && (
-            <div className="mt-4 bg-[#fd7325]/10 border border-[#fd7325]/30 rounded-lg px-3 py-2 text-sm text-[#fd7325]">
+            <div className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}
@@ -300,18 +300,18 @@ export default function OnboardingPage() {
           <div className="flex justify-between mt-8">
             {step > 1 ? (
               <button type="button" onClick={() => setStep(s => s - 1)}
-                className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-lg text-sm font-bold border border-[#333333] transition-colors">
+                className="px-5 py-2.5 bg-white hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
                 ← Back
               </button>
             ) : <div />}
             {step < 3 ? (
               <button type="button" onClick={() => setStep(s => s + 1)}
-                className="px-6 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-lg text-sm font-bold transition-colors">
+                className="px-6 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold transition-colors">
                 Continue →
               </button>
             ) : (
               <button type="button" onClick={completeOnboarding} disabled={saving}
-                className="px-6 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-60">
+                className="px-6 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold transition-colors disabled:opacity-60">
                 {saving ? 'Setting up…' : 'Launch HQ.ai →'}
               </button>
             )}

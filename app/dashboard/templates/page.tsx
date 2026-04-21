@@ -59,24 +59,24 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        <h1 className="font-display text-2xl sm:text-h1 font-bold text-white uppercase tracking-wide mb-1">HR Templates</h1>
-        <p className="text-xs sm:text-sm text-gray-400 mb-6 sm:mb-8">
+        <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide mb-1">HR Templates</h1>
+        <p className="text-xs sm:text-sm text-mid mb-6 sm:mb-8">
           {ALL_TEMPLATES.length} best-practice templates curated by Humanistiqs. Download a blank template or customise with your business details first.
         </p>
 
         <div className="space-y-3">
           {CATEGORIES.map(cat => (
-            <div key={cat.title} className="bg-[#111111] border border-[#222222] rounded-2xl overflow-hidden">
+            <div key={cat.title} className="bg-white shadow-card rounded-2xl overflow-hidden">
               {/* Category header */}
               <button
                 onClick={() => toggleCategory(cat.title)}
-                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-[#1a1a1a] transition-colors"
+                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-light transition-colors"
               >
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <h2 className="font-display text-base sm:text-lg font-bold text-white uppercase tracking-wider truncate">{cat.title}</h2>
-                  <span className="text-xs text-gray-500 bg-[#1a1a1a] px-2 py-0.5 rounded-full flex-shrink-0">{cat.templates.length}</span>
+                  <h2 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{cat.title}</h2>
+                  <span className="text-xs text-muted bg-light px-2 py-0.5 rounded-full flex-shrink-0">{cat.templates.length}</span>
                 </div>
                 <svg className={`w-4 h-4 text-gray-500 transition-transform ${openCategory === cat.title ? 'rotate-180' : ''}`}
                   viewBox="0 0 20 20" fill="currentColor">
@@ -86,41 +86,41 @@ export default function TemplatesPage() {
 
               {/* Templates list */}
               {openCategory === cat.title && (
-                <div className="border-t border-[#222222]">
+                <div className="border-t border-border">
                   {cat.templates.map((tmpl, idx) => (
                     <div key={tmpl.id}
-                      className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-[#0a0a0a] transition-colors ${idx > 0 ? 'border-t border-[#1a1a1a]' : ''}`}>
+                      className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-light transition-colors ${idx > 0 ? 'border-t border-border' : ''}`}>
                       <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="w-8 h-8 bg-[#fd7325]/15 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex">
-                          <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="w-8 h-8 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex">
+                          <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-white">{tmpl.title}</p>
-                          <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 leading-relaxed">{tmpl.description}</p>
+                          <p className="text-sm font-bold text-charcoal">{tmpl.title}</p>
+                          <p className="text-[11px] sm:text-xs text-muted mt-0.5 leading-relaxed">{tmpl.description}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="relative group">
                             <button
                               onClick={() => handleDownload(tmpl)}
                               disabled={downloading === tmpl.id}
-                              className="bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 hover:text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-[#333333] transition-colors disabled:opacity-50"
+                              className="bg-white hover:bg-light text-mid hover:text-charcoal text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-border transition-colors disabled:opacity-50"
                             >
                               {downloading === tmpl.id ? 'Generating…' : 'Download'}
                             </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg hidden sm:block">
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-charcoal text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg hidden sm:block">
                               Generate &amp; download template
                             </span>
                           </div>
                           <div className="relative group">
                             <button
                               onClick={() => handleCustomise(tmpl)}
-                              className="bg-[#fd7325] hover:bg-[#e5671f] text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors"
+                              className="bg-black hover:bg-[#1a1a1a] text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
                             >
                               Customise
                             </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg hidden sm:block">
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-charcoal text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg hidden sm:block">
                               Input your data before downloading
                             </span>
                           </div>

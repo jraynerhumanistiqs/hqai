@@ -108,7 +108,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       <div className="flex items-center gap-2 mb-8 justify-center">
         {questions.map((_, i) => (
           <div key={i} className={`h-1.5 rounded-full flex-1 max-w-[60px] transition-colors ${
-            i < currentQ ? 'bg-green-500' : i === currentQ ? 'bg-[#fd7325]' : 'bg-gray-200'
+            i < currentQ ? 'bg-green-500' : i === currentQ ? 'bg-black' : 'bg-gray-200'
           }`} />
         ))}
       </div>
@@ -137,7 +137,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
         {recState === 'recording' && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
             <div
-              className="h-full bg-[#fd7325] transition-all duration-1000"
+              className="h-full bg-black transition-all duration-1000"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -209,7 +209,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
         <button
           disabled={recState !== 'done' || submitting}
           onClick={nextQuestion}
-          className="bg-[#fd7325] hover:bg-[#e5671f] disabled:opacity-40 text-white font-bold px-8 py-3 rounded-xl transition-colors text-sm"
+          className="bg-black hover:bg-[#1a1a1a] disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
         >
           {submitting ? 'Submitting…' : isLast ? 'Submit →' : 'Next →'}
         </button>

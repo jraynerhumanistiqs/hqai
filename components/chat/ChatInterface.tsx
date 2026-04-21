@@ -326,18 +326,18 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : 'HR compliance & advisory'
 
   return (
-    <div className="flex flex-col h-full bg-[#000000]">
+    <div className="flex flex-col h-full bg-white">
       {/* Topbar */}
-      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-[#222222] bg-[#0a0a0a] flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-white flex-shrink-0">
         <div className="min-w-0">
-          <h1 className="font-display text-base sm:text-lg font-bold text-white uppercase tracking-wider truncate">{moduleLabel}</h1>
-          <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block">{moduleDesc}</p>
+          <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
+          <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <div className="bg-[#1a1a1a] border border-[#333333] rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-gray-400 hidden sm:block">{bizName}</div>
+          <div className="bg-light border border-border rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-mid hidden sm:block">{bizName}</div>
           <button
             onClick={() => setMessages([])}
-            className="bg-[#1a1a1a] border border-[#333333] rounded-lg px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-gray-400 hover:bg-[#222222] transition-colors whitespace-nowrap"
+            className="bg-light border border-border rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap"
           >
             + New chat
           </button>
@@ -350,11 +350,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <div className="max-w-2xl mx-auto">
             {/* Welcome */}
             <div className="text-center mb-6 sm:mb-8 pt-2 sm:pt-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#fd7325]/20 border border-[#fd7325]/30 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 font-serif text-[#fd7325] text-lg sm:text-xl">HQ</div>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-white uppercase tracking-wider mb-2">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 font-sans text-white text-lg sm:text-xl font-bold">HQ</div>
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal uppercase tracking-wider mb-2">
                 {userName ? `Good morning, ${userName}` : 'Welcome to HQ.ai'}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-mid max-w-md mx-auto leading-relaxed">
                 {module === 'recruit'
                   ? 'I\'m your AI recruitment advisor. I\'ll help you write job ads, screen candidates, run reference checks, and shortlist the right people — faster.'
                   : 'I\'m your AI HR advisor. Ask me anything about employment law, awards, contracts, leave, or managing your team — and I\'ll give you a straight answer.'
@@ -366,10 +366,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               {quickActions.map((qa, i) => (
                 <button key={i} onClick={() => sendMessage(qa.prompt)}
-                  className="text-left bg-[#111111] border border-[#222222] rounded-xl p-3 sm:p-4 hover:border-[#fd7325]/40 hover:bg-[#1a1a1a] transition-all group">
+                  className="text-left bg-white shadow-card rounded-xl p-3 sm:p-4 hover:shadow-float transition-all group">
                   <span className="text-lg sm:text-xl block mb-1.5 sm:mb-2">{qa.icon}</span>
-                  <span className="text-sm font-bold text-white block mb-0.5 sm:mb-1">{qa.label}</span>
-                  <span className="text-[11px] sm:text-xs text-gray-500">{qa.desc}</span>
+                  <span className="text-sm font-bold text-charcoal block mb-0.5 sm:mb-1">{qa.label}</span>
+                  <span className="text-[11px] sm:text-xs text-muted">{qa.desc}</span>
                 </button>
               ))}
             </div>
@@ -381,13 +381,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             {/* Avatar */}
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5
               ${msg.role === 'user'
-                ? 'bg-[#1a1a1a] text-gray-400 border border-[#333333]'
-                : 'bg-[#fd7325]/20 text-[#fd7325] font-serif text-base border border-[#fd7325]/30'}`}>
+                ? 'bg-light text-mid'
+                : 'bg-black text-white text-base'}`}>
               {msg.role === 'user' ? (userName?.[0]?.toUpperCase() || 'U') : 'HQ'}
             </div>
 
             <div className="flex-1">
-              <p className={`text-[11px] font-bold text-gray-500 mb-1.5 ${msg.role === 'user' ? 'text-right' : ''}`}>
+              <p className={`text-[11px] font-bold text-muted mb-1.5 ${msg.role === 'user' ? 'text-right' : ''}`}>
                 {msg.role === 'user' ? (userName || 'You') : `HQ · ${moduleLabel}`}
               </p>
 
@@ -408,14 +408,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   bizName={bizName}
                 />
               ) : msg.formType && msg.formCompleted ? (
-                <div className="bg-[#111111] border border-[#222222] rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-400">
-                  <span className="text-[#fd7325] font-bold">{msg.formType}</span> details submitted — generating your document...
+                <div className="bg-light rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-mid">
+                  <span className="text-black font-bold">{msg.formType}</span> details submitted — generating your document...
                 </div>
               ) : (
                 <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed
                   ${msg.role === 'user'
-                    ? 'bg-[#fd7325] text-white rounded-tr-sm'
-                    : 'bg-[#111111] border border-[#222222] text-gray-300 rounded-tl-sm'}`}>
+                    ? 'bg-black text-white rounded-tr-sm'
+                    : 'bg-light text-charcoal rounded-tl-sm'}`}>
                   <MessageContent content={msg.content} isUser={msg.role === 'user'} />
                 </div>
               )}
@@ -423,20 +423,20 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               {/* Escalation card */}
               {msg.escalate && msg.role === 'assistant' && (
                 <>
-                  <div className="mt-2 bg-[#1a1a1a] border border-[#fd7325]/30 rounded-xl p-3.5 flex gap-3">
+                  <div className="mt-2 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
                     <span className="text-lg flex-shrink-0">⚠️</span>
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-[#fd7325] mb-1">Advisor recommended for this situation</p>
-                      <p className="text-xs text-gray-400 leading-relaxed mb-2.5">
+                      <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
+                      <p className="text-xs text-mid leading-relaxed mb-2.5">
                         This involves real legal exposure. A HQ Partner can give you specific, protected advice before you act.
                       </p>
                       <div className="flex gap-2 flex-wrap">
                         <button onClick={() => setShowAdvisorModal(true)}
-                          className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-[#fd7325] hover:bg-[#e5671f] transition-colors">
+                          className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
                           Book a call with a HQ Partner
                         </button>
                         <button onClick={() => setShowAdvisorModal(false)}
-                          className="bg-[#111111] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-[#333333] hover:bg-[#222222] transition-colors">
+                          className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
                           Continue talking with {advisorName}
                         </button>
                       </div>
@@ -446,7 +446,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {/* Add more context */}
                   <div className="mt-2">
                     <button onClick={() => setShowContextInput(!showContextInput)}
-                      className="text-xs text-[#fd7325] font-bold hover:underline">
+                      className="text-xs text-mid font-bold hover:underline">
                       + Add more context
                     </button>
                     {showContextInput && (
@@ -456,11 +456,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           onChange={e => setExtraContext(e.target.value)}
                           placeholder="Add additional context about your situation..."
                           rows={3}
-                          className="w-full px-3 py-2 bg-[#111111] border border-[#222222] rounded-lg text-sm text-white placeholder-gray-500 resize-none outline-none focus:border-[#fd7325] transition-colors"
+                          className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-black transition-colors"
                         />
                         <button onClick={handleSendContext}
                           disabled={!extraContext.trim()}
-                          className="bg-[#fd7325] text-white text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-[#e5671f] disabled:opacity-40 transition-colors">
+                          className="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors">
                           Send context
                         </button>
                       </div>
@@ -471,17 +471,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
               {/* Document saved indicator with download */}
               {msg.docType && msg.role === 'assistant' && msg.content.length > 200 && (
-                <div className="mt-2 bg-[#fd7325]/10 border border-[#fd7325]/20 rounded-xl px-3.5 py-2.5">
+                <div className="mt-2 bg-light rounded-xl px-3.5 py-2.5">
                   <div className="flex items-center gap-2.5 mb-2">
                     <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
-                    <p className="text-xs text-[#fd7325] flex-1">
+                    <p className="text-xs text-black flex-1">
                       <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
                     </p>
                   </div>
                   <div className="flex gap-2 ml-6">
                     <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
                     {savedDocId && (
-                      <a href="/dashboard/documents" className="border border-[#333333] text-gray-400 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                      <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
                         View in library →
                       </a>
                     )}
@@ -495,11 +495,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex gap-3 max-w-3xl">
-            <div className="w-8 h-8 rounded-xl bg-[#fd7325]/20 border border-[#fd7325]/30 flex items-center justify-center font-serif text-[#fd7325] text-base flex-shrink-0">HQ</div>
-            <div className="bg-[#111111] border border-[#222222] rounded-2xl rounded-tl-sm px-4 py-3.5">
+            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white text-base font-bold flex-shrink-0">HQ</div>
+            <div className="bg-light rounded-2xl rounded-tl-sm px-4 py-3.5">
               <div className="flex gap-1.5 items-center">
                 {[0, 1, 2].map(i => (
-                  <span key={i} className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"
+                  <span key={i} className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
@@ -510,8 +510,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 px-3 sm:px-6 pb-4 sm:pb-5 pt-2.5 sm:pt-3 border-t border-[#222222] bg-[#0a0a0a] pb-safe">
-        <div className="flex items-end gap-2 sm:gap-3 bg-[#111111] border-[1.5px] border-[#333333] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 focus-within:border-[#fd7325] transition-colors">
+      <div className="flex-shrink-0 px-3 sm:px-6 pb-4 sm:pb-5 pt-2.5 sm:pt-3 border-t border-border bg-white pb-safe">
+        <div className="flex items-end gap-2 sm:gap-3 bg-white border border-border rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 focus-within:border-black transition-colors">
           <textarea
             ref={inputRef}
             value={input}
@@ -522,12 +522,12 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               : 'Ask about awards, contracts, leave, compliance…'
             }
             rows={1}
-            className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none leading-relaxed max-h-[120px]"
+            className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[120px]"
           />
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="w-8 h-8 bg-[#fd7325] rounded-xl flex items-center justify-center text-white flex-shrink-0 hover:bg-[#e5671f] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+            className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
           >
             <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
@@ -536,11 +536,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         </div>
         <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2">
           <Link href="/dashboard/booking"
-            className="bg-[#fd7325] text-white rounded-lg px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#e5671f] transition-colors">
+            className="bg-black text-white rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
             Talk to a HQ Partner
           </Link>
           <button
-            className="border border-[#333333] text-gray-400 rounded-lg px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-[#1a1a1a] transition-colors">
+            className="border border-border text-mid rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-light transition-colors">
             Continue with {advisorName}
           </button>
         </div>
@@ -549,27 +549,27 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {/* Advisor modal */}
       {showAdvisorModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
-          <div className="bg-[#111111] border border-[#222222] rounded-2xl p-7 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-bold text-white uppercase tracking-wider mb-2">Talk to a HQ Partner</h3>
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+          <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to a HQ Partner</h3>
+            <p className="text-sm text-mid mb-4 leading-relaxed">
               HQ.ai has prepared a summary of your conversation. Your HQ Partner will have full context before your call — no repeating yourself.
             </p>
-            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4 text-sm text-gray-400 leading-relaxed space-y-1">
-              <p><strong className="font-bold text-white">Business:</strong> {bizName}</p>
-              <p><strong className="font-bold text-white">Industry:</strong> {industry}</p>
-              <p><strong className="font-bold text-white">State:</strong> {state}</p>
-              <p><strong className="font-bold text-white">Award:</strong> {award || 'Not specified'}</p>
+            <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
+              <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
+              <p><strong className="font-bold text-charcoal">Industry:</strong> {industry}</p>
+              <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
+              <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
               {messages.length > 0 && (
-                <p><strong className="font-bold text-white">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
+                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
               )}
             </div>
             <div className="flex gap-3">
               <button onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-xl text-sm font-bold border border-[#333333] transition-colors">
+                className="flex-1 py-2.5 bg-white hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
                 Close
               </button>
               <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-[#fd7325] hover:bg-[#e5671f] text-white rounded-xl text-sm font-bold text-center transition-colors border-2 border-[#fd7325]">
+                className="flex-1 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold text-center transition-colors">
                 Book a call with a HQ Partner
               </Link>
             </div>
@@ -582,7 +582,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
 // Render markdown-lite message content
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
-  if (!content) return <span className="text-gray-500 text-xs">Thinking…</span>
+  if (!content) return <span className="text-muted text-xs">Thinking…</span>
 
   const lines = content.split('\n')
   const elements: React.ReactNode[] = []
@@ -657,33 +657,33 @@ function DocumentFormCard({
     onSubmit(docType, formData)
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-[#0a0a0a] border border-[#333333] rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#fd7325] transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
 
   return (
-    <div className="bg-[#111111] border border-[#fd7325]/30 rounded-2xl rounded-tl-sm overflow-hidden">
+    <div className="bg-white shadow-card rounded-2xl rounded-tl-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-[#fd7325]/10 border-b border-[#fd7325]/20 px-5 py-4">
+      <div className="bg-light border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#fd7325]/20 rounded-xl flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#fd7325]" viewBox="0 0 20 20" fill="currentColor">
+          <div className="w-8 h-8 bg-black/10 rounded-xl flex items-center justify-center">
+            <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
             </svg>
           </div>
           <div>
-            <h3 className="font-display text-base font-bold text-white uppercase tracking-wider">{formDef.title}</h3>
-            <p className="text-xs text-gray-400 mt-0.5">{bizName}</p>
+            <h3 className="font-display text-base font-bold text-charcoal uppercase tracking-wider">{formDef.title}</h3>
+            <p className="text-xs text-muted mt-0.5">{bizName}</p>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-3 leading-relaxed">{formDef.description}</p>
+        <p className="text-xs text-mid mt-3 leading-relaxed">{formDef.description}</p>
       </div>
 
       {/* Form fields */}
       <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
         {formDef.fields.map(field => (
           <div key={field.key}>
-            <label className="block text-xs font-bold text-gray-400 mb-1.5">
+            <label className="block text-xs font-bold text-mid mb-1.5">
               {field.label}
-              {field.required && <span className="text-[#fd7325] ml-0.5">*</span>}
+              {field.required && <span className="text-danger ml-0.5">*</span>}
             </label>
             {field.type === 'select' ? (
               <select
@@ -731,19 +731,19 @@ function DocumentFormCard({
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            className="flex-1 bg-[#fd7325] hover:bg-[#e5671f] text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+            className="flex-1 bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm transition-colors"
           >
             Generate {formDef.title}
           </button>
           <button
             type="button"
             onClick={onSkip}
-            className="bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 font-bold py-2.5 px-4 rounded-xl text-sm border border-[#333333] transition-colors"
+            className="bg-white hover:bg-light text-mid font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
           >
             Skip form
           </button>
         </div>
-        <p className="text-[10px] text-gray-600 text-center">
+        <p className="text-[10px] text-muted text-center">
           HQ will use your business profile details for employer information, award, and state jurisdiction.
         </p>
       </form>
@@ -784,7 +784,7 @@ function DownloadDocxButton({ content, title, docType }: { content: string; titl
     <button
       onClick={handleDownload}
       disabled={downloading}
-      className="bg-[#fd7325] text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#e5671f] transition-colors inline-flex items-center gap-1 disabled:opacity-60"
+      className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors inline-flex items-center gap-1 disabled:opacity-60"
     >
       <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
