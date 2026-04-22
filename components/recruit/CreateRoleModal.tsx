@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 import { useState, useEffect, useRef } from 'react'
-import type { PrescreenSession } from '@/lib/recruit-types'
+import type { PrescreenSession, RubricDimension, RubricMode } from '@/lib/recruit-types'
+import { DEFAULT_SHORTLISTED_TEMPLATE, DEFAULT_REJECTED_TEMPLATE } from '@/lib/outcome-templates'
 
 interface Props {
   onClose: () => void
@@ -22,9 +23,23 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
   const [minutes, setMinutes]         = useState(1)
   const [seconds, setSeconds]         = useState(30)
   const [qCount, setQCount]           = useState<number>(4)
-  // Sentinel 0 = "<6 questions" custom path; customQCount holds the entered number
   const [customQCount, setCustomQCount] = useState<string>('')
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null)
+
+  const [rubricMode, setRubricMode] = useState<RubricMode>('standard')
+  const [customRubric, setCustomRubric] = useState<RubricDimension[]>([
+    { name: '', description: '' },
+    { name: '', description: '' },
+    { name: '', description: '' },
+  ])
+
+  // Phase 4 outcome-email section
+  const [outcomeOpen, setOutcomeOpen]       = useState(false)
+  const [autoSend, setAutoSend]             = useState(false)
+  const [slSubject, setSlSubject]           = useState(DEFAULT_SHORTLISTED_TEMPLATE.subject)
+  const [slBody, setSlBody]                 = useState(DEFAULT_SHORTLISTED_TEMPLATE.body)
+  const [rjSubject, setRjSubject]           = useState(DEFAULT_REJECTED_TEMPLATE.subject)
+  const [rjBody, setRjBody]                 = useState(DEFAULT_REJECTED_TEMPLATE.body)
 
   function autoGrow(el: HTMLTextAreaElement | null) {
     if (!el) return
@@ -32,7 +47,6 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
     el.style.height = `${el.scrollHeight}px`
   }
 
-  // Effective question count flowing through to API calls
   const effectiveQCount = qCount === 0
     ? Math.max(1, Math.min(20, parseInt(customQCount, 10) || 4))
     : qCount
@@ -71,6 +85,16 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
     setSeconds(Math.max(0, Math.min(59, Math.floor(v))))
   }
 
+  function addRubricDim() {
+    setCustomRubric(prev => prev.length >= 6 ? prev : [...prev, { name: '', description: '' }])
+  }
+  function removeRubricDim(i: number) {
+    setCustomRubric(prev => prev.length <= 3 ? prev : prev.filter((_, idx) => idx !== i))
+  }
+  function updateRubricDim(i: number, patch: Partial<RubricDimension>) {
+    setCustomRubric(prev => prev.map((d, idx) => idx === i ? { ...d, ...patch } : d))
+  }
+
   async function handleGenerate() {
     if (!roleTitle.trim()) { setError('Please enter a role title first.'); return }
     setError('')
@@ -101,6 +125,28 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
     const filled = questions.filter(q => q.trim())
     if (!company.trim() || !roleTitle.trim()) { setError('Please enter company and role title.'); return }
     if (!filled.length) { setError('Please add at least one question.'); return }
+
+    let customRubricPayload: RubricDimension[] | null = null
+    if (rubricMode === 'custom') {
+      const cleaned = customRubric
+        .map(d => ({ name: d.name.trim(), description: d.description.trim() }))
+        .filter(d => d.name && d.description)
+      if (cleaned.length < 3 || cleaned.length > 6) {
+        setError('Custom rubric needs 3-6 dimensions, each with a name and description.')
+        return
+      }
+      customRubricPayload = cleaned
+    }
+
+    // Serialise outcome templates as JSON only if they differ from the default
+    // (keeps the DB column null when the user didn't change anything).
+    const slTpl = (slSubject !== DEFAULT_SHORTLISTED_TEMPLATE.subject || slBody !== DEFAULT_SHORTLISTED_TEMPLATE.body)
+      ? JSON.stringify({ subject: slSubject, body: slBody })
+      : null
+    const rjTpl = (rjSubject !== DEFAULT_REJECTED_TEMPLATE.subject || rjBody !== DEFAULT_REJECTED_TEMPLATE.body)
+      ? JSON.stringify({ subject: rjSubject, body: rjBody })
+      : null
+
     setError('')
     setCreating(true)
     try {
@@ -112,6 +158,11 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           role_title: roleTitle.trim(),
           questions: filled,
           time_limit_seconds: timeLimit,
+          rubric_mode: rubricMode,
+          custom_rubric: customRubricPayload,
+          auto_send_outcomes: autoSend,
+          outcome_email_shortlisted: slTpl,
+          outcome_email_rejected: rjTpl,
         }),
       })
       const data = await res.json()
@@ -141,7 +192,6 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
         className="bg-white rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="font-serif text-xl font-bold text-black">
@@ -163,29 +213,17 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-7 py-6 max-h-[65vh] overflow-y-auto">
           {step === 'setup' ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-bold text-black mb-1.5">Company</label>
-                  <input
-                    className={inputCls}
-                    value={company}
-                    onChange={e => setCompany(e.target.value)}
-                    placeholder="e.g. Acme Corp"
-                  />
+                  <input className={inputCls} value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Acme Corp" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-black mb-1.5">Role Title</label>
-                  <input
-                    className={inputCls}
-                    value={roleTitle}
-                    onChange={e => setRoleTitle(e.target.value)}
-                    placeholder="e.g. Senior Accountant"
-                    onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-                  />
+                  <input className={inputCls} value={roleTitle} onChange={e => setRoleTitle(e.target.value)} placeholder="e.g. Senior Accountant" onKeyDown={e => e.key === 'Enter' && handleGenerate()} />
                 </div>
               </div>
 
@@ -201,7 +239,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   value={description}
                   onChange={e => { setDescription(e.target.value); autoGrow(e.currentTarget) }}
                   onInput={e => autoGrow(e.currentTarget as HTMLTextAreaElement)}
-                  placeholder="Paste key responsibilities, must-haves and seniority level…"
+                  placeholder="Paste key responsibilities, must-haves and seniority level..."
                 />
               </div>
 
@@ -218,9 +256,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                         type="button"
                         onClick={() => applyPreset(val)}
                         className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
-                          timeLimit === val
-                            ? 'bg-black text-white'
-                            : 'bg-light text-mid hover:bg-border'
+                          timeLimit === val ? 'bg-black text-white' : 'bg-light text-mid hover:bg-border'
                         }`}
                       >
                         {val < 60 ? `${val}s` : val % 60 === 0 ? `${val / 60}m` : `${Math.floor(val / 60)}m ${val % 60}s`}
@@ -229,27 +265,11 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={0}
-                        max={10}
-                        className={inputCls}
-                        value={minutes}
-                        onChange={e => updateMinutes(Number(e.target.value))}
-                        aria-label="Minutes"
-                      />
+                      <input type="number" min={0} max={10} className={inputCls} value={minutes} onChange={e => updateMinutes(Number(e.target.value))} aria-label="Minutes" />
                       <span className="text-xs text-mid">min</span>
                     </div>
                     <div className="flex-1 flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={0}
-                        max={59}
-                        className={inputCls}
-                        value={seconds}
-                        onChange={e => updateSeconds(Number(e.target.value))}
-                        aria-label="Seconds"
-                      />
+                      <input type="number" min={0} max={59} className={inputCls} value={seconds} onChange={e => updateSeconds(Number(e.target.value))} aria-label="Seconds" />
                       <span className="text-xs text-mid">sec</span>
                     </div>
                   </div>
@@ -277,6 +297,90 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                 </div>
               </div>
 
+              <div className="pt-2 border-t border-border">
+                <label className="block text-sm font-bold text-black mb-2">Scoring rubric</label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
+                    <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'standard'} onChange={() => setRubricMode('standard')} />
+                    <div>
+                      <p className="text-sm font-bold text-black">Use HQ.ai standard rubric <span className="text-mid font-normal">(recommended)</span></p>
+                      <p className="text-xs text-mid mt-0.5">Clarity, relevance, specificity, structure, role fit - each scored 1-5.</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
+                    <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'custom'} onChange={() => setRubricMode('custom')} />
+                    <div>
+                      <p className="text-sm font-bold text-black">Define a custom rubric for this role</p>
+                      <p className="text-xs text-mid mt-0.5">3-6 dimensions, each scored 1-5.</p>
+                    </div>
+                  </label>
+                </div>
+
+                {rubricMode === 'custom' && (
+                  <div className="mt-3 space-y-2">
+                    {customRubric.map((d, i) => (
+                      <div key={i} className="flex items-start gap-2 group">
+                        <div className="flex-1 space-y-1.5">
+                          <input className={inputCls} placeholder="Dimension name (e.g. client_communication)" value={d.name} onChange={e => updateRubricDim(i, { name: e.target.value })} />
+                          <input className={inputCls} placeholder="Short description of what 'strong' looks like" value={d.description} onChange={e => updateRubricDim(i, { description: e.target.value })} />
+                        </div>
+                        <button type="button" onClick={() => removeRubricDim(i)} disabled={customRubric.length <= 3} className="text-mid hover:text-danger transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 mt-2 disabled:opacity-0" title="Remove dimension">
+                          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    {customRubric.length < 6 && (
+                      <button type="button" onClick={addRubricDim} className="text-xs text-accent hover:text-accent2 font-bold transition-colors">+ Add dimension</button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Phase 4: candidate outcome emails */}
+              <div className="pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setOutcomeOpen(v => !v)}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-black">Candidate outcome emails</p>
+                    <p className="text-xs text-mid mt-0.5">Send a message when candidates are shortlisted or rejected.</p>
+                  </div>
+                  <svg className={`w-4 h-4 text-mid transition-transform ${outcomeOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+                  </svg>
+                </button>
+
+                {outcomeOpen && (
+                  <div className="mt-3 space-y-4">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input type="checkbox" className="mt-0.5" checked={autoSend} onChange={e => setAutoSend(e.target.checked)} />
+                      <div>
+                        <p className="text-sm font-bold text-black">Auto-send when candidates are shortlisted or rejected <span className="text-mid font-normal">(default off)</span></p>
+                        <p className="text-xs text-mid mt-0.5">When off, the email is queued and you can trigger it manually from the candidate view.</p>
+                      </div>
+                    </label>
+
+                    <p className="text-[10px] text-mid">Variables: <code className="font-mono">{'{candidate_first_name}'}</code>, <code className="font-mono">{'{candidate_name}'}</code>, <code className="font-mono">{'{role_title}'}</code>, <code className="font-mono">{'{company}'}</code>, <code className="font-mono">{'{calendly_block}'}</code> (shortlisted only).</p>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-bold text-black">Shortlisted email</p>
+                      <input className={inputCls} value={slSubject} onChange={e => setSlSubject(e.target.value)} placeholder="Subject" />
+                      <textarea className={`${inputCls} min-h-[140px]`} value={slBody} onChange={e => setSlBody(e.target.value)} placeholder="Body" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-bold text-black">Rejected email</p>
+                      <input className={inputCls} value={rjSubject} onChange={e => setRjSubject(e.target.value)} placeholder="Subject" />
+                      <textarea className={`${inputCls} min-h-[140px]`} value={rjBody} onChange={e => setRjBody(e.target.value)} placeholder="Body" />
+                      <p className="text-[10px] text-mid">Rejection emails contain no scores or AI output by default - keep it warm and brief.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {error && <p className="text-xs text-danger">{error}</p>}
 
               <div className="flex items-center gap-3 pt-1">
@@ -288,10 +392,10 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   {generating ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Generating…
+                      Generating...
                     </>
                   ) : (
-                    <>✦ Generate Questions with AI</>
+                    <>Generate Questions with AI</>
                   )}
                 </button>
                 <button
@@ -311,7 +415,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     className={`${inputCls} flex-1`}
                     value={q}
                     onChange={e => updateQ(i, e.target.value)}
-                    placeholder="Enter question…"
+                    placeholder="Enter question..."
                     autoFocus={i === 0 && q === ''}
                   />
                   <button
@@ -338,15 +442,11 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-7 py-5 border-t border-border flex items-center justify-between bg-bg/50">
           <div>
             {step === 'questions' && (
-              <button
-                onClick={() => setStep('setup')}
-                className="text-sm text-mid hover:text-black font-bold transition-colors"
-              >
-                ← Back
+              <button onClick={() => setStep('setup')} className="text-sm text-mid hover:text-black font-bold transition-colors">
+                Back
               </button>
             )}
           </div>
@@ -363,10 +463,10 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                 {creating ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating…
+                    Creating...
                   </>
                 ) : (
-                  'Create Role →'
+                  'Create Role'
                 )}
               </button>
             )}
@@ -406,22 +506,7 @@ function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
         <div className="space-y-3 text-sm text-charcoal">
           <p><strong>Simple / direct questions:</strong> 30-60 seconds.</p>
           <p><strong>Behavioural / complex questions (STAR):</strong> 90 seconds to 3 minutes.</p>
-          <p><strong>Absolute maximum:</strong> 4-5 minutes - anything longer risks rambling and losing the interviewer&apos;s attention.</p>
-
-          <div className="bg-light rounded-xl p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-2">Key considerations</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-sm">
-              <li>One-way recorded interviews commonly have 2-3 minute limits per question.</li>
-              <li>Quality &gt; quantity - a focused 90-second answer beats a rambling 4-minute one.</li>
-              <li>Structure answers with the STAR method (Situation, Task, Action, Result).</li>
-              <li>Aim for consistency - keep answers within a similar time frame.</li>
-            </ul>
-          </div>
-
-          <div className="bg-light rounded-xl p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-2">Pro tip</p>
-            <p className="text-sm">Practise by recording yourself to check pacing.</p>
-          </div>
+          <p><strong>Absolute maximum:</strong> 4-5 minutes - anything longer risks rambling.</p>
         </div>
 
         <button

@@ -1,12 +1,22 @@
-// POST /api/prescreen/sessions/[id]/responses - candidate submits response
+﻿// POST /api/prescreen/sessions/[id]/responses - candidate submits response
 // GET  /api/prescreen/sessions/[id]/responses - staff loads all responses for a session
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendCandidateSubmittedEmail } from '@/lib/email'
+import { sendCandidateSubmittedEmail, sendCandidateSubmissionConfirmation } from '@/lib/email'
 
 export const runtime = 'nodejs'
+
+async function triggerScoringPipeline(responseId: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+  try {
+    await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
+    await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/score`, { method: 'POST' })
+  } catch (err) {
+    console.error('[responses/POST] scoring pipeline error:', err)
+  }
+}
 
 export async function POST(
   req: NextRequest,
@@ -17,28 +27,40 @@ export async function POST(
     const body = await req.json()
 
     const { data, error } = await supabaseAdmin
-      .from('candidate_responses')
+      .from('prescreen_responses')
       .insert({
         session_id,
         candidate_name: body.candidate_name,
         candidate_email: body.candidate_email,
         consent: body.consent,
         video_ids: body.video_ids,
-        status: 'new',
+        status: 'submitted',
       })
       .select()
       .single()
 
     if (error) throw error
 
-    // Fire-and-forget: notify staff that a candidate submitted
-    try {
-      const { data: session } = await supabaseAdmin
-        .from('prescreen_sessions')
-        .select('role_title, company, created_by')
-        .eq('id', session_id)
-        .single()
+    const { data: session } = await supabaseAdmin
+      .from('prescreen_sessions')
+      .select('role_title, company, created_by')
+      .eq('id', session_id)
+      .single()
 
+    if (body.candidate_email && session) {
+      try {
+        await sendCandidateSubmissionConfirmation({
+          candidateEmail: body.candidate_email,
+          candidateName: body.candidate_name,
+          roleTitle: session.role_title,
+          company: session.company,
+        })
+      } catch (mailErr) {
+        console.error('[responses/POST] candidate confirmation error:', mailErr)
+      }
+    }
+
+    try {
       if (session?.created_by) {
         const { data: profile } = await supabaseAdmin
           .from('profiles')
@@ -59,9 +81,10 @@ export async function POST(
         }
       }
     } catch (notifyErr) {
-      // Notification failure must never block the response
       console.error('[responses/POST] notification error:', notifyErr)
     }
+
+    void triggerScoringPipeline(data.id)
 
     return NextResponse.json({ response: data })
   } catch (err) {
@@ -71,7 +94,7 @@ export async function POST(
 }
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: session_id } = await params
@@ -81,13 +104,25 @@ export async function GET(
 
   try {
     const { data, error } = await supabaseAdmin
-      .from('candidate_responses')
+      .from('prescreen_responses')
       .select('*')
       .eq('session_id', session_id)
       .order('submitted_at', { ascending: false })
 
     if (error) throw error
-    return NextResponse.json({ responses: data })
+
+    // Phase 4: attach interview bookings keyed by response_id
+    const ids = (data ?? []).map(r => r.id)
+    let bookings: any[] = []
+    if (ids.length) {
+      const { data: bks } = await supabaseAdmin
+        .from('prescreen_interview_bookings')
+        .select('id, response_id, invitee_email, event_start, event_end, calendly_event_uri, created_at')
+        .in('response_id', ids)
+      bookings = bks ?? []
+    }
+
+    return NextResponse.json({ responses: data, bookings })
   } catch (err) {
     console.error('[GET /api/prescreen/sessions/:id/responses]', err)
     return NextResponse.json({ error: 'Failed to load responses' }, { status: 500 })

@@ -1,5 +1,5 @@
-// GET    /api/prescreen/sessions/[id] - load session by ID (public, for candidate page)
-// PATCH  /api/prescreen/sessions/[id] - staff-only edit of company/role/questions/time
+﻿// GET    /api/prescreen/sessions/[id] - load session by ID (public, for candidate page)
+// PATCH  /api/prescreen/sessions/[id] - staff-only edit of company/role/questions/time/rubric/outcome-config
 // DELETE /api/prescreen/sessions/[id] - staff-only soft-delete (sets deleted_at)
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -8,9 +8,9 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
 
-// Slug validation: lowercase letters, digits, hyphens only; 3-60 chars
 const SLUG_REGEX = /^[a-z0-9-]{3,60}$/
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const CALENDLY_URL_REGEX = /^https:\/\/(www\.)?calendly\.com\//
 
 export async function GET(
   _req: NextRequest,
@@ -18,7 +18,6 @@ export async function GET(
 ) {
   const { id } = await params
   try {
-    // Accept either a UUID or a custom slug in the [id] segment.
     const isUuid = UUID_REGEX.test(id)
     const query = supabaseAdmin
       .from('prescreen_sessions')
@@ -68,6 +67,48 @@ export async function PATCH(
       }
     }
 
+    // Rubric mode + custom rubric
+    if (body.rubric_mode === 'standard' || body.rubric_mode === 'custom') {
+      patch.rubric_mode = body.rubric_mode
+    }
+    if (body.rubric_mode === 'custom' || Array.isArray(body.custom_rubric)) {
+      const arr = Array.isArray(body.custom_rubric) ? body.custom_rubric : []
+      const cleaned = arr
+        .map((r: any) => ({
+          name: String(r?.name ?? '').trim(),
+          description: String(r?.description ?? '').trim(),
+        }))
+        .filter((r: { name: string; description: string }) => r.name && r.description)
+      if (patch.rubric_mode === 'custom' && (cleaned.length < 3 || cleaned.length > 6)) {
+        return NextResponse.json(
+          { error: 'Custom rubric must have 3-6 dimensions, each with name and description' },
+          { status: 400 },
+        )
+      }
+      patch.custom_rubric = cleaned.length ? cleaned : null
+    }
+    if (body.rubric_mode === 'standard') {
+      patch.custom_rubric = null
+    }
+
+    // Phase 4: outcome-email config + calendly override
+    if (typeof body.auto_send_outcomes === 'boolean') {
+      patch.auto_send_outcomes = body.auto_send_outcomes
+    }
+    if (typeof body.outcome_email_shortlisted === 'string' || body.outcome_email_shortlisted === null) {
+      patch.outcome_email_shortlisted = body.outcome_email_shortlisted || null
+    }
+    if (typeof body.outcome_email_rejected === 'string' || body.outcome_email_rejected === null) {
+      patch.outcome_email_rejected = body.outcome_email_rejected || null
+    }
+    if (typeof body.calendly_url_override === 'string' || body.calendly_url_override === null) {
+      const raw = typeof body.calendly_url_override === 'string' ? body.calendly_url_override.trim() : ''
+      if (!raw) patch.calendly_url_override = null
+      else if (!CALENDLY_URL_REGEX.test(raw)) {
+        return NextResponse.json({ error: 'Calendly URL must start with https://calendly.com/' }, { status: 400 })
+      } else patch.calendly_url_override = raw
+    }
+
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
@@ -80,7 +121,6 @@ export async function PATCH(
       .single()
 
     if (error || !data) {
-      // Supabase unique-violation code is 23505
       if ((error as any)?.code === '23505') {
         return NextResponse.json({ error: 'Slug already in use' }, { status: 409 })
       }

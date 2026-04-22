@@ -11,8 +11,11 @@ export async function POST() {
   try {
     const { uploadUrl, uid } = await getDirectUploadUrl()
     return NextResponse.json({ uploadUrl, videoId: uid })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[POST /api/prescreen/videos/upload-url]', err)
-    return NextResponse.json({ error: 'Failed to get upload URL' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to get upload URL', detail: err?.message ?? String(err) },
+      { status: 500 }
+    )
   }
 }

@@ -1,4 +1,4 @@
-// POST /api/prescreen/sessions - create a new pre-screen session
+﻿// POST /api/prescreen/sessions - create a new pre-screen session
 // GET  /api/prescreen/sessions - list all sessions (staff only)
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -52,6 +52,43 @@ export async function POST(req: NextRequest) {
       questions = await generateQuestions(body.role_title, body.role_description ?? '', questions.length || 4)
     }
 
+    // Rubric mode + optional custom rubric (3-6 items)
+    const rubric_mode: 'standard' | 'custom' = body.rubric_mode === 'custom' ? 'custom' : 'standard'
+    let custom_rubric: Array<{ name: string; description: string }> | null = null
+    if (rubric_mode === 'custom') {
+      const arr = Array.isArray(body.custom_rubric) ? body.custom_rubric : []
+      const cleaned = arr
+        .map((r: any) => ({
+          name: String(r?.name ?? '').trim(),
+          description: String(r?.description ?? '').trim(),
+        }))
+        .filter((r: { name: string; description: string }) => r.name && r.description)
+      if (cleaned.length < 3 || cleaned.length > 6) {
+        return NextResponse.json(
+          { error: 'Custom rubric must have 3-6 dimensions, each with name and description' },
+          { status: 400 },
+        )
+      }
+      custom_rubric = cleaned
+    }
+
+    // Phase 4 outcome-email config (optional)
+    const auto_send_outcomes = typeof body.auto_send_outcomes === 'boolean' ? body.auto_send_outcomes : false
+    const outcome_email_shortlisted = typeof body.outcome_email_shortlisted === 'string' && body.outcome_email_shortlisted.trim()
+      ? body.outcome_email_shortlisted
+      : null
+    const outcome_email_rejected = typeof body.outcome_email_rejected === 'string' && body.outcome_email_rejected.trim()
+      ? body.outcome_email_rejected
+      : null
+    let calendly_url_override: string | null = null
+    if (typeof body.calendly_url_override === 'string' && body.calendly_url_override.trim()) {
+      const raw = body.calendly_url_override.trim()
+      if (!/^https:\/\/(www\.)?calendly\.com\//.test(raw)) {
+        return NextResponse.json({ error: 'Calendly URL must start with https://calendly.com/' }, { status: 400 })
+      }
+      calendly_url_override = raw
+    }
+
     const { data, error } = await supabaseAdmin
       .from('prescreen_sessions')
       .insert({
@@ -61,6 +98,12 @@ export async function POST(req: NextRequest) {
         time_limit_seconds: body.time_limit_seconds ?? 90,
         status: 'active',
         created_by: user.id,
+        rubric_mode,
+        custom_rubric,
+        auto_send_outcomes,
+        outcome_email_shortlisted,
+        outcome_email_rejected,
+        calendly_url_override,
       })
       .select()
       .single()
@@ -79,7 +122,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })

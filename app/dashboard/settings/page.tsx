@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -28,6 +28,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function SettingsPage() {
   const [form, setForm] = useState({ name: '', industry: '', state: '', award: '', headcount: '', employment_types: '', advisor_name: '', advisor_email: '', calendly_link: '' })
+  const [calendlyUrl, setCalendlyUrl] = useState('')
+  const [calendlyUrlSaving, setCalendlyUrlSaving] = useState(false)
+  const [calendlyUrlError, setCalendlyUrlError] = useState('')
+  const [calendlyUrlSaved, setCalendlyUrlSaved] = useState(false)
   const [userName, setUserName] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -59,6 +63,7 @@ export default function SettingsPage() {
         setSubscriptionStatus(biz.subscription_status || 'trialing')
         setHasStripe(!!biz.stripe_customer_id)
         setLogoUrl(biz.logo_url || '')
+        setCalendlyUrl(biz.calendly_url || '')
         setForm({
           name: biz.name || '', industry: biz.industry || '', state: biz.state || '',
           award: biz.award || '', headcount: biz.headcount || '',
@@ -110,6 +115,28 @@ export default function SettingsPage() {
     setLogoUploading(false)
   }
 
+  async function saveCalendlyUrl() {
+    setCalendlyUrlSaving(true)
+    setCalendlyUrlError('')
+    try {
+      const res = await fetch('/api/business', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendly_url: calendlyUrl.trim() || null }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setCalendlyUrlError(data.error || 'Could not save')
+        return
+      }
+      setCalendlyUrlSaved(true)
+      setTimeout(() => setCalendlyUrlSaved(false), 2500)
+    } catch {
+      setCalendlyUrlError('Network error')
+    } finally {
+      setCalendlyUrlSaving(false)
+    }
+  }
   async function openPortal() {
     setBillingLoading(true)
     try {
@@ -148,7 +175,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className={`cursor-pointer bg-white border border-border rounded-lg px-4 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors inline-block ${logoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                {logoUploading ? 'Uploading…' : 'Upload logo'}
+                {logoUploading ? 'Uploadingâ€¦' : 'Upload logo'}
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={logoUploading} />
               </label>
               <p className="text-xs text-muted mt-1">PNG or JPG, max 2MB</p>
@@ -232,9 +259,31 @@ export default function SettingsPage() {
 
         <button onClick={save} disabled={saving}
           className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors disabled:opacity-60">
-          {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+          {saving ? 'Savingâ€¦' : saved ? 'âœ“ Saved' : 'Save changes'}
         </button>
 
+
+        {/* Scheduling - Phase 4: candidate interview booking */}
+        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mt-5">
+          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Scheduling</h2>
+          <p className="text-xs text-muted mb-4">Default Calendly link shortlisted candidates are invited to. Individual roles can override this.</p>
+          <Field label="Calendly URL">
+            <input
+              className={inputCls}
+              value={calendlyUrl}
+              onChange={e => setCalendlyUrl(e.target.value)}
+              placeholder="https://calendly.com/your-team/interview-30"
+            />
+          </Field>
+          {calendlyUrlError && <p className="text-xs text-danger mt-2">{calendlyUrlError}</p>}
+          <button
+            onClick={saveCalendlyUrl}
+            disabled={calendlyUrlSaving}
+            className="mt-3 bg-black hover:bg-[#1a1a1a] text-white font-bold px-5 py-2 rounded-full text-sm transition-colors disabled:opacity-60"
+          >
+            {calendlyUrlSaving ? 'Saving...' : calendlyUrlSaved ? '\u2713 Saved' : 'Save Calendly URL'}
+          </button>
+        </section>
         {/* Billing */}
         <section className="bg-white shadow-card rounded-2xl p-6 mt-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Billing & subscription</h2>
@@ -243,7 +292,7 @@ export default function SettingsPage() {
           {billingError && (
             <div className="bg-danger/10 border border-danger/30 rounded-lg px-4 py-3 text-sm text-danger mb-4 flex items-center">
               <span className="flex-1">{billingError}</span>
-              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-danger hover:text-charcoal">✕</button>
+              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-danger hover:text-charcoal">âœ•</button>
             </div>
           )}
 
@@ -260,18 +309,18 @@ export default function SettingsPage() {
                 {subscriptionStatus === 'active' ? 'Active' :
                  subscriptionStatus === 'trialing' ? '14-day free trial' :
                  subscriptionStatus === 'cancelled' ? 'Cancelled' : subscriptionStatus}
-                {PLAN_DETAILS[plan] && ` · ${PLAN_DETAILS[plan].seats} seats · ${PLAN_DETAILS[plan].price}`}
+                {PLAN_DETAILS[plan] && ` Â· ${PLAN_DETAILS[plan].seats} seats Â· ${PLAN_DETAILS[plan].price}`}
               </p>
             </div>
             {hasStripe ? (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-white hover:bg-gray-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loading…' : 'Manage billing'}
+                {billingLoading ? 'Loadingâ€¦' : 'Manage billing'}
               </button>
             ) : (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loading…' : 'Upgrade plan'}
+                {billingLoading ? 'Loadingâ€¦' : 'Upgrade plan'}
               </button>
             )}
           </div>
@@ -305,7 +354,7 @@ export default function SettingsPage() {
           >
             <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Upgrades coming soon</h3>
             <p className="text-sm text-mid mb-5">
-              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually — usually within one business day.
+              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually â€” usually within one business day.
             </p>
             <div className="flex items-center gap-3">
               <a
@@ -327,3 +376,4 @@ export default function SettingsPage() {
     </div>
   )
 }
+

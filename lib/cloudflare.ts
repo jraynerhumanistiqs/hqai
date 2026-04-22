@@ -23,8 +23,14 @@ export async function getDirectUploadUrl(): Promise<{ uploadUrl: string; uid: st
       meta: { source: 'hqai-prescreen' },
     }),
   })
-  if (!res.ok) throw new Error(`Cloudflare upload URL error: ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Cloudflare upload URL error: ${res.status} ${body.slice(0, 300)}`)
+  }
   const data = await res.json()
+  if (!data?.result?.uploadURL || !data?.result?.uid) {
+    throw new Error(`Cloudflare upload URL malformed: ${JSON.stringify(data).slice(0, 300)}`)
+  }
   return { uploadUrl: data.result.uploadURL, uid: data.result.uid }
 }
 

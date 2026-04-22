@@ -49,11 +49,11 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   }
 
   return (
-    <aside className="w-[300px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
+    <aside className="w-[232px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
       {/* Logo */}
-      <div className="relative px-5 py-6 border-b border-white/8 flex items-center justify-center min-h-[120px]">
+      <div className="relative px-4 py-4 border-b border-white/8 flex items-center justify-center min-h-[72px]">
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={240} height={240} className="opacity-90 w-[220px] max-w-full h-auto" priority />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={240} height={240} className="opacity-90 w-[132px] max-w-full h-auto" priority />
         </Link>
         {onClose && (
           <button onClick={onClose} className="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
@@ -65,17 +65,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       </div>
 
       {/* Business pill */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="bg-white/6 rounded-lg px-3 py-2.5 flex items-center gap-2 min-h-[48px]">
+      <div className="px-3 pt-3 pb-1.5">
+        <div className="bg-white/6 rounded-lg px-2.5 py-2 flex items-center gap-2 min-h-[40px]">
           {bizLogoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={bizLogoUrl}
               alt={bizName}
-              className="max-h-9 max-w-full w-auto h-auto object-contain"
+              className="max-h-7 max-w-full w-auto h-auto object-contain"
             />
           ) : (
-            <p className="flex-1 min-w-0 text-base font-normal text-white uppercase truncate">
+            <p className="flex-1 min-w-0 text-[13px] font-normal text-white uppercase truncate">
               {bizName}
             </p>
           )}
@@ -89,7 +89,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Home */}
         <Link href="/dashboard"
-          className={`flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all group
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all group
             ${isActive('/dashboard', true)
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -99,7 +99,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* HQ People dropdown */}
         <button onClick={() => setPeopleOpen(!peopleOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -110,12 +110,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {peopleOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/people"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/people') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Chat with {advisorName || 'HQ'}
             </Link>
             <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               HR Templates
             </Link>
@@ -124,7 +124,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* HQ Recruit dropdown */}
         <button onClick={() => setRecruitOpen(!recruitOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/recruit')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -135,12 +135,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {recruitOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/recruit"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit', true) ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Shortlist Agent
             </Link>
             <Link href="/dashboard/recruit/templates"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Recruitment Templates
             </Link>
@@ -149,7 +149,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Documents dropdown */}
         <button onClick={() => setDocsOpen(!docsOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/documents')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -160,13 +160,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {docsOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/documents"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/documents') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               <span>My Documents</span>
               <InfoTooltip text="Documents your HQ.ai Advisor has created in chat" />
             </Link>
             <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               <span>Templates</span>
               <InfoTooltip text="Best practice templates curated by HQ.ai experts (subscribers only)" />
@@ -179,7 +179,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Compliance */}
         <button onClick={() => setComplianceOpen(!complianceOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -190,17 +190,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {complianceOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/compliance/assessment"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/compliance/assessment') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Workplace Compliance Assessment
             </Link>
             <Link href="/dashboard/compliance/audit"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Workplace Compliance Audit
             </Link>
             <Link href="/dashboard/awards"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Award Interpreter
             </Link>
@@ -209,7 +209,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Leadership */}
         <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -220,17 +220,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {leadershipOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/performance"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Performance Management
             </Link>
             <Link href="/dashboard/leadership/development"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Performance Development
             </Link>
             <Link href="/dashboard/leadership/coaching"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Coaching
             </Link>
@@ -239,7 +239,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Recruitment Tools */}
         <button onClick={() => setRecruitmentToolsOpen(!recruitmentToolsOpen)}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/recruitment-tools')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -250,17 +250,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {recruitmentToolsOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/recruitment-tools/shortlist"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruitment-tools/shortlist') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Shortlist Agent
             </Link>
             <Link href="/dashboard/recruitment-tools/screening"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruitment-tools/screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Candidate Screening
             </Link>
             <Link href="/dashboard/recruitment-tools/campaign-coach"
-              className={`block px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruitment-tools/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Campaign Coach
             </Link>
@@ -269,7 +269,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Settings */}
         <Link href="/dashboard/settings"
-          className={`flex items-center gap-2.5 px-3.5 py-3 rounded-lg mb-0.5 text-base font-bold transition-all mt-2
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all mt-2
             ${isActive('/dashboard/settings')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -279,23 +279,23 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       </div>
 
       {/* Footer */}
-      <div className="px-3 pb-4 space-y-2 flex-shrink-0">
+      <div className="px-2.5 pb-3 space-y-1.5 flex-shrink-0">
         {/* Advisor card */}
-        <div className="bg-[#111111] border border-[#222222] rounded-xl p-4">
-          <p className="text-xs text-white/60 font-bold uppercase tracking-wider mb-2">Your HQ.ai Advisor</p>
+        <div className="bg-[#111111] border border-[#222222] rounded-lg p-2.5">
+          <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider mb-1.5">Your HQ.ai Advisor</p>
           <div className="flex items-center gap-2 mb-2">
             <div className="relative">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm font-medium text-white">
+              <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-medium text-white">
                 {advisorName[0]}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-[#000000] animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-[#000000] animate-pulse" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-white">{advisorName}</p>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-white truncate">{advisorName}</p>
             </div>
           </div>
           <button onClick={handleContactPartner}
-            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-sm font-bold py-2 rounded-full transition-colors">
+            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-1.5 rounded-full transition-colors">
             Contact HQ Partner
           </button>
         </div>

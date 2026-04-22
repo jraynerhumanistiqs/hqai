@@ -131,25 +131,47 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   const handleUpload = useCallback(async () => {
     setRecState('uploading')
     try {
+      if (chunksRef.current.length === 0) {
+        throw new Error('RECORDING_EMPTY: No video data was captured. Try recording again.')
+      }
+
       const urlRes = await fetch('/api/prescreen/videos/upload-url', { method: 'POST' })
-      if (!urlRes.ok) throw new Error('Failed to get upload URL')
+      if (!urlRes.ok) {
+        const body = await urlRes.text().catch(() => '')
+        console.error('[upload-url] failed', urlRes.status, body)
+        throw new Error(`UPLOAD_URL_${urlRes.status}: ${body.slice(0, 200)}`)
+      }
       const { uploadUrl, videoId } = await urlRes.json()
+      if (!uploadUrl || !videoId) throw new Error('UPLOAD_URL_MALFORMED')
 
       const blobType = mimeRef.current?.startsWith('video/mp4') ? 'video/mp4' : 'video/webm'
       const blob = new Blob(chunksRef.current, { type: blobType })
-      // Cloudflare Stream direct_upload expects multipart/form-data with a "file" field
-      const fd = new FormData()
       const ext = blobType === 'video/mp4' ? 'mp4' : 'webm'
+      const fd = new FormData()
       fd.append('file', blob, `response.${ext}`)
+
       const uploadRes = await fetch(uploadUrl, { method: 'POST', body: fd })
-      if (!uploadRes.ok) throw new Error(`Video upload failed (${uploadRes.status})`)
+      if (!uploadRes.ok) {
+        const body = await uploadRes.text().catch(() => '')
+        console.error('[cf-upload] failed', uploadRes.status, body)
+        throw new Error(`CF_UPLOAD_${uploadRes.status}: ${body.slice(0, 200)}`)
+      }
 
       setVideoIds(prev => { const n = [...prev]; n[currentQ] = videoId; return n })
       setRecState('done')
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      console.error('[handleUpload]', err)
       setRecState('error')
-      setErrorMsg('Upload failed. Check your connection and try again.')
+      const raw = err?.message || 'Unknown error'
+      if (raw.startsWith('RECORDING_EMPTY')) {
+        setErrorMsg('No video was captured. Please record again — make sure your camera is on.')
+      } else if (raw.startsWith('UPLOAD_URL_')) {
+        setErrorMsg(`Could not prepare upload. Please refresh and try again. (${raw.split(':')[0]})`)
+      } else if (raw.startsWith('CF_UPLOAD_')) {
+        setErrorMsg(`Video upload rejected by server. Please try again. (${raw.split(':')[0]})`)
+      } else {
+        setErrorMsg(`Upload failed. Check your connection and try again. (${raw.slice(0, 80)})`)
+      }
     }
   }, [currentQ])
 

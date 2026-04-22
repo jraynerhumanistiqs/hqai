@@ -141,3 +141,229 @@ export async function sendCandidateInviteEmail({
     console.error('[email] sendCandidateInviteEmail failed:', err)
   }
 }
+
+
+// --- Candidate confirmation of submission ---------------------------------
+// Sent immediately after a candidate submits their pre-screen response.
+// Content must contain ONLY: thank-you, company name, role title, and
+// "the team will be in touch". NEVER include scores, rubric, transcript
+// or any AI output.
+
+export async function sendCandidateSubmissionConfirmation({
+  candidateEmail,
+  candidateName,
+  roleTitle,
+  company,
+}: {
+  candidateEmail: string
+  candidateName?: string
+  roleTitle: string
+  company: string
+}) {
+  const resend = getResend()
+  if (!resend) return
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: candidateEmail,
+      subject: `Interview received - ${company}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
+          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">Thank you${candidateName ? `, ${candidateName}` : ''}.</h2>
+          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
+            We have received your video interview for the
+            <strong>${roleTitle}</strong> role at <strong>${company}</strong>.
+          </p>
+          <p style="color: #4b4b4b; margin: 0 0 24px; line-height: 1.6;">
+            The team will be in touch.
+          </p>
+          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
+            Sent on behalf of ${company} via Humanistiqs.<br/>
+            humanistiqs.com.au
+          </p>
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[email] sendCandidateSubmissionConfirmation failed:', err)
+  }
+}
+
+// -- @mention notification (Phase 3) ---------------------------------------
+
+export async function sendMentionNotification({
+  to,
+  mentionerName,
+  candidateName,
+  roleTitle,
+  company,
+  deepLink,
+  bodyExcerpt,
+}: {
+  to: string
+  mentionerName: string
+  candidateName: string
+  roleTitle: string
+  company: string
+  deepLink: string
+  bodyExcerpt: string
+}) {
+  const resend = getResend()
+  if (!resend) return
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to,
+      subject: `${mentionerName} mentioned you on ${candidateName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
+          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">
+            ${mentionerName} mentioned you
+          </h2>
+          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
+            On <strong>${candidateName}</strong>'s pre-screen for <strong>${roleTitle}</strong> at <strong>${company}</strong>.
+          </p>
+          <blockquote style="border-left: 3px solid #E4E4E2; margin: 0 0 24px; padding: 8px 12px; color: #4b4b4b; font-size: 14px;">
+            ${bodyExcerpt.replace(/</g, '&lt;')}
+          </blockquote>
+          <a href="${deepLink}"
+            style="display: inline-block; background: #000000; color: white; font-weight: 700;
+                   padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-size: 14px;">
+            Open in HQ.ai -&gt;
+          </a>
+          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
+            Humanistiqs - humanistiqs.com.au
+          </p>
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[email] sendMentionNotification failed:', err)
+  }
+}
+
+// -- Candidate review link email (Phase 3) ---------------------------------
+
+export async function sendCandidateReviewLinkEmail({
+  to,
+  senderName,
+  candidateName,
+  roleTitle,
+  company,
+  reviewUrl,
+  expiresAt,
+}: {
+  to: string
+  senderName: string
+  candidateName: string
+  roleTitle: string
+  company: string
+  reviewUrl: string
+  expiresAt?: string | null
+}) {
+  const resend = getResend()
+  if (!resend) return
+  const expiryLabel = expiresAt
+    ? new Date(expiresAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to,
+      subject: `Candidate review: ${candidateName} - ${roleTitle}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
+          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">
+            Candidate review
+          </h2>
+          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
+            ${senderName} has shared <strong>${candidateName}</strong>'s video pre-screen for
+            <strong>${roleTitle}</strong> at <strong>${company}</strong> with you.
+          </p>
+          <a href="${reviewUrl}"
+            style="display: inline-block; background: #000000; color: white; font-weight: 700;
+                   padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-size: 14px;">
+            Open review -&gt;
+          </a>
+          ${expiryLabel ? `<p style="color: #6B6B6B; margin-top: 16px; font-size: 13px;">Link expires ${expiryLabel}.</p>` : ''}
+          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
+            Humanistiqs - humanistiqs.com.au
+          </p>
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[email] sendCandidateReviewLinkEmail failed:', err)
+  }
+}
+
+// -- Candidate outcome email (Phase 4) -------------------------------------
+// Used for shortlisted / rejected outcome emails. Body is plain text
+// rendered inside the minimal HTML template. Reply-to can be set to the
+// logged-in staff user's email so candidates can reply to a real person.
+
+export async function sendCandidateOutcomeEmail({
+  toEmail,
+  toName,
+  subject,
+  body,
+  company,
+  replyTo,
+}: {
+  toEmail: string
+  toName?: string | null
+  subject: string
+  body: string
+  company: string
+  replyTo?: string | null
+}) {
+  const resend = getResend()
+  if (!resend) return
+
+  // Escape-less: we accept plain text body; convert newlines to <br/> and
+  // linkify http(s) urls so the Calendly link is clickable. Angle brackets
+  // are HTML-escaped first to avoid injection.
+  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const linkify = (s: string) =>
+    s.replace(/(https?:\/\/[^\s<]+)/g, (url) =>
+      `<a href="${url}" style="color:#000000; text-decoration:underline;">${url}</a>`)
+  const htmlBody = linkify(escape(body)).replace(/\n/g, '<br/>')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: replyTo || undefined,
+      subject,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
+          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+          </div>
+          <div style="color: #1F1F1F; line-height: 1.6; font-size: 15px;">
+            ${htmlBody}
+          </div>
+          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
+            Sent on behalf of ${company} via Humanistiqs.<br/>
+            humanistiqs.com.au
+          </p>
+        </div>
+      `,
+      text: body,
+    })
+    return { ok: true, toName }
+  } catch (err) {
+    console.error('[email] sendCandidateOutcomeEmail failed:', err)
+    return { ok: false, toName }
+  }
+}
