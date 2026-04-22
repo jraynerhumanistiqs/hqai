@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { PrescreenSession } from '@/lib/recruit-types'
 
 interface Props {
@@ -9,20 +9,53 @@ interface Props {
 
 type Step = 'setup' | 'questions'
 
-const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
 const selectCls = `${inputCls} cursor-pointer`
+
+const TIP_THRESHOLD = 300
 
 export function CreateRoleModal({ onClose, onCreated }: Props) {
   const [step, setStep]               = useState<Step>('setup')
   const [company, setCompany]         = useState('')
   const [roleTitle, setRoleTitle]     = useState('')
   const [description, setDescription] = useState('')
-  const [timeLimit, setTimeLimit]     = useState(90)
+  const [minutes, setMinutes]         = useState(1)
+  const [seconds, setSeconds]         = useState(30)
   const [qCount, setQCount]           = useState(4)
   const [questions, setQuestions]     = useState<string[]>([])
   const [generating, setGenerating]   = useState(false)
   const [creating, setCreating]       = useState(false)
   const [error, setError]             = useState('')
+  const [showTip, setShowTip]         = useState(false)
+  const [tipArmed, setTipArmed]       = useState(true)
+
+  const timeLimit = Math.max(10, Math.min(600, minutes * 60 + seconds))
+
+  useEffect(() => {
+    if (timeLimit >= TIP_THRESHOLD && tipArmed) {
+      setShowTip(true)
+      setTipArmed(false)
+    } else if (timeLimit < TIP_THRESHOLD && !tipArmed) {
+      setTipArmed(true)
+    }
+  }, [timeLimit, tipArmed])
+
+  function applyPreset(val: number) {
+    const m = Math.floor(val / 60)
+    const s = val % 60
+    setMinutes(m)
+    setSeconds(s)
+  }
+
+  function updateMinutes(v: number) {
+    if (!Number.isFinite(v)) v = 0
+    setMinutes(Math.max(0, Math.min(10, Math.floor(v))))
+  }
+
+  function updateSeconds(v: number) {
+    if (!Number.isFinite(v)) v = 0
+    setSeconds(Math.max(0, Math.min(59, Math.floor(v))))
+  }
 
   async function handleGenerate() {
     if (!roleTitle.trim()) { setError('Please enter a role title first.'); return }
@@ -91,16 +124,16 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden"
+        className="bg-white rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+        <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-lg font-bold text-black">
+            <h2 className="font-serif text-xl font-bold text-black">
               {step === 'setup' ? 'New Recruitment Role' : 'Review Questions'}
             </h2>
-            <p className="text-xs text-mid mt-0.5">
+            <p className="text-sm text-mid mt-0.5">
               {step === 'setup'
                 ? 'Configure the role, then generate AI questions or add your own'
                 : 'Edit or remove questions before creating the role'}
@@ -117,12 +150,12 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 max-h-[65vh] overflow-y-auto">
+        <div className="px-7 py-6 max-h-[65vh] overflow-y-auto">
           {step === 'setup' ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-black mb-1.5">Company</label>
+                  <label className="block text-sm font-bold text-black mb-1.5">Company</label>
                   <input
                     className={inputCls}
                     value={company}
@@ -131,7 +164,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-black mb-1.5">Role Title</label>
+                  <label className="block text-sm font-bold text-black mb-1.5">Role Title</label>
                   <input
                     className={inputCls}
                     value={roleTitle}
@@ -143,7 +176,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-black mb-1.5">
+                <label className="block text-sm font-bold text-black mb-1.5">
                   Role Description
                   <span className="text-mid font-normal ml-1">(helps AI write better questions)</span>
                 </label>
@@ -158,7 +191,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-black mb-1.5">
+                  <label className="block text-sm font-bold text-black mb-1.5">
                     Time per Answer
                     <span className="text-mid font-normal ml-1">({timeLimit < 60 ? `${timeLimit}s` : `${Math.floor(timeLimit / 60)}m${timeLimit % 60 ? ` ${timeLimit % 60}s` : ''}`})</span>
                   </label>
@@ -167,8 +200,8 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                       <button
                         key={val}
                         type="button"
-                        onClick={() => setTimeLimit(val)}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
+                        onClick={() => applyPreset(val)}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
                           timeLimit === val
                             ? 'bg-black text-white'
                             : 'bg-light text-mid hover:bg-border'
@@ -179,24 +212,34 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     ))}
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={10}
-                      max={600}
-                      step={5}
-                      className={inputCls}
-                      value={timeLimit}
-                      onChange={e => {
-                        const v = Number(e.target.value)
-                        if (Number.isFinite(v)) setTimeLimit(Math.max(10, Math.min(600, v)))
-                      }}
-                      placeholder="Custom seconds"
-                    />
-                    <span className="text-xs text-mid whitespace-nowrap">seconds</span>
+                    <div className="flex-1 flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        className={inputCls}
+                        value={minutes}
+                        onChange={e => updateMinutes(Number(e.target.value))}
+                        aria-label="Minutes"
+                      />
+                      <span className="text-xs text-mid">min</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={59}
+                        className={inputCls}
+                        value={seconds}
+                        onChange={e => updateSeconds(Number(e.target.value))}
+                        aria-label="Seconds"
+                      />
+                      <span className="text-xs text-mid">sec</span>
+                    </div>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-black mb-1.5">Questions</label>
+                  <label className="block text-sm font-bold text-black mb-1.5">Questions</label>
                   <select className={selectCls} value={qCount} onChange={e => setQCount(Number(e.target.value))}>
                     <option value={3}>3 questions</option>
                     <option value={4}>4 questions</option>
@@ -212,7 +255,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                 <button
                   onClick={handleGenerate}
                   disabled={generating || !roleTitle.trim()}
-                  className="flex-1 bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-sm font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2"
                 >
                   {generating ? (
                     <>
@@ -268,7 +311,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-bg/50">
+        <div className="px-7 py-5 border-t border-border flex items-center justify-between bg-bg/50">
           <div>
             {step === 'questions' && (
               <button
@@ -287,7 +330,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               <button
                 onClick={handleCreate}
                 disabled={creating || !questions.filter(q => q.trim()).length}
-                className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-sm font-bold px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
+                className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
               >
                 {creating ? (
                   <>
@@ -301,6 +344,64 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
             )}
           </div>
         </div>
+      </div>
+
+      {showTip && <BestPracticeTipModal onClose={() => setShowTip(false)} />}
+    </div>
+  )
+}
+
+function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-modal max-w-md w-full p-6"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between mb-1">
+          <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider">Best-Practice Tip</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 -mt-1 -mr-1 flex items-center justify-center rounded-lg hover:bg-light transition-colors text-mid hover:text-black"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+        <p className="text-sm text-mid mb-4">Interview answer length guidelines</p>
+
+        <div className="space-y-3 text-sm text-charcoal">
+          <p><strong>Simple / direct questions:</strong> 30–60 seconds.</p>
+          <p><strong>Behavioural / complex questions (STAR):</strong> 90 seconds to 3 minutes.</p>
+          <p><strong>Absolute maximum:</strong> 4–5 minutes — anything longer risks rambling and losing the interviewer&apos;s attention.</p>
+
+          <div className="bg-light rounded-xl p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-2">Key considerations</p>
+            <ul className="list-disc pl-5 space-y-1.5 text-sm">
+              <li>One-way recorded interviews commonly have 2–3 minute limits per question.</li>
+              <li>Quality &gt; quantity — a focused 90-second answer beats a rambling 4-minute one.</li>
+              <li>Structure answers with the STAR method (Situation, Task, Action, Result).</li>
+              <li>Aim for consistency — keep answers within a similar time frame.</li>
+            </ul>
+          </div>
+
+          <div className="bg-light rounded-xl p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-2">Pro tip</p>
+            <p className="text-sm">Practise by recording yourself to check pacing.</p>
+          </div>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm mt-5 transition-colors"
+        >
+          Got it
+        </button>
       </div>
     </div>
   )

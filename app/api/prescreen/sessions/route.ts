@@ -87,6 +87,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('prescreen_sessions')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (error) throw error

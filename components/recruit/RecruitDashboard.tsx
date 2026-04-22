@@ -1,7 +1,9 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PrescreenSession, CandidateResponse } from '@/lib/recruit-types'
 import { CreateRoleModal } from './CreateRoleModal'
+import { EditRoleModal } from './EditRoleModal'
+import { DeleteRoleConfirm } from './DeleteRoleConfirm'
 import { RoleDetail } from './RoleDetail'
 
 export function RecruitDashboard() {
@@ -12,6 +14,10 @@ export function RecruitDashboard() {
   const [loadingSessions, setLoadingSessions]   = useState(true)
   const [showCreate, setShowCreate]     = useState(false)
   const [candidateUrl, setCandidateUrl] = useState('')
+  const [menuOpenFor, setMenuOpenFor]   = useState<string | null>(null)
+  const [editTarget, setEditTarget]     = useState<PrescreenSession | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<PrescreenSession | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     fetch('/api/prescreen/sessions')
@@ -24,6 +30,18 @@ export function RecruitDashboard() {
       .catch(console.error)
       .finally(() => setLoadingSessions(false))
   }, [])
+
+  // Close the ⋮ menu on outside click
+  useEffect(() => {
+    if (!menuOpenFor) return
+    function onDocClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpenFor(null)
+      }
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [menuOpenFor])
 
   const loadResponses = useCallback(async (session: PrescreenSession) => {
     setLoadingResponses(true)
@@ -49,6 +67,25 @@ export function RecruitDashboard() {
     setCandidateUrl(url)
     setResponses([])
     setShowCreate(false)
+  }
+
+  function handleEdited(updated: PrescreenSession) {
+    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s))
+    if (selected?.id === updated.id) setSelected(updated)
+    setEditTarget(null)
+  }
+
+  async function handleDeleteConfirmed(id: string) {
+    await fetch(`/api/prescreen/sessions/${id}`, { method: 'DELETE' })
+    setSessions(prev => prev.filter(s => s.id !== id))
+    if (selected?.id === id) {
+      setSelected(prev => {
+        const rest = sessions.filter(s => s.id !== id)
+        return rest.length > 0 ? rest[0] : null
+      })
+      setCandidateUrl('')
+    }
+    setDeleteTarget(null)
   }
 
   async function handlePatchResponse(id: string, patch: Partial<CandidateResponse>) {
@@ -80,7 +117,7 @@ export function RecruitDashboard() {
             <h1 className="font-serif text-base font-bold text-black tracking-tight">HQ Recruit</h1>
             <button
               onClick={() => setShowCreate(true)}
-              className="bg-accent hover:bg-accent2 text-white text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors"
+              className="bg-accent hover:bg-accent2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors"
             >
               + New
             </button>
@@ -108,33 +145,75 @@ export function RecruitDashboard() {
             </div>
           ) : (
             sessions.map(s => (
-              <button
+              <div
                 key={s.id}
-                onClick={() => { setSelected(s); setCandidateUrl('') }}
-                className={`w-full text-left px-4 py-3 transition-all border-l-2 ${
+                className={`relative w-full transition-all border-l-2 ${
                   selected?.id === s.id
                     ? 'bg-accent3 border-l-accent'
                     : 'border-l-transparent hover:bg-bg'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className={`text-sm font-bold truncate leading-snug ${
-                      selected?.id === s.id ? 'text-accent2' : 'text-black'
+                <button
+                  onClick={() => { setSelected(s); setCandidateUrl('') }}
+                  className="w-full text-left px-4 py-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 pr-6">
+                      <p className={`text-sm font-bold truncate leading-snug ${
+                        selected?.id === s.id ? 'text-accent2' : 'text-black'
+                      }`}>
+                        {s.role_title}
+                      </p>
+                      <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
+                      s.status === 'active'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-light text-mid'
                     }`}>
-                      {s.role_title}
-                    </p>
-                    <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
+                      {s.status}
+                    </span>
                   </div>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
-                    s.status === 'active'
-                      ? 'bg-success/10 text-success'
-                      : 'bg-light text-mid'
-                  }`}>
-                    {s.status}
-                  </span>
-                </div>
-              </button>
+                </button>
+
+                {/* ⋮ menu trigger */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setMenuOpenFor(prev => prev === s.id ? null : s.id)
+                  }}
+                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-charcoal hover:bg-light transition-colors"
+                  aria-label="Role actions"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <circle cx="10" cy="4"  r="1.6"/>
+                    <circle cx="10" cy="10" r="1.6"/>
+                    <circle cx="10" cy="16" r="1.6"/>
+                  </svg>
+                </button>
+
+                {/* ⋮ dropdown */}
+                {menuOpenFor === s.id && (
+                  <div
+                    ref={menuRef}
+                    className="absolute top-9 right-2 z-20 bg-white shadow-modal rounded-xl border border-border py-1 w-36"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => { setEditTarget(s); setMenuOpenFor(null) }}
+                      className="w-full text-left px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => { setDeleteTarget(s); setMenuOpenFor(null) }}
+                      className="w-full text-left px-3 py-2 text-sm font-bold text-danger hover:bg-light transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             ))
           )}
         </div>
@@ -165,7 +244,7 @@ export function RecruitDashboard() {
               </p>
               <button
                 onClick={() => setShowCreate(true)}
-                className="bg-accent hover:bg-accent2 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
+                className="bg-accent hover:bg-accent2 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
               >
                 + New Role
               </button>
@@ -179,6 +258,24 @@ export function RecruitDashboard() {
         <CreateRoleModal
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}
+        />
+      )}
+
+      {/* Edit role modal */}
+      {editTarget && (
+        <EditRoleModal
+          session={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={handleEdited}
+        />
+      )}
+
+      {/* Delete confirm */}
+      {deleteTarget && (
+        <DeleteRoleConfirm
+          session={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirmed={handleDeleteConfirmed}
         />
       )}
     </div>

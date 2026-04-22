@@ -12,6 +12,7 @@ export interface PrescreenSession {
   created_at: string
   created_by: string
   status: SessionStatus
+  deleted_at?: string | null
 }
 
 export interface CandidateResponse {
