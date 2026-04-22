@@ -22,7 +22,7 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
         {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
       </h1>
       <p className="text-base font-normal text-mid">
-        Welcome to {bizName} - here&apos;s what&apos;s happening.
+        Welcome to your HQ.ai dashboard, jump back in below!
       </p>
     </div>
   )
