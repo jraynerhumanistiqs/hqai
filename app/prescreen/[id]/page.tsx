@@ -38,17 +38,30 @@ export default function PrescreenPage() {
 
   async function handleRecordingComplete(videoIds: string[]) {
     if (!session || !candidateMeta) return
-    await fetch(`/api/prescreen/sessions/${session.id}/responses`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        candidate_name: candidateMeta.name,
-        candidate_email: candidateMeta.email,
-        consent: candidateMeta.consent,
-        video_ids: videoIds,
-      }),
-    })
-    setStage('done')
+    try {
+      const res = await fetch(`/api/prescreen/sessions/${session.id}/responses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidate_name: candidateMeta.name,
+          candidate_email: candidateMeta.email,
+          consent: candidateMeta.consent,
+          video_ids: videoIds,
+        }),
+      })
+      if (!res.ok) {
+        const body = await res.text().catch(() => '')
+        console.error('[responses POST] failed', res.status, body)
+        setErrorMsg(`Your video was uploaded but the submission could not be recorded (HTTP ${res.status}). Please contact ${session.company || 'the hiring team'} and show them this code: SUBMIT_${res.status}.`)
+        setStage('error')
+        return
+      }
+      setStage('done')
+    } catch (err: any) {
+      console.error('[responses POST] network error', err)
+      setErrorMsg('We could not send your submission. Please check your connection and try again.')
+      setStage('error')
+    }
   }
 
   return (
