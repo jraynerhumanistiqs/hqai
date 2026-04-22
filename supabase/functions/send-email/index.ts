@@ -1,6 +1,6 @@
 // ── Supabase Edge Function: send-email ────────────────────────
 // Deploy this to Supabase: supabase functions deploy send-email
-// Uses Resend (resend.com) — free tier: 3,000 emails/month
+// Uses Resend (resend.com) - free tier: 3,000 emails/month
 //
 // File location in your project:
 // supabase/functions/send-email/index.ts
@@ -41,7 +41,7 @@ function welcomeEmail(userName: string, bizName: string) {
   <div class="logo">HQ<span>.ai</span></div>
   <div class="sub">by Humanistiqs</div>
   <h1>Welcome to HQ.ai, ${userName} 👋</h1>
-  <p>Your AI-powered HR headquarters is ready. ${bizName} is all set up — here's what you can do right now:</p>
+  <p>Your AI-powered HR headquarters is ready. ${bizName} is all set up - here's what you can do right now:</p>
   <div class="features">
     <div class="feature">⚖️ <span>Ask HQ anything about employment law, awards, and compliance</span></div>
     <div class="feature">📄 <span>Generate employment contracts, offer letters, and HR documents</span></div>
@@ -84,7 +84,7 @@ function inviteEmail(inviterBizName: string, role: string, inviteUrl: string) {
   <div class="sub">by Humanistiqs</div>
   <h1>${inviterBizName} has invited you to HQ.ai</h1>
   <div class="role-pill">${role} access</div>
-  <p>You've been given ${role} access to ${inviterBizName}'s HQ.ai workspace — their AI-powered HR and recruitment platform.</p>
+  <p>You've been given ${role} access to ${inviterBizName}'s HQ.ai workspace - their AI-powered HR and recruitment platform.</p>
   <p>Click below to create your account and get started.</p>
   <a href="${inviteUrl}" class="btn">Accept invitation →</a>
   <p style="font-size:12px;color:#8B7B66;">This invite link expires in 7 days. If you didn't expect this email, you can safely ignore it.</p>
@@ -108,7 +108,7 @@ function advisorHandoffEmail(
 ) {
   return {
     to: advisorEmail,
-    subject: `HQ.ai handoff — ${bizName} needs your help`,
+    subject: `HQ.ai handoff - ${bizName} needs your help`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -131,7 +131,7 @@ function advisorHandoffEmail(
 <div class="card">
   <div class="badge">⚠️ Advisor handoff</div>
   <h1>Hi ${advisorName}, ${bizName} needs your help</h1>
-  <p>HQ.ai has escalated a conversation from one of your clients. Here's everything you need to know before reaching out — no need for them to repeat context.</p>
+  <p>HQ.ai has escalated a conversation from one of your clients. Here's everything you need to know before reaching out - no need for them to repeat context.</p>
   <div class="context-block">
     <div class="context-row"><span class="context-label">Business</span><span>${bizName}</span></div>
     <div class="context-row"><span class="context-label">Industry</span><span>${bizIndustry}</span></div>
@@ -158,7 +158,7 @@ function weeklyDigestEmail(
   topTopics: string[]
 ) {
   return {
-    subject: `Your HQ.ai weekly summary — ${bizName}`,
+    subject: `Your HQ.ai weekly summary - ${bizName}`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -195,7 +195,7 @@ function weeklyDigestEmail(
   <ul class="topic-list">
     ${topTopics.map(t => `<li>${t}</li>`).join('')}
   </ul>` : ''}
-  <p>Keep building — your Humanistiqs advisor is always one click away for anything complex.</p>
+  <p>Keep building - your Humanistiqs advisor is always one click away for anything complex.</p>
   <div class="footer">HQ.ai by Humanistiqs · humanistiqs.ai · Manage email preferences</div>
 </div>
 </body>

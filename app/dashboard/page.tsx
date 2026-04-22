@@ -17,7 +17,7 @@ export default async function DashboardHome() {
   const business = profile?.businesses as any
   const firstName = (profile?.full_name || '').split(' ')[0] || 'there'
 
-  // Fetch recent conversations - use user.id fallback if business.id missing
+  // Fetch recent conversations
   const convoQuery = supabase
     .from('conversations')
     .select('id, title, module, created_at, escalated')
@@ -49,15 +49,15 @@ export default async function DashboardHome() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col gap-8 sm:gap-10">
 
-        {/* Welcome — greeting uses client's local time */}
+        {/* Welcome */}
         <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
 
-        {/* Quick Actions — 3 only */}
-        <div className="mb-6 sm:mb-10">
-          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-3">Quick actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Quick Actions - headings only with hover tooltip */}
+        <div>
+          <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Quick actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <QuickAction
               href="/dashboard/people"
               title="HQ People"
@@ -80,16 +80,16 @@ export default async function DashboardHome() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[320px]">
 
           {/* Recent Conversations */}
           <div className="flex flex-col">
-            <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-3">Recent conversations</h2>
-            <div className="bg-white shadow-card rounded-xl flex-1">
+            <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent conversations</h2>
+            <div className="bg-white shadow-card rounded-2xl flex-1 flex flex-col">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
                   {recentConvos.map((c: any) => (
-                    <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors">
+                    <li key={c.id} className="px-5 py-4 hover:bg-light transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
                         <div className="flex-1 min-w-0">
@@ -106,10 +106,10 @@ export default async function DashboardHome() {
                   ))}
                 </ul>
               ) : (
-                <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-muted mb-3">No conversations yet</p>
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10">
+                  <p className="text-sm text-muted mb-4">No conversations yet</p>
                   <Link href="/dashboard/people"
-                    className="inline-block bg-black hover:bg-[#1a1a1a] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors">
+                    className="inline-block bg-black hover:bg-[#1a1a1a] text-white text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
                     Start your first chat
                   </Link>
                 </div>
@@ -119,15 +119,15 @@ export default async function DashboardHome() {
 
           {/* Recent Documents */}
           <div className="flex flex-col">
-            <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-3">Recent documents</h2>
-            <div className="bg-white shadow-card rounded-xl flex-1">
+            <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent documents</h2>
+            <div className="bg-white shadow-card rounded-2xl flex-1 flex flex-col">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
                   {recentDocs.map((d: any) => (
                     <li key={d.id}>
-                      <Link href="/dashboard/documents" className="block px-4 py-3 hover:bg-light transition-colors">
+                      <Link href="/dashboard/documents" className="block px-5 py-4 hover:bg-light transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div className="w-9 h-9 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0">
                             <DocsIcon />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -140,7 +140,7 @@ export default async function DashboardHome() {
                   ))}
                 </ul>
               ) : (
-                <div className="px-4 py-8 text-center">
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10">
                   <p className="text-sm text-muted">No documents yet</p>
                   <p className="text-xs text-muted mt-1">Documents are auto-saved when HQ generates them</p>
                 </div>
@@ -150,17 +150,17 @@ export default async function DashboardHome() {
         </div>
 
         {/* Recent News & Information */}
-        <div className="mb-6 sm:mb-10">
-          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-3">Recent applicable news &amp; information</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div>
+          <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent applicable news &amp; information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             <NewsCard
               image="/news/fair-work-update.jpg"
-              title="Fair Work minimum wage increase — what it means for your business"
+              title="Fair Work minimum wage increase - what it means for your business"
               date="April 2026"
             />
             <NewsCard
               image="/news/right-to-disconnect.jpg"
-              title="Right to Disconnect: 6 months on — compliance checklist for SMEs"
+              title="Right to Disconnect: 6 months on - compliance checklist for SMEs"
               date="March 2026"
             />
             <NewsCard
@@ -179,31 +179,36 @@ export default async function DashboardHome() {
 
 function QuickAction({ href, title, desc, icon }: { href: string; title: string; desc: string; icon: React.ReactNode }) {
   return (
-    <Link href={href}
-      className="group bg-white rounded-xl shadow-card p-4 hover:shadow-float hover:-translate-y-0.5 transition-all">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 bg-black/8 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
-          {icon}
+    <div className="relative group">
+      <Link href={href}
+        className="block bg-white rounded-2xl shadow-card p-6 hover:shadow-float hover:-translate-y-0.5 transition-all">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-black/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
+            {icon}
+          </div>
+          <p className="font-display text-lg font-bold text-charcoal uppercase tracking-wider">{title}</p>
         </div>
-        <div>
-          <p className="text-sm font-bold text-charcoal">{title}</p>
-          <p className="text-xs text-muted mt-0.5">{desc}</p>
+      </Link>
+      {/* Info bubble on hover */}
+      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="bg-black text-white font-display text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg whitespace-nowrap shadow-lg">
+          {desc}
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
 function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div className="bg-white shadow-card rounded-xl overflow-hidden hover:shadow-float transition-all group">
-      <div className="h-32 bg-light flex items-center justify-center overflow-hidden">
-        <svg className="w-8 h-8 text-muted" viewBox="0 0 20 20" fill="currentColor">
+    <div className="bg-white shadow-card rounded-2xl overflow-hidden hover:shadow-float transition-all group">
+      <div className="h-36 bg-light flex items-center justify-center overflow-hidden">
+        <svg className="w-10 h-10 text-muted" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>
           <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z"/>
         </svg>
       </div>
-      <div className="p-3">
+      <div className="p-4">
         <p className="text-xs text-muted mb-1">{date}</p>
         <p className="text-sm font-medium text-charcoal leading-snug line-clamp-2">{title}</p>
       </div>
@@ -227,12 +232,12 @@ function formatDate(iso: string) {
 
 // Icons
 function PeopleIcon() {
-  return <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
   </svg>
 }
 function RecruitIcon() {
-  return <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
     <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
   </svg>
 }
@@ -242,7 +247,7 @@ function DocsIcon() {
   </svg>
 }
 function SettingsIcon() {
-  return <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
   </svg>
 }

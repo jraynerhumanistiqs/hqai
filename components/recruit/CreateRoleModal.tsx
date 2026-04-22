@@ -376,17 +376,17 @@ function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
         <p className="text-sm text-mid mb-4">Interview answer length guidelines</p>
 
         <div className="space-y-3 text-sm text-charcoal">
-          <p><strong>Simple / direct questions:</strong> 30–60 seconds.</p>
+          <p><strong>Simple / direct questions:</strong> 30-60 seconds.</p>
           <p><strong>Behavioural / complex questions (STAR):</strong> 90 seconds to 3 minutes.</p>
-          <p><strong>Absolute maximum:</strong> 4–5 minutes — anything longer risks rambling and losing the interviewer&apos;s attention.</p>
+          <p><strong>Absolute maximum:</strong> 4-5 minutes - anything longer risks rambling and losing the interviewer&apos;s attention.</p>
 
           <div className="bg-light rounded-xl p-4">
             <p className="text-xs font-bold uppercase tracking-wider text-mid mb-2">Key considerations</p>
             <ul className="list-disc pl-5 space-y-1.5 text-sm">
-              <li>One-way recorded interviews commonly have 2–3 minute limits per question.</li>
-              <li>Quality &gt; quantity — a focused 90-second answer beats a rambling 4-minute one.</li>
+              <li>One-way recorded interviews commonly have 2-3 minute limits per question.</li>
+              <li>Quality &gt; quantity - a focused 90-second answer beats a rambling 4-minute one.</li>
               <li>Structure answers with the STAR method (Situation, Task, Action, Result).</li>
-              <li>Aim for consistency — keep answers within a similar time frame.</li>
+              <li>Aim for consistency - keep answers within a similar time frame.</li>
             </ul>
           </div>
 

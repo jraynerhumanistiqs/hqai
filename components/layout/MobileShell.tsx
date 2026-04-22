@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/sidebar/Sidebar'
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface SidebarProps {
   userName: string
@@ -22,7 +23,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#000000]">
-      {/* Desktop sidebar — always visible */}
+      {/* Desktop sidebar - always visible */}
       <div className="hidden lg:block flex-shrink-0">
         <Sidebar {...sidebarProps} />
       </div>
@@ -52,7 +53,9 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
               <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
             </svg>
           </button>
-          <Image src="/logo-white.svg" alt="HQ.ai" width={100} height={100} className="opacity-90 h-8 w-auto" />
+          <Link href="/dashboard" aria-label="Go to dashboard home">
+            <Image src="/logo-white.svg" alt="HQ.ai" width={100} height={100} className="opacity-90 h-8 w-auto" />
+          </Link>
           <div className="ml-auto">
             <span className="bg-[#1a1a1a] border border-[#333333] rounded-full px-2.5 py-1 text-[10px] font-bold text-gray-400 truncate max-w-[120px] block">
               {sidebarProps.bizName}

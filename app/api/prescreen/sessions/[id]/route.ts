@@ -1,6 +1,6 @@
-// GET    /api/prescreen/sessions/[id] — load session by ID (public, for candidate page)
-// PATCH  /api/prescreen/sessions/[id] — staff-only edit of company/role/questions/time
-// DELETE /api/prescreen/sessions/[id] — staff-only soft-delete (sets deleted_at)
+// GET    /api/prescreen/sessions/[id] - load session by ID (public, for candidate page)
+// PATCH  /api/prescreen/sessions/[id] - staff-only edit of company/role/questions/time
+// DELETE /api/prescreen/sessions/[id] - staff-only soft-delete (sets deleted_at)
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'

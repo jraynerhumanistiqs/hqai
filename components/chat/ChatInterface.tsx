@@ -19,7 +19,7 @@ const DOC_FORMS: Record<string, { title: string; description: string; fields: Te
     .map(t => [t.title, { title: t.title, description: t.description, fields: t.formFields }])
 )
 
-// Client-side document detection — powered by template-ip.ts (33 template types)
+// Client-side document detection - powered by template-ip.ts (33 template types)
 function detectDocType(text: string): string | null {
   const tmpl = detectTemplate(text)
   return tmpl ? tmpl.title : null
@@ -99,7 +99,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: `${docType} — ${new Date().toLocaleDateString('en-AU')}`,
+        title: `${docType} - ${new Date().toLocaleDateString('en-AU')}`,
         type: docType.toLowerCase().replace(/\s+/g, '-'),
         content,
         conversationId,
@@ -123,7 +123,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     } catch {}
   }
 
-  // Direct message send (no form interception) — must be defined before handleFormSubmit
+  // Direct message send (no form interception) - must be defined before handleFormSubmit
   const sendMessageDirect = useCallback(async (content: string) => {
     if (!content || isLoading) return
 
@@ -199,7 +199,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       }
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        // User stopped — keep partial content, no error message
+        // User stopped - keep partial content, no error message
       } else {
         setMessages(prev => [...prev, {
           role: 'assistant',
@@ -212,7 +212,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setIsLoading(false)
   }, [messages, isLoading, conversationId, module])
 
-  // Handle form submission — generate DOCX backend-side and deliver download
+  // Handle form submission - generate DOCX backend-side and deliver download
   const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
     setActiveForm(null)
 
@@ -304,7 +304,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     const content = text || input.trim()
     if (!content || isLoading) return
 
-    // Check if this is a document request — show form instead
+    // Check if this is a document request - show form instead
     const detectedDoc = detectDocType(content)
     if (detectedDoc && DOC_FORMS[detectedDoc] && !activeForm) {
       setInput('')
@@ -384,7 +384,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               </h2>
               <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
                 {module === 'recruit'
-                  ? 'Ask me anything about hiring — I\'ll help you write ads, screen candidates, and shortlist faster.'
+                  ? 'Ask me anything about hiring - I\'ll help you write ads, screen candidates, and shortlist faster.'
                   : 'Ask me anything about HR, Fair Work, awards, contracts, leave, or managing your team.'
                 }
               </p>
@@ -440,7 +440,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     />
                   ) : msg.formType && msg.formCompleted ? (
                     <p className="text-sm text-mid">
-                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted — generating your document…
+                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your document…
                     </p>
                   ) : msg.content ? (
                     <div className="text-sm text-charcoal leading-relaxed">
@@ -451,7 +451,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
                   )}
 
-                  {/* Hover action row (Copy) — only for non-form completed assistant messages with content */}
+                  {/* Hover action row (Copy) - only for non-form completed assistant messages with content */}
                   {!msg.formType && msg.content && !(isLoading && i === messages.length - 1) && (
                     <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -596,7 +596,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             )}
           </div>
           <p className="text-[10px] text-muted text-center mt-2 leading-relaxed px-4">
-            {moduleLabel} provides general guidance grounded in Australian employment law — not legal advice. Verify critical decisions.{' '}
+            {moduleLabel} provides general guidance grounded in Australian employment law - not legal advice. Verify critical decisions.{' '}
             <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
               Talk to a HQ Partner
             </Link>
@@ -610,7 +610,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to a HQ Partner</h3>
             <p className="text-sm text-mid mb-4 leading-relaxed">
-              HQ.ai has prepared a summary of your conversation. Your HQ Partner will have full context before your call — no repeating yourself.
+              HQ.ai has prepared a summary of your conversation. Your HQ Partner will have full context before your call - no repeating yourself.
             </p>
             <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
               <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
@@ -830,7 +830,7 @@ function DownloadDocxButton({ content, title, docType }: { content: string; titl
       const res = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, title: `${title} — ${new Date().toLocaleDateString('en-AU')}`, docType }),
+        body: JSON.stringify({ content, title: `${title} - ${new Date().toLocaleDateString('en-AU')}`, docType }),
       })
 
       if (!res.ok) throw new Error('Generation failed')

@@ -22,7 +22,7 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
         {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
       </h1>
       <p className="text-sm sm:text-body text-mid">
-        Welcome to {bizName} &mdash; here&apos;s what&apos;s happening.
+        Welcome to {bizName} - here&apos;s what&apos;s happening.
       </p>
     </div>
   )

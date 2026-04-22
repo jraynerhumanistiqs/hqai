@@ -1,5 +1,5 @@
-// POST /api/prescreen/sessions — create a new pre-screen session
-// GET  /api/prescreen/sessions — list all sessions (staff only)
+// POST /api/prescreen/sessions - create a new pre-screen session
+// GET  /api/prescreen/sessions - list all sessions (staff only)
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -26,7 +26,7 @@ Generate exactly ${count} concise, open-ended video interview questions. They sh
 - Be specific to the role and seniority level
 - Vary in focus: background/motivation, a specific skill or situation, working style or communication, growth/goals
 - Be warm but professional in tone
-- Be answerable in 60–120 seconds
+- Be answerable in 60-120 seconds
 - NOT be generic filler
 
 Return ONLY a JSON array of strings. No preamble, no markdown, no explanation.

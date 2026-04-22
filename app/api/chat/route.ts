@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const business = profile?.businesses as any
     const { messages, conversationId, module } = await req.json()
 
-    // Check if user is requesting a document — increase token limit for full docs
+    // Check if user is requesting a document - increase token limit for full docs
     const lastUserMsg = messages[messages.length - 1]?.content || ''
     const requestedDoc = detectDocumentRequest(lastUserMsg)
 

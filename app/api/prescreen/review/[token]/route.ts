@@ -1,5 +1,5 @@
-// GET /api/prescreen/review/[token] — public endpoint for client review page
-// Returns only safe public fields — no ratings, notes, or other candidates exposed
+// GET /api/prescreen/review/[token] - public endpoint for client review page
+// Returns only safe public fields - no ratings, notes, or other candidates exposed
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'

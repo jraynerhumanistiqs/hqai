@@ -1,5 +1,5 @@
 /**
- * Humanistiqs IP — Template definitions, keyword mappings, and form fields
+ * Humanistiqs IP - Template definitions, keyword mappings, and form fields
  *
  * Each template type has:
  * - keywords: exact phrase matches (highest priority)
@@ -49,7 +49,7 @@ const confirmationOfEmployment: TemplateDefinition = {
     { key: 'employmentStatus', label: 'Employment status', type: 'select', options: ['Currently employed', 'Formerly employed'], required: true },
     { key: 'additionalInfo', label: 'Additional categories to confirm', type: 'textarea', placeholder: 'e.g. salary, work hours, employment type' },
   ],
-  promptInstructions: `Generate a Confirmation of Employment letter. Use formal business letter format. Include: date, "To Whom It May Concern" heading, employee name, DOB, position, hire date, employment status, tenure, and a contact line for verification. Sign off with the employer representative details from the business profile. Keep it concise — 1 page maximum.`,
+  promptInstructions: `Generate a Confirmation of Employment letter. Use formal business letter format. Include: date, "To Whom It May Concern" heading, employee name, DOB, position, hire date, employment status, tenure, and a contact line for verification. Sign off with the employer representative details from the business profile. Keep it concise - 1 page maximum.`,
 }
 
 const flexibleWorkApplication: TemplateDefinition = {
@@ -147,7 +147,7 @@ const employmentContract: TemplateDefinition = {
     { key: 'award', label: 'Applicable Modern Award', type: 'text', placeholder: 'e.g. General Retail Industry Award (or leave blank for default)' },
     { key: 'additionalNotes', label: 'Additional notes or special conditions', type: 'textarea', placeholder: 'e.g. Company car, specific roster days, restraint requirements' },
   ],
-  promptInstructions: `Generate a COMPLETE Employment Contract using the Humanistiqs proprietary 33-clause structure. Include EVERY clause — definitions, commencement, position, probation, duties, policies, hours, remuneration (with absorption clause), all leave types, confidentiality, IP, non-disparagement, conflicts, relief from duties, termination, restraint (cascading), redundancy, assignment, governing law, variation, severability, entire agreement, Fair Work statement, execution blocks, and the Schedule with all Items filled in. The document should be 2500-4000 words.`,
+  promptInstructions: `Generate a COMPLETE Employment Contract using the Humanistiqs proprietary 33-clause structure. Include EVERY clause - definitions, commencement, position, probation, duties, policies, hours, remuneration (with absorption clause), all leave types, confidentiality, IP, non-disparagement, conflicts, relief from duties, termination, restraint (cascading), redundancy, assignment, governing law, variation, severability, entire agreement, Fair Work statement, execution blocks, and the Schedule with all Items filled in. The document should be 2500-4000 words.`,
 }
 
 // ── Performance & Grievance Management ────────────────────────────
@@ -188,7 +188,7 @@ const warningLetter: TemplateDefinition = {
     { key: 'employeeName', label: 'Employee full name', type: 'text', required: true },
     { key: 'positionTitle', label: 'Employee position', type: 'text', required: true },
     { key: 'warningLevel', label: 'Warning level', type: 'select', options: ['First written warning', 'Final written warning', 'First and final warning'], required: true },
-    { key: 'issueDescription', label: 'Describe the conduct or performance issue', type: 'textarea', placeholder: 'Be specific — include dates, examples, and what policy or standard was breached', required: true },
+    { key: 'issueDescription', label: 'Describe the conduct or performance issue', type: 'textarea', placeholder: 'Be specific - include dates, examples, and what policy or standard was breached', required: true },
     { key: 'previousDiscussions', label: 'Previous discussions or warnings (with dates)', type: 'textarea', placeholder: 'e.g. Verbal discussion on 1 March 2026 regarding...' },
     { key: 'expectedStandard', label: 'Expected standard going forward', type: 'textarea', placeholder: 'What specifically needs to change?' },
     { key: 'supportOffered', label: 'Support offered to employee', type: 'text', placeholder: 'e.g. Additional training, EAP referral, adjusted workload' },
@@ -202,7 +202,7 @@ const letterOfExpectation: TemplateDefinition = {
   id: 'letter-of-expectation',
   title: 'Letter of Expectation',
   category: 'Performance Management',
-  description: 'Sets expectations without formal warning — used when concerns are substantiated but a warning is not appropriate.',
+  description: 'Sets expectations without formal warning - used when concerns are substantiated but a warning is not appropriate.',
   keywords: ['letter of expectation', 'expectation letter', 'outcome letter'],
   patterns: [
     /\bletter\s+of\s+expectation\b/i,
@@ -217,7 +217,7 @@ const letterOfExpectation: TemplateDefinition = {
     { key: 'expectations', label: 'Expected changes going forward', type: 'textarea', placeholder: 'What specific changes are expected?', required: true },
     { key: 'support', label: 'Support and guidance to be provided', type: 'textarea', placeholder: 'e.g. Training, mentoring, policy review' },
   ],
-  promptInstructions: `Generate a Letter of Expectation (outcome letter) following the Humanistiqs template. This is NOT a formal warning — it's used when concerns have been substantiated but a warning is not appropriate. Include: Private & Confidential header, reference to meeting date, specific concerns discussed, determination that concerns were substantiated but formal warning not appropriate, letter to be held on file, support to be provided, clear expectations listed, reminder that failure to meet expectations may result in disciplinary action. Include employee acknowledgement signature block.`,
+  promptInstructions: `Generate a Letter of Expectation (outcome letter) following the Humanistiqs template. This is NOT a formal warning - it's used when concerns have been substantiated but a warning is not appropriate. Include: Private & Confidential header, reference to meeting date, specific concerns discussed, determination that concerns were substantiated but formal warning not appropriate, letter to be held on file, support to be provided, clear expectations listed, reminder that failure to meet expectations may result in disciplinary action. Include employee acknowledgement signature block.`,
 }
 
 const probationReview: TemplateDefinition = {
@@ -438,7 +438,7 @@ const alcoholDrugsPolicy: TemplateDefinition = {
     /\bpolicy\b.*\b(alcohol|drug|substance)\b/i,
   ],
   formFields: [
-    { key: 'testingRequired', label: 'Does your industry require testing?', type: 'select', options: ['Yes — mandatory testing', 'No — behavioural indicators only', 'Not sure'] },
+    { key: 'testingRequired', label: 'Does your industry require testing?', type: 'select', options: ['Yes - mandatory testing', 'No - behavioural indicators only', 'Not sure'] },
     { key: 'industryContext', label: 'Industry context', type: 'textarea', placeholder: 'e.g. Construction site safety, operating heavy machinery, driving company vehicles' },
   ],
   promptInstructions: `Generate an Alcohol & Other Drugs Policy following the Humanistiqs template. Include: purpose, scope, definitions, zero impairment policy statement, behavioural indicators table (physical, emotional, behavioural, other), direction to leave work procedures, transport assistance, return to work process, acknowledged problems and support, continuity of employment, EAP assistance, company support and rehabilitation, confidentiality, return to work post-rehabilitation, unsuccessful rehabilitation, recurrence, refusal to seek treatment, alcohol at work functions, drugs on premises, suspected breaches, related policies, and policy history.`,
@@ -539,7 +539,7 @@ const jobAd: TemplateDefinition = {
     { key: 'benefits', label: 'Benefits and perks', type: 'textarea' },
     { key: 'platform', label: 'Where will this be posted?', type: 'select', options: ['SEEK', 'LinkedIn', 'Indeed', 'Multiple platforms', 'Company website'] },
   ],
-  promptInstructions: `Generate a Job Advertisement following the Humanistiqs template structure: 1) About us (3-5 sentences), 2) About the role (max 5 bullet points), 3) About you — must-have (max 5) and nice-to-have (max 4), 4) About the experience/benefits, 5) Equal opportunity statement, 6) Key selling points for platform. Run compliance checks: no age references, no gender-coded language, no protected attribute criteria, salary range included.`,
+  promptInstructions: `Generate a Job Advertisement following the Humanistiqs template structure: 1) About us (3-5 sentences), 2) About the role (max 5 bullet points), 3) About you - must-have (max 5) and nice-to-have (max 4), 4) About the experience/benefits, 5) Equal opportunity statement, 6) Key selling points for platform. Run compliance checks: no age references, no gender-coded language, no protected attribute criteria, salary range included.`,
 }
 
 const jobBrief: TemplateDefinition = {
@@ -699,7 +699,7 @@ const contractVariation: TemplateDefinition = {
   id: 'contract-variation',
   title: 'Contract Variation Letter',
   category: 'Letters & Offers',
-  description: 'Letter to vary existing employment terms — hours, duties, remuneration, or location.',
+  description: 'Letter to vary existing employment terms - hours, duties, remuneration, or location.',
   keywords: ['contract variation', 'variation letter'],
   patterns: [
     /\bvari(ation|y)\b.*\b(contract|letter|terms)\b/i,

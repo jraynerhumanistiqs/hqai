@@ -1,9 +1,9 @@
-# HQ.ai — Deployment Guide
+# HQ.ai - Deployment Guide
 # From zero to live in ~20 minutes
 
 ---
 
-## STEP 1 — Get your accounts ready (5 mins)
+## STEP 1 - Get your accounts ready (5 mins)
 
 You need three accounts. All free to start.
 
@@ -22,11 +22,11 @@ You need three accounts. All free to start.
 
 ### 1c. Vercel (hosting)
 1. Go to vercel.com → Sign up with GitHub
-2. You'll need a GitHub account — go to github.com if you don't have one
+2. You'll need a GitHub account - go to github.com if you don't have one
 
 ---
 
-## STEP 2 — Set up the database (3 mins)
+## STEP 2 - Set up the database (3 mins)
 
 1. In Supabase → go to SQL Editor → New query
 2. Open the file `supabase/schema.sql` from this project
@@ -36,7 +36,7 @@ You need three accounts. All free to start.
 
 ---
 
-## STEP 3 — Push code to GitHub (5 mins)
+## STEP 3 - Push code to GitHub (5 mins)
 
 Open Terminal (Mac: Cmd+Space → "Terminal"):
 
@@ -63,12 +63,12 @@ git push -u origin main
 
 ---
 
-## STEP 4 — Deploy to Vercel (5 mins)
+## STEP 4 - Deploy to Vercel (5 mins)
 
 1. Go to vercel.com → New Project
 2. Import your `hqai` GitHub repository
 3. Framework Preset: Next.js (auto-detected)
-4. Environment Variables — add ALL of these:
+4. Environment Variables - add ALL of these:
    - `NEXT_PUBLIC_SUPABASE_URL` → your Supabase project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → your Supabase anon key
    - `ANTHROPIC_API_KEY` → your Anthropic API key
@@ -77,7 +77,7 @@ git push -u origin main
 
 ---
 
-## STEP 5 — Configure Supabase auth redirect (2 mins)
+## STEP 5 - Configure Supabase auth redirect (2 mins)
 
 1. In Supabase → Authentication → URL Configuration
 2. Site URL: `https://your-vercel-url.vercel.app`
@@ -86,13 +86,13 @@ git push -u origin main
 
 ---
 
-## STEP 6 — Test it
+## STEP 6 - Test it
 
 1. Visit your Vercel URL
 2. Click "Sign up free"
 3. Enter your email and a password
 4. Complete the 3-step onboarding
-5. Ask HQ something — "What are my casual conversion obligations?"
+5. Ask HQ something - "What are my casual conversion obligations?"
 6. It should respond with Australian employment law guidance
 
 ---
@@ -102,7 +102,7 @@ git push -u origin main
 1. Buy `humanistiqs.ai` from a domain registrar (Namecheap, Cloudflare)
 2. In Vercel → your project → Settings → Domains → Add domain
 3. Follow the CNAME/A record instructions
-4. Done — hq.humanistiqs.ai is live
+4. Done - hq.humanistiqs.ai is live
 
 ---
 
@@ -111,7 +111,7 @@ git push -u origin main
 1. Share your Vercel URL with beta clients
 2. They sign up with their work email
 3. They complete their own onboarding (their business, their award, etc.)
-4. Each business is completely isolated — they can't see each other's data
+4. Each business is completely isolated - they can't see each other's data
 
 ---
 

@@ -51,7 +51,9 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
     <aside className="w-[300px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-white/8 flex items-center justify-between">
-        <Image src="/logo-white.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[140px] h-auto" />
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home">
+          <Image src="/logo-white.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[140px] h-auto" />
+        </Link>
         {onClose && (
           <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50">
@@ -172,7 +174,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
           </div>
         )}
 
-        {/* Tools — 3 categories */}
+        {/* Tools - 3 categories */}
         <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 mt-4 font-display">Tools</p>
 
         {/* Compliance */}
@@ -318,7 +320,7 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
             </p>
             <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4">
               <p className="text-xs text-gray-500 mb-1">Hourly rates</p>
-              <p className="text-sm font-bold text-white">Phone consultation — $250+GST/hr</p>
+              <p className="text-sm font-bold text-white">Phone consultation - $250+GST/hr</p>
             </div>
             <p className="text-sm text-gray-400 mb-4">Would you like to book a call with a HQ Partner?</p>
             <div className="flex gap-3">

@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 /**
- * Lazy service-role Supabase client — bypasses RLS.
+ * Lazy service-role Supabase client - bypasses RLS.
  * Initialised on first call so the missing env var doesn't crash at build time.
  * Requires SUPABASE_SERVICE_ROLE_KEY in .env.local and Vercel environment variables.
  */
@@ -18,7 +18,7 @@ export function getSupabaseAdmin(): SupabaseClient {
   return _admin
 }
 
-/** Convenience alias — same as getSupabaseAdmin() */
+/** Convenience alias - same as getSupabaseAdmin() */
 export const supabaseAdmin = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     return (getSupabaseAdmin() as any)[prop]

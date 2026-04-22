@@ -155,7 +155,7 @@ export default function OnboardingPage() {
             ))}
           </div>
 
-          {/* Step 1 — Business */}
+          {/* Step 1 - Business */}
           {step === 1 && (
             <div>
               <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Tell us about your business</h2>
@@ -187,7 +187,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2 — Employment */}
+          {/* Step 2 - Employment */}
           {step === 2 && (
             <div>
               <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Employment details</h2>
@@ -248,11 +248,11 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3 — Advisor */}
+          {/* Step 3 - Advisor */}
           {step === 3 && (
             <div>
               <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Your Humanistiqs advisor</h2>
-              <p className="text-sm text-mid mb-6">When HQ detects something complex, it connects you directly — same advisor every time.</p>
+              <p className="text-sm text-mid mb-6">When HQ detects something complex, it connects you directly - same advisor every time.</p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Your name</label>

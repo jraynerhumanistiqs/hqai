@@ -1,5 +1,5 @@
-// POST /api/prescreen/sessions/[id]/responses — candidate submits response
-// GET  /api/prescreen/sessions/[id]/responses — staff loads all responses for a session
+// POST /api/prescreen/sessions/[id]/responses - candidate submits response
+// GET  /api/prescreen/sessions/[id]/responses - staff loads all responses for a session
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'

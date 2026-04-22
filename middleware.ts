@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh the session — this is critical for keeping cookies alive
+  // Refresh the session - this is critical for keeping cookies alive
   const { error } = await supabase.auth.getUser()
 
   // If the token references a deleted user, clear the bad cookie

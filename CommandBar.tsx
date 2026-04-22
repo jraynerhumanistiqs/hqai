@@ -8,8 +8,8 @@ interface CommandBarProps {
 
 const COMMANDS = [
   { group: 'Navigate', items: [
-    { label: 'HQ People — HR compliance',     href: '/dashboard',               icon: '👥', keys: ['P'] },
-    { label: 'HQ Recruit — talent',           href: '/dashboard/recruit',       icon: '🔍', keys: ['R'] },
+    { label: 'HQ People - HR compliance',     href: '/dashboard',               icon: '👥', keys: ['P'] },
+    { label: 'HQ Recruit - talent',           href: '/dashboard/recruit',       icon: '🔍', keys: ['R'] },
     { label: 'Documents library',             href: '/dashboard/documents',     icon: '📄', keys: ['D'] },
     { label: 'Award interpreter',             href: '/dashboard/awards',        icon: '⚖️', keys: ['A'] },
     { label: 'Performance tools',             href: '/dashboard/performance',   icon: '📊', keys: [] },

@@ -82,7 +82,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="flex h-full bg-[#000000]">
-      {/* Left — list */}
+      {/* Left - list */}
       <div className="w-72 flex-shrink-0 border-r border-[#222222] flex flex-col bg-[#0a0a0a]">
         <div className="p-4 border-b border-[#222222]">
           <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-3">Documents</h2>
@@ -129,7 +129,7 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Right — preview */}
+      {/* Right - preview */}
       {selected ? (
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Doc header */}

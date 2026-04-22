@@ -1,4 +1,4 @@
-// Humanistiqs — Cloudflare Stream utilities
+// Humanistiqs - Cloudflare Stream utilities
 // Used by the Video Pre-Screen feature in HQ Recruit
 
 const CF_ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID!
@@ -7,7 +7,7 @@ const CF_BASE    = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/
 
 /**
  * Request a one-time direct upload URL from Cloudflare Stream.
- * Candidates upload video blobs directly to this URL —
+ * Candidates upload video blobs directly to this URL -
  * no video data passes through this server.
  */
 export async function getDirectUploadUrl(): Promise<{ uploadUrl: string; uid: string }> {

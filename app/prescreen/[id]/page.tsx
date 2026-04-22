@@ -1,5 +1,5 @@
 'use client'
-// Public route — no authentication required.
+// Public route - no authentication required.
 // Candidates record video answers to pre-screen questions in their browser.
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'

@@ -1,4 +1,4 @@
-// DELETE /api/prescreen/sessions/[id]/purge — permanently delete a session row
+// DELETE /api/prescreen/sessions/[id]/purge - permanently delete a session row
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'

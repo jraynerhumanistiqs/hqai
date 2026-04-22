@@ -1,4 +1,4 @@
-// GET /api/prescreen/sessions/bin — list soft-deleted sessions within 80-day retention.
+// GET /api/prescreen/sessions/bin - list soft-deleted sessions within 80-day retention.
 // Also cleans up rows past the 80-day window (best-effort).
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -21,9 +21,9 @@ export async function GET(_req: NextRequest) {
       .delete()
       .lt('deleted_at', cutoff)
       .not('deleted_at', 'is', null)
-    if (purgeErr) console.error('[GET bin — purge step]', purgeErr)
+    if (purgeErr) console.error('[GET bin - purge step]', purgeErr)
   } catch (err) {
-    console.error('[GET bin — purge step]', err)
+    console.error('[GET bin - purge step]', err)
   }
 
   try {

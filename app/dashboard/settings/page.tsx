@@ -188,7 +188,7 @@ export default function SettingsPage() {
               <Field label="Headcount">
                 <select className={selectCls} value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))}>
                   <option value="">Select headcount</option>
-                  {['1–10','11–30','31–80','81–150','151–250'].map(s => <option key={s}>{s}</option>)}
+                  {['1-10','11-30','31-80','81-150','151-250'].map(s => <option key={s}>{s}</option>)}
                 </select>
               </Field>
             </div>
@@ -201,10 +201,10 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Advisor — subscription gated */}
+        {/* Advisor - subscription gated */}
         <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Advisor details</h2>
-          <p className="text-xs text-muted mb-4">Your named Humanistiqs advisor — HQ will reference them in escalation recommendations</p>
+          <p className="text-xs text-muted mb-4">Your named Humanistiqs advisor - HQ will reference them in escalation recommendations</p>
           {plan === 'free' && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
               <button onClick={openPortal}

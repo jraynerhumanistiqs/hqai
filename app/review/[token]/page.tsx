@@ -1,5 +1,5 @@
 'use client'
-// Public route — no authentication required.
+// Public route - no authentication required.
 // Shared with hiring managers to watch candidate video responses.
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'

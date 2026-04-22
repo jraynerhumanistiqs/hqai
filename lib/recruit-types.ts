@@ -1,4 +1,4 @@
-// HQ Recruit — Video Pre-Screen shared TypeScript types
+// HQ Recruit - Video Pre-Screen shared TypeScript types
 
 export type SessionStatus  = 'active' | 'closed'
 export type ResponseStatus = 'new' | 'reviewed' | 'shared'

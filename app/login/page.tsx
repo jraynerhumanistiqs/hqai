@@ -55,7 +55,7 @@ export default function LoginPage() {
         }
 
         if (!data?.user) {
-          setError('Sign in failed — no user returned')
+          setError('Sign in failed - no user returned')
           setLoading(false)
           return
         }
@@ -107,7 +107,7 @@ export default function LoginPage() {
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
           <p className="text-sm text-mid mb-6">
-            {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Start your free trial — no credit card required'}
+            {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Start your free trial - no credit card required'}
           </p>
 
           {magicSent ? (

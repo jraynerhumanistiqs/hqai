@@ -71,7 +71,7 @@ export default function BookingPage() {
           <h1 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-1">Book a call with {advisorName}</h1>
           <p className="text-sm text-gray-400">
             Schedule a 1-on-1 session with your dedicated Humanistiqs advisor.
-            Same advisor every time — no repeating yourself.
+            Same advisor every time - no repeating yourself.
           </p>
         </div>
 

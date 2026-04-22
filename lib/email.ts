@@ -1,5 +1,5 @@
 /**
- * HQ.ai Email Utilities — Resend
+ * HQ.ai Email Utilities - Resend
  * Requires RESEND_API_KEY in .env.local / Vercel environment variables.
  * All functions fail gracefully if the key is missing (logged, not thrown).
  *
@@ -13,7 +13,7 @@ const FROM = 'HQ.ai <noreply@hq.humanistiqs.ai>'
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY not set — email skipped')
+    console.warn('[email] RESEND_API_KEY not set - email skipped')
     return null
   }
   return new Resend(process.env.RESEND_API_KEY)
@@ -121,7 +121,7 @@ export async function sendCandidateInviteEmail({
             <ul style="margin: 0; padding-left: 18px; font-size: 14px; color: #0A0A0A; line-height: 1.8;">
               <li>${questionCount} pre-screen questions</li>
               <li>Up to ${timeLabel} per response</li>
-              <li>Record directly in your browser — no downloads needed</li>
+              <li>Record directly in your browser - no downloads needed</li>
               <li>Link expires in 14 days</li>
             </ul>
           </div>

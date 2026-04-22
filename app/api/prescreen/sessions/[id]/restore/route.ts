@@ -1,4 +1,4 @@
-// POST /api/prescreen/sessions/[id]/restore — un-soft-delete a session
+// POST /api/prescreen/sessions/[id]/restore - un-soft-delete a session
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'

@@ -18,10 +18,10 @@ const config: Config = {
 
         // Text hierarchy
         charcoal: '#1F1F1F',   // Deepest text on dark surfaces
-        mid:      '#4b4b4b',   // Body gray — secondary text
+        mid:      '#4b4b4b',   // Body gray - secondary text
         muted:    '#afafaf',   // Tertiary text, placeholders
-        light:    '#efefef',   // Chip gray — filter chips, secondary nav
-        border:   '#e2e2e2',   // Hover gray — used on borders and hover
+        light:    '#efefef',   // Chip gray - filter chips, secondary nav
+        border:   '#e2e2e2',   // Hover gray - used on borders and hover
 
         // CTA accent → Uber black (no color accent in chrome)
         accent:   '#000000',   // Primary CTA (was sage green)
@@ -36,8 +36,8 @@ const config: Config = {
       fontFamily: {
         // DM Sans for all roles per Uber spec (geometric sans-serif substitute)
         sans:    ['DM Sans', 'sans-serif'],
-        display: ['DM Sans', 'sans-serif'],   // Was Bebas Neue — now DM Sans bold
-        serif:   ['DM Sans', 'sans-serif'],   // Was Fraunces — now DM Sans bold
+        display: ['DM Sans', 'sans-serif'],   // Was Bebas Neue - now DM Sans bold
+        serif:   ['DM Sans', 'sans-serif'],   // Was Fraunces - now DM Sans bold
       },
       fontSize: {
         // Uber type scale
@@ -55,10 +55,10 @@ const config: Config = {
         'lg':  '12px',   // Featured cards
         'xl':  '16px',
         '2xl': '20px',
-        // 'full' is Tailwind's built-in 9999px — used for all buttons/chips
+        // 'full' is Tailwind's built-in 9999px - used for all buttons/chips
       },
       boxShadow: {
-        // Uber shadow spec — whisper-soft
+        // Uber shadow spec - whisper-soft
         'card':   '0 4px 16px rgba(0,0,0,0.12)',
         'float':  '0 2px 8px rgba(0,0,0,0.16)',
         'modal':  '0 8px 40px rgba(0,0,0,0.18)',

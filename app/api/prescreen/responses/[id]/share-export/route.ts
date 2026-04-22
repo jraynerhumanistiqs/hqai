@@ -1,5 +1,5 @@
-// POST /api/prescreen/responses/[id]/share-export — generate shareable client review link
-// GET  /api/prescreen/responses/[id]/share-export — get signed download URLs for all videos
+// POST /api/prescreen/responses/[id]/share-export - generate shareable client review link
+// GET  /api/prescreen/responses/[id]/share-export - get signed download URLs for all videos
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'

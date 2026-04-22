@@ -82,7 +82,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `${docType} — ${new Date().toLocaleDateString('en-AU')}`,
+          title: `${docType} - ${new Date().toLocaleDateString('en-AU')}`,
           type: docType.toLowerCase().replace(/\s+/g, '-'),
           content,
           conversationId,
@@ -241,7 +241,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               </h2>
               <p className="text-[14px] text-[#6B6B6B] max-w-[420px] mx-auto leading-relaxed">
                 {module === 'recruit'
-                  ? 'Write job ads, screen candidates, run reference checks, and shortlist the right people — faster.'
+                  ? 'Write job ads, screen candidates, run reference checks, and shortlist the right people - faster.'
                   : 'Ask me anything about employment law, awards, contracts, leave, or managing your team.'}
               </p>
               <p className="text-[12px] text-[#6B6B6B]/60 mt-3">
@@ -382,7 +382,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             onClick={e => e.stopPropagation()}>
             <h3 className="font-serif text-[22px] font-normal text-[#0A0A0A] mb-2">Talk to {advisorName}</h3>
             <p className="text-[13px] text-[#6B6B6B] mb-4 leading-relaxed">
-              HQ.ai has prepared a summary of your conversation. {advisorName} will have full context before your call — no repeating yourself.
+              HQ.ai has prepared a summary of your conversation. {advisorName} will have full context before your call - no repeating yourself.
             </p>
             <div className="bg-[#F7F7F5] border border-[#E4E4E2] rounded-xl p-4 mb-5 text-[13px] text-[#1F1F1F] leading-relaxed space-y-1.5">
               <p><span className="font-medium text-[#0A0A0A]">Business:</span> {bizName}</p>

@@ -72,7 +72,7 @@ export function ResponsesPanel({ responses, questions, loading, onPatch, onShare
 
       {filtered.length === 0 && (
         <p className="text-sm text-gray-600 text-center py-8">
-          {filter === 'all' ? 'No responses yet — share the candidate link to get started.' : `No ${filter} responses.`}
+          {filter === 'all' ? 'No responses yet - share the candidate link to get started.' : `No ${filter} responses.`}
         </p>
       )}
 
@@ -117,7 +117,7 @@ export function ResponsesPanel({ responses, questions, loading, onPatch, onShare
                   {questions.map((q, i) => (
                     <div key={i} className="bg-[#111] rounded-xl overflow-hidden">
                       <p className="text-[10px] font-bold text-gray-500 uppercase px-3 py-2 truncate">
-                        Q{i + 1} — {q}
+                        Q{i + 1} - {q}
                       </p>
                       {r.video_ids[i] ? (
                         <iframe

@@ -106,10 +106,10 @@ export function RecruitDashboard() {
   const activeCount = sessions.filter(s => s.status === 'active').length
 
   return (
-    <div className="flex h-full overflow-hidden bg-bg">
+    <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
 
-      {/* ── Left panel: role list ── */}
-      <div className="w-64 flex-shrink-0 border-r border-border bg-white flex flex-col">
+      {/* -- Left panel: role list -- */}
+      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-white flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
 
         {/* Header */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -219,17 +219,34 @@ export function RecruitDashboard() {
         </div>
       </div>
 
-      {/* ── Right panel: role detail ── */}
-      <div className="flex-1 overflow-hidden">
+      {/* -- Right panel: role detail -- */}
+      <div className={`flex-1 overflow-hidden ${selected ? 'flex flex-col' : 'hidden lg:flex lg:flex-col'}`}>
         {selected ? (
-          <RoleDetail
-            session={selected}
-            responses={responses}
-            loadingResponses={loadingResponses}
-            initialCandidateUrl={candidateUrl}
-            onPatchResponse={handlePatchResponse}
-            onShareResponse={handleShareResponse}
-          />
+          <>
+            {/* Mobile back bar */}
+            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-white flex-shrink-0">
+              <button
+                onClick={() => setSelected(null)}
+                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-black transition-colors"
+                aria-label="Back to roles"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+                </svg>
+                Back to roles
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <RoleDetail
+                session={selected}
+                responses={responses}
+                loadingResponses={loadingResponses}
+                initialCandidateUrl={candidateUrl}
+                onPatchResponse={handlePatchResponse}
+                onShareResponse={handleShareResponse}
+              />
+            </div>
+          </>
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-xs px-4">
