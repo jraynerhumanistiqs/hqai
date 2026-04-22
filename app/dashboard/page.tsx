@@ -47,6 +47,10 @@ export default async function DashboardHome() {
 
   const hasConversations = recentConvos && recentConvos.length > 0
 
+  // Normalise em/en dashes in any string coming from DB to plain hyphens
+  const normaliseDashes = (s: string | null | undefined) =>
+    (s || '').replace(/[\u2014\u2013]/g, '-')
+
   return (
     <div className="flex-1 overflow-y-auto bg-white">
       <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col gap-8 sm:gap-10">
@@ -85,7 +89,7 @@ export default async function DashboardHome() {
           {/* Recent Conversations */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent conversations</h2>
-            <div className="bg-white shadow-card rounded-2xl flex-1 flex flex-col">
+            <div className="bg-white border border-black shadow-sm rounded-2xl flex-1 flex flex-col">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
                   {recentConvos.map((c: any) => (
@@ -93,7 +97,7 @@ export default async function DashboardHome() {
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-charcoal truncate">{c.title}</p>
+                          <p className="text-sm font-medium text-charcoal truncate">{normaliseDashes(c.title)}</p>
                           <p className="text-xs text-muted">
                             {c.module === 'recruit' ? 'HQ Recruit' : 'HQ People'} &middot; {formatDate(c.created_at)}
                           </p>
@@ -120,7 +124,7 @@ export default async function DashboardHome() {
           {/* Recent Documents */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent documents</h2>
-            <div className="bg-white shadow-card rounded-2xl flex-1 flex flex-col">
+            <div className="bg-white border border-black shadow-sm rounded-2xl flex-1 flex flex-col">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
                   {recentDocs.map((d: any) => (
@@ -131,8 +135,8 @@ export default async function DashboardHome() {
                             <DocsIcon />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-charcoal truncate">{d.title}</p>
-                            <p className="text-xs text-muted">{d.type || 'Document'} &middot; {formatDate(d.created_at)}</p>
+                            <p className="text-sm font-medium text-charcoal truncate">{normaliseDashes(d.title)}</p>
+                            <p className="text-xs text-muted">{normaliseDashes(d.type) || 'Document'} &middot; {formatDate(d.created_at)}</p>
                           </div>
                         </div>
                       </Link>
@@ -181,7 +185,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
   return (
     <div className="relative group">
       <Link href={href}
-        className="block bg-white rounded-2xl shadow-card p-6 hover:shadow-float hover:-translate-y-0.5 transition-all">
+        className="block bg-white border border-black shadow-sm rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-black/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
             {icon}
@@ -201,7 +205,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
 
 function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div className="bg-white shadow-card rounded-2xl overflow-hidden hover:shadow-float transition-all group">
+    <div className="bg-white border border-black shadow-sm rounded-2xl overflow-hidden hover:shadow-md transition-all group">
       <div className="h-36 bg-light flex items-center justify-center overflow-hidden">
         <svg className="w-10 h-10 text-muted" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>

@@ -489,7 +489,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                               className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
                               Book a call with a HQ Partner
                             </button>
-                            <button onClick={() => setShowAdvisorModal(false)}
+                            <button
+                              onClick={() => {
+                                setShowAdvisorModal(false)
+                                setMessages(prev => prev.map((m, idx) =>
+                                  idx === i ? { ...m, escalate: false } : m
+                                ))
+                              }}
                               className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
                               Continue talking with {advisorName}
                             </button>

@@ -12,16 +12,16 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
   const [greeting, setGreeting] = useState('')
 
   useEffect(() => {
-    // Runs in the browser → uses the client's local timezone
+    // Runs in the browser - uses the client's local timezone
     setGreeting(getGreeting())
   }, [])
 
   return (
-    <div className="mb-6 sm:mb-10">
-      <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide">
+    <div className="mb-4">
+      <h1 className="text-base font-normal text-charcoal">
         {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
       </h1>
-      <p className="text-sm sm:text-body text-mid">
+      <p className="text-base font-normal text-mid">
         Welcome to {bizName} - here&apos;s what&apos;s happening.
       </p>
     </div>
