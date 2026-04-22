@@ -27,6 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const sidebarProps = {
     userName: profile.full_name || '',
     bizName: business?.name || 'My Business',
+    bizLogoUrl: business?.logo_url || null,
     advisorName: business?.advisor_name || 'Hugo',
     plan: business?.plan || 'free',
   }

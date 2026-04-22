@@ -8,12 +8,13 @@ import { createClient } from '@/lib/supabase/client'
 interface SidebarProps {
   userName: string
   bizName: string
+  bizLogoUrl?: string | null
   advisorName: string
   plan: string
   onClose?: () => void
 }
 
-export default function Sidebar({ userName, bizName, advisorName, plan, onClose }: SidebarProps) {
+export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -65,14 +66,19 @@ export default function Sidebar({ userName, bizName, advisorName, plan, onClose 
 
       {/* Business pill */}
       <div className="px-4 pt-4 pb-2">
-        <div className="bg-white/6 rounded-lg px-3 py-2.5 flex items-center gap-2">
-          <div className="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
-            <span className="text-xs text-white font-medium">{bizName[0]?.toUpperCase()}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white/80 truncate font-display">{bizName}</p>
-            <p className="text-xs text-white/35">{planLabel[plan] || 'Growth'} plan</p>
-          </div>
+        <div className="bg-white/6 rounded-lg px-3 py-2.5 flex items-center gap-2 min-h-[48px]">
+          {bizLogoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={bizLogoUrl}
+              alt={bizName}
+              className="max-h-9 max-w-full w-auto h-auto object-contain"
+            />
+          ) : (
+            <p className="flex-1 min-w-0 text-base font-normal text-white uppercase truncate">
+              {bizName}
+            </p>
+          )}
         </div>
       </div>
 

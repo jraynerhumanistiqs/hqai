@@ -8,6 +8,7 @@ import Link from 'next/link'
 interface SidebarProps {
   userName: string
   bizName: string
+  bizLogoUrl?: string | null
   advisorName: string
   plan: string
 }
@@ -56,10 +57,19 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
           <Link href="/dashboard" aria-label="Go to dashboard home">
             <Image src="/logo-white.svg" alt="HQ.ai" width={100} height={100} className="opacity-90 h-8 w-auto" />
           </Link>
-          <div className="ml-auto">
-            <span className="bg-[#1a1a1a] border border-[#333333] rounded-full px-2.5 py-1 text-[10px] font-bold text-gray-400 truncate max-w-[120px] block">
-              {sidebarProps.bizName}
-            </span>
+          <div className="ml-auto flex items-center">
+            {sidebarProps.bizLogoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={sidebarProps.bizLogoUrl}
+                alt={sidebarProps.bizName}
+                className="max-h-7 max-w-[120px] w-auto h-auto object-contain"
+              />
+            ) : (
+              <span className="text-base font-normal text-white uppercase truncate max-w-[160px] block">
+                {sidebarProps.bizName}
+              </span>
+            )}
           </div>
         </div>
 

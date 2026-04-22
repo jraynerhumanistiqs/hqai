@@ -89,7 +89,7 @@ export default async function DashboardHome() {
           {/* Recent Conversations */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent conversations</h2>
-            <div className="bg-white border border-black shadow-card rounded-2xl flex-1 flex flex-col">
+            <div className="bg-white border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
                   {recentConvos.map((c: any) => (
@@ -124,7 +124,7 @@ export default async function DashboardHome() {
           {/* Recent Documents */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent documents</h2>
-            <div className="bg-white border border-black shadow-card rounded-2xl flex-1 flex flex-col">
+            <div className="bg-white border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
                   {recentDocs.map((d: any) => (
@@ -185,7 +185,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
   return (
     <div className="relative group">
       <Link href={href}
-        className="block bg-white border border-black shadow-card rounded-2xl p-6 hover:shadow-float hover:-translate-y-0.5 transition-all">
+        className="block bg-white border border-black rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)]">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-black/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
             {icon}
@@ -205,7 +205,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
 
 function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div className="bg-white border border-black shadow-card rounded-2xl overflow-hidden hover:shadow-float transition-all group">
+    <div className="bg-white border border-black rounded-2xl overflow-hidden transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)] group">
       <div className="h-36 bg-light flex items-center justify-center overflow-hidden">
         <svg className="w-10 h-10 text-muted" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>
