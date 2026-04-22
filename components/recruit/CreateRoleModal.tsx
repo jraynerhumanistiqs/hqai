@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PrescreenSession } from '@/lib/recruit-types'
 
 interface Props {
@@ -21,7 +21,21 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
   const [description, setDescription] = useState('')
   const [minutes, setMinutes]         = useState(1)
   const [seconds, setSeconds]         = useState(30)
-  const [qCount, setQCount]           = useState(4)
+  const [qCount, setQCount]           = useState<number>(4)
+  // Sentinel 0 = "<6 questions" custom path; customQCount holds the entered number
+  const [customQCount, setCustomQCount] = useState<string>('')
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null)
+
+  function autoGrow(el: HTMLTextAreaElement | null) {
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }
+
+  // Effective question count flowing through to API calls
+  const effectiveQCount = qCount === 0
+    ? Math.max(1, Math.min(20, parseInt(customQCount, 10) || 4))
+    : qCount
   const [questions, setQuestions]     = useState<string[]>([])
   const [generating, setGenerating]   = useState(false)
   const [creating, setCreating]       = useState(false)
@@ -65,7 +79,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
       const res = await fetch('/api/prescreen/questions/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role_title: roleTitle.trim(), description: description.trim(), count: qCount }),
+        body: JSON.stringify({ role_title: roleTitle.trim(), description: description.trim(), count: effectiveQCount }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -178,13 +192,15 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               <div>
                 <label className="block text-sm font-bold text-black mb-1.5">
                   Role Description
-                  <span className="text-mid font-normal ml-1">(helps AI write better questions)</span>
+                  <span className="text-mid font-normal ml-1">(help HQ.ai write better questions for you)</span>
                 </label>
                 <textarea
-                  className={`${inputCls} resize-none`}
+                  ref={descriptionRef}
+                  className={`${inputCls} resize-none overflow-hidden min-h-[84px]`}
                   rows={3}
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={e => { setDescription(e.target.value); autoGrow(e.currentTarget) }}
+                  onInput={e => autoGrow(e.currentTarget as HTMLTextAreaElement)}
                   placeholder="Paste key responsibilities, must-haves and seniority level…"
                 />
               </div>
@@ -245,7 +261,19 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     <option value={4}>4 questions</option>
                     <option value={5}>5 questions</option>
                     <option value={6}>6 questions</option>
+                    <option value={0}>&lt;6 questions</option>
                   </select>
+                  {qCount === 0 && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      className={`${inputCls} mt-2`}
+                      value={customQCount}
+                      onChange={e => setCustomQCount(e.target.value)}
+                      placeholder="Enter number of questions"
+                    />
+                  )}
                 </div>
               </div>
 

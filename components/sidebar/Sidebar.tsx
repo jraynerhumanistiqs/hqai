@@ -51,12 +51,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   return (
     <aside className="w-[300px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
       {/* Logo */}
-      <div className="px-5 pt-6 pb-4 border-b border-white/8 flex items-center justify-between">
-        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={150} height={150} className="opacity-90 w-[140px] h-auto" />
+      <div className="relative px-5 py-6 border-b border-white/8 flex items-center justify-center min-h-[120px]">
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center">
+          <Image src="/logo-white.svg" alt="HQ.ai" width={240} height={240} className="opacity-90 w-[220px] max-w-full h-auto" priority />
         </Link>
         {onClose && (
-          <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
+          <button onClick={onClose} className="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
@@ -143,12 +143,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
                 ${isActive('/dashboard/recruit/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Recruitment Templates
-            </Link>
-            <Link href="/dashboard/recruit/bin"
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-bold transition-all
-                ${isActive('/dashboard/recruit/bin') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              <TrashIcon />
-              <span>Bin</span>
             </Link>
           </div>
         )}

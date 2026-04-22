@@ -5,6 +5,7 @@ import { CreateRoleModal } from './CreateRoleModal'
 import { EditRoleModal } from './EditRoleModal'
 import { DeleteRoleConfirm } from './DeleteRoleConfirm'
 import { RoleDetail } from './RoleDetail'
+import { BinPanel } from './BinPanel'
 
 export function RecruitDashboard() {
   const [sessions, setSessions]         = useState<PrescreenSession[]>([])
@@ -75,6 +76,19 @@ export function RecruitDashboard() {
     setEditTarget(null)
   }
 
+  function handleSessionUpdated(updated: PrescreenSession) {
+    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s))
+    if (selected?.id === updated.id) setSelected(updated)
+  }
+
+  async function handleRestored() {
+    // Reload sessions so the restored role appears in the active list
+    try {
+      const d = await fetch('/api/prescreen/sessions').then(r => r.json())
+      setSessions(d.sessions ?? [])
+    } catch (e) { console.error(e) }
+  }
+
   async function handleDeleteConfirmed(id: string) {
     await fetch(`/api/prescreen/sessions/${id}`, { method: 'DELETE' })
     setSessions(prev => prev.filter(s => s.id !== id))
@@ -127,8 +141,8 @@ export function RecruitDashboard() {
           </p>
         </div>
 
-        {/* Role list */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Role list (scrollable) */}
+        <div className="flex-1 overflow-y-auto min-h-0">
           {loadingSessions ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-5 h-5 border-2 border-border border-t-accent rounded-full animate-spin" />
@@ -217,6 +231,9 @@ export function RecruitDashboard() {
             ))
           )}
         </div>
+
+        {/* Bin panel: pinned to the bottom-right of the active-roles container */}
+        <BinPanel onRestored={handleRestored} />
       </div>
 
       {/* -- Right panel: role detail -- */}
@@ -244,6 +261,7 @@ export function RecruitDashboard() {
                 initialCandidateUrl={candidateUrl}
                 onPatchResponse={handlePatchResponse}
                 onShareResponse={handleShareResponse}
+                onSessionUpdated={handleSessionUpdated}
               />
             </div>
           </>

@@ -2,7 +2,7 @@
 // Used by the Video Pre-Screen feature in HQ Recruit
 
 const CF_ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID!
-const CF_TOKEN   = process.env.CLOUDFLARE_STREAM_TOKEN!
+const CF_TOKEN   = (process.env.CLOUDFLARE_STREAM_API_TOKEN ?? process.env.CLOUDFLARE_STREAM_TOKEN)!
 const CF_BASE    = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/stream`
 
 /**

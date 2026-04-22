@@ -23,14 +23,14 @@ export async function POST(
 
     const { data: session, error } = await supabaseAdmin
       .from('prescreen_sessions')
-      .select('role_title, company, time_limit_seconds, questions')
+      .select('role_title, company, time_limit_seconds, questions, slug')
       .eq('id', session_id)
       .single()
 
     if (error || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
-    const inviteUrl = `${baseUrl}/prescreen/${session_id}`
+    const inviteUrl = `${baseUrl}/prescreen/${(session as any).slug || session_id}`
 
     await sendCandidateInviteEmail({
       candidateEmail: candidate_email,

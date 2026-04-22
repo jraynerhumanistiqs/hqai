@@ -9,7 +9,10 @@ interface Props {
   initialCandidateUrl: string
   onPatchResponse: (id: string, patch: Partial<CandidateResponse>) => Promise<void>
   onShareResponse: (id: string) => Promise<string>
+  onSessionUpdated?: (updated: PrescreenSession) => void
 }
+
+const SLUG_REGEX = /^[a-z0-9-]{3,60}$/
 
 type Filter = 'all' | 'new' | 'reviewed' | 'shared'
 
@@ -23,7 +26,7 @@ function initials(name: string) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
-export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse }: Props) {
+export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse, onSessionUpdated }: Props) {
   const [copied, setCopied]               = useState(false)
   const [filter, setFilter]               = useState<Filter>('all')
   const [expanded, setExpanded]           = useState<string | null>(null)
@@ -36,8 +39,41 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [sendingInvite, setSendingInvite] = useState(false)
   const [inviteSent, setInviteSent]       = useState(false)
 
-  const candidateUrl = initialCandidateUrl ||
-    `${typeof window !== 'undefined' ? window.location.origin : 'https://hqai.vercel.app'}/prescreen/${session.id}`
+  // Editable slug state
+  const [editingSlug, setEditingSlug]   = useState(false)
+  const [slugDraft, setSlugDraft]       = useState('')
+  const [slugSaving, setSlugSaving]     = useState(false)
+  const [slugError, setSlugError]       = useState('')
+
+  const pathSegment = session.slug || session.id
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://hqai.vercel.app'
+  const candidateUrl = initialCandidateUrl || `${origin}/prescreen/${pathSegment}`
+
+  async function saveSlug() {
+    const next = slugDraft.trim().toLowerCase()
+    if (next && !SLUG_REGEX.test(next)) {
+      setSlugError('3-60 chars: lowercase, numbers, hyphens only')
+      return
+    }
+    setSlugSaving(true)
+    setSlugError('')
+    try {
+      const res = await fetch(`/api/prescreen/sessions/${session.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: next }),
+      })
+      const data = await res.json()
+      if (res.status === 409) { setSlugError('That slug is already in use'); return }
+      if (!res.ok) { setSlugError(data.error || 'Could not save slug'); return }
+      onSessionUpdated?.(data.session)
+      setEditingSlug(false)
+    } catch {
+      setSlugError('Network error - please try again')
+    } finally {
+      setSlugSaving(false)
+    }
+  }
 
   async function copyLink() {
     await navigator.clipboard.writeText(candidateUrl)
@@ -120,21 +156,62 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           {/* Candidate invite link */}
           <div className="bg-white rounded-xl border border-border shadow-card p-5">
             <p className="text-xs font-bold text-black uppercase tracking-widest mb-3">Candidate Invite Link</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs text-mid bg-bg border border-border rounded-lg px-3 py-2 truncate font-mono">
-                {candidateUrl}
-              </code>
-              <button
-                onClick={copyLink}
-                className={`text-sm font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
-                  copied
-                    ? 'bg-success/10 text-success border border-success/20'
-                    : 'bg-accent hover:bg-accent2 text-white'
-                }`}
-              >
-                {copied ? '✓ Copied' : 'Copy Link'}
-              </button>
-            </div>
+            {editingSlug ? (
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <code className="text-xs text-mid bg-bg border border-border rounded-lg px-3 py-2 font-mono whitespace-nowrap">
+                  {origin}/prescreen/
+                </code>
+                <input
+                  autoFocus
+                  className="flex-1 min-w-[140px] border border-border rounded-lg px-3 py-2 text-xs font-mono text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white"
+                  value={slugDraft}
+                  onChange={e => setSlugDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') saveSlug(); if (e.key === 'Escape') { setEditingSlug(false); setSlugError('') } }}
+                  placeholder="e.g. acme-senior-accountant"
+                  maxLength={60}
+                />
+                <button
+                  onClick={saveSlug}
+                  disabled={slugSaving}
+                  className="text-xs font-bold px-3 py-2 rounded-lg bg-accent hover:bg-accent2 text-white transition-colors disabled:opacity-50"
+                >
+                  {slugSaving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setEditingSlug(false); setSlugError('') }}
+                  className="text-xs font-bold px-3 py-2 rounded-lg text-mid hover:text-black transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs text-mid bg-bg border border-border rounded-lg px-3 py-2 truncate font-mono">
+                  {candidateUrl}
+                </code>
+                <button
+                  onClick={() => { setSlugDraft(session.slug || ''); setEditingSlug(true); setSlugError('') }}
+                  className="text-mid hover:text-black transition-colors flex-shrink-0 p-2 rounded-lg hover:bg-light"
+                  title="Customise the link"
+                  aria-label="Edit invite link"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={copyLink}
+                  className={`text-sm font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
+                    copied
+                      ? 'bg-success/10 text-success border border-success/20'
+                      : 'bg-accent hover:bg-accent2 text-white'
+                  }`}
+                >
+                  {copied ? '✓ Copied' : 'Copy Link'}
+                </button>
+              </div>
+            )}
+            {slugError && <p className="text-xs text-danger mt-1">{slugError}</p>}
             <div className="flex items-center gap-2 mt-3">
               <button
                 onClick={() => setShowInvite(!showInvite)}

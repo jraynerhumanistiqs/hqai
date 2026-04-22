@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const [hasStripe, setHasStripe] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [billingError, setBillingError] = useState('')
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [logoUrl, setLogoUrl] = useState('')
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -117,10 +118,11 @@ export default function SettingsPage() {
       if (data.url) {
         window.location.href = data.url
       } else if (data.error === 'No billing account') {
-        setBillingError('Stripe billing is being configured. Please contact support@humanistiqs.com.au to upgrade your plan.')
+        // Stripe checkout not wired yet - show a friendly "coming soon" modal instead of a red error banner
+        setUpgradeModalOpen(true)
       }
     } catch {
-      setBillingError('Something went wrong. Please try again or contact support@humanistiqs.com.au.')
+      setUpgradeModalOpen(true)
     }
     setBillingLoading(false)
   }
@@ -291,6 +293,37 @@ export default function SettingsPage() {
           )}
         </section>
       </div>
+
+      {upgradeModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setUpgradeModalOpen(false)}
+        >
+          <div
+            className="bg-white border border-border rounded-2xl shadow-card max-w-md w-full p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Upgrades coming soon</h3>
+            <p className="text-sm text-mid mb-5">
+              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually — usually within one business day.
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="mailto:support@humanistiqs.com.au?subject=Upgrade%20my%20HQ.ai%20plan"
+                className="flex-1 text-center bg-black hover:bg-[#1a1a1a] text-white font-bold px-5 py-2.5 rounded-full transition-colors text-sm"
+              >
+                Email support
+              </a>
+              <button
+                onClick={() => setUpgradeModalOpen(false)}
+                className="text-sm font-bold text-mid hover:text-charcoal transition-colors px-3 py-2.5"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

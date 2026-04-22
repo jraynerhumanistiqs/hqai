@@ -137,8 +137,12 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
 
       const blobType = mimeRef.current?.startsWith('video/mp4') ? 'video/mp4' : 'video/webm'
       const blob = new Blob(chunksRef.current, { type: blobType })
-      const uploadRes = await fetch(uploadUrl, { method: 'POST', body: blob })
-      if (!uploadRes.ok) throw new Error('Video upload failed')
+      // Cloudflare Stream direct_upload expects multipart/form-data with a "file" field
+      const fd = new FormData()
+      const ext = blobType === 'video/mp4' ? 'mp4' : 'webm'
+      fd.append('file', blob, `response.${ext}`)
+      const uploadRes = await fetch(uploadUrl, { method: 'POST', body: fd })
+      if (!uploadRes.ok) throw new Error(`Video upload failed (${uploadRes.status})`)
 
       setVideoIds(prev => { const n = [...prev]; n[currentQ] = videoId; return n })
       setRecState('done')

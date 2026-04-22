@@ -44,8 +44,8 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-800">
-        You&apos;ll answer <strong>{questionCount} question{questionCount !== 1 ? 's' : ''}</strong> on video.
-        Each response has a <strong>{timeLabel}</strong> time limit.
+        You&apos;ll answer <strong>{questionCount} question{questionCount !== 1 ? 's' : ''}</strong> on video.{' '}
+        Each response has a <strong>{timeLabel}</strong>{' '}time limit.{' '}
         You can re-record before moving on. When you&apos;re ready, fill in your details and press Start.
       </div>
 

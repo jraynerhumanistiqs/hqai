@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createAuthClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 // Lazy-init service role client to avoid build-time env errors
 function getAdminClient() {
@@ -80,11 +81,21 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = supabaseAdmin.storage.from('logos').getPublicUrl(path)
 
-  // Save URL to business record
-  await supabaseAdmin
+  // Save URL to business record (bust CDN cache by appending a version param)
+  const versionedUrl = `${publicUrl}?v=${Date.now()}`
+  const { error: updateError } = await supabaseAdmin
     .from('businesses')
-    .update({ logo_url: publicUrl })
+    .update({ logo_url: versionedUrl })
     .eq('id', profile.business_id)
 
-  return NextResponse.json({ url: publicUrl })
+  if (updateError) {
+    return NextResponse.json({ error: `Could not save logo: ${updateError.message}` }, { status: 500 })
+  }
+
+  // Invalidate the dashboard layout cache so the new logo renders on refresh
+  try {
+    revalidatePath('/dashboard', 'layout')
+  } catch {}
+
+  return NextResponse.json({ url: versionedUrl })
 }

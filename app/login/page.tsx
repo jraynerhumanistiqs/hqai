@@ -99,7 +99,6 @@ export default function LoginPage() {
           <div className="inline-block mb-3">
             <Image src="/logo-black.svg" alt="HQ.ai" width={150} height={150} className="w-[140px] h-auto" />
           </div>
-          <p className="text-sm text-muted">by Humanistiqs</p>
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl p-8">

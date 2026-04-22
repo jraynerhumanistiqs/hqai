@@ -68,9 +68,10 @@ export async function POST(req: NextRequest) {
     if (error) throw error
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+    const pathSegment = data.slug || data.id
     return NextResponse.json({
       session: data,
-      candidateUrl: `${baseUrl}/prescreen/${data.id}`,
+      candidateUrl: `${baseUrl}/prescreen/${pathSegment}`,
     })
   } catch (err) {
     console.error('[POST /api/prescreen/sessions]', err)
