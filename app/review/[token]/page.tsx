@@ -34,7 +34,7 @@ export default function ReviewPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <Image src="/logo.svg" alt="HQ.ai" width={80} height={80} className="w-14 h-auto" />
+        <Image src="/logo-black.svg" alt="HQ.ai" width={80} height={80} className="w-14 h-auto" />
       </header>
 
       {loading && (

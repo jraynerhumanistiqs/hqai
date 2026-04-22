@@ -55,7 +55,7 @@ export default function PrescreenPage() {
     <div className="min-h-screen bg-white">
       {/* Nav */}
       <nav className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Image src="/logo.svg" alt="HQ.ai" width={80} height={80} className="w-14 h-auto" />
+        <Image src="/logo-black.svg" alt="HQ.ai" width={80} height={80} className="w-14 h-auto" />
         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Video Pre-Screen</span>
       </nav>
 

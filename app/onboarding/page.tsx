@@ -135,7 +135,7 @@ export default function OnboardingPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block">
-            <Image src="/logo.svg" alt="HQ.ai" width={150} height={150} className="w-[140px] h-auto" />
+            <Image src="/logo-black.svg" alt="HQ.ai" width={150} height={150} className="w-[140px] h-auto" />
           </div>
         </div>
 
