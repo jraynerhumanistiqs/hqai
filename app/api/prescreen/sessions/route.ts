@@ -89,6 +89,8 @@ export async function POST(req: NextRequest) {
       calendly_url_override = raw
     }
 
+    const status: 'active' | 'draft' = body.status === 'draft' ? 'draft' : 'active'
+
     const { data, error } = await supabaseAdmin
       .from('prescreen_sessions')
       .insert({
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
         role_title: body.role_title,
         questions,
         time_limit_seconds: body.time_limit_seconds ?? 90,
-        status: 'active',
+        status,
         created_by: user.id,
         rubric_mode,
         custom_rubric,

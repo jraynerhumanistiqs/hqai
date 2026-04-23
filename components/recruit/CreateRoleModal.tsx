@@ -53,6 +53,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
   const [questions, setQuestions]     = useState<string[]>([])
   const [generating, setGenerating]   = useState(false)
   const [creating, setCreating]       = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
   const [error, setError]             = useState('')
   const [showTip, setShowTip]         = useState(false)
   const [tipArmed, setTipArmed]       = useState(true)
@@ -119,6 +120,33 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
   function addManualQuestion() {
     setQuestions(prev => [...prev, ''])
     setStep('questions')
+  }
+
+  async function handleSaveDraft() {
+    if (!company.trim() || !roleTitle.trim()) { setError('Please enter company and role title before saving a draft.'); return }
+    setError('')
+    setSavingDraft(true)
+    try {
+      const res = await fetch('/api/prescreen/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company: company.trim(),
+          role_title: roleTitle.trim(),
+          questions: questions.filter(q => q.trim()),
+          time_limit_seconds: timeLimit,
+          rubric_mode: rubricMode,
+          status: 'draft',
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      onCreated(data.session, data.candidateUrl)
+    } catch {
+      setError('Failed to save draft. Please try again.')
+    } finally {
+      setSavingDraft(false)
+    }
   }
 
   async function handleCreate() {
@@ -454,10 +482,18 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
             <button onClick={onClose} className="text-sm text-mid hover:text-black font-bold transition-colors">
               Cancel
             </button>
+            <button
+              onClick={handleSaveDraft}
+              disabled={savingDraft || creating || !company.trim() || !roleTitle.trim()}
+              className="text-sm font-bold text-black border border-border hover:bg-light disabled:opacity-40 px-4 py-2.5 rounded-full transition-colors"
+              title="Save current progress as a draft - you can finish questions later"
+            >
+              {savingDraft ? 'Saving…' : 'Save as draft'}
+            </button>
             {step === 'questions' && (
               <button
                 onClick={handleCreate}
-                disabled={creating || !questions.filter(q => q.trim()).length}
+                disabled={creating || savingDraft || !questions.filter(q => q.trim()).length}
                 className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
               >
                 {creating ? (

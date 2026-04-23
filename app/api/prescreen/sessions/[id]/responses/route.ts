@@ -1,18 +1,26 @@
 ﻿// POST /api/prescreen/sessions/[id]/responses - candidate submits response
 // GET  /api/prescreen/sessions/[id]/responses - staff loads all responses for a session
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendCandidateSubmittedEmail, sendCandidateSubmissionConfirmation } from '@/lib/email'
 
 export const runtime = 'nodejs'
+export const maxDuration = 300
 
 async function triggerScoringPipeline(responseId: string) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
   try {
-    await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
-    await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/score`, { method: 'POST' })
+    const tx = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
+    if (!tx.ok) {
+      console.error('[responses/POST] transcribe failed', tx.status, await tx.text().catch(() => ''))
+      return
+    }
+    const sc = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/score`, { method: 'POST' })
+    if (!sc.ok) {
+      console.error('[responses/POST] score failed', sc.status, await sc.text().catch(() => ''))
+    }
   } catch (err) {
     console.error('[responses/POST] scoring pipeline error:', err)
   }
@@ -84,7 +92,11 @@ export async function POST(
       console.error('[responses/POST] notification error:', notifyErr)
     }
 
-    void triggerScoringPipeline(data.id)
+    // Vercel will keep the lambda alive for `after` callbacks even after
+    // the HTTP response is flushed. Prior `void fetch()` was getting killed
+    // the moment we returned, leaving responses stuck in 'submitted' with
+    // no transcript or evaluation.
+    after(triggerScoringPipeline(data.id))
 
     return NextResponse.json({ response: data })
   } catch (err) {

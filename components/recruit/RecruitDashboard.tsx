@@ -117,7 +117,13 @@ export function RecruitDashboard() {
     return data.shareUrl
   }
 
-  const activeCount = sessions.filter(s => s.status === 'active').length
+  const activeSessions = sessions.filter(s => s.status === 'active')
+  const draftSessions  = sessions.filter(s => s.status === 'draft' || s.status === 'closed')
+  const activeCount    = activeSessions.length
+  const draftCount     = draftSessions.length
+
+  const [activeOpen, setActiveOpen] = useState(true)
+  const [draftOpen,  setDraftOpen]  = useState(true)
 
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
@@ -137,7 +143,7 @@ export function RecruitDashboard() {
             </button>
           </div>
           <p className="text-xs text-mid">
-            {activeCount} active {activeCount === 1 ? 'role' : 'roles'}
+            {activeCount} active · {draftCount} draft / pending
           </p>
         </div>
 
@@ -158,77 +164,43 @@ export function RecruitDashboard() {
               </button>
             </div>
           ) : (
-            sessions.map(s => (
-              <div
-                key={s.id}
-                className={`relative w-full transition-all border-l-2 ${
-                  selected?.id === s.id
-                    ? 'bg-accent3 border-l-accent'
-                    : 'border-l-transparent hover:bg-bg'
-                }`}
-              >
-                <button
-                  onClick={() => { setSelected(s); setCandidateUrl('') }}
-                  className="w-full text-left px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1 pr-6">
-                      <p className={`text-sm font-bold truncate leading-snug ${
-                        selected?.id === s.id ? 'text-accent2' : 'text-black'
-                      }`}>
-                        {s.role_title}
-                      </p>
-                      <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
-                    </div>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
-                      s.status === 'active'
-                        ? 'bg-success/10 text-success'
-                        : 'bg-light text-mid'
-                    }`}>
-                      {s.status}
-                    </span>
-                  </div>
-                </button>
+            <>
+              <GroupHeader label="Active" count={activeCount} open={activeOpen} onToggle={() => setActiveOpen(v => !v)} />
+              {activeOpen && activeSessions.length === 0 && (
+                <p className="text-xs text-mid px-4 py-3">No active roles.</p>
+              )}
+              {activeOpen && activeSessions.map(s => (
+                <SessionRow
+                  key={s.id}
+                  s={s}
+                  selected={selected?.id === s.id}
+                  onSelect={() => { setSelected(s); setCandidateUrl('') }}
+                  menuOpen={menuOpenFor === s.id}
+                  onMenuToggle={() => setMenuOpenFor(prev => prev === s.id ? null : s.id)}
+                  menuRef={menuRef}
+                  onEdit={() => { setEditTarget(s); setMenuOpenFor(null) }}
+                  onDelete={() => { setDeleteTarget(s); setMenuOpenFor(null) }}
+                />
+              ))}
 
-                {/* ⋮ menu trigger */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setMenuOpenFor(prev => prev === s.id ? null : s.id)
-                  }}
-                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-charcoal hover:bg-light transition-colors"
-                  aria-label="Role actions"
-                >
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <circle cx="10" cy="4"  r="1.6"/>
-                    <circle cx="10" cy="10" r="1.6"/>
-                    <circle cx="10" cy="16" r="1.6"/>
-                  </svg>
-                </button>
-
-                {/* ⋮ dropdown */}
-                {menuOpenFor === s.id && (
-                  <div
-                    ref={menuRef}
-                    className="absolute top-9 right-2 z-20 bg-white shadow-modal rounded-xl border border-border py-1 w-36"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => { setEditTarget(s); setMenuOpenFor(null) }}
-                      className="w-full text-left px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => { setDeleteTarget(s); setMenuOpenFor(null) }}
-                      className="w-full text-left px-3 py-2 text-sm font-bold text-danger hover:bg-light transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
+              <GroupHeader label="Draft / Pending" count={draftCount} open={draftOpen} onToggle={() => setDraftOpen(v => !v)} />
+              {draftOpen && draftSessions.length === 0 && (
+                <p className="text-xs text-mid px-4 py-3">No drafts. Use “Save as draft” when creating a role.</p>
+              )}
+              {draftOpen && draftSessions.map(s => (
+                <SessionRow
+                  key={s.id}
+                  s={s}
+                  selected={selected?.id === s.id}
+                  onSelect={() => { setSelected(s); setCandidateUrl('') }}
+                  menuOpen={menuOpenFor === s.id}
+                  onMenuToggle={() => setMenuOpenFor(prev => prev === s.id ? null : s.id)}
+                  menuRef={menuRef}
+                  onEdit={() => { setEditTarget(s); setMenuOpenFor(null) }}
+                  onDelete={() => { setDeleteTarget(s); setMenuOpenFor(null) }}
+                />
+              ))}
+            </>
           )}
         </div>
 
@@ -312,6 +284,102 @@ export function RecruitDashboard() {
           onCancel={() => setDeleteTarget(null)}
           onConfirmed={handleDeleteConfirmed}
         />
+      )}
+    </div>
+  )
+}
+
+function GroupHeader({ label, count, open, onToggle }: {
+  label: string; count: number; open: boolean; onToggle: () => void
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between px-4 py-2 border-b border-border bg-bg/60 hover:bg-bg transition-colors"
+    >
+      <span className="flex items-center gap-1.5">
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={`w-3 h-3 text-mid transition-transform ${open ? 'rotate-90' : ''}`}
+        >
+          <path fillRule="evenodd" d="M6 4l8 6-8 6V4z" clipRule="evenodd" />
+        </svg>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-mid">{label}</span>
+      </span>
+      <span className="text-[11px] font-bold text-mid">{count}</span>
+    </button>
+  )
+}
+
+function SessionRow({
+  s, selected, onSelect, menuOpen, onMenuToggle, menuRef, onEdit, onDelete,
+}: {
+  s: PrescreenSession
+  selected: boolean
+  onSelect: () => void
+  menuOpen: boolean
+  onMenuToggle: () => void
+  menuRef: React.RefObject<HTMLDivElement | null>
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const pillCls =
+    s.status === 'active' ? 'bg-success/10 text-success'
+    : s.status === 'draft' ? 'bg-warning/10 text-warning'
+    : 'bg-light text-mid'
+
+  return (
+    <div
+      className={`relative w-full transition-all border-l-2 ${
+        selected ? 'bg-accent3 border-l-accent' : 'border-l-transparent hover:bg-bg'
+      }`}
+    >
+      <button onClick={onSelect} className="w-full text-left px-4 py-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 pr-6">
+            <p className={`text-sm font-bold truncate leading-snug ${selected ? 'text-accent2' : 'text-black'}`}>
+              {s.role_title}
+            </p>
+            <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
+          </div>
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${pillCls}`}>
+            {s.status}
+          </span>
+        </div>
+      </button>
+
+      <button
+        onClick={(e) => { e.stopPropagation(); onMenuToggle() }}
+        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-charcoal hover:bg-light transition-colors"
+        aria-label="Role actions"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <circle cx="10" cy="4"  r="1.6"/>
+          <circle cx="10" cy="10" r="1.6"/>
+          <circle cx="10" cy="16" r="1.6"/>
+        </svg>
+      </button>
+
+      {menuOpen && (
+        <div
+          ref={menuRef}
+          className="absolute top-9 right-2 z-20 bg-white shadow-modal rounded-xl border border-border py-1 w-36"
+          onClick={e => e.stopPropagation()}
+        >
+          <button
+            onClick={onEdit}
+            className="w-full text-left px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onClick={onDelete}
+            className="w-full text-left px-3 py-2 text-sm font-bold text-danger hover:bg-light transition-colors"
+          >
+            Delete
+          </button>
+        </div>
       )}
     </div>
   )

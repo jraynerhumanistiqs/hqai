@@ -175,7 +175,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className={`cursor-pointer bg-white border border-border rounded-lg px-4 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors inline-block ${logoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                {logoUploading ? 'Uploadingâ€¦' : 'Upload logo'}
+                {logoUploading ? 'Uploading…' : 'Upload logo'}
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={logoUploading} />
               </label>
               <p className="text-xs text-muted mt-1">PNG or JPG, max 2MB</p>
@@ -235,7 +235,7 @@ export default function SettingsPage() {
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Advisor details</h2>
           <p className="text-xs text-muted mb-4">Your named Humanistiqs advisor - HQ will reference them in escalation recommendations</p>
           {plan === 'free' && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[1.5px] rounded-2xl flex items-center justify-center z-10">
               <button onClick={openPortal}
                 className="bg-black text-white font-display font-bold text-lg px-6 py-3 rounded-full hover:bg-[#1a1a1a] transition-colors uppercase tracking-wider">
                 Upgrade to unlock
@@ -259,7 +259,7 @@ export default function SettingsPage() {
 
         <button onClick={save} disabled={saving}
           className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors disabled:opacity-60">
-          {saving ? 'Savingâ€¦' : saved ? 'âœ“ Saved' : 'Save changes'}
+          {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
 
 
@@ -292,7 +292,7 @@ export default function SettingsPage() {
           {billingError && (
             <div className="bg-danger/10 border border-danger/30 rounded-lg px-4 py-3 text-sm text-danger mb-4 flex items-center">
               <span className="flex-1">{billingError}</span>
-              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-danger hover:text-charcoal">âœ•</button>
+              <button onClick={() => setBillingError('')} className="ml-2 font-bold text-danger hover:text-charcoal">✕</button>
             </div>
           )}
 
@@ -309,18 +309,18 @@ export default function SettingsPage() {
                 {subscriptionStatus === 'active' ? 'Active' :
                  subscriptionStatus === 'trialing' ? '14-day free trial' :
                  subscriptionStatus === 'cancelled' ? 'Cancelled' : subscriptionStatus}
-                {PLAN_DETAILS[plan] && ` Â· ${PLAN_DETAILS[plan].seats} seats Â· ${PLAN_DETAILS[plan].price}`}
+                {PLAN_DETAILS[plan] && ` · ${PLAN_DETAILS[plan].seats} seats · ${PLAN_DETAILS[plan].price}`}
               </p>
             </div>
             {hasStripe ? (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-white hover:bg-gray-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loadingâ€¦' : 'Manage billing'}
+                {billingLoading ? 'Loading…' : 'Manage billing'}
               </button>
             ) : (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loadingâ€¦' : 'Upgrade plan'}
+                {billingLoading ? 'Loading…' : 'Upgrade plan'}
               </button>
             )}
           </div>
@@ -354,7 +354,7 @@ export default function SettingsPage() {
           >
             <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Upgrades coming soon</h3>
             <p className="text-sm text-mid mb-5">
-              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually â€” usually within one business day.
+              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually — usually within one business day.
             </p>
             <div className="flex items-center gap-3">
               <a

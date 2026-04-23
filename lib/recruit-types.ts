@@ -1,6 +1,6 @@
 ﻿// HQ Recruit - Video Pre-Screen shared TypeScript types
 
-export type SessionStatus = 'active' | 'closed'
+export type SessionStatus = 'active' | 'draft' | 'closed'
 
 // Full status state machine for Phase 1 AI scoring
 export type PrescreenResponseStatus =
