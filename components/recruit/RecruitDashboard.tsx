@@ -165,7 +165,7 @@ export function RecruitDashboard() {
             </div>
           ) : (
             <>
-              <GroupHeader label="Active" count={activeCount} open={activeOpen} onToggle={() => setActiveOpen(v => !v)} />
+              <GroupHeader label="Active" count={activeCount} open={activeOpen} onToggle={() => setActiveOpen(v => !v)} tone="active" />
               {activeOpen && activeSessions.length === 0 && (
                 <p className="text-xs text-mid px-4 py-3">No active roles.</p>
               )}
@@ -183,7 +183,7 @@ export function RecruitDashboard() {
                 />
               ))}
 
-              <GroupHeader label="Draft / Pending" count={draftCount} open={draftOpen} onToggle={() => setDraftOpen(v => !v)} />
+              <GroupHeader label="Draft / Pending" count={draftCount} open={draftOpen} onToggle={() => setDraftOpen(v => !v)} tone="draft" />
               {draftOpen && draftSessions.length === 0 && (
                 <p className="text-xs text-mid px-4 py-3">No drafts. Use “Save as draft” when creating a role.</p>
               )}
@@ -289,25 +289,29 @@ export function RecruitDashboard() {
   )
 }
 
-function GroupHeader({ label, count, open, onToggle }: {
+function GroupHeader({ label, count, open, onToggle, tone }: {
   label: string; count: number; open: boolean; onToggle: () => void
+  tone: 'active' | 'draft'
 }) {
+  const toneCls = tone === 'active'
+    ? 'bg-success/10 text-success hover:bg-success/15'
+    : 'bg-warning/10 text-warning hover:bg-warning/15'
   return (
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-4 py-2 border-b border-border bg-bg/60 hover:bg-bg transition-colors"
+      className={`w-full flex items-center justify-between px-4 py-2 border-b border-border transition-colors ${toneCls}`}
     >
       <span className="flex items-center gap-1.5">
         <svg
           viewBox="0 0 20 20"
           fill="currentColor"
-          className={`w-3 h-3 text-mid transition-transform ${open ? 'rotate-90' : ''}`}
+          className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`}
         >
           <path fillRule="evenodd" d="M6 4l8 6-8 6V4z" clipRule="evenodd" />
         </svg>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-mid">{label}</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider">{label}</span>
       </span>
-      <span className="text-[11px] font-bold text-mid">{count}</span>
+      <span className="text-[11px] font-bold">{count}</span>
     </button>
   )
 }
@@ -324,29 +328,17 @@ function SessionRow({
   onEdit: () => void
   onDelete: () => void
 }) {
-  const pillCls =
-    s.status === 'active' ? 'bg-success/10 text-success'
-    : s.status === 'draft' ? 'bg-warning/10 text-warning'
-    : 'bg-light text-mid'
-
   return (
     <div
       className={`relative w-full transition-all border-l-2 ${
         selected ? 'bg-accent3 border-l-accent' : 'border-l-transparent hover:bg-bg'
       }`}
     >
-      <button onClick={onSelect} className="w-full text-left px-4 py-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1 pr-6">
-            <p className={`text-sm font-bold truncate leading-snug ${selected ? 'text-accent2' : 'text-black'}`}>
-              {s.role_title}
-            </p>
-            <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
-          </div>
-          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${pillCls}`}>
-            {s.status}
-          </span>
-        </div>
+      <button onClick={onSelect} className="w-full text-left px-4 py-3 pr-10">
+        <p className={`text-sm font-bold truncate leading-snug ${selected ? 'text-accent2' : 'text-black'}`}>
+          {s.role_title}
+        </p>
+        <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
       </button>
 
       <button
