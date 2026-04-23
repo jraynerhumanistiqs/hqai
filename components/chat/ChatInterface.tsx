@@ -1,7 +1,10 @@
-'use client'
+﻿'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
+import { parseCitations, type Citation } from '@/lib/parse-citations'
+import CitationChip from './CitationChip'
+import MessageCitations from './MessageCitations'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -10,6 +13,9 @@ interface Message {
   docType?: string | null
   formType?: string | null
   formCompleted?: boolean
+  // NOTE: persisted client-side only for now. If the Supabase messages schema
+  // later accepts a `citations` jsonb column, wire it in the chat route too.
+  citations?: Citation[]
 }
 
 // Build DOC_FORMS lookup from template-ip definitions
@@ -155,6 +161,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       let assistantContent = ''
       let finalEscalate = false
       let finalDocType: string | null = null
+      let finalCitations: Citation[] | undefined = undefined
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
@@ -178,6 +185,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             if (data.done) {
               finalEscalate = data.escalate
               finalDocType = data.docType
+              if (Array.isArray(data.citations)) {
+                finalCitations = data.citations as Citation[]
+              }
+            }
+            if (Array.isArray(data.citations)) {
+              // Some wire formats emit citations as a separate event before done
+              finalCitations = data.citations as Citation[]
             }
           } catch {}
         }
@@ -185,11 +199,21 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       setMessages(prev => {
         const updated = [...prev]
+        // Fallback: if the route didn't send a separate citations array,
+        // parse the trailing ```citations``` block from the assistant text.
+        let citations = finalCitations
+        let displayContent = assistantContent
+        if (!citations) {
+          const parsed = parseCitations(assistantContent)
+          citations = parsed.citations
+          displayContent = parsed.cleanText
+        }
         updated[updated.length - 1] = {
           role: 'assistant',
-          content: assistantContent,
+          content: displayContent,
           escalate: finalEscalate,
           docType: finalDocType,
+          citations: citations && citations.length > 0 ? citations : undefined,
         }
         return updated
       })
@@ -440,12 +464,37 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     />
                   ) : msg.formType && msg.formCompleted ? (
                     <p className="text-sm text-mid">
-                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your document…
+                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your documentâ€¦
                     </p>
                   ) : msg.content ? (
-                    <div className="text-sm text-charcoal leading-relaxed">
-                      <MessageContent content={msg.content} isUser={false} />
-                    </div>
+                    (() => {
+                      // If the route attached citations, trust them; otherwise
+                      // try to parse a trailing ```citations``` block out of
+                      // the content (streaming fallback / legacy messages).
+                      const cites = msg.citations
+                        ? { cleanText: msg.content, citations: msg.citations }
+                        : parseCitations(msg.content)
+                      const isStreamingThis = isLoading && i === messages.length - 1
+                      return (
+                        <>
+                          <div className="text-sm text-charcoal leading-relaxed">
+                            <MessageContent
+                              content={cites.cleanText}
+                              isUser={false}
+                              citations={cites.citations}
+                            />
+                          </div>
+                          {cites.citations.length > 0 && !isStreamingThis && (
+                            <MessageCitations citations={cites.citations} />
+                          )}
+                          {module === 'people' && !isStreamingThis && (
+                            <p className="text-[11px] text-muted italic mt-2">
+                              General information, not legal advice. Confirm with your advisor before acting.
+                            </p>
+                          )}
+                        </>
+                      )
+                    })()
                   ) : (
                     // Pre-stream: pulsing dot where tokens will land
                     <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
@@ -478,7 +527,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.escalate && (
                     <>
                       <div className="mt-3 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                        <span className="text-lg flex-shrink-0">⚠️</span>
+                        <span className="text-lg flex-shrink-0">âš ï¸</span>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
                           <p className="text-xs text-mid leading-relaxed mb-2.5">
@@ -533,7 +582,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.docType && msg.content.length > 200 && (
                     <div className="mt-3 bg-light rounded-xl px-3.5 py-2.5">
                       <div className="flex items-center gap-2.5 mb-2">
-                        <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
+                        <span className="text-sm">{savedDocId ? 'âœ…' : 'ðŸ“„'}</span>
                         <p className="text-xs text-charcoal flex-1">
                           <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
                         </p>
@@ -542,7 +591,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
                         {savedDocId && (
                           <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
-                            View in library →
+                            View in library â†’
                           </a>
                         )}
                       </div>
@@ -574,8 +623,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               onChange={autoResize}
               onKeyDown={handleKey}
               placeholder={module === 'recruit'
-                ? 'Ask HQ Recruit about ads, screening, candidates…'
-                : 'Ask HQ People about HR, Fair Work, payroll…'
+                ? 'Ask HQ Recruit about ads, screening, candidatesâ€¦'
+                : 'Ask HQ People about HR, Fair Work, payrollâ€¦'
               }
               rows={1}
               className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1.5"
@@ -624,7 +673,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
               <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
               {messages.length > 0 && (
-                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
+                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}â€¦</p>
               )}
             </div>
             <div className="flex gap-3">
@@ -644,9 +693,66 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   )
 }
 
-// Render markdown-lite message content
-function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
+// Render markdown-lite message content (with optional inline citation chips)
+function MessageContent({
+  content,
+  isUser,
+  citations,
+}: {
+  content: string
+  isUser: boolean
+  citations?: Citation[]
+}) {
   if (!content) return null
+
+  // Build a lookup by citation number so we can render chips with label+url.
+  const byN = new Map<number, Citation>()
+  if (citations) {
+    for (const c of citations) if (!byN.has(c.n)) byN.set(c.n, c)
+  }
+
+  // Split a line on [n] markers and return React nodes. Each non-marker
+  // segment uses formatInline (markdown-lite) via dangerouslySetInnerHTML,
+  // which is safe because we only produce a controlled whitelist of tags.
+  const renderInline = (text: string, keyPrefix: string): React.ReactNode[] => {
+    const re = /\[(\d+)\]/g
+    const parts: React.ReactNode[] = []
+    let last = 0
+    let m: RegExpExecArray | null
+    let idx = 0
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) {
+        const seg = text.slice(last, m.index)
+        parts.push(
+          <span
+            key={`${keyPrefix}-t${idx++}`}
+            dangerouslySetInnerHTML={{ __html: formatInline(seg, isUser) }}
+          />
+        )
+      }
+      const n = Number(m[1])
+      const cite = byN.get(n)
+      if (cite) {
+        parts.push(
+          <CitationChip key={`${keyPrefix}-c${idx++}`} n={cite.n} label={cite.label} url={cite.url} />
+        )
+      } else {
+        // Unknown marker — render as plain [n] fallback
+        parts.push(<span key={`${keyPrefix}-c${idx++}`}>{m[0]}</span>)
+      }
+      last = m.index + m[0].length
+    }
+    if (last < text.length) {
+      const seg = text.slice(last)
+      parts.push(
+        <span
+          key={`${keyPrefix}-t${idx++}`}
+          dangerouslySetInnerHTML={{ __html: formatInline(seg, isUser) }}
+        />
+      )
+    }
+    return parts
+  }
 
   const lines = content.split('\n')
   const elements: React.ReactNode[] = []
@@ -654,10 +760,11 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
 
   const flushList = () => {
     if (listItems.length) {
+      const items = listItems
       elements.push(
         <ul key={elements.length} className="list-disc pl-5 space-y-1 my-2">
-          {listItems.map((item, i) => (
-            <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item, isUser) }} />
+          {items.map((item, i) => (
+            <li key={i}>{renderInline(item, `l${elements.length}-${i}`)}</li>
           ))}
         </ul>
       )
@@ -675,21 +782,27 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
       listItems.push(trimmed.replace(/^\d+\. /, ''))
     } else if (trimmed.startsWith('## ')) {
       flushList()
+      const key = elements.length
       elements.push(
-        <h3 key={elements.length} className="font-bold text-[15px] mt-3 mb-1 first:mt-0"
-          dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(3), isUser) }} />
+        <h3 key={key} className="font-bold text-[15px] mt-3 mb-1 first:mt-0">
+          {renderInline(trimmed.slice(3), `h3-${key}`)}
+        </h3>
       )
     } else if (trimmed.startsWith('# ')) {
       flushList()
+      const key = elements.length
       elements.push(
-        <h2 key={elements.length} className="font-bold text-base mt-3 mb-1 first:mt-0"
-          dangerouslySetInnerHTML={{ __html: formatInline(trimmed.slice(2), isUser) }} />
+        <h2 key={key} className="font-bold text-base mt-3 mb-1 first:mt-0">
+          {renderInline(trimmed.slice(2), `h2-${key}`)}
+        </h2>
       )
     } else {
       flushList()
+      const key = elements.length
       elements.push(
-        <p key={elements.length} className="mb-2 last:mb-0"
-          dangerouslySetInnerHTML={{ __html: formatInline(trimmed, isUser) }} />
+        <p key={key} className="mb-2 last:mb-0">
+          {renderInline(trimmed, `p-${key}`)}
+        </p>
       )
     }
   }
@@ -865,7 +978,7 @@ function DownloadDocxButton({ content, title, docType }: { content: string; titl
       <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
       </svg>
-      {downloading ? 'Generating…' : 'Download DOCX'}
+      {downloading ? 'Generatingâ€¦' : 'Download DOCX'}
     </button>
   )
 }
