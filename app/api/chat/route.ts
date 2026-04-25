@@ -116,11 +116,18 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
+              // Force search_knowledge on the first iteration so the model
+              // can't sidestep grounding by claiming "I can't verify" without
+              // ever consulting the corpus. Subsequent iterations are auto.
+              const toolChoice = iter === 0
+                ? { type: 'tool' as const, name: 'search_knowledge' }
+                : { type: 'auto' as const }
               const res = await anthropic.messages.create({
                 model: MODEL,
                 max_tokens: 2048,
                 system: systemPrompt,
                 tools,
+                tool_choice: toolChoice,
                 messages: working,
               })
 
