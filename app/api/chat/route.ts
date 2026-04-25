@@ -211,7 +211,9 @@ export async function POST(req: NextRequest) {
           }
         } catch (err) {
           console.error('[chat] error:', err)
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`))
+          const detail = err instanceof Error ? err.message : String(err)
+          const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join(' | ') : undefined
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail, stack })}\n\n`))
           controller.close()
         }
       },
@@ -370,8 +372,10 @@ async function legacyStream(opts: {
           }
         }
         controller.close()
-      } catch {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`))
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err)
+        const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join(' | ') : undefined
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail, stack })}\n\n`))
         controller.close()
       }
     },
