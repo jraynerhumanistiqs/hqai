@@ -181,12 +181,15 @@ export async function POST(req: NextRequest) {
               continue
             }
 
-            // Final iteration — stream the answer.
+            // Final iteration — stream the answer. Force no further tool use
+            // so the model commits to text instead of attempting another
+            // tool_use block that would never resolve in the streaming path.
             const finalRes = await anthropic.messages.create({
               model: MODEL,
               max_tokens: requestedDoc ? 4096 : 1500,
               system: systemPrompt,
               tools, // still declared so the model can still cite [n]
+              tool_choice: { type: 'none' },
               messages: working,
               stream: true,
             })
