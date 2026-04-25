@@ -53,9 +53,11 @@ function parseArgs(argv: string[]): Args {
 
 async function askChat(question: string, model: string): Promise<{ text: string; citations: Array<{ n: number; label: string; url?: string }>; latencyMs: number }> {
   const started = Date.now()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (process.env.EVAL_BYPASS_TOKEN) headers['X-Eval-Token'] = process.env.EVAL_BYPASS_TOKEN
   const res = await fetch(`${BASE_URL}/api/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       module: 'people',
       messages: [{ role: 'user', content: question }],

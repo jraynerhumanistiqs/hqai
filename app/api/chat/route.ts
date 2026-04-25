@@ -18,16 +18,44 @@ export async function POST(req: NextRequest) {
   const started = Date.now()
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return new Response('Unauthorised', { status: 401 })
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*, businesses(*)')
-      .eq('id', user.id)
-      .single()
+    // Eval harness bypass: requests carrying a matching X-Eval-Token header
+    // skip Supabase auth and use a stable placeholder business profile.
+    // Token is only honoured when EVAL_BYPASS_TOKEN env var is set (production
+    // can leave it unset to disable the bypass entirely).
+    const evalHeader = req.headers.get('x-eval-token') ?? ''
+    const evalToken = process.env.EVAL_BYPASS_TOKEN ?? ''
+    const isEval = !!evalToken && evalHeader === evalToken
 
-    const business = profile?.businesses as any
+    let user: { id: string } | null = null
+    let profile: any = null
+    let business: any = null
+
+    if (isEval) {
+      user = { id: '00000000-0000-0000-0000-000000000000' }
+      profile = { full_name: 'Eval Runner' }
+      business = {
+        name: 'Eval Co',
+        industry: 'General',
+        state: 'QLD',
+        award: 'Not specified',
+        headcount: '11-50',
+        employment_types: 'Mixed',
+        advisor_name: 'Sarah',
+      }
+    } else {
+      const { data: authData } = await supabase.auth.getUser()
+      user = authData.user
+      if (!user) return new Response('Unauthorised', { status: 401 })
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*, businesses(*)')
+        .eq('id', user.id)
+        .single()
+      profile = data
+      business = profile?.businesses
+    }
     const { messages, conversationId, module } = await req.json()
     const mod: 'people' | 'recruit' = module === 'recruit' ? 'recruit' : 'people'
 
@@ -269,6 +297,8 @@ async function finalise(opts: {
 
   // Audit log — fire-and-forget through `after()` so Vercel doesn't freeze
   // the lambda before the insert completes (same fix as the transcribe pipeline).
+  // Skip auditing for eval-bypass requests (placeholder UUID would FK-violate).
+  if (user.id === '00000000-0000-0000-0000-000000000000') return
   after(async () => {
     try {
       await supabase.from('chat_audit_log').insert({
