@@ -72,3 +72,144 @@ export function chunkText(raw: string, opts?: { section?: string }): Chunk[] {
 export function approxTokens(text: string): number {
   return Math.max(1, Math.round(text.length / AVG_CHARS_PER_TOKEN))
 }
+
+// ---------------------------------------------------------------------------
+// Section-aware chunker for legislation.
+//
+// Used for Acts (Fair Work Act etc.) where the document has a strong
+// section-number structure. One chunk per section ensures the embedding
+// reflects only that section's content — vital because (a) cosine similarity
+// over a smeared 800-token chunk dilutes specific clauses, and (b) the model
+// can confidently cite "s 87" when the chunk is *only* s 87.
+//
+// Behaviour:
+//   - Drops table-of-contents lines (heading text followed by a tab + page
+//     number, or trailing whitespace + page number).
+//   - Detects anchors like "87 Entitlement to annual leave",
+//     "87A Entitlement to annual leave (mining)", "Division 6—Annual leave",
+//     "Subdivision A—Application", "Part 2-2—The National Employment Standards".
+//   - Section anchors are the primary chunk boundary. Division/Subdivision/Part
+//     headers travel with the next section as context.
+//   - Sections longer than HARD_MAX tokens split on subsection markers
+//     "(1)", "(2)" with the section heading repeated at the top of each split.
+// ---------------------------------------------------------------------------
+
+const ACT_HARD_MAX_TOKENS = 1500
+const ACT_SOFT_MIN_TOKENS = 50           // very tiny sections are merged with prev
+
+const SECTION_RE  = /^(\d+[A-Z]{0,4})\s{1,4}([A-Z][^\n]{2,})$/
+const DIVISION_RE = /^(Division\s+\d+[A-Z]?[—\-].*|Part\s+\S+[—\-].*|Subdivision\s+[A-Z][A-Z]?[—\-].*|Schedule\s+\d+.*|Chapter\s+\d+.*)$/i
+const SUBSECTION_RE = /^\((\d+[A-Z]?|[a-z]+)\)\s+/
+
+function isTocLine(line: string): boolean {
+  // Examples:
+  //   "87\tEntitlement to annual leave\t218"
+  //   "87  Entitlement to annual leave   218"
+  //   "Division 6—Annual leave   218"
+  // Real headings end with text, not a page number.
+  return /\s+\d{1,4}\s*$/.test(line) && /^(\d+[A-Z]*\s|Division|Part|Subdivision|Schedule|Chapter)/i.test(line)
+}
+
+export function chunkAct(raw: string, opts?: { defaultSection?: string }): Chunk[] {
+  const text = raw.replace(/\r\n/g, '\n')
+
+  // Pre-filter ToC lines and obvious page-number cruft.
+  const lines: string[] = []
+  for (const ln of text.split('\n')) {
+    const t = ln.trim()
+    if (!t) { lines.push(''); continue }
+    if (isTocLine(t)) continue
+    if (/^\d{1,4}$/.test(t)) continue           // bare page number lines
+    if (/^Compilation No\./.test(t)) continue
+    if (/^Authorised Version/.test(t)) continue
+    lines.push(ln)
+  }
+
+  // Walk lines; cut a section every time we hit a section anchor.
+  type Acc = { heading: string; division?: string; body: string[] }
+  const sections: Acc[] = []
+  let pendingDivision: string | undefined
+  let cur: Acc | null = null
+
+  const startSection = (heading: string) => {
+    if (cur) sections.push(cur)
+    cur = { heading, division: pendingDivision, body: [] }
+    pendingDivision = undefined            // consume division header
+  }
+
+  for (const ln of lines) {
+    const t = ln.trim()
+    const sec = SECTION_RE.exec(t)
+    const div = !sec && DIVISION_RE.test(t)
+    if (sec) {
+      startSection(`${sec[1]}  ${sec[2].trim()}`)
+      continue
+    }
+    if (div) {
+      pendingDivision = t
+      continue
+    }
+    if (!cur) {
+      // Pre-amble before the first section — start an unnamed bucket.
+      cur = { heading: opts?.defaultSection ?? 'Preamble', division: pendingDivision, body: [] }
+      pendingDivision = undefined
+    }
+    cur.body.push(ln)
+  }
+  if (cur) sections.push(cur)
+
+  // Build chunks. Each section becomes one chunk unless oversized.
+  const chunks: Chunk[] = []
+
+  for (const s of sections) {
+    const body = s.body.join('\n').trim()
+    if (!body) continue                         // skip empty sections (ToC residue)
+
+    const headingLine = s.heading
+    const divisionLine = s.division ? s.division + '\n\n' : ''
+    const sectionLabel = `s ${s.heading.split(/\s{2,}/)[0]} — ${s.heading.split(/\s{2,}/).slice(1).join(' ')}`.trim()
+
+    const fullContent = `${divisionLine}${headingLine}\n\n${body}`
+    const tokens = approxTokens(fullContent)
+
+    if (tokens <= ACT_HARD_MAX_TOKENS) {
+      chunks.push({ content: fullContent, section: sectionLabel, tokenCount: tokens })
+      continue
+    }
+
+    // Oversized: split on subsection markers, repeat the heading at the top.
+    const subBuckets: string[][] = [[]]
+    for (const ln of body.split('\n')) {
+      if (SUBSECTION_RE.test(ln.trim()) && subBuckets[subBuckets.length - 1].length) {
+        subBuckets.push([])
+      }
+      subBuckets[subBuckets.length - 1].push(ln)
+    }
+
+    let buf: string[] = []
+    let bufTokens = 0
+    const flushBuf = (partIdx: number) => {
+      if (!buf.length) return
+      const content = `${divisionLine}${headingLine}${partIdx > 0 ? `  (continued, part ${partIdx + 1})` : ''}\n\n${buf.join('\n').trim()}`
+      chunks.push({ content, section: sectionLabel, tokenCount: approxTokens(content) })
+      buf = []
+      bufTokens = 0
+    }
+
+    let partIdx = 0
+    for (const sub of subBuckets) {
+      const subText = sub.join('\n')
+      const subTokens = approxTokens(subText)
+      if (bufTokens + subTokens > ACT_HARD_MAX_TOKENS && buf.length) {
+        flushBuf(partIdx++)
+      }
+      buf.push(subText)
+      bufTokens += subTokens
+    }
+    flushBuf(partIdx)
+  }
+
+  // Merge tiny trailing chunks (rare — usually pure ToC residue) into the
+  // previous chunk so we don't pollute the index with one-line entries.
+  return chunks.filter(c => c.tokenCount >= ACT_SOFT_MIN_TOKENS || c.content.length > 200)
+}

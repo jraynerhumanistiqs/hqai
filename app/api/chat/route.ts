@@ -6,7 +6,7 @@ import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 300
+export const maxDuration = 90
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
@@ -222,8 +222,9 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           console.error('[chat] error:', err)
           const detail = err instanceof Error ? err.message : String(err)
-          const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join(' | ') : undefined
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail, stack })}\n\n`))
+          // detail is minor info-leak but useful for end-user error reporting;
+          // never include the stack in client output.
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail })}\n\n`))
           controller.close()
         }
       },
@@ -384,8 +385,7 @@ async function legacyStream(opts: {
         controller.close()
       } catch (err) {
         const detail = err instanceof Error ? err.message : String(err)
-        const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join(' | ') : undefined
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail, stack })}\n\n`))
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail })}\n\n`))
         controller.close()
       }
     },

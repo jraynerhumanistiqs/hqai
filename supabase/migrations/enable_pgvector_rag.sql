@@ -88,7 +88,10 @@ language sql stable as $$
     (0.7 * s.similarity) + (0.3 * least(s.fts_rank, 1.0)) as hybrid_score,
     s.metadata
   from scored s
-  where s.similarity >= min_similarity
+  -- Pass if EITHER vector similarity clears the floor OR full-text rank is
+  -- meaningful. Keyword-only matches (e.g. "section 87") survive even when
+  -- the chunk's embedding is mediocre because it sits next to off-topic text.
+  where s.similarity >= min_similarity or s.fts_rank > 0.05
   order by hybrid_score desc
   limit match_count;
 $$;
