@@ -74,7 +74,12 @@ language sql stable as $$
       1 - (kc.embedding <=> query_embedding) as similarity,
       ts_rank_cd(
         to_tsvector('english', coalesce(kc.source_title,'') || ' ' || coalesce(kc.section,'') || ' ' || kc.content),
-        plainto_tsquery('english', query_text)
+        -- websearch_to_tsquery is more permissive than plainto_tsquery —
+        -- it tolerates partial-match queries instead of requiring every
+        -- term to appear in the chunk. Critical when the model passes
+        -- multi-keyword queries against legislation chunks that only
+        -- mention a subset.
+        websearch_to_tsquery('english', query_text)
       ) as fts_rank,
       kc.metadata
     from public.knowledge_chunks kc

@@ -42,13 +42,13 @@ export const tools: Anthropic.Tool[] = [
   {
     name: 'search_knowledge',
     description:
-      'Search the HQ.ai grounded knowledge base (Fair Work Act, NES, Modern Awards, Fair Work Ombudsman guidance, internal playbooks) for passages relevant to the user question. Call this BEFORE quoting any clause, entitlement, or procedural step. Returns numbered passages with source titles and URLs that you must cite using [n] markers.',
+      'Search the HQ.ai grounded knowledge base (Fair Work Act, NES, Modern Awards, Fair Work Ombudsman guidance, internal playbooks) for passages relevant to the user question. Call this BEFORE quoting any clause, entitlement, or procedural step. Returns numbered passages with source titles and URLs that you must cite using [n] markers.\n\nIMPORTANT: keep the query SHORT (3-6 keywords max). Use the legal/topic terms you actually need to find — not the user\'s full sentence. Drop generic words like "employee", "entitlement", "NES", "National Employment Standards", "full-time", "Australia". Examples:\n  ✓ "annual leave 4 weeks"\n  ✓ "redundancy pay small business"\n  ✓ "casual conversion 12 months"\n  ✗ "what is the annual leave entitlement for a full-time employee under the NES"\nIf the first search returns no hits, retry with even fewer / different keywords.',
     input_schema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Natural-language search query, e.g. "notice period redundancy 5 years service".',
+          description: 'Short keyword query, 3-6 terms. e.g. "annual leave 4 weeks", "redundancy small business", "notice period termination".',
         },
         sourceFilter: {
           type: 'string',
