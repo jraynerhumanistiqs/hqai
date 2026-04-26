@@ -1,0 +1,194 @@
+[
+  {
+    "source": "nes",
+    "url": "https://www.fairwork.gov.au/employment-conditions/national-employment-standards",
+    "title": "National Employment Standards — Overview",
+    "file": "nes-overview.md"
+  },
+  {
+    "source": "nes",
+    "url": "https://www.fairwork.gov.au/employment-conditions/hours-of-work-breaks-and-rosters/maximum-weekly-hours",
+    "title": "NES — Maximum weekly hours",
+    "file": "nes-maximum-weekly-hours.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/flexibility-in-the-workplace/flexible-working-arrangements",
+    "title": "FWO — Flexible working arrangements",
+    "file": "flexible-working-arrangements.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/annual-leave",
+    "title": "FWO — Annual leave",
+    "file": "annual-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
+    "title": "FWO — Sick and carer's leave",
+    "file": "sick-and-carers-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/compassionate-and-bereavement-leave",
+    "title": "FWO — Compassionate and bereavement leave",
+    "file": "compassionate-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/family-and-domestic-violence-leave",
+    "title": "FWO — Family and domestic violence leave",
+    "file": "family-domestic-violence-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/community-service-leave",
+    "title": "FWO — Community service leave",
+    "file": "community-service-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/long-service-leave",
+    "title": "FWO — Long service leave",
+    "file": "long-service-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/leave/maternity-and-parental-leave",
+    "title": "FWO — Parental leave",
+    "file": "parental-leave.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/public-holidays",
+    "title": "FWO — Public holidays",
+    "file": "public-holidays.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/pay-and-wages/minimum-wages",
+    "title": "FWO — Minimum wages",
+    "file": "minimum-wages.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/pay-and-wages/allowances-penalty-rates-and-other-payments/allowances",
+    "title": "FWO — Allowances",
+    "file": "allowances.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/pay-and-wages/allowances-penalty-rates-and-other-payments/penalty-rates",
+    "title": "FWO — Penalty rates",
+    "file": "penalty-rates.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/pay-and-wages/allowances-penalty-rates-and-other-payments/overtime-pay",
+    "title": "FWO — Overtime pay",
+    "file": "overtime-pay.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips-and-record-keeping",
+    "title": "FWO — Pay slips and record keeping",
+    "file": "pay-slips-and-record-keeping.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/types-of-employees",
+    "title": "FWO — Types of employees",
+    "file": "types-of-employees.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/types-of-employees/casual-employees",
+    "title": "FWO — Casual employees and casual conversion",
+    "file": "casual-employees.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/types-of-employees/part-time-employees",
+    "title": "FWO — Part-time employees",
+    "file": "part-time-employees.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/starting-employment/before-starting-employment",
+    "title": "FWO — Before starting employment",
+    "file": "before-starting-employment.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/starting-employment/employment-contracts",
+    "title": "FWO — Employment contracts",
+    "file": "employment-contracts.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay",
+    "title": "FWO — Notice and final pay",
+    "file": "notice-and-final-pay.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/ending-employment/redundancy",
+    "title": "FWO — Redundancy",
+    "file": "redundancy.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/ending-employment/redundancy/redundancy-pay",
+    "title": "FWO — Redundancy pay",
+    "file": "redundancy-pay.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/ending-employment/unfair-dismissal",
+    "title": "FWO — Unfair dismissal",
+    "file": "unfair-dismissal.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/protections-at-work/general-protections",
+    "title": "FWO — General protections (adverse action)",
+    "file": "general-protections.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/bullying-sexual-harassment-and-discrimination-at-work/sexual-harassment-in-the-workplace",
+    "title": "FWO — Sexual harassment in the workplace",
+    "file": "sexual-harassment.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/bullying-sexual-harassment-and-discrimination-at-work/bullying-in-the-workplace",
+    "title": "FWO — Bullying in the workplace",
+    "file": "bullying.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/bullying-sexual-harassment-and-discrimination-at-work/anti-discrimination-and-eeo",
+    "title": "FWO — Anti-discrimination and EEO",
+    "file": "anti-discrimination.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/find-help-for/small-business",
+    "title": "FWO — Small Business Fair Dismissal Code",
+    "file": "small-business-fair-dismissal-code.md"
+  },
+  {
+    "source": "fwo",
+    "url": "https://www.fairwork.gov.au/employment-conditions/awards/awards-and-modern-award-coverage",
+    "title": "FWO — Awards and modern award coverage",
+    "file": "award-coverage.md"
+  },
+  {
+    "source": "ato",
+    "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-contributions/how-much-super-to-pay",
+    "title": "ATO — Superannuation guarantee rate",
+    "file": "super-guarantee.md"
+  }
+]

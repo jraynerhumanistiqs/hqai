@@ -5,3 +5,12 @@ node_modules/
 out/
 *.log
 .DS_Store
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Eval judge cache (per-run, regenerated automatically)
+tests/eval/.cache/
+
+# Claude Flow internal scratch
+.claude-flow/agents/

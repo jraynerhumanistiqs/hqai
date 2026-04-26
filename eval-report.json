@@ -1,0 +1,174 @@
+{
+  "id": "176ffeac-40d3-4358-b78d-f6fc29a3cb95",
+  "startedAt": "2026-04-26T09:22:40.723Z",
+  "model": "claude-sonnet-4-20250514",
+  "baseUrl": "https://hqai-git-eval-smoke-humanistiqs-hq-ai.vercel.app",
+  "results": [
+    {
+      "question": {
+        "id": "nes-001",
+        "category": "nes",
+        "question": "How much paid annual leave does a full-time employee get per year under the NES?",
+        "expectedType": "narrative",
+        "expectedRubric": {
+          "mustInclude": [
+            "4 weeks",
+            "National Employment Standards"
+          ],
+          "mustNotInclude": [
+            "Alberta",
+            "OSHA",
+            "FMLA"
+          ]
+        },
+        "expectedCitationContains": [
+          "Fair Work Act",
+          "87"
+        ],
+        "source": "Fair Work Act 2009 s 87"
+      },
+      "answer": "Under the National Employment Standards (NES), a full-time employee is entitled to **4 weeks of paid annual leave** per year [4].\n\nThe Fair Work Act is clear on this entitlement - for each year of service with an employer (excluding periods of casual employment), an employee gets 4 weeks of paid annual leave [4].\n\nThere is an exception for **shiftworkers**, who get **5 weeks** of paid annual leave per year if they meet specific criteria defined in their modern award, enterprise agreement, or under the award/agreement free provisions [4].\n\nThe annual leave:\n- Accrues progressively throughout the year of service according to ordinary hours of work [4]\n- Accumulates from year to year [4]\n- Must be paid at the employee's base rate of pay for ordinary hours [6]\n\nIf an employee's employment ends, they must be paid out any untaken annual leave [6].",
+      "citations": [
+        {
+          "n": 4,
+          "label": "Fair Work Act 2009 s.87 — Entitlement to annual leave",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        },
+        {
+          "n": 6,
+          "label": "Fair Work Act 2009 s.90 — Payment for annual leave",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        }
+      ],
+      "judges": {
+        "narrative": {
+          "passed": true,
+          "score": 0.95,
+          "notes": "Accurately states 4 weeks under NES with proper context; includes relevant details about shiftworkers and accrual. Minor: citations [4][6] not verifiable in prompt but don't affect accuracy."
+        },
+        "citation": {
+          "passed": true,
+          "score": 1,
+          "notes": "Matched citation: \"Fair Work Act 2009 s.87 — Entitlement to annual leave\"."
+        }
+      },
+      "passed": true,
+      "latencyMs": 300782
+    },
+    {
+      "question": {
+        "id": "nes-002",
+        "category": "nes",
+        "question": "How many weeks of unpaid parental leave is a full-time employee entitled to under the NES?",
+        "expectedType": "narrative",
+        "expectedRubric": {
+          "mustInclude": [
+            "12 months",
+            "unpaid parental leave"
+          ]
+        },
+        "expectedCitationContains": [
+          "Parental leave"
+        ],
+        "source": "Fair Work Ombudsman — Parental leave (summarises Fair Work Act 2009 s 70)"
+      },
+      "answer": "Based on the Fair Work Act, a full-time employee is entitled to **up to 52 weeks (12 months) of unpaid parental leave** under the National Employment Standards [3].\n\nKey details:\n\n- **Standard entitlement**: 12 months of unpaid parental leave [3]\n- **Extension possible**: Employees can request an extension beyond 12 months, but the total period cannot exceed 24 months after the birth or placement of the child [3]\n- **When it can be taken**: Within the 24-month period following the birth or placement of a child [3]\n- **Continuous period**: Must generally be taken as a single continuous period [3]\n- **Flexible option**: Up to 100 days can be taken as flexible unpaid parental leave in separate periods during the 24-month period [6]\n\nThe leave applies to both birth-related and adoption-related situations, and the same entitlement applies regardless of whether the employee is full-time or part-time.\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
+      "citations": [
+        {
+          "n": 3,
+          "label": "Fair Work Act 2009 s 71 — The period of leave",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        },
+        {
+          "n": 6,
+          "label": "Fair Work Act 2009 s 72A — Flexible unpaid parental leave",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        }
+      ],
+      "judges": {
+        "narrative": {
+          "passed": true,
+          "score": 0.95,
+          "notes": "Answer correctly states 12 months of unpaid parental leave and includes both required elements. Minor: opens with '52 weeks (12 months)' which is correct but the 52 weeks phrasing doesn't directly answer the question asking for 'weeks.'"
+        },
+        "citation": {
+          "passed": true,
+          "score": 1,
+          "notes": "Matched citation: \"Fair Work Act 2009 s 72A — Flexible unpaid parental leave\"."
+        }
+      },
+      "passed": true,
+      "latencyMs": 300720
+    },
+    {
+      "question": {
+        "id": "nes-003",
+        "category": "nes",
+        "question": "What is the maximum weekly hours of work under the NES for a full-time employee?",
+        "expectedType": "narrative",
+        "expectedRubric": {
+          "mustInclude": [
+            "38 hours",
+            "reasonable additional hours"
+          ]
+        },
+        "expectedCitationContains": [
+          "Fair Work Act",
+          "62"
+        ],
+        "source": "Fair Work Act 2009 s 62"
+      },
+      "answer": "Under the National Employment Standards (NES), the **maximum weekly hours of work for a full-time employee is 38 hours** [1].\n\nHowever, an employer can request or require an employee to work additional hours beyond 38 hours per week, provided those additional hours are **reasonable** [1]. The employee has the right to refuse to work additional hours if they are unreasonable [1].\n\nWhen determining whether additional hours are reasonable, factors considered include [1]:\n- Risk to employee health and safety\n- Employee's personal circumstances and family responsibilities  \n- Workplace needs\n- Whether overtime payments or penalty rates apply\n- Notice given by either party\n- Industry work patterns\n- The employee's role and level of responsibility\n- Any averaging arrangements in place\n\nThe 38-hour limit can also be averaged over periods up to 26 weeks under certain averaging arrangements [2].\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
+      "citations": [
+        {
+          "n": 1,
+          "label": "Fair Work Act 2009 — s 62 — Maximum weekly hours",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        },
+        {
+          "n": 2,
+          "label": "Fair Work Act 2009 — s 64 — Averaging of hours of work for award/agreement free employees",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+        }
+      ],
+      "judges": {
+        "narrative": {
+          "passed": true,
+          "score": 0.95,
+          "notes": "Answer correctly identifies 38 hours as maximum and explains reasonable additional hours requirement with relevant factors; minor: references [1] and [2] without source specification."
+        },
+        "citation": {
+          "passed": true,
+          "score": 1,
+          "notes": "Matched citation: \"Fair Work Act 2009 — s 62 — Maximum weekly hours\"."
+        }
+      },
+      "passed": true,
+      "latencyMs": 300757
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "skippedUnreviewed": 0,
+    "byCategory": {
+      "nes": {
+        "total": 3,
+        "passed": 3
+      },
+      "award": {
+        "total": 0,
+        "passed": 0
+      },
+      "termination_redundancy": {
+        "total": 0,
+        "passed": 0
+      },
+      "edge": {
+        "total": 0,
+        "passed": 0
+      }
+    }
+  },
+  "completedAt": "2026-04-26T09:37:47.748Z"
+}

@@ -30,17 +30,32 @@ interface ManifestEntry {
   section?: string
 }
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
 async function embed(texts: string[]): Promise<number[][]> {
   const key = process.env.OPENAI_API_KEY
   if (!key) throw new Error('OPENAI_API_KEY not set')
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: 'text-embedding-3-small', input: texts }),
-  })
-  if (!res.ok) throw new Error(`OpenAI embeddings ${res.status}: ${await res.text()}`)
-  const data = (await res.json()) as { data: Array<{ embedding: number[] }> }
-  return data.data.map(d => d.embedding)
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const res = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model: 'text-embedding-3-small', input: texts }),
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { data: Array<{ embedding: number[] }> }
+      return data.data.map(d => d.embedding)
+    }
+    if (res.status === 429 || res.status >= 500) {
+      const body = await res.text()
+      const match = body.match(/try again in ([\d.]+)s/i)
+      const waitMs = match ? Math.ceil(parseFloat(match[1]) * 1000) + 1000 : 20000 * (attempt + 1)
+      console.warn(`  rate-limited, waiting ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}/6)`)
+      await sleep(waitMs)
+      continue
+    }
+    throw new Error(`OpenAI embeddings ${res.status}: ${await res.text()}`)
+  }
+  throw new Error('OpenAI embeddings: exhausted retries')
 }
 
 async function main() {
@@ -65,9 +80,11 @@ async function main() {
     const chunks = chunkText(raw, { section: entry.section })
     console.log(`• ${entry.title}: ${chunks.length} chunks`)
 
-    for (let i = 0; i < chunks.length; i += 32) {
-      const batch = chunks.slice(i, i + 32)
+    const BATCH = 16
+    for (let i = 0; i < chunks.length; i += BATCH) {
+      const batch = chunks.slice(i, i + BATCH)
       const vectors = await embed(batch.map(b => b.content))
+      await sleep(1500)
       if (DRY) continue
       const rows = batch.map((b, j) => ({
         source: entry.source,
