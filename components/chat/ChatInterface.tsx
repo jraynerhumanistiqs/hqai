@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
@@ -157,30 +157,44 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       if (!res.ok || !res.body) throw new Error('Stream failed')
 
       const reader = res.body.getReader()
-      const decoder = new TextDecoder()
+      // utf-8 decoder with stream:true so multi-byte chars (emoji, em
+      // dashes, smart quotes) split across SSE chunks decode cleanly
+      // instead of producing garbled Latin-1 bytes.
+      const decoder = new TextDecoder('utf-8')
       let assistantContent = ''
+      let statusMessage = ''
       let finalEscalate = false
       let finalDocType: string | null = null
       let finalCitations: Citation[] | undefined = undefined
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
+      const renderCurrent = () => {
+        const display = assistantContent || (statusMessage ? `_${statusMessage}_` : '')
+        setMessages(prev => {
+          const updated = [...prev]
+          updated[updated.length - 1] = { role: 'assistant', content: display }
+          return updated
+        })
+      }
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value)
+        const chunk = decoder.decode(value, { stream: true })
         const lines = chunk.split('\n')
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           try {
             const data = JSON.parse(line.slice(6))
+            if (typeof data.status === 'string') {
+              statusMessage = data.message || data.status
+              if (!assistantContent) renderCurrent()
+            }
             if (data.text) {
+              statusMessage = ''
               assistantContent += data.text
-              setMessages(prev => {
-                const updated = [...prev]
-                updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
-                return updated
-              })
+              renderCurrent()
             }
             if (data.done) {
               finalEscalate = data.escalate
@@ -464,7 +478,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     />
                   ) : msg.formType && msg.formCompleted ? (
                     <p className="text-sm text-mid">
-                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your documentâ€¦
+                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted — generating your document…
                     </p>
                   ) : msg.content ? (
                     (() => {
@@ -527,7 +541,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.escalate && (
                     <>
                       <div className="mt-3 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                        <span className="text-lg flex-shrink-0">âš ï¸</span>
+                        <span className="text-lg flex-shrink-0">⚠️</span>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
                           <p className="text-xs text-mid leading-relaxed mb-2.5">
@@ -582,7 +596,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.docType && msg.content.length > 200 && (
                     <div className="mt-3 bg-light rounded-xl px-3.5 py-2.5">
                       <div className="flex items-center gap-2.5 mb-2">
-                        <span className="text-sm">{savedDocId ? 'âœ…' : 'ðŸ“„'}</span>
+                        <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
                         <p className="text-xs text-charcoal flex-1">
                           <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
                         </p>
@@ -591,7 +605,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
                         {savedDocId && (
                           <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
-                            View in library â†’
+                            View in library →
                           </a>
                         )}
                       </div>
@@ -623,8 +637,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               onChange={autoResize}
               onKeyDown={handleKey}
               placeholder={module === 'recruit'
-                ? 'Ask HQ Recruit about ads, screening, candidatesâ€¦'
-                : 'Ask HQ People about HR, Fair Work, payrollâ€¦'
+                ? 'Ask HQ Recruit about ads, screening, candidates…'
+                : 'Ask HQ People about HR, Fair Work, payroll…'
               }
               rows={1}
               className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1.5"
@@ -673,7 +687,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
               <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
               {messages.length > 0 && (
-                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}â€¦</p>
+                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
               )}
             </div>
             <div className="flex gap-3">
@@ -978,7 +992,7 @@ function DownloadDocxButton({ content, title, docType }: { content: string; titl
       <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
       </svg>
-      {downloading ? 'Generatingâ€¦' : 'Download DOCX'}
+      {downloading ? 'Generating…' : 'Download DOCX'}
     </button>
   )
 }

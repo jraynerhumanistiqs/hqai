@@ -110,8 +110,24 @@ export async function POST(req: NextRequest) {
         let citationCursor = 0
         let fullResponse = ''
 
+        // Emit an immediate status pulse so the UI can show activity within
+        // ~100ms instead of waiting 30-60s for the first tool-discovery
+        // round trip to Anthropic to come back. Front-end can render this
+        // as a transient "thinking" indicator and replace it once real
+        // streamed text arrives.
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          status: 'searching',
+          message: 'Searching the Fair Work Act, Modern Awards, and Fair Work Ombudsman guidance…',
+        })}\n\n`))
+
         try {
           for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
+            if (iter > 0) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                status: 'drafting',
+                message: 'Drafting your answer…',
+              })}\n\n`))
+            }
             const isFinalIter = iter === MAX_TOOL_ITERATIONS - 1
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
@@ -122,9 +138,12 @@ export async function POST(req: NextRequest) {
               const toolChoice = iter === 0
                 ? { type: 'tool' as const, name: 'search_knowledge' }
                 : { type: 'auto' as const }
+              // Tool-discovery turns are short (model emits a tool_use
+              // block of ~100 tokens). Capping max_tokens shaves seconds
+              // off the round trip without changing behaviour.
               const res = await anthropic.messages.create({
                 model: MODEL,
-                max_tokens: 2048,
+                max_tokens: iter === 0 ? 512 : 1024,
                 system: systemPrompt,
                 tools,
                 tool_choice: toolChoice,
@@ -232,9 +251,14 @@ export async function POST(req: NextRequest) {
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
+        // Explicit utf-8 — without it, browsers default to ISO-8859-1 for
+        // text/event-stream and Unicode characters (emoji, em dashes,
+        // smart quotes, the registered-trademark symbol, etc.) render as
+        // garbled Latin-1 bytes instead of their intended glyphs.
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
         Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
       },
     })
   } catch (err) {
@@ -392,9 +416,10 @@ async function legacyStream(opts: {
   })
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
     },
   })
 }
