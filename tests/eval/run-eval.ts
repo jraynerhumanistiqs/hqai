@@ -10,6 +10,29 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
+
+// Load .env.local with override semantics — needed because the runner's parent
+// shell may export empty placeholder values (e.g. ANTHROPIC_API_KEY=) which
+// otherwise shadow the real keys in .env.local. Node's --env-file flag will
+// not override existing process.env entries, so we do it ourselves.
+function loadEnvLocal() {
+  const envPath = path.resolve(process.cwd(), '.env.local')
+  if (!fs.existsSync(envPath)) return
+  const raw = fs.readFileSync(envPath, 'utf8')
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line || /^\s*#/.test(line)) continue
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/)
+    if (!m) continue
+    let value = m[2]
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1)
+    }
+    process.env[m[1]] = value
+  }
+}
+loadEnvLocal()
+
 import { SEED_QUESTIONS } from './golden-set.seed'
 import { judgeNumeric } from './judges/numeric-judge'
 import { judgeNarrative } from './judges/llm-judge'
@@ -53,9 +76,11 @@ function parseArgs(argv: string[]): Args {
 
 async function askChat(question: string, model: string): Promise<{ text: string; citations: Array<{ n: number; label: string; url?: string }>; latencyMs: number }> {
   const started = Date.now()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (process.env.EVAL_BYPASS_TOKEN) headers['X-Eval-Token'] = process.env.EVAL_BYPASS_TOKEN
   const res = await fetch(`${BASE_URL}/api/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       module: 'people',
       messages: [{ role: 'user', content: question }],
@@ -64,7 +89,7 @@ async function askChat(question: string, model: string): Promise<{ text: string;
   })
   if (!res.ok) throw new Error(`Chat API ${res.status}: ${await res.text().catch(() => '')}`)
 
-  // Accept either streaming text or JSON with {text, citations}.
+  // Accept JSON, SSE, or plain streaming text.
   const contentType = res.headers.get('content-type') ?? ''
   let text = ''
   let citations: Array<{ n: number; label: string; url?: string }> = []
@@ -73,7 +98,27 @@ async function askChat(question: string, model: string): Promise<{ text: string;
     text = data.text ?? data.content ?? ''
     citations = data.citations ?? []
   } else {
-    text = await res.text()
+    const raw = await res.text()
+    // Server-Sent Events: each chunk is a line `data: {"text":"..."}` (or `data: {"citations":[...]}`).
+    if (raw.includes('data: ')) {
+      for (const line of raw.split(/\r?\n/)) {
+        const m = line.match(/^data:\s*(.*)$/)
+        if (!m) continue
+        const payload = m[1].trim()
+        if (!payload || payload === '[DONE]') continue
+        let obj: any
+        try { obj = JSON.parse(payload) } catch { continue /* non-JSON chunk */ }
+        if (typeof obj.error === 'string' && obj.error) {
+          const detail = typeof obj.detail === 'string' ? `: ${obj.detail}` : ''
+          throw new Error(`Chat stream error: ${obj.error}${detail}`)
+        }
+        if (typeof obj.text === 'string') text += obj.text
+        if (Array.isArray(obj.citations)) citations = obj.citations
+      }
+    } else {
+      text = raw
+    }
+    // Some responses embed citations inside a fenced ```citations ... ``` block.
     const fenced = text.match(/```citations\s*([\s\S]*?)```/)
     if (fenced) {
       try { citations = JSON.parse(fenced[1]) } catch { /* ignore */ }

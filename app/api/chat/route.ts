@@ -6,11 +6,11 @@ import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 300
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
-const MAX_TOOL_ITERATIONS = 5
+const MAX_TOOL_ITERATIONS = 3
 
 type AnthropicMessage = { role: 'user' | 'assistant'; content: any }
 
@@ -18,16 +18,44 @@ export async function POST(req: NextRequest) {
   const started = Date.now()
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return new Response('Unauthorised', { status: 401 })
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*, businesses(*)')
-      .eq('id', user.id)
-      .single()
+    // Eval harness bypass: requests carrying a matching X-Eval-Token header
+    // skip Supabase auth and use a stable placeholder business profile.
+    // Token is only honoured when EVAL_BYPASS_TOKEN env var is set (production
+    // can leave it unset to disable the bypass entirely).
+    const evalHeader = req.headers.get('x-eval-token') ?? ''
+    const evalToken = process.env.EVAL_BYPASS_TOKEN ?? ''
+    const isEval = !!evalToken && evalHeader === evalToken
 
-    const business = profile?.businesses as any
+    let user: { id: string } | null = null
+    let profile: any = null
+    let business: any = null
+
+    if (isEval) {
+      user = { id: '00000000-0000-0000-0000-000000000000' }
+      profile = { full_name: 'Eval Runner' }
+      business = {
+        name: 'Eval Co',
+        industry: 'General',
+        state: 'QLD',
+        award: 'Not specified',
+        headcount: '11-50',
+        employment_types: 'Mixed',
+        advisor_name: 'Sarah',
+      }
+    } else {
+      const { data: authData } = await supabase.auth.getUser()
+      user = authData.user
+      if (!user) return new Response('Unauthorised', { status: 401 })
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*, businesses(*)')
+        .eq('id', user.id)
+        .single()
+      profile = data
+      business = profile?.businesses
+    }
     const { messages, conversationId, module } = await req.json()
     const mod: 'people' | 'recruit' = module === 'recruit' ? 'recruit' : 'people'
 
@@ -88,11 +116,18 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
+              // Force search_knowledge on the first iteration so the model
+              // can't sidestep grounding by claiming "I can't verify" without
+              // ever consulting the corpus. Subsequent iterations are auto.
+              const toolChoice = iter === 0
+                ? { type: 'tool' as const, name: 'search_knowledge' }
+                : { type: 'auto' as const }
               const res = await anthropic.messages.create({
                 model: MODEL,
                 max_tokens: 2048,
                 system: systemPrompt,
                 tools,
+                tool_choice: toolChoice,
                 messages: working,
               })
 
@@ -146,12 +181,15 @@ export async function POST(req: NextRequest) {
               continue
             }
 
-            // Final iteration — stream the answer.
+            // Final iteration — stream the answer. Force no further tool use
+            // so the model commits to text instead of attempting another
+            // tool_use block that would never resolve in the streaming path.
             const finalRes = await anthropic.messages.create({
               model: MODEL,
               max_tokens: requestedDoc ? 4096 : 1500,
               system: systemPrompt,
               tools, // still declared so the model can still cite [n]
+              tool_choice: { type: 'none' },
               messages: working,
               stream: true,
             })
@@ -183,7 +221,10 @@ export async function POST(req: NextRequest) {
           }
         } catch (err) {
           console.error('[chat] error:', err)
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`))
+          const detail = err instanceof Error ? err.message : String(err)
+          // detail is minor info-leak but useful for end-user error reporting;
+          // never include the stack in client output.
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail })}\n\n`))
           controller.close()
         }
       },
@@ -269,6 +310,8 @@ async function finalise(opts: {
 
   // Audit log — fire-and-forget through `after()` so Vercel doesn't freeze
   // the lambda before the insert completes (same fix as the transcribe pipeline).
+  // Skip auditing for eval-bypass requests (placeholder UUID would FK-violate).
+  if (user.id === '00000000-0000-0000-0000-000000000000') return
   after(async () => {
     try {
       await supabase.from('chat_audit_log').insert({
@@ -340,8 +383,9 @@ async function legacyStream(opts: {
           }
         }
         controller.close()
-      } catch {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`))
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err)
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error', detail })}\n\n`))
         controller.close()
       }
     },

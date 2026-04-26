@@ -1,7 +1,7 @@
 // RAG layer: embed a query, run the `match_knowledge` hybrid search SQL
 // function in Supabase, return grounded passages with source metadata.
 
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 // OpenAI text-embedding-3-small — 1536 dims, cheap, good enough for AU
 // employment-law corpus. Swap to Voyage-law-2 (1024 dims) later if recall
@@ -56,7 +56,7 @@ export async function embedQuery(text: string): Promise<number[]> {
 }
 
 export async function searchKnowledge(input: SearchKnowledgeInput): Promise<KnowledgeHit[]> {
-  const { query, topK = 6, minSimilarity = 0.55, sourceFilter, jurisdictionFilter } = input
+  const { query, topK = 6, minSimilarity = 0.5, sourceFilter, jurisdictionFilter } = input
   if (!query || !query.trim()) return []
 
   let embedding: number[]
@@ -67,7 +67,10 @@ export async function searchKnowledge(input: SearchKnowledgeInput): Promise<Know
     return []
   }
 
-  const supabase = await createClient()
+  // Use the service-role admin client — match_knowledge needs to read across
+  // the whole knowledge_chunks corpus regardless of the caller's RLS context
+  // (e.g. eval-bypass requests have no Supabase session at all).
+  const supabase = getSupabaseAdmin()
   const { data, error } = await supabase.rpc('match_knowledge', {
     query_embedding: embedding as unknown as string, // supabase-js serialises the array
     query_text: query,

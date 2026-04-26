@@ -27,8 +27,12 @@ export const SEED_QUESTIONS: GoldenQuestion[] = [
     expectedRubric: {
       mustInclude: ['12 months', 'unpaid parental leave'],
     },
-    expectedCitationContains: ['Fair Work Act', '70'],
-    source: 'Fair Work Act 2009 s 70',
+    // The FWO parental-leave page is treated as a sufficient citation for
+    // this entitlement — it accurately summarises the s 70 NES rule and is
+    // already in the corpus (data/fwo/parental-leave.md). Strict s 70
+    // requirement was relaxed at user direction.
+    expectedCitationContains: ['Parental leave'],
+    source: 'Fair Work Ombudsman — Parental leave (summarises Fair Work Act 2009 s 70)',
   },
   {
     id: 'nes-003',

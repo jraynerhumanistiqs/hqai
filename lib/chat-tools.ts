@@ -42,13 +42,13 @@ export const tools: Anthropic.Tool[] = [
   {
     name: 'search_knowledge',
     description:
-      'Search the HQ.ai grounded knowledge base (Fair Work Act, NES, Modern Awards, Fair Work Ombudsman guidance, internal playbooks) for passages relevant to the user question. Call this BEFORE quoting any clause, entitlement, or procedural step. Returns numbered passages with source titles and URLs that you must cite using [n] markers.',
+      'Search the HQ.ai grounded knowledge base (Fair Work Act, NES, Modern Awards, Fair Work Ombudsman guidance, internal playbooks) for passages relevant to the user question. Call this BEFORE quoting any clause, entitlement, or procedural step. Returns numbered passages with source titles and URLs that you must cite using [n] markers.\n\nIMPORTANT — query format: keep it SHORT (3-6 keywords max). Drop generic words like "employee", "entitlement", "NES", "National Employment Standards", "full-time", "Australia". Examples:\n  ✓ "annual leave 4 weeks"\n  ✓ "redundancy pay small business"\n  ✓ "casual conversion 12 months"\n  ✗ "what is the annual leave entitlement for a full-time employee under the NES"\n\nIMPORTANT — sourceFilter strategy:\n  • For NES entitlements (annual leave, personal/carer\'s leave, parental leave, max hours, redundancy pay, notice, public holidays, FDV leave) — use sourceFilter="fair-work-act". The Fair Work Act 2009 is the authoritative source for these.\n  • For Modern Award questions (specific industry pay rates, allowances, penalties, classifications) — use sourceFilter="modern-award:<code>" if you know it, otherwise no filter.\n  • For procedural / how-to / Fair Work Ombudsman guidance — no filter is fine.\n\nIf the first search returns no hits, retry with shorter keywords or no sourceFilter.',
     input_schema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Natural-language search query, e.g. "notice period redundancy 5 years service".',
+          description: 'Short keyword query, 3-6 terms. e.g. "annual leave 4 weeks", "redundancy small business", "notice period termination".',
         },
         sourceFilter: {
           type: 'string',

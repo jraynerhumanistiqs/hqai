@@ -6,7 +6,16 @@ import { useRouter } from 'next/navigation'
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
 const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) Award','Restaurant Industry Award','Pharmacy Industry Award 2020','Aged Care Award','SCHADS Award','Nurses Award','Building & Construction Award','Clerks Private Sector Award','Professional Employees Award','Award-free / Enterprise Agreement','Multiple awards apply','Not sure']
-const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
+const COUNTRIES = ['Australia','New Zealand','United Kingdom','United States','Canada','Singapore','Other']
+const STATES_BY_COUNTRY: Record<string, string[]> = {
+  Australia: ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT'],
+  'New Zealand': ['Auckland','Wellington','Canterbury','Waikato','Bay of Plenty','Manawatū-Whanganui','Otago','Northland','Hawke’s Bay','Taranaki','Southland','Tasman','Nelson','Marlborough','West Coast','Gisborne'],
+  'United Kingdom': ['England','Scotland','Wales','Northern Ireland'],
+  'United States': ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'],
+  Canada: ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT'],
+  Singapore: ['Singapore'],
+  Other: [],
+}
 const EMP_TYPES = ['Full-time only','Full-time and part-time','Full-time, part-time and casual','Primarily casual']
 const PLANS = [
   { id: 'free', label: 'Free Trial', price: 'Free for 14 days', desc: 'Full access, no credit card required' },
@@ -20,7 +29,7 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
-    bizName: '', industry: '', state: '', awards: [] as string[], headcount: '',
+    bizName: '', industry: '', country: 'Australia', state: '', awards: [] as string[], headcount: '',
     empTypes: '',
     advisorName: 'Hugo', userName: '', plan: 'free'
   })
@@ -74,6 +83,7 @@ export default function OnboardingPage() {
         .insert({
           name: form.bizName || 'My Business',
           industry: form.industry,
+          country: form.country,
           state: form.state,
           award: form.awards.join(', '),
           headcount: form.headcount,
@@ -173,6 +183,33 @@ export default function OnboardingPage() {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Country</label>
+                  <select
+                    className={selectCls}
+                    value={form.country}
+                    onChange={e => {
+                      const next = e.target.value
+                      setForm(f => ({ ...f, country: next, state: '' }))
+                    }}
+                  >
+                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                {STATES_BY_COUNTRY[form.country]?.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
+                    <div className="flex flex-wrap gap-2">
+                      {STATES_BY_COUNTRY[form.country].map(s => (
+                        <button key={s} type="button" onClick={() => update('state', s)}
+                          className={`px-4 py-2 rounded-lg text-sm border font-bold transition-colors
+                            ${form.state === s ? 'bg-black text-white border-black' : 'bg-white border-border text-mid hover:border-black'}`}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Number of employees</label>
                   <input
                     className={inputCls}
@@ -193,18 +230,6 @@ export default function OnboardingPage() {
               <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Employment details</h2>
               <p className="text-sm text-mid mb-6">HQ applies the right awards and compliance rules automatically.</p>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
-                  <div className="flex flex-wrap gap-2">
-                    {STATES.map(s => (
-                      <button key={s} type="button" onClick={() => update('state', s)}
-                        className={`px-4 py-2 rounded-lg text-sm border font-bold transition-colors
-                          ${form.state === s ? 'bg-black text-white border-black' : 'bg-white border-border text-mid hover:border-black'}`}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Applicable Modern Awards (select all that apply)</label>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin pr-1">
