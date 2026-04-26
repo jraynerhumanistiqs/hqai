@@ -163,6 +163,17 @@ export async function POST(req: NextRequest) {
               const toolResults: Array<{ type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }> = []
               for (const tu of toolUseBlocks) {
                 const r: ToolRunResult = await runTool(tu.id, tu.name, tu.input, citationCursor)
+                // Debug breadcrumb (eval-smoke branch only) — surfaces what the
+                // model searched for and how many chunks came back. Remove
+                // before merging to main.
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                  debug: {
+                    tool: tu.name,
+                    input: tu.input,
+                    hits: r.citations.length,
+                    output_preview: r.output.slice(0, 400),
+                  },
+                })}\n\n`))
                 citationCursor += r.citations.length
                 accumulatedCitations.push(...r.citations)
                 accumulatedToolCalls.push({
