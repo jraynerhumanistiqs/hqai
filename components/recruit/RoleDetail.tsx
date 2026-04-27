@@ -9,6 +9,7 @@ import type {
   PrescreenResponseStatus,
 } from '@/lib/recruit-types'
 import { TranscriptViewer, type Utterance } from './TranscriptViewer'
+import { TranscriptModal } from './TranscriptModal'
 import { VideoPlayer } from './VideoPlayer'
 import { ResponsesKanban, type KanbanStage } from './ResponsesKanban'
 import {
@@ -100,6 +101,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [transcriptOpen, setTranscriptOpen] = useState<Record<string, boolean>>({})
   const [transcriptByResponse, setTranscriptByResponse] = useState<Record<string, Utterance[] | null>>({})
   const [transcriptTextByResponse, setTranscriptTextByResponse] = useState<Record<string, string | null>>({})
+  const [transcriptModal, setTranscriptModal] = useState<
+    | { responseId: string; question: number | 'all' }
+    | null
+  >(null)
   const [videoTimeByResponse, setVideoTimeByResponse] = useState<Record<string, number>>({})
   const [videoSeekByResponse, setVideoSeekByResponse] = useState<Record<string, number | undefined>>({})
 
@@ -237,31 +242,14 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
       })
   }, [transcriptOpen, transcriptByResponse])
 
-  function downloadTranscript(responseId: string, questionNumber: number | 'all') {
-    const fullText = transcriptTextByResponse[responseId]
-    if (!fullText) return
-    const candidate = mergedResponses.find(r => r.id === responseId)
-    const safeName = (candidate?.candidate_name || 'candidate').replace(/[^a-z0-9]+/gi, '_').toLowerCase()
-    let body = fullText
-    let suffix = 'all'
-    if (questionNumber !== 'all') {
-      // Split on "Question N:" headers and pick the requested one. The
-      // transcribe route emits sections like "Question 1:\n..." separated
-      // by blank lines.
-      const sections = fullText.split(/\n\n(?=Question \d+:)/)
-      const target = sections.find(s => s.startsWith(`Question ${questionNumber}:`))
-      body = target || `Question ${questionNumber} not found in transcript.`
-      suffix = `q${questionNumber}`
-    }
-    const blob = new Blob([body], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${safeName}-transcript-${suffix}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+  // Build the body text for a transcript modal: full text or just one
+  // question section split out of the merged "Question N:" transcript.
+  function transcriptBody(responseId: string, questionNumber: number | 'all'): string {
+    const fullText = transcriptTextByResponse[responseId] ?? ''
+    if (questionNumber === 'all') return fullText
+    const sections = fullText.split(/\n\n(?=Question \d+:)/)
+    return sections.find(s => s.trim().startsWith(`Question ${questionNumber}:`))
+      || `Question ${questionNumber} not found in transcript.`
   }
 
   async function saveSlug() {
@@ -831,18 +819,18 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                 {transcriptTextByResponse[r.id] && (
                                   <div className="flex flex-wrap items-center gap-2">
                                     <button
-                                      onClick={() => downloadTranscript(r.id, 'all')}
+                                      onClick={() => setTranscriptModal({ responseId: r.id, question: 'all' })}
                                       className="text-xs font-bold px-3 py-1.5 rounded-full bg-black text-white hover:bg-charcoal transition-colors"
                                     >
-                                      Download full transcript
+                                      View full transcript
                                     </button>
                                     {Array.isArray(r.video_ids) && r.video_ids.length > 1 && r.video_ids.map((_uid: string, qi: number) => (
                                       <button
                                         key={qi}
-                                        onClick={() => downloadTranscript(r.id, qi + 1)}
+                                        onClick={() => setTranscriptModal({ responseId: r.id, question: qi + 1 })}
                                         className="text-xs font-bold px-3 py-1.5 rounded-full bg-light text-mid hover:bg-border transition-colors"
                                       >
-                                        Q{qi + 1} only
+                                        View Q{qi + 1}
                                       </button>
                                     ))}
                                   </div>
@@ -956,6 +944,26 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           </div>
         </div>
       )}
+
+      {/* Transcript modal — branded preview + DOCX download */}
+      {transcriptModal && (() => {
+        const r = mergedResponses.find(x => x.id === transcriptModal.responseId)
+        if (!r) return null
+        const body = transcriptBody(transcriptModal.responseId, transcriptModal.question)
+        const title = transcriptModal.question === 'all'
+          ? 'Full transcript'
+          : `Question ${transcriptModal.question}`
+        return (
+          <TranscriptModal
+            open
+            onClose={() => setTranscriptModal(null)}
+            title={title}
+            candidateName={r.candidate_name || 'Candidate'}
+            roleTitle={session.role_title}
+            text={body}
+          />
+        )
+      })()}
     </div>
   )
 }
