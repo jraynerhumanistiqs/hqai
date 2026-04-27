@@ -99,6 +99,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [biasBannerDismissed, setBiasBannerDismissed] = useState(false)
   const [transcriptOpen, setTranscriptOpen] = useState<Record<string, boolean>>({})
   const [transcriptByResponse, setTranscriptByResponse] = useState<Record<string, Utterance[] | null>>({})
+  const [transcriptTextByResponse, setTranscriptTextByResponse] = useState<Record<string, string | null>>({})
   const [videoTimeByResponse, setVideoTimeByResponse] = useState<Record<string, number>>({})
   const [videoSeekByResponse, setVideoSeekByResponse] = useState<Record<string, number | undefined>>({})
 
@@ -195,19 +196,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     const current = mergedResponses.find(r => r.id === expanded)
     if (!current) return
     const status = current.status as string
-    if (status !== 'scored' && status !== 'staff_reviewed') return
+    // Statuses that may have evaluations: scored, staff_reviewed, shared
+    // (post-review terminal states). Also fetch on 'transcribed' so users
+    // can see scoring data for re-run responses.
+    const evaluatedStatuses = new Set(['scored', 'staff_reviewed', 'shared', 'reviewed', 'transcribed'])
+    if (!evaluatedStatuses.has(status)) return
     if (evalByResponse[expanded] !== undefined) return
 
-    const supa = createClient()
-    supa
-      .from('prescreen_evaluations')
-      .select('id, response_id, rubric, overall_summary, model, created_at')
-      .eq('response_id', expanded)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        setEvalByResponse(prev => ({ ...prev, [expanded]: (data as any) ?? null }))
+    // Fetch via server route — browser anon-key client can't read
+    // prescreen_evaluations (RLS enabled). The route uses service-role
+    // and gates on user auth.
+    fetch(`/api/prescreen/responses/${expanded}/evaluation`)
+      .then(r => r.ok ? r.json() : { evaluation: null })
+      .then((data: { evaluation: PrescreenEvaluation | null }) => {
+        setEvalByResponse(prev => ({ ...prev, [expanded]: data.evaluation ?? null }))
+      })
+      .catch(() => {
+        setEvalByResponse(prev => ({ ...prev, [expanded]: null }))
       })
   }, [expanded, mergedResponses, evalByResponse])
 
@@ -220,14 +225,44 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     // and gates on user auth.
     fetch(`/api/prescreen/responses/${openId}/transcript`)
       .then(r => r.ok ? r.json() : { transcript: null })
-      .then((data: { transcript: { utterances?: unknown } | null }) => {
+      .then((data: { transcript: { utterances?: unknown; text?: string } | null }) => {
         const us = data.transcript?.utterances
+        const txt = data.transcript?.text
         setTranscriptByResponse(prev => ({ ...prev, [openId]: Array.isArray(us) ? us as Utterance[] : null }))
+        setTranscriptTextByResponse(prev => ({ ...prev, [openId]: typeof txt === 'string' ? txt : null }))
       })
       .catch(() => {
         setTranscriptByResponse(prev => ({ ...prev, [openId]: null }))
+        setTranscriptTextByResponse(prev => ({ ...prev, [openId]: null }))
       })
   }, [transcriptOpen, transcriptByResponse])
+
+  function downloadTranscript(responseId: string, questionNumber: number | 'all') {
+    const fullText = transcriptTextByResponse[responseId]
+    if (!fullText) return
+    const candidate = mergedResponses.find(r => r.id === responseId)
+    const safeName = (candidate?.candidate_name || 'candidate').replace(/[^a-z0-9]+/gi, '_').toLowerCase()
+    let body = fullText
+    let suffix = 'all'
+    if (questionNumber !== 'all') {
+      // Split on "Question N:" headers and pick the requested one. The
+      // transcribe route emits sections like "Question 1:\n..." separated
+      // by blank lines.
+      const sections = fullText.split(/\n\n(?=Question \d+:)/)
+      const target = sections.find(s => s.startsWith(`Question ${questionNumber}:`))
+      body = target || `Question ${questionNumber} not found in transcript.`
+      suffix = `q${questionNumber}`
+    }
+    const blob = new Blob([body], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${safeName}-transcript-${suffix}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   async function saveSlug() {
     const next = slugDraft.trim().toLowerCase()
@@ -760,7 +795,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             ))}
                           </div>
 
-                          {(r.status as string) === 'scored' || (r.status as string) === 'staff_reviewed' ? (
+                          {evaluation ? (
                             <AiSuggestionCard
                               evaluation={evaluation}
                               alreadyReviewed={(r.status as string) === 'staff_reviewed'}
@@ -786,13 +821,32 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               {transcriptOpen[r.id] ? 'Hide transcript' : 'Show transcript'}
                             </button>
                             {transcriptOpen[r.id] && (
-                              <div className="mt-2">
+                              <div className="mt-2 space-y-3">
                                 <TranscriptViewer
                                   utterances={transcriptByResponse[r.id] ?? []}
                                   currentTimeSec={videoTimeByResponse[r.id] ?? 0}
                                   onSeek={(sec) => setVideoSeekByResponse(prev => ({ ...prev, [r.id]: sec }))}
                                   highlightTimestampSec={videoSeekByResponse[r.id]}
                                 />
+                                {transcriptTextByResponse[r.id] && (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                      onClick={() => downloadTranscript(r.id, 'all')}
+                                      className="text-xs font-bold px-3 py-1.5 rounded-full bg-black text-white hover:bg-charcoal transition-colors"
+                                    >
+                                      Download full transcript
+                                    </button>
+                                    {Array.isArray(r.video_ids) && r.video_ids.length > 1 && r.video_ids.map((_uid: string, qi: number) => (
+                                      <button
+                                        key={qi}
+                                        onClick={() => downloadTranscript(r.id, qi + 1)}
+                                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-light text-mid hover:bg-border transition-colors"
+                                      >
+                                        Q{qi + 1} only
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
