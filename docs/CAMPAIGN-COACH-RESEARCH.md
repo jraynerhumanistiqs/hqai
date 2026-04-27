@@ -378,7 +378,22 @@ Add a new optional column `prescreen_sessions.invite_template jsonb` *only if* t
 
 ---
 
-## 6. Open Questions / Founder Decisions
+## 6. Founder Decisions — CONFIRMED 2026-04-27
+
+All five v1 decisions have been confirmed by the founder:
+
+1. **Pricing tier**: limited Coach on Free (1 campaign/month, no careers microsite hosting), full Coach on Essentials+, multipost on Growth+ — **APPROVED**.
+2. **Step 3 auto-fill**: pre-write all blocks BUT each block requires explicit **"Approve Section"** click before the wizard advances to Step 4. No silent advance — confirmation gate per block.
+3. **Multipost in v1**: deep-link only, defer full API integration to v2 — **APPROVED**.
+4. **Voice on Step 1**: defer to v1.1 — **APPROVED**.
+5. **Award grounding**: confident-but-collapsible chip in Step 2 — **APPROVED**.
+
+Lower-priority confirmed:
+- Coach voice: **first-person** ("I'd classify this as…", not "The Coach recommends…").
+- Careers microsite branding: **HQ.ai-branded** v1 per the Uber-derived design system. Custom domain support deferred to v2.
+- NZ market: **defer**. Awards regime doesn't apply; revisit post-launch.
+
+## 7. Open Questions / Founder Decisions (original — for record)
 
 The five decisions that meaningfully shape the v1 build:
 

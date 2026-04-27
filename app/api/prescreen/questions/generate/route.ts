@@ -15,8 +15,24 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
-    const { role_title, description, count = 4 } = await req.json()
+    const { role_title, description, count = 4, extras } = await req.json()
     if (!role_title) return NextResponse.json({ error: 'role_title is required' }, { status: 400 })
+
+    // Optional Campaign Coach hint block — backwards-compatible.
+    let extrasBlock = ''
+    if (extras && typeof extras === 'object') {
+      const lines: string[] = []
+      if (Array.isArray(extras.must_have_skills) && extras.must_have_skills.length) {
+        lines.push(`Must-have skills (weight questions toward these): ${extras.must_have_skills.join(', ')}`)
+      }
+      if (typeof extras.level === 'string' && extras.level.trim()) {
+        lines.push(`Level: ${extras.level}`)
+      }
+      if (typeof extras.contract_type === 'string' && extras.contract_type.trim()) {
+        lines.push(`Contract: ${extras.contract_type}`)
+      }
+      if (lines.length) extrasBlock = `\n\n${lines.join('\n')}`
+    }
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -26,7 +42,7 @@ export async function POST(req: NextRequest) {
         content: `You are helping a recruitment consultancy create video pre-screen questions for candidates.
 
 Role: ${role_title}
-${description ? `Context: ${description}` : ''}
+${description ? `Context: ${description}` : ''}${extrasBlock}
 Number of questions: ${count}
 
 Generate exactly ${count} concise, open-ended video interview questions. They should:

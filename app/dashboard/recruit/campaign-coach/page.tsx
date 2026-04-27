@@ -1,5 +1,30 @@
-import ComingSoon from '@/components/dashboard/ComingSoon'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import WizardShell from '@/components/recruit/campaign-coach/WizardShell'
+import type { CampaignBusinessContext } from '@/lib/campaign-types'
 
-export default function Page() {
-  return <ComingSoon title="Campaign Coach" blurb="An AI-guided recruitment campaign builder is in build. It'll help you draft job ads, pick the right boards, and hand off to Shortlist Agent without leaving HQ.ai. Final stages of design — coming next release." />
+export default async function CampaignCoachPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*, businesses(*)')
+    .eq('id', user.id)
+    .single()
+
+  const biz = (profile as any)?.businesses
+
+  const business: CampaignBusinessContext = {
+    id: biz?.id,
+    name: biz?.name || 'My Business',
+    industry: biz?.industry || '',
+    state: biz?.state || '',
+    award: biz?.award || '',
+    size: biz?.size || '',
+    about: biz?.about || '',
+  }
+
+  return <WizardShell business={business} />
 }
