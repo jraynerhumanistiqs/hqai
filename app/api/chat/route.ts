@@ -6,7 +6,7 @@ import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 150
+export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
