@@ -56,7 +56,7 @@ export async function embedQuery(text: string): Promise<number[]> {
 }
 
 export async function searchKnowledge(input: SearchKnowledgeInput): Promise<KnowledgeHit[]> {
-  const { query, topK = 4, minSimilarity = 0.4, sourceFilter, jurisdictionFilter } = input
+  const { query, topK = 6, minSimilarity = 0.4, sourceFilter, jurisdictionFilter } = input
   if (!query || !query.trim()) return []
 
   let embedding: number[]
