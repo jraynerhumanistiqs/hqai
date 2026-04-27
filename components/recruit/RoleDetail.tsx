@@ -848,7 +848,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                 <button
                                   key={n}
                                   onClick={() => onPatchResponse(r.id, { rating: n, status: 'staff_reviewed' as any })}
-                                  className={`text-xl transition-colors ${(r.rating ?? 0) >= n ? 'text-warning' : 'text-light hover:text-warning/60'}`}
+                                  className={`text-2xl leading-none transition-colors ${(r.rating ?? 0) >= n ? 'text-warning' : 'text-light hover:text-warning/60'}`}
                                 >
                                   *
                                 </button>
