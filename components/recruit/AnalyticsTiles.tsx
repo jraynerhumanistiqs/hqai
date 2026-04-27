@@ -1,10 +1,10 @@
-﻿'use client'
+'use client'
 import { useEffect, useMemo, useState } from 'react'
 
 interface FunnelData {
   invited: number; started: number; submitted: number; scored: number; shortlisted: number; rejected: number
 }
-interface DimStat { name: string; p25: number; p50: number; p75: number; min: number; max: number; n: number }
+interface DimStat { name: string; mean: number; p25: number; p50: number; p75: number; min: number; max: number; n: number }
 interface Agreement { accept: number; adjust: number; reject: number; pending: number }
 interface BiasAudit { protected_attr_violations: number; insufficient_evidence_count: number; low_confidence_count: number }
 interface Analytics {
@@ -17,6 +17,12 @@ interface Analytics {
 
 // Verbatim Claude guardrail paragraph from lib/claude-scoring.ts SYSTEM_PROMPT.
 const GUARDRAIL_PARAGRAPH = `You MUST NOT infer or reference protected attributes (age, gender, ethnicity, accent, national origin, religion, disability, health, sexual orientation, family status). You MUST NOT score emotion, personality, confidence-as-a-trait, or culture fit. Score only task-relevant behaviour as evidenced by the candidate's own words in the transcript. Every score must cite a verbatim quote from the transcript and its start-second timestamp. If evidence is insufficient, return confidence < 0.5 and mark the dimension insufficient_evidence=true.`
+
+function prettyDimName(raw: string): string {
+  const cleaned = raw.replace(/[_-]+/g, ' ').trim()
+  if (!cleaned) return raw
+  return cleaned.replace(/\b\w/g, c => c.toUpperCase())
+}
 
 export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
   const [data, setData] = useState<Analytics | null>(null)
@@ -130,28 +136,42 @@ function DimensionTile({ stats }: { stats: DimStat[] }) {
   return (
     <Tile title="Per-dimension scores">
       <div className="space-y-3">
-        {stats.map(s => <BoxPlotRow key={s.name} stat={s} />)}
+        {stats.map(s => <DimensionRow key={s.name} stat={s} />)}
       </div>
-      <p className="text-[10px] text-mid mt-2">Min - p25 - median - p75 - max. Scale 1-5.</p>
+      <p className="text-[10px] text-mid mt-3">
+        Average score (1-5) across the latest evaluation per candidate. Bar shows distribution: min - p25 - median - p75 - max.
+      </p>
     </Tile>
   )
 }
 
-function BoxPlotRow({ stat }: { stat: DimStat }) {
-  const W = 260, H = 22, padX = 6
+function DimensionRow({ stat }: { stat: DimStat }) {
+  const W = 200, H = 18, padX = 6
   const x = (v: number) => padX + ((v - 1) / 4) * (W - padX * 2)
+  const meanPct = Math.max(0, Math.min(100, ((stat.mean - 1) / 4) * 100))
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-mid w-28 flex-shrink-0 truncate">{stat.name}</span>
-      <svg width={W} height={H} className="flex-1" aria-label={`${stat.name} distribution`}>
-        <line x1={padX} x2={W - padX} y1={H / 2} y2={H / 2} stroke="#e2e2e2" strokeWidth={1} />
-        <line x1={x(stat.min)} x2={x(stat.max)} y1={H / 2} y2={H / 2} stroke="#4b4b4b" strokeWidth={1} />
-        <line x1={x(stat.min)} x2={x(stat.min)} y1={H / 2 - 4} y2={H / 2 + 4} stroke="#4b4b4b" strokeWidth={1} />
-        <line x1={x(stat.max)} x2={x(stat.max)} y1={H / 2 - 4} y2={H / 2 + 4} stroke="#4b4b4b" strokeWidth={1} />
-        <rect x={x(stat.p25)} y={H / 2 - 6} width={Math.max(1, x(stat.p75) - x(stat.p25))} height={12} fill="#1F1F1F" opacity={0.9} />
-        <line x1={x(stat.p50)} x2={x(stat.p50)} y1={H / 2 - 6} y2={H / 2 + 6} stroke="#FFFFFF" strokeWidth={2} />
-      </svg>
-      <span className="text-[10px] text-mid w-10 text-right">n={stat.n}</span>
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-bold text-charcoal truncate">{prettyDimName(stat.name)}</span>
+        <span className="flex-shrink-0 text-xs text-mid">
+          <span className="text-base font-bold text-black tabular-nums">{stat.mean.toFixed(2)}</span>
+          <span className="ml-1">avg</span>
+          <span className="ml-2 text-mid">n={stat.n}</span>
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-2 bg-light rounded-full overflow-hidden relative">
+          <div className="h-full bg-black rounded-full" style={{ width: `${meanPct}%` }} />
+        </div>
+        <svg width={W} height={H} className="flex-shrink-0" aria-label={`${stat.name} distribution`}>
+          <line x1={padX} x2={W - padX} y1={H / 2} y2={H / 2} stroke="#e2e2e2" strokeWidth={1} />
+          <line x1={x(stat.min)} x2={x(stat.max)} y1={H / 2} y2={H / 2} stroke="#4b4b4b" strokeWidth={1} />
+          <line x1={x(stat.min)} x2={x(stat.min)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="#4b4b4b" strokeWidth={1} />
+          <line x1={x(stat.max)} x2={x(stat.max)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="#4b4b4b" strokeWidth={1} />
+          <rect x={x(stat.p25)} y={H / 2 - 5} width={Math.max(1, x(stat.p75) - x(stat.p25))} height={10} fill="#1F1F1F" opacity={0.9} />
+          <line x1={x(stat.p50)} x2={x(stat.p50)} y1={H / 2 - 5} y2={H / 2 + 5} stroke="#FFFFFF" strokeWidth={2} />
+        </svg>
+      </div>
     </div>
   )
 }

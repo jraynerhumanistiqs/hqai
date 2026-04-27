@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import type { PrescreenSession } from '@/lib/recruit-types'
+import type { PrescreenSession, RubricDimension, RubricMode } from '@/lib/recruit-types'
+import { RubricEditor } from './RubricEditor'
 
 interface Props {
   session: PrescreenSession
@@ -10,13 +11,26 @@ interface Props {
 
 const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
 
+function initialRubric(session: PrescreenSession): RubricDimension[] {
+  const cur = Array.isArray(session.custom_rubric) ? session.custom_rubric : []
+  const cleaned = cur.map(d => ({ name: d?.name ?? '', description: d?.description ?? '' }))
+  if (cleaned.length >= 3) return cleaned
+  const padded = [...cleaned]
+  while (padded.length < 3) padded.push({ name: '', description: '' })
+  return padded
+}
+
 export function EditRoleModal({ session, onClose, onSaved }: Props) {
   const [company, setCompany]       = useState(session.company)
   const [roleTitle, setRoleTitle]   = useState(session.role_title)
   const [questions, setQuestions]   = useState<string[]>(session.questions ?? [])
   const [minutes, setMinutes]       = useState(Math.floor((session.time_limit_seconds ?? 90) / 60))
   const [seconds, setSeconds]       = useState((session.time_limit_seconds ?? 90) % 60)
+  const [rubricMode, setRubricMode] = useState<RubricMode>(session.rubric_mode ?? 'standard')
+  const [customRubric, setCustomRubric] = useState<RubricDimension[]>(() => initialRubric(session))
   const [saving, setSaving]         = useState(false)
+  const [rescoring, setRescoring]   = useState(false)
+  const [statusMsg, setStatusMsg]   = useState('')
   const [error, setError]           = useState('')
 
   const timeLimit = Math.max(10, Math.min(600, minutes * 60 + seconds))
@@ -39,11 +53,40 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
     setSeconds(Math.max(0, Math.min(59, Math.floor(v))))
   }
 
+  function rubricChanged(): boolean {
+    const prevMode = session.rubric_mode ?? 'standard'
+    if (prevMode !== rubricMode) return true
+    if (rubricMode !== 'custom') return false
+    const prev = Array.isArray(session.custom_rubric) ? session.custom_rubric : []
+    const cleaned = customRubric.filter(d => d.name.trim() && d.description.trim())
+    if (prev.length !== cleaned.length) return true
+    for (let i = 0; i < cleaned.length; i++) {
+      if ((prev[i]?.name ?? '') !== cleaned[i].name) return true
+      if ((prev[i]?.description ?? '') !== cleaned[i].description) return true
+    }
+    return false
+  }
+
   async function handleSave() {
     const filled = questions.filter(q => q.trim())
     if (!company.trim() || !roleTitle.trim()) { setError('Please enter company and role title.'); return }
     if (!filled.length) { setError('Please add at least one question.'); return }
+
+    let customRubricPayload: RubricDimension[] | null = null
+    if (rubricMode === 'custom') {
+      const cleaned = customRubric
+        .map(d => ({ name: d.name.trim(), description: d.description.trim() }))
+        .filter(d => d.name && d.description)
+      if (cleaned.length < 3 || cleaned.length > 6) {
+        setError('Custom rubric needs 3-6 dimensions, each with a name and description.')
+        return
+      }
+      customRubricPayload = cleaned
+    }
+
     setError('')
+    setStatusMsg('')
+    const willRescore = rubricChanged()
     setSaving(true)
     try {
       const res = await fetch(`/api/prescreen/sessions/${session.id}`, {
@@ -54,23 +97,56 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
           role_title: roleTitle.trim(),
           questions: filled,
           time_limit_seconds: timeLimit,
+          rubric_mode: rubricMode,
+          custom_rubric: customRubricPayload,
         }),
       })
       const data = await res.json()
       if (!res.ok || data.error) throw new Error(data.error || 'Save failed')
-      onSaved(data.session as PrescreenSession)
-      onClose()
+      const updated = data.session as PrescreenSession
+      onSaved(updated)
+
+      if (willRescore) {
+        setSaving(false)
+        setRescoring(true)
+        setStatusMsg('Saving — re-scoring candidates with the new rubric…')
+        try {
+          const rsRes = await fetch(`/api/prescreen/sessions/${session.id}/rescore`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          const rsData = await rsRes.json().catch(() => ({}))
+          if (!rsRes.ok) {
+            setStatusMsg(`Rubric saved, but rescore failed: ${rsData?.error ?? `HTTP ${rsRes.status}`}`)
+          } else if (rsData.queued === 0) {
+            setStatusMsg('Done — no scored candidates to re-score yet.')
+          } else if ((rsData.errors?.length ?? 0) > 0) {
+            setStatusMsg(`Done — ${rsData.queued - rsData.errors.length}/${rsData.queued} candidates re-scored. ${rsData.errors.length} failed.`)
+          } else {
+            setStatusMsg(`Done — ${rsData.queued} candidate${rsData.queued === 1 ? '' : 's'} re-scored.`)
+          }
+        } catch (e) {
+          setStatusMsg(`Rubric saved, but rescore failed: ${(e as Error).message}`)
+        } finally {
+          setRescoring(false)
+        }
+        setTimeout(() => onClose(), 1200)
+      } else {
+        onClose()
+      }
     } catch {
       setError('Failed to save changes. Please try again.')
-    } finally {
       setSaving(false)
+      setRescoring(false)
     }
   }
+
+  const busy = saving || rescoring
 
   return (
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+      onClick={busy ? undefined : onClose}
     >
       <div
         className="bg-white rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
@@ -80,11 +156,12 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
         <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="font-serif text-xl font-bold text-black">Edit Role</h2>
-            <p className="text-sm text-mid mt-0.5">Update role details, questions, or time limit</p>
+            <p className="text-sm text-mid mt-0.5">Update role details, questions, rubric, or time limit</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-black"
+            disabled={busy}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-black disabled:opacity-40"
             aria-label="Close"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -173,23 +250,43 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
             </div>
           </div>
 
+          <div className="pt-2 border-t border-border">
+            <RubricEditor
+              mode={rubricMode}
+              dimensions={customRubric}
+              onModeChange={setRubricMode}
+              onDimensionsChange={setCustomRubric}
+              inputClassName={inputCls}
+            />
+            <p className="text-[10px] text-mid mt-2">
+              Saving rubric changes re-scores every candidate with a transcript. Existing ratings, stages, and notes are preserved.
+            </p>
+          </div>
+
           {error && <p className="text-xs text-danger">{error}</p>}
+          {statusMsg && <p className="text-xs text-charcoal">{statusMsg}</p>}
         </div>
 
         {/* Footer */}
         <div className="px-7 py-5 border-t border-border flex items-center justify-end gap-3 bg-bg/50">
           <button
             onClick={onClose}
-            className="text-sm text-mid hover:text-black font-bold transition-colors"
+            disabled={busy}
+            className="text-sm text-mid hover:text-black font-bold transition-colors disabled:opacity-40"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={busy}
             className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
           >
-            {saving ? (
+            {rescoring ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Re-scoring…
+              </>
+            ) : saving ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Saving…

@@ -1,4 +1,4 @@
-﻿// GET /api/prescreen/sessions/[id]/analytics
+// GET /api/prescreen/sessions/[id]/analytics
 // Role-level analytics tiles: funnel, avg time-to-score, dimension distribution,
 // AI-agreement donut, bias audit summary.
 
@@ -8,7 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
 
-interface DimStat { name: string; p25: number; p50: number; p75: number; min: number; max: number; n: number }
+interface DimStat { name: string; mean: number; p25: number; p50: number; p75: number; min: number; max: number; n: number }
 
 function percentile(sorted: number[], p: number): number {
   if (!sorted.length) return 0
@@ -101,8 +101,10 @@ export async function GET(
     }
     for (const [name, arr] of Object.entries(scoresByDim)) {
       const sorted = [...arr].sort((a, b) => a - b)
+      const mean = arr.reduce((a, b) => a + b, 0) / arr.length
       dimensionStats.push({
         name,
+        mean: +mean.toFixed(2),
         p25: +percentile(sorted, 0.25).toFixed(2),
         p50: +percentile(sorted, 0.50).toFixed(2),
         p75: +percentile(sorted, 0.75).toFixed(2),
@@ -111,6 +113,8 @@ export async function GET(
         n: sorted.length,
       })
     }
+    // Stable ordering: highest mean first, then alpha
+    dimensionStats.sort((a, b) => b.mean - a.mean || a.name.localeCompare(b.name))
   }
 
   // AI agreement (staff decisions on suggestions)
