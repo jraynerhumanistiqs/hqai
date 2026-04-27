@@ -50,6 +50,7 @@ type ViewMode = 'list' | 'kanban'
 const STATUS_LABEL: Record<string, string> = {
   submitted: 'Submitted',
   transcribing: 'Transcribing',
+  transcribed: 'Transcribed',
   evaluating: 'Evaluating',
   scored: 'Scored',
   staff_reviewed: 'Reviewed',
@@ -61,6 +62,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_PILL: Record<string, string> = {
   submitted:      'bg-light text-mid border-border',
   transcribing:   'bg-blue-50 text-blue-600 border-blue-200',
+  transcribed:    'bg-light text-mid border-border',
   evaluating:     'bg-blue-50 text-blue-600 border-blue-200',
   scored:         'bg-amber-50 text-amber-700 border-amber-200',
   staff_reviewed: 'bg-green-50 text-green-600 border-green-200',
@@ -213,17 +215,17 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     const openId = Object.entries(transcriptOpen).find(([, v]) => v)?.[0]
     if (!openId) return
     if (transcriptByResponse[openId] !== undefined) return
-    const supa = createClient()
-    supa
-      .from('prescreen_transcripts')
-      .select('utterances')
-      .eq('response_id', openId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        const us = (data as any)?.utterances
+    // Fetch via the server route — browser anon-key client can't read
+    // prescreen_transcripts (RLS enabled). The route uses service-role
+    // and gates on user auth.
+    fetch(`/api/prescreen/responses/${openId}/transcript`)
+      .then(r => r.ok ? r.json() : { transcript: null })
+      .then((data: { transcript: { utterances?: unknown } | null }) => {
+        const us = data.transcript?.utterances
         setTranscriptByResponse(prev => ({ ...prev, [openId]: Array.isArray(us) ? us as Utterance[] : null }))
+      })
+      .catch(() => {
+        setTranscriptByResponse(prev => ({ ...prev, [openId]: null }))
       })
   }, [transcriptOpen, transcriptByResponse])
 

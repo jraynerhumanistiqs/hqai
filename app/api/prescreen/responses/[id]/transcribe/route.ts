@@ -26,10 +26,18 @@ export async function POST(
       return NextResponse.json({ error: 'Response not found' }, { status: 404 })
     }
 
-    await supabaseAdmin
-      .from('prescreen_responses')
-      .update({ status: 'transcribing' })
-      .eq('id', id)
+    // Capture the prior status so we can restore it if the response was
+    // already past the transcribing phase (e.g. a re-run from the backfill
+    // script on a 'shared' response). Only flip to 'transcribing' if we're
+    // genuinely starting fresh.
+    const priorStatus = (resp as { status?: string } | null)?.status ?? null
+    const advanceableStatuses = new Set(['submitted', 'new', null, undefined])
+    if (advanceableStatuses.has(priorStatus as string | null | undefined)) {
+      await supabaseAdmin
+        .from('prescreen_responses')
+        .update({ status: 'transcribing' })
+        .eq('id', id)
+    }
 
     const uids: string[] = Array.isArray(resp.video_ids) ? resp.video_ids.filter(Boolean) : []
     if (uids.length === 0) {
@@ -87,6 +95,16 @@ export async function POST(
       })
 
     if (insErr) throw insErr
+
+    // Advance status only if we set it to 'transcribing' above. For
+    // re-runs on already-finished responses (shared / scored / etc.),
+    // leave the status alone so we don't regress the candidate's stage.
+    if (advanceableStatuses.has(priorStatus as string | null | undefined)) {
+      await supabaseAdmin
+        .from('prescreen_responses')
+        .update({ status: 'transcribed' })
+        .eq('id', id)
+    }
 
     const errorCount = perVideo.filter(v => v.error).length
     return NextResponse.json({
