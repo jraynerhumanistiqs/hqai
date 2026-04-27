@@ -23,7 +23,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const [docsOpen, setDocsOpen] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
   const [leadershipOpen, setLeadershipOpen] = useState(false)
-  const [recruitmentToolsOpen, setRecruitmentToolsOpen] = useState(false)
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
 
   async function signOut() {
@@ -112,7 +111,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <Link href="/dashboard/people"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/people') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Chat with {advisorName || 'HQ'}
+              AI Advisor ({advisorName || 'HQ'})
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -138,6 +137,16 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit', true) ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Shortlist Agent
+            </Link>
+            <Link href="/dashboard/recruit/screening"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/recruit/screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Candidate Screening
+            </Link>
+            <Link href="/dashboard/recruit/campaign-coach"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Campaign Coach
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -237,35 +246,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </div>
         )}
 
-        {/* Recruitment Tools */}
-        <button onClick={() => setRecruitmentToolsOpen(!recruitmentToolsOpen)}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-            ${isActive('/dashboard/recruitment-tools')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <SearchIcon active={isActive('/dashboard/recruitment-tools')} />
-          <span className="flex-1 text-left">Recruitment</span>
-          <ChevronIcon open={recruitmentToolsOpen} />
-        </button>
-        {recruitmentToolsOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/recruitment-tools/shortlist"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruitment-tools/shortlist') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Shortlist Agent
-            </Link>
-            <Link href="/dashboard/recruitment-tools/screening"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruitment-tools/screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Candidate Screening
-            </Link>
-            <Link href="/dashboard/recruitment-tools/campaign-coach"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruitment-tools/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Campaign Coach
-            </Link>
-          </div>
-        )}
+        {/* Recruitment-tools section removed — Shortlist Agent lives in HQ Recruit
+            already, and Candidate Screening + Campaign Coach were moved into the
+            HQ Recruit dropdown above. */}
 
         {/* Settings */}
         <Link href="/dashboard/settings"
@@ -296,7 +279,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </div>
           <button onClick={handleContactPartner}
             className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-1.5 rounded-full transition-colors">
-            Contact HQ Partner
+            Contact HQ Advisor
           </button>
         </div>
 
@@ -316,13 +299,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-2">Partner Support</h3>
             <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-              Your current subscription does not include HQ Partner support.
+              Your current subscription does not include HQ Advisor support.
             </p>
             <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4">
               <p className="text-xs text-gray-500 mb-1">Hourly rates</p>
               <p className="text-sm font-bold text-white">Phone consultation - $250+GST/hr</p>
             </div>
-            <p className="text-sm text-gray-400 mb-4">Would you like to book a call with a HQ Partner?</p>
+            <p className="text-sm text-gray-400 mb-4">Would you like to book a call with an HQ Advisor?</p>
             <div className="flex gap-3">
               <button onClick={() => setShowPartnerPopup(false)}
                 className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-full text-sm font-bold border border-[#333333] transition-colors">

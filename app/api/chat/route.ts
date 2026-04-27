@@ -115,20 +115,33 @@ export async function POST(req: NextRequest) {
 
         // Emit an immediate status pulse so the UI can show activity within
         // ~100ms instead of waiting 30-60s for the first tool-discovery
-        // round trip to Anthropic to come back. Front-end can render this
-        // as a transient "thinking" indicator and replace it once real
-        // streamed text arrives.
+        // round trip to Anthropic to come back. Conversational copy — what
+        // an HR consultant would say while checking something rather than
+        // formal "Searching the Fair Work Act…" framing.
+        const SEARCH_PHRASES = [
+          'One sec — let me grab the right reference for you.',
+          'Just checking the awards on this one…',
+          'Hang on — quickly looking this up.',
+          'Pulling up the Fair Work guidance now.',
+          'Give me a moment — checking the rules for this.',
+        ]
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
           status: 'searching',
-          message: 'Searching the Fair Work Act, Modern Awards, and Fair Work Ombudsman guidance…',
+          message: SEARCH_PHRASES[Math.floor(Math.random() * SEARCH_PHRASES.length)],
         })}\n\n`))
 
         try {
           for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
             if (iter > 0) {
+              const DRAFT_PHRASES = [
+                'Got it — putting this together for you now.',
+                'Cool, writing it up now.',
+                'Right, let me pull this into an answer.',
+                'Alright, drafting a response.',
+              ]
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                 status: 'drafting',
-                message: 'Drafting your answer…',
+                message: DRAFT_PHRASES[Math.floor(Math.random() * DRAFT_PHRASES.length)],
               })}\n\n`))
             }
             const isFinalIter = iter === MAX_TOOL_ITERATIONS - 1

@@ -1,6 +1,6 @@
 {
-  "id": "176ffeac-40d3-4358-b78d-f6fc29a3cb95",
-  "startedAt": "2026-04-26T09:22:40.723Z",
+  "id": "0891b57a-82cc-4f7e-9d94-ef47f86446f0",
+  "startedAt": "2026-04-27T11:25:02.502Z",
   "model": "claude-sonnet-4-20250514",
   "baseUrl": "https://hqai-git-eval-smoke-humanistiqs-hq-ai.vercel.app",
   "results": [
@@ -27,16 +27,11 @@
         ],
         "source": "Fair Work Act 2009 s 87"
       },
-      "answer": "Under the National Employment Standards (NES), a full-time employee is entitled to **4 weeks of paid annual leave** per year [4].\n\nThe Fair Work Act is clear on this entitlement - for each year of service with an employer (excluding periods of casual employment), an employee gets 4 weeks of paid annual leave [4].\n\nThere is an exception for **shiftworkers**, who get **5 weeks** of paid annual leave per year if they meet specific criteria defined in their modern award, enterprise agreement, or under the award/agreement free provisions [4].\n\nThe annual leave:\n- Accrues progressively throughout the year of service according to ordinary hours of work [4]\n- Accumulates from year to year [4]\n- Must be paid at the employee's base rate of pay for ordinary hours [6]\n\nIf an employee's employment ends, they must be paid out any untaken annual leave [6].",
+      "answer": "Under the National Employment Standards (NES), a full-time employee is entitled to **4 weeks of paid annual leave** per year [2].\n\nHowever, there's an important exception: **shiftworkers** get 5 weeks of paid annual leave per year [2]. An employee qualifies as a shiftworker if:\n\n- A modern award or enterprise agreement defines them as a shiftworker for NES purposes, OR\n- They're award/agreement-free and work in an enterprise with continuous 24/7 shifts, are regularly rostered to work those shifts, and regularly work Sundays and public holidays [2]\n\nThe annual leave **accrues progressively** throughout the year according to the employee's ordinary hours of work and accumulates from year to year [2]. So employees don't need to wait a full year before they can access some of their annual leave entitlement.\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
       "citations": [
         {
-          "n": 4,
+          "n": 2,
           "label": "Fair Work Act 2009 s.87 — Entitlement to annual leave",
-          "url": "https://www.legislation.gov.au/C2009A00028/latest"
-        },
-        {
-          "n": 6,
-          "label": "Fair Work Act 2009 s.90 — Payment for annual leave",
           "url": "https://www.legislation.gov.au/C2009A00028/latest"
         }
       ],
@@ -44,7 +39,7 @@
         "narrative": {
           "passed": true,
           "score": 0.95,
-          "notes": "Accurately states 4 weeks under NES with proper context; includes relevant details about shiftworkers and accrual. Minor: citations [4][6] not verifiable in prompt but don't affect accuracy."
+          "notes": "Correctly states 4 weeks under NES with accurate shiftworker exception; includes helpful accrual detail; no prohibited content; minor: could clarify 'NES' on first mention"
         },
         "citation": {
           "passed": true,
@@ -53,7 +48,7 @@
         }
       },
       "passed": true,
-      "latencyMs": 300782
+      "latencyMs": 180639
     },
     {
       "question": {
@@ -72,7 +67,7 @@
         ],
         "source": "Fair Work Ombudsman — Parental leave (summarises Fair Work Act 2009 s 70)"
       },
-      "answer": "Based on the Fair Work Act, a full-time employee is entitled to **up to 52 weeks (12 months) of unpaid parental leave** under the National Employment Standards [3].\n\nKey details:\n\n- **Standard entitlement**: 12 months of unpaid parental leave [3]\n- **Extension possible**: Employees can request an extension beyond 12 months, but the total period cannot exceed 24 months after the birth or placement of the child [3]\n- **When it can be taken**: Within the 24-month period following the birth or placement of a child [3]\n- **Continuous period**: Must generally be taken as a single continuous period [3]\n- **Flexible option**: Up to 100 days can be taken as flexible unpaid parental leave in separate periods during the 24-month period [6]\n\nThe leave applies to both birth-related and adoption-related situations, and the same entitlement applies regardless of whether the employee is full-time or part-time.\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
+      "answer": "A full-time employee is entitled to **up to 52 weeks (12 months)** of unpaid parental leave under the National Employment Standards [3].\n\nThe key details are:\n\n- The leave must be taken within the **24-month period** starting from the date of birth or placement of the child [3]\n- It can start up to 6 weeks before the expected birth date (or earlier by agreement) [3]  \n- The maximum continuous period is **12 months** [3]\n- Employees can also request an extension beyond 12 months, but the total cannot exceed 24 months [3]\n\nThere's also flexibility available through \"flexible unpaid parental leave\" which allows up to 100 days (about 20 weeks) to be taken in separate periods during the 24-month window, but this comes out of the overall 12-month entitlement [6].\n\nThe unpaid parental leave applies to both birth-related and adoption-related leave, with the same 12-month maximum in both cases.\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
       "citations": [
         {
           "n": 3,
@@ -89,7 +84,7 @@
         "narrative": {
           "passed": true,
           "score": 0.95,
-          "notes": "Answer correctly states 12 months of unpaid parental leave and includes both required elements. Minor: opens with '52 weeks (12 months)' which is correct but the 52 weeks phrasing doesn't directly answer the question asking for 'weeks.'"
+          "notes": "Correctly identifies 12 months of unpaid parental leave as the key entitlement; minor deduction for potential overcomplication with flexible leave details that weren't directly asked"
         },
         "citation": {
           "passed": true,
@@ -98,7 +93,7 @@
         }
       },
       "passed": true,
-      "latencyMs": 300720
+      "latencyMs": 180690
     },
     {
       "question": {
@@ -118,33 +113,65 @@
         ],
         "source": "Fair Work Act 2009 s 62"
       },
-      "answer": "Under the National Employment Standards (NES), the **maximum weekly hours of work for a full-time employee is 38 hours** [1].\n\nHowever, an employer can request or require an employee to work additional hours beyond 38 hours per week, provided those additional hours are **reasonable** [1]. The employee has the right to refuse to work additional hours if they are unreasonable [1].\n\nWhen determining whether additional hours are reasonable, factors considered include [1]:\n- Risk to employee health and safety\n- Employee's personal circumstances and family responsibilities  \n- Workplace needs\n- Whether overtime payments or penalty rates apply\n- Notice given by either party\n- Industry work patterns\n- The employee's role and level of responsibility\n- Any averaging arrangements in place\n\nThe 38-hour limit can also be averaged over periods up to 26 weeks under certain averaging arrangements [2].\n\n\n\nGeneral information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.",
+      "answer": "Under the National Employment Standards (NES), the **maximum weekly hours of work for a full-time employee is 38 hours** [1].\n\nHowever, an employer can request or require additional hours beyond 38 hours per week, provided those additional hours are **reasonable** [1]. The employee has the right to refuse unreasonable additional hours [1].\n\nWhen determining whether additional hours are reasonable, the Fair Work Act requires consideration of factors including [1]:\n- Risk to employee health and safety\n- Employee's personal circumstances and family responsibilities  \n- Workplace needs\n- Whether overtime payments or penalty rates apply\n- Notice given by either party\n- Usual industry patterns of work\n- The employee's role and level of responsibility\n\nThe 38-hour standard can also be averaged over a period of up to 26 weeks under certain averaging arrangements [4].",
       "citations": [
         {
           "n": 1,
-          "label": "Fair Work Act 2009 — s 62 — Maximum weekly hours",
-          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+          "label": "Fair Work Act 2009 — Volume 01 — s 62 — Maximum weekly hours",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 5142
         },
         {
           "n": 2,
-          "label": "Fair Work Act 2009 — s 64 — Averaging of hours of work for award/agreement free employees",
-          "url": "https://www.legislation.gov.au/C2009A00028/latest"
+          "label": "Fair Work Act 2009 — Volume 03 — s 753 — Modification of meaning of ordinary hours of work—regulations may prescribe usual weekly hours",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 6282
+        },
+        {
+          "n": 3,
+          "label": "Fair Work Act 2009 — Volume 01 — s 147 — Ordinary hours of work",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 5264
+        },
+        {
+          "n": 4,
+          "label": "Fair Work Act 2009 — Volume 01 — s 64 — Averaging of hours of work for award/agreement free employees",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 5144
+        },
+        {
+          "n": 5,
+          "label": "Fair Work Act 2009 — Volume 03 — s 751 — Modification of meaning of ordinary hours of work—if determined by State industrial instrument",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 6280
+        },
+        {
+          "n": 6,
+          "label": "Fair Work Act 2009 — Volume 01 — s 63 — Modern awards and enterprise agreements may provide for averaging of hours of work",
+          "url": "https://www.legislation.gov.au/C2009A00028/latest",
+          "source": "fair-work-act",
+          "chunkId": 5143
         }
       ],
       "judges": {
         "narrative": {
           "passed": true,
           "score": 0.95,
-          "notes": "Answer correctly identifies 38 hours as maximum and explains reasonable additional hours requirement with relevant factors; minor: references [1] and [2] without source specification."
+          "notes": "Correctly identifies 38 hours as maximum and explains reasonable additional hours concept with relevant factors. Minor: citations lack specificity but content is accurate and comprehensive."
         },
         "citation": {
           "passed": true,
           "score": 1,
-          "notes": "Matched citation: \"Fair Work Act 2009 — s 62 — Maximum weekly hours\"."
+          "notes": "Matched citation: \"Fair Work Act 2009 — Volume 01 — s 62 — Maximum weekly hours\"."
         }
       },
       "passed": true,
-      "latencyMs": 300757
+      "latencyMs": 180813
     }
   ],
   "summary": {
@@ -170,5 +197,5 @@
       }
     }
   },
-  "completedAt": "2026-04-26T09:37:47.748Z"
+  "completedAt": "2026-04-27T11:34:09.027Z"
 }

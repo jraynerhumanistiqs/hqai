@@ -1,7 +1,7 @@
 # HQ.ai Evaluation Report
 
-- **Run started:** 2026-04-26T09:22:40.723Z
-- **Completed:** 2026-04-26T09:37:47.748Z
+- **Run started:** 2026-04-27T11:25:02.502Z
+- **Completed:** 2026-04-27T11:34:09.027Z
 - **Model:** claude-sonnet-4-20250514
 - **Base URL:** https://hqai-git-eval-smoke-humanistiqs-hq-ai.vercel.app
 - **Total:** 3 | **Passed:** 3 (100%) | **Skipped (unreviewed):** 0

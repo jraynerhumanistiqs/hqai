@@ -170,7 +170,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
       const renderCurrent = () => {
-        const display = assistantContent || (statusMessage ? `_${statusMessage}_` : '')
+        // Status pulses use a sentinel prefix instead of markdown underscores
+        // — MessageContent strips the prefix and renders the rest as italics
+        // via CSS. Avoids literal "_" leaking into the bubble.
+        const display = assistantContent || (statusMessage ? `__STATUS__${statusMessage}` : '')
         setMessages(prev => {
           const updated = [...prev]
           updated[updated.length - 1] = { role: 'assistant', content: display }
@@ -545,12 +548,12 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         <div className="flex-1">
                           <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
                           <p className="text-xs text-mid leading-relaxed mb-2.5">
-                            This involves real legal exposure. A HQ Partner can give you specific, protected advice before you act.
+                            This involves real legal exposure. A HQ Advisor can give you specific, protected advice before you act.
                           </p>
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => setShowAdvisorModal(true)}
                               className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
-                              Book a call with a HQ Partner
+                              Book a call with an HQ Advisor
                             </button>
                             <button
                               onClick={() => {
@@ -667,7 +670,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <p className="text-[10px] text-muted text-center mt-2 leading-relaxed px-4">
             {moduleLabel} provides general guidance grounded in Australian employment law - not legal advice. Verify critical decisions.{' '}
             <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
-              Talk to a HQ Partner
+              Talk to an HQ Advisor
             </Link>
           </p>
         </div>
@@ -677,9 +680,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {showAdvisorModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
           <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to a HQ Partner</h3>
+            <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
             <p className="text-sm text-mid mb-4 leading-relaxed">
-              HQ.ai has prepared a summary of your conversation. Your HQ Partner will have full context before your call - no repeating yourself.
+              HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
             </p>
             <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
               <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
@@ -697,7 +700,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               </button>
               <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
                 className="flex-1 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold text-center transition-colors">
-                Book a call with a HQ Partner
+                Book a call with an HQ Advisor
               </Link>
             </div>
           </div>
@@ -718,6 +721,12 @@ function MessageContent({
   citations?: Citation[]
 }) {
   if (!content) return null
+
+  // Status pulses arrive marked with a __STATUS__ prefix so we can render
+  // them as italic placeholder copy without leaking literal underscores.
+  if (content.startsWith('__STATUS__')) {
+    return <p className="text-sm text-mid italic">{content.slice('__STATUS__'.length)}</p>
+  }
 
   // Build a lookup by citation number so we can render chips with label+url.
   const byN = new Map<number, Citation>()
