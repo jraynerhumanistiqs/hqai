@@ -6,11 +6,14 @@ import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 300
+export const maxDuration = 90
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
-const MAX_TOOL_ITERATIONS = 3
+// 2 iterations is enough: iter 0 = optional tool calls (model decides),
+// iter 1 = final stream with tool_choice='none'. Sharper FWA chunks +
+// strong prompt mandate make a third tool round unnecessary.
+const MAX_TOOL_ITERATIONS = 2
 
 type AnthropicMessage = { role: 'user' | 'assistant'; content: any }
 
@@ -132,21 +135,17 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
-              // Force search_knowledge on the first iteration so the model
-              // can't sidestep grounding by claiming "I can't verify" without
-              // ever consulting the corpus. Subsequent iterations are auto.
-              const toolChoice = iter === 0
-                ? { type: 'tool' as const, name: 'search_knowledge' }
-                : { type: 'auto' as const }
-              // Tool-discovery turns are short (model emits a tool_use
-              // block of ~100 tokens). Capping max_tokens shaves seconds
-              // off the round trip without changing behaviour.
+              // Trust the model with auto tool choice — the system prompt
+              // mandates search_knowledge before factual claims and the
+              // tool description has strong examples. Forcing the call
+              // burned a non-streaming round trip even on chit-chat.
+              // Tool-discovery responses are short (~100-token tool_use
+              // blocks); cap max_tokens to shave seconds off the call.
               const res = await anthropic.messages.create({
                 model: MODEL,
-                max_tokens: iter === 0 ? 512 : 1024,
+                max_tokens: 1024,
                 system: systemPrompt,
                 tools,
-                tool_choice: toolChoice,
                 messages: working,
               })
 
@@ -179,9 +178,22 @@ export async function POST(req: NextRequest) {
                 type: 'tool_use'; id: string; name: string; input: Record<string, unknown>
               }>
 
+              // Run all tool calls in parallel — independent (no shared
+              // state during dispatch), so a model emitting two search
+              // queries in one turn doesn't pay 2× round-trip latency.
+              // Use a placeholder citation offset so each tool gets a
+              // disjoint range, then assemble accumulated citations in
+              // input order to keep [n] markers stable.
+              const startingOffsets = toolUseBlocks.map((_, i) =>
+                citationCursor + (toolUseBlocks.slice(0, i).length === 0 ? 0 : i * 16)
+              )
+              const toolRuns = await Promise.all(
+                toolUseBlocks.map((tu, i) => runTool(tu.id, tu.name, tu.input, startingOffsets[i]))
+              )
               const toolResults: Array<{ type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }> = []
-              for (const tu of toolUseBlocks) {
-                const r: ToolRunResult = await runTool(tu.id, tu.name, tu.input, citationCursor)
+              for (let i = 0; i < toolUseBlocks.length; i++) {
+                const tu = toolUseBlocks[i]
+                const r: ToolRunResult = toolRuns[i]
                 citationCursor += r.citations.length
                 accumulatedCitations.push(...r.citations)
                 accumulatedToolCalls.push({
