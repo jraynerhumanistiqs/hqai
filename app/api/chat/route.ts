@@ -6,14 +6,14 @@ import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 90
+export const maxDuration = 150
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
-// 2 iterations is enough: iter 0 = optional tool calls (model decides),
-// iter 1 = final stream with tool_choice='none'. Sharper FWA chunks +
-// strong prompt mandate make a third tool round unnecessary.
-const MAX_TOOL_ITERATIONS = 2
+// 3 iterations: iter 0 forced search, iter 1 model can refine (auto),
+// iter 2 final stream (tool_choice='none'). MAX=2 was too aggressive —
+// the model often wants a second search to narrow down results.
+const MAX_TOOL_ITERATIONS = 3
 
 type AnthropicMessage = { role: 'user' | 'assistant'; content: any }
 
@@ -135,17 +135,19 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
-              // Trust the model with auto tool choice — the system prompt
-              // mandates search_knowledge before factual claims and the
-              // tool description has strong examples. Forcing the call
-              // burned a non-streaming round trip even on chit-chat.
-              // Tool-discovery responses are short (~100-token tool_use
-              // blocks); cap max_tokens to shave seconds off the call.
+              // Force search_knowledge on iter 0 so the model can't
+              // sidestep grounding (nes-003 was returning 0 citations
+              // when this was 'auto'). Subsequent iterations are auto
+              // so the model can refine its search if needed.
+              const toolChoice = iter === 0
+                ? { type: 'tool' as const, name: 'search_knowledge' }
+                : { type: 'auto' as const }
               const res = await anthropic.messages.create({
                 model: MODEL,
-                max_tokens: 1024,
+                max_tokens: iter === 0 ? 512 : 1024,
                 system: systemPrompt,
                 tools,
+                tool_choice: toolChoice,
                 messages: working,
               })
 
