@@ -9,9 +9,12 @@ export interface ParsedCitations {
   citations: Citation[]
 }
 
-// Matches a trailing fenced ```citations ... ``` block (optional trailing whitespace).
-// Non-greedy body; anchored to end-of-string so we only strip a trailing block.
-const CITATIONS_BLOCK_RE = /\n*```citations\s*\n([\s\S]*?)\n?```\s*$/
+// Matches a fenced ```citations ... ``` block anywhere in the message.
+// Originally anchored to end-of-string, but Sonnet often appends the
+// "General information, not legal advice" disclaimer after the citations
+// block, which made the strict $ anchor miss it and the raw fence then
+// leaked into the chat bubble.
+const CITATIONS_BLOCK_RE = /\n*```citations\s*\n([\s\S]*?)\n?```\s*/
 
 /**
  * Extracts a trailing fenced ```citations``` JSON block from an assistant
