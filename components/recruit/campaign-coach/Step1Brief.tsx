@@ -2,9 +2,21 @@
 import { useWizard } from './wizard-state'
 
 const EXAMPLE_PROMPTS = [
-  'Senior estimator in Penrith — full-time, $95–110k. Construction.',
-  'Part-time bookkeeper, Adelaide CBD — 2 days a week, must know Xero.',
-  'Casual barista, Newtown — multiple shifts across weekday mornings.',
+  // Construction
+  'Site Manager, Brisbane - residential builds, full-time, $130k + super.',
+  'Foreman / leading hand on a Sydney commercial fit-out crew, full-time.',
+  // Hospitality
+  'Casual barista, Newtown - 4 shifts across weekday mornings, $30+/hr.',
+  'Restaurant Manager, Surry Hills - full-time, can run a full lunch and dinner service solo.',
+  // Office / Professional services
+  'Bookkeeper, Adelaide CBD - 2 days a week, must know Xero and BAS.',
+  'Office Manager / EA in Melbourne CBD, full-time, $80-90k + super.',
+  // Retail
+  'Assistant Store Manager, Westfield Parramatta - full-time, mid-level retail experience.',
+  // Healthcare
+  'Registered Nurse, aged-care facility in Geelong - full-time, weekday days.',
+  // Trades
+  'Qualified electrician, residential service work, Northern Beaches - full-time.',
 ]
 
 export default function Step1Brief() {
@@ -14,7 +26,7 @@ export default function Step1Brief() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-2">
-          Step 1 — Tell me about the role
+          Step 1 - Tell me about the role
         </h2>
         <p className="text-sm text-mid leading-relaxed max-w-xl">
           Just rough notes are fine. I'll classify the role, find the right Modern Award, and
@@ -26,7 +38,7 @@ export default function Step1Brief() {
         <textarea
           value={state.briefText}
           onChange={e => dispatch({ type: 'SET_BRIEF_TEXT', text: e.target.value })}
-          placeholder="Tell me about the role you're hiring for…"
+          placeholder={"Try something like: 'Site Manager in Brisbane, full-time, $130k + super, residential builds.'\n\nA few rough notes on the role, location, contract type, salary, and the 2-3 things you really need them to be good at is plenty - I'll take it from there."}
           rows={8}
           className="w-full bg-transparent text-2xl sm:text-3xl text-charcoal placeholder-muted resize-none outline-none leading-relaxed font-medium tracking-tight pr-14"
         />
@@ -34,9 +46,9 @@ export default function Step1Brief() {
         <div className="absolute bottom-4 right-4">
           <button
             disabled
-            title="Voice input — coming soon"
+            title="Voice input - coming soon"
             className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center cursor-not-allowed shadow-card"
-            aria-label="Voice input — coming soon"
+            aria-label="Voice input - coming soon"
           >
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10 2a3 3 0 00-3 3v5a3 3 0 006 0V5a3 3 0 00-3-3z" />

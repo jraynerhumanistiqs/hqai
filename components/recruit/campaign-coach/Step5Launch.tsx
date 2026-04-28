@@ -34,7 +34,7 @@ export default function Step5Launch() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-2">
-          Step 5 — Launch
+          Step 5 - Launch
         </h2>
         <p className="text-sm text-mid leading-relaxed max-w-xl">
           Final preview on the left. On the right, the screening questions and rubric I'll hand
@@ -48,12 +48,12 @@ export default function Step5Launch() {
             Ad preview
           </p>
           <h3 className="font-display text-lg font-bold text-charcoal mb-1">
-            {profile?.title || '—'}
+            {profile?.title || '-'}
           </h3>
           <p className="text-xs text-mid mb-4">
             {profile?.location?.suburb}, {profile?.location?.state}
             {profile?.salary
-              ? ` · $${profile.salary.min.toLocaleString()}–${profile.salary.max.toLocaleString()} ${profile.salary.currency}`
+              ? ` · $${profile.salary.min.toLocaleString()}-${profile.salary.max.toLocaleString()} ${profile.salary.currency}`
               : ''}
           </p>
           <div className="prose prose-sm max-w-none text-charcoal text-sm leading-relaxed space-y-3">
@@ -260,7 +260,7 @@ function LaunchSuccess({ result }: { result: any }) {
             href={sessionId ? `/dashboard/recruit/${sessionId}` : '/dashboard/recruit'}
             className="bg-black text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
           >
-            Done — view in HQ Recruit →
+            Done - view in HQ Recruit →
           </Link>
         </div>
       </div>

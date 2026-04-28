@@ -42,7 +42,7 @@ export default function CoachPanel({ onClose }: { onClose?: () => void }) {
       <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-4 space-y-3">
         {state.coach_messages.length === 0 && !state.streaming && (
           <p className="text-xs text-muted leading-relaxed">
-            Hi — I'll guide you through writing a great ad and getting it live. Tell me about
+            Hi - I'll guide you through writing a great ad and getting it live. Tell me about
             the role on the left and I'll take it from there.
           </p>
         )}
@@ -72,7 +72,7 @@ export default function CoachPanel({ onClose }: { onClose?: () => void }) {
         <div className="border-t border-border px-4 py-4 flex-shrink-0">
           <div className="flex items-baseline gap-3 mb-3">
             <span className="font-display text-3xl font-bold text-charcoal tabular-nums">
-              {typeof score === 'number' ? score : '—'}
+              {typeof score === 'number' ? score : '-'}
             </span>
             <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
               AD HEALTH
@@ -114,7 +114,7 @@ export default function CoachPanel({ onClose }: { onClose?: () => void }) {
               })}
             </ul>
           ) : (
-            <p className="text-xs text-muted">No warnings — looking good.</p>
+            <p className="text-xs text-muted">No warnings - looking good.</p>
           )}
         </div>
       )}
@@ -123,7 +123,7 @@ export default function CoachPanel({ onClose }: { onClose?: () => void }) {
         <textarea
           disabled
           rows={1}
-          placeholder="Coming soon — chat back to the coach"
+          placeholder="Coming soon - chat back to the coach"
           className="w-full bg-light text-xs text-muted placeholder-muted rounded-2xl px-3 py-2 resize-none outline-none cursor-not-allowed"
         />
       </div>

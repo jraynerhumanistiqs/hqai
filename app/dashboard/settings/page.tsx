@@ -354,7 +354,7 @@ export default function SettingsPage() {
           >
             <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Upgrades coming soon</h3>
             <p className="text-sm text-mid mb-5">
-              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually — usually within one business day.
+              Self-serve checkout is on its way. In the meantime, email us and we&apos;ll upgrade your plan manually - usually within one business day.
             </p>
             <div className="flex items-center gap-3">
               <a

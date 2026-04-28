@@ -30,6 +30,10 @@ export type WizardState = {
   block_states: Partial<Record<BlockKey, BlockState>>
   draftedStep3: boolean
   flashBlock?: BlockKey
+  // True once the user has successfully briefed the coach at least once.
+  // Controls whether returning to Step 1 shows the 'Ask Coach to Try Again'
+  // CTA (vs the initial 'Brief the coach →').
+  hasBriefed: boolean
 }
 
 export type WizardAction =
@@ -49,6 +53,7 @@ export type WizardAction =
   | { type: 'SET_BLOCK_STATE'; key: BlockKey; state: BlockState }
   | { type: 'MARK_DRAFTED_STEP3' }
   | { type: 'FLASH_BLOCK'; key?: BlockKey }
+  | { type: 'MARK_BRIEFED' }
 
 export const initialWizardState: WizardState = {
   step: 1,
@@ -57,6 +62,7 @@ export const initialWizardState: WizardState = {
   coach_messages: [],
   block_states: {},
   draftedStep3: false,
+  hasBriefed: false,
 }
 
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
@@ -139,6 +145,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, draftedStep3: true }
     case 'FLASH_BLOCK':
       return { ...state, flashBlock: action.key }
+    case 'MARK_BRIEFED':
+      return { ...state, hasBriefed: true }
     default:
       return state
   }

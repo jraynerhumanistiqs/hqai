@@ -171,7 +171,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       const renderCurrent = () => {
         // Status pulses use a sentinel prefix instead of markdown underscores
-        // — MessageContent strips the prefix and renders the rest as italics
+        // - MessageContent strips the prefix and renders the rest as italics
         // via CSS. Avoids literal "_" leaking into the bubble.
         const display = assistantContent || (statusMessage ? `__STATUS__${statusMessage}` : '')
         setMessages(prev => {
@@ -481,7 +481,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     />
                   ) : msg.formType && msg.formCompleted ? (
                     <p className="text-sm text-mid">
-                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted — generating your document…
+                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your document…
                     </p>
                   ) : msg.content ? (
                     (() => {
@@ -760,7 +760,7 @@ function MessageContent({
           <CitationChip key={`${keyPrefix}-c${idx++}`} n={cite.n} label={cite.label} url={cite.url} />
         )
       } else {
-        // Unknown marker — render as plain [n] fallback
+        // Unknown marker - render as plain [n] fallback
         parts.push(<span key={`${keyPrefix}-c${idx++}`}>{m[0]}</span>)
       }
       last = m.index + m[0].length

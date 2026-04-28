@@ -6,7 +6,7 @@ interface Props {
 }
 
 export default function ComingSoon({ title, blurb }: Props) {
-  const body = blurb ?? `We're putting the finishing touches on this. The team is in the final stages of build and testing — it'll land in the next release. Thanks for your patience.`
+  const body = blurb ?? `We're putting the finishing touches on this. The team is in the final stages of build and testing - it'll land in the next release. Thanks for your patience.`
 
   return (
     <div className="flex-1 min-h-screen bg-bg flex items-center justify-center px-6 py-16">

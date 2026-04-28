@@ -1,4 +1,4 @@
-// POST /api/campaign/draft — runs the AI turn for whichever Campaign Coach
+// POST /api/campaign/draft - runs the AI turn for whichever Campaign Coach
 // step is currently active. Streams SSE: status pulse, then incremental
 // partials (best-effort), then a final `done` with the typed output.
 //
@@ -22,7 +22,7 @@ const MODEL = 'claude-sonnet-4-20250514'
 const STATUS_PHRASES: Record<1 | 2 | 3 | 4, string[]> = {
   1: [
     'Reading through this now…',
-    "Got it — let me figure out what we're hiring for.",
+    "Got it - let me figure out what we're hiring for.",
     'Pulling out the key bits…',
   ],
   2: [
@@ -50,7 +50,7 @@ function systemPromptForStep(
   step: 1 | 2 | 3 | 4,
   business: Business,
 ): string {
-  const businessLine = `You are coaching ${business.name} (industry: ${business.industry}, primary state: ${business.state}). Voice: first-person, warm, concise. Use Australian English. Never refer to yourself as "the Coach" — speak as "I".`
+  const businessLine = `You are coaching ${business.name} (industry: ${business.industry}, primary state: ${business.state}). Voice: first-person, warm, concise. Use Australian English. Never refer to yourself as "the Coach" - speak as "I".`
 
   if (step === 1) {
     return `${businessLine}
@@ -76,7 +76,7 @@ RoleProfile fields:
 - nice_to_have_skills (string[])
 - team_context (string, optional)
 - start_date ("asap" | ISO date, optional)
-- eeo_flags (string[]) — list any AU-prohibited-grounds risk phrases you noticed in the brief; empty array if none.
+- eeo_flags (string[]) - list any AU-prohibited-grounds risk phrases you noticed in the brief; empty array if none.
 
 AwardSuggestion fields:
 - code (e.g. "MA000020"), name, classification (e.g. "Level 3"), min_weekly_rate (AUD, integer), source_url (FWA reference), confidence (0-1).
@@ -109,7 +109,7 @@ reading_grade is an approximate Flesch-Kincaid grade level (integer 6-12 typical
   if (step === 3) {
     return `${businessLine}
 
-You are scoring a draft job ad against best practice for Australian SMEs. Be honest — under-praising is fine, over-praising is not.
+You are scoring a draft job ad against best practice for Australian SMEs. Be honest - under-praising is fine, over-praising is not.
 
 Respond with EXACTLY ONE JSON object inside a single \`\`\`json fenced code block. No prose before or after. Shape (CoachScore):
 {
@@ -331,7 +331,7 @@ export async function POST(req: NextRequest) {
 
           // Step 1: use a structured-output tool to guarantee shape.
           // Anthropic's tool_use with a tool_choice forces the model to
-          // emit a tool_use block whose input matches our JSON schema —
+          // emit a tool_use block whose input matches our JSON schema -
           // no fragile prose-+-JSON parsing. We don't actually run the
           // tool; we just read its `input` as the typed result.
           if (step === 1) {
@@ -432,7 +432,7 @@ export async function POST(req: NextRequest) {
             return
           }
 
-          // Steps 2/3/4 — same structured-output pattern. Force the model
+          // Steps 2/3/4 - same structured-output pattern. Force the model
           // to emit a single tool_use block whose `input` IS the typed
           // result. No JSON-parsing fragility.
           const stepTool = stepStructuredTool(step)
@@ -456,7 +456,7 @@ export async function POST(req: NextRequest) {
             : undefined
           console.error('[campaign/draft] stream error:', detail, stack)
           // Send BOTH a soft error chunk AND a `done` with the error in
-          // the output payload — so the wizard's diagnostic dump shows
+          // the output payload - so the wizard's diagnostic dump shows
           // exactly what blew up server-side instead of `null`.
           send({ error: 'Stream error', detail })
           send({

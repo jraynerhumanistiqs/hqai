@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const { role_title, description, count = 4, extras } = await req.json()
     if (!role_title) return NextResponse.json({ error: 'role_title is required' }, { status: 400 })
 
-    // Optional Campaign Coach hint block — backwards-compatible.
+    // Optional Campaign Coach hint block - backwards-compatible.
     let extrasBlock = ''
     if (extras && typeof extras === 'object') {
       const lines: string[] = []

@@ -1,32 +1,93 @@
 'use client'
 import { useState } from 'react'
 import { useWizard } from './wizard-state'
-import type { RoleProfile } from '@/lib/campaign-types'
+import type { RoleProfile, AU_State } from '@/lib/campaign-types'
+
+const LEVEL_LABELS: Record<RoleProfile['level'], string> = {
+  entry: 'Entry',
+  mid: 'Mid',
+  senior: 'Senior',
+  lead: 'Lead',
+  manager: 'Manager',
+}
+
+const CONTRACT_LABELS: Record<RoleProfile['contract_type'], string> = {
+  permanent_ft: 'Permanent full-time',
+  permanent_pt: 'Permanent part-time',
+  fixed_term: 'Fixed term',
+  casual: 'Casual',
+  contract: 'Contract',
+}
+
+const REMOTE_LABELS: Record<'no' | 'hybrid' | 'full', string> = {
+  no: 'On-site',
+  hybrid: 'Hybrid',
+  full: 'Fully remote',
+}
+
+const AU_STATES: AU_State[] = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT']
+
+const COMMON_AWARDS = [
+  { code: 'MA000002', name: 'Clerks - Private Sector Award' },
+  { code: 'MA000004', name: 'General Retail Industry Award' },
+  { code: 'MA000020', name: 'Building and Construction General On-site Award' },
+  { code: 'MA000010', name: 'Manufacturing and Associated Industries and Occupations Award' },
+  { code: 'MA000009', name: 'Hospitality Industry (General) Award' },
+  { code: 'MA000119', name: 'Restaurant Industry Award' },
+  { code: 'MA000003', name: 'Fast Food Industry Award' },
+  { code: 'MA000005', name: 'Hair and Beauty Industry Award' },
+  { code: 'MA000018', name: 'Aged Care Award' },
+  { code: 'MA000027', name: 'Health Professionals and Support Services Award' },
+  { code: 'MA000034', name: 'Nurses Award' },
+  { code: 'MA000012', name: 'Pharmacy Industry Award' },
+  { code: 'MA000038', name: 'Road Transport and Distribution Award' },
+  { code: 'MA000043', name: 'Waste Management Award' },
+  { code: 'MA000100', name: 'Social, Community, Home Care and Disability Services Industry Award' },
+  { code: 'MA000022', name: 'Cleaning Services Award' },
+  { code: 'MA000016', name: 'Security Services Industry Award' },
+  { code: 'MA000025', name: 'Electrical, Electronic and Communications Contracting Award' },
+  { code: 'MA000036', name: 'Plumbing and Fire Sprinklers Award' },
+  { code: 'MA000019', name: 'Banking, Finance and Insurance Award' },
+  { code: 'MA000116', name: 'Legal Services Award' },
+  { code: 'MA000079', name: 'Architects Award' },
+  { code: 'MA000031', name: 'Medical Practitioners Award' },
+  { code: 'MA000076', name: 'Educational Services (Schools) General Staff Award' },
+  { code: 'MA000077', name: 'Educational Services (Teachers) Award' },
+  { code: 'MA000120', name: "Children's Services Award" },
+  { code: 'MA000093', name: 'Marine Tourism and Charter Vessels Award' },
+  { code: 'MA000118', name: 'Animal Care and Veterinary Services Award' },
+  { code: 'MA000104', name: 'Miscellaneous Award' },
+  { code: 'AWARD_FREE', name: 'Award-free / Enterprise agreement' },
+]
 
 export default function Step2Extract() {
   const { state, dispatch } = useWizard()
   const profile = state.role_profile
   const [showAwardDrawer, setShowAwardDrawer] = useState(false)
+  const [editingAward, setEditingAward] = useState(false)
 
   if (!profile) {
     return (
       <div className="text-sm text-mid">
-        Waiting for the coach to extract role details… If nothing happens, head back to Step 1.
+        Waiting for the coach to extract role details. If nothing happens, head back to Step 1.
       </div>
     )
   }
 
   const patch = (p: Partial<RoleProfile>) => dispatch({ type: 'PATCH_ROLE_PROFILE', patch: p })
+  const patchLocation = (p: Partial<RoleProfile['location']>) =>
+    patch({ location: { ...profile.location, ...p } })
+  const patchSalary = (p: Partial<RoleProfile['salary']>) =>
+    patch({ salary: { ...profile.salary, ...p } })
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-2">
-          Step 2 — Confirm the details
+          Step 2 - Confirm the details
         </h2>
         <p className="text-sm text-mid leading-relaxed max-w-xl">
-          Here's what I extracted. Tap any chip to edit. The Award classification grounds your
-          minimum pay — open the info icon for the FWA citation.
+          Tap any chip to edit. Anything I got wrong, change it.
         </p>
       </div>
 
@@ -37,14 +98,14 @@ export default function Step2Extract() {
         <FieldRow label="Level">
           <InlineSelect
             value={profile.level}
-            options={['entry', 'mid', 'senior', 'lead', 'manager']}
+            options={Object.entries(LEVEL_LABELS).map(([v, l]) => ({ value: v, label: l }))}
             onChange={v => patch({ level: v as RoleProfile['level'] })}
           />
         </FieldRow>
         <FieldRow label="Contract">
           <InlineSelect
             value={profile.contract_type}
-            options={['permanent_ft', 'permanent_pt', 'fixed_term', 'casual', 'contract']}
+            options={Object.entries(CONTRACT_LABELS).map(([v, l]) => ({ value: v, label: l }))}
             onChange={v => patch({ contract_type: v as RoleProfile['contract_type'] })}
           />
         </FieldRow>
@@ -54,25 +115,103 @@ export default function Step2Extract() {
             onChange={v => patch({ hours_per_week: v ? Number(v) : undefined })}
           />
         </FieldRow>
+
         <FieldRow label="Location">
-          <span className="text-sm text-charcoal">
-            {profile.location.suburb}, {profile.location.state}
-            {profile.location.remote !== 'no' ? ` · ${profile.location.remote} remote` : ''}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <InlineText
+              value={profile.location.suburb}
+              onChange={v => patchLocation({ suburb: v })}
+              placeholder="Suburb"
+            />
+            <InlineSelect
+              value={profile.location.state}
+              options={AU_STATES.map(s => ({ value: s, label: s }))}
+              onChange={v => patchLocation({ state: v as AU_State })}
+            />
+            <InlineSelect
+              value={profile.location.remote}
+              options={Object.entries(REMOTE_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+              onChange={v => patchLocation({ remote: v as 'no' | 'hybrid' | 'full' })}
+            />
+          </div>
         </FieldRow>
+
         <FieldRow label="Salary">
-          <span className="text-sm text-charcoal">
-            ${profile.salary.min.toLocaleString()}–{profile.salary.max.toLocaleString()}{' '}
-            {profile.salary.currency}
-            {profile.salary.super_inclusive ? ' (incl. super)' : ' + super'}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted">Min $</span>
+            <InlineNumber
+              value={profile.salary.min}
+              onChange={v => patchSalary({ min: Number(v) || 0 })}
+              width="w-28"
+            />
+            <span className="text-xs text-muted">Max $</span>
+            <InlineNumber
+              value={profile.salary.max}
+              onChange={v => patchSalary({ max: Number(v) || 0 })}
+              width="w-28"
+            />
+            <InlineSelect
+              value={profile.salary.super_inclusive ? 'incl' : 'plus'}
+              options={[
+                { value: 'plus', label: '+ super' },
+                { value: 'incl', label: 'incl. super' },
+              ]}
+              onChange={v => patchSalary({ super_inclusive: v === 'incl' })}
+            />
+          </div>
         </FieldRow>
 
         <FieldRow label="Award">
-          {profile.award ? (
+          {editingAward ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={profile.award?.code || ''}
+                onChange={e => {
+                  const found = COMMON_AWARDS.find(a => a.code === e.target.value)
+                  if (found) {
+                    patch({
+                      award: {
+                        code: found.code,
+                        name: found.name,
+                        classification: profile.award?.classification || '',
+                        min_weekly_rate: profile.award?.min_weekly_rate || 0,
+                        source_url: `https://www.fwc.gov.au/document-search?options=SearchType_2&mrn=${found.code}`,
+                        confidence: 1,
+                      },
+                    })
+                  }
+                }}
+                className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal max-w-full"
+              >
+                <option value="">Select an award...</option>
+                {COMMON_AWARDS.map(a => (
+                  <option key={a.code} value={a.code}>
+                    {a.code} - {a.name}
+                  </option>
+                ))}
+              </select>
+              <InlineText
+                value={profile.award?.classification || ''}
+                onChange={v =>
+                  patch({
+                    award: profile.award
+                      ? { ...profile.award, classification: v }
+                      : undefined,
+                  })
+                }
+                placeholder="Classification (e.g. Level 4)"
+              />
+              <button
+                onClick={() => setEditingAward(false)}
+                className="text-xs font-bold text-charcoal hover:underline"
+              >
+                Done
+              </button>
+            </div>
+          ) : profile.award ? (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="bg-light text-charcoal text-xs font-bold rounded-full px-3 py-1.5">
-                {profile.award.code} · {profile.award.classification} · ${profile.award.min_weekly_rate}/wk
+                {profile.award.code} - {profile.award.classification} - ${profile.award.min_weekly_rate}/wk
               </span>
               <button
                 onClick={() => setShowAwardDrawer(true)}
@@ -81,9 +220,23 @@ export default function Step2Extract() {
               >
                 i
               </button>
+              <button
+                onClick={() => setEditingAward(true)}
+                className="text-xs font-bold text-mid hover:text-charcoal hover:underline"
+              >
+                Change award
+              </button>
             </div>
           ) : (
-            <span className="text-sm text-muted">No award matched</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted">No award matched</span>
+              <button
+                onClick={() => setEditingAward(true)}
+                className="text-xs font-bold text-mid hover:text-charcoal hover:underline"
+              >
+                Pick award
+              </button>
+            </div>
           )}
         </FieldRow>
 
@@ -91,14 +244,14 @@ export default function Step2Extract() {
           <ChipList
             items={profile.must_have_skills}
             onChange={v => patch({ must_have_skills: v })}
-            placeholder="Add skill…"
+            placeholder="Add skill..."
           />
         </FieldRow>
         <FieldRow label="Nice-to-haves">
           <ChipList
             items={profile.nice_to_have_skills}
             onChange={v => patch({ nice_to_have_skills: v })}
-            placeholder="Add skill…"
+            placeholder="Add skill..."
           />
         </FieldRow>
       </div>
@@ -159,23 +312,40 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
   )
 }
 
-function InlineText({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function InlineText({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
   return (
     <input
       value={value}
       onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
       className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal w-full sm:w-auto"
     />
   )
 }
 
-function InlineNumber({ value, onChange }: { value: string | number; onChange: (v: string) => void }) {
+function InlineNumber({
+  value,
+  onChange,
+  width = 'w-32',
+}: {
+  value: string | number
+  onChange: (v: string) => void
+  width?: string
+}) {
   return (
     <input
       type="number"
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal w-32"
+      className={`bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal ${width}`}
     />
   )
 }
@@ -186,7 +356,7 @@ function InlineSelect({
   onChange,
 }: {
   value: string
-  options: string[]
+  options: { value: string; label: string }[]
   onChange: (v: string) => void
 }) {
   return (
@@ -196,8 +366,8 @@ function InlineSelect({
       className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal"
     >
       {options.map(o => (
-        <option key={o} value={o}>
-          {o.replace(/_/g, ' ')}
+        <option key={o.value} value={o.value}>
+          {o.label}
         </option>
       ))}
     </select>

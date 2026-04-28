@@ -116,7 +116,7 @@ function formatSalary(s?: RoleProfile['salary']): string | null {
   const cur = s.currency || 'AUD'
   const period = (s.period || 'year').toLowerCase()
   const fmt = (n?: number) => (n ? `$${Math.round(n).toLocaleString('en-AU')}` : '')
-  if (s.min && s.max) return `${fmt(s.min)}–${fmt(s.max)} ${cur} / ${period}`
+  if (s.min && s.max) return `${fmt(s.min)}-${fmt(s.max)} ${cur} / ${period}`
   return `${fmt(s.min || s.max)} ${cur} / ${period}`
 }
 
@@ -351,7 +351,7 @@ export default async function CareersCampaignPage({
               {blocks.apply_cta || 'Apply now'}
             </Link>
             <p className="mt-3 text-xs text-mid">
-              You will be taken to a short video prescreen — no account needed.
+              You will be taken to a short video prescreen - no account needed.
             </p>
           </div>
         )}

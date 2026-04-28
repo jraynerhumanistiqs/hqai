@@ -26,7 +26,7 @@ const STUB_PLAN: DistributionPlan = {
       id: 'seek',
       method: 'deep_link',
       estimated_cost_aud: 340,
-      rationale: 'Non-negotiable for most Australian roles — strongest reach. Deep-link prefills title and location; paste the body on the next screen.',
+      rationale: 'Non-negotiable for most Australian roles - strongest reach. Deep-link prefills title and location; paste the body on the next screen.',
     },
     {
       id: 'indeed',
@@ -44,7 +44,7 @@ const STUB_PLAN: DistributionPlan = {
       id: 'jora',
       method: 'api',
       estimated_cost_aud: 0,
-      rationale: 'Crawls your careers microsite automatically — no extra step needed.',
+      rationale: 'Crawls your careers microsite automatically - no extra step needed.',
     },
   ],
 }
@@ -70,7 +70,7 @@ export default function Step4Distribution() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-2">
-          Step 4 — Where to post
+          Step 4 - Where to post
         </h2>
         <p className="text-sm text-mid leading-relaxed max-w-xl">
           Toggle the boards you want to post to. We'll prefill what each board allows; you'll
@@ -102,7 +102,7 @@ export default function Step4Distribution() {
                       ? b.estimated_cost_aud === 0
                         ? 'Free'
                         : `~$${b.estimated_cost_aud} AUD`
-                      : '—'}
+                      : '-'}
                   </span>
                 </div>
                 <p className="text-xs text-mid leading-relaxed">{b.rationale}</p>

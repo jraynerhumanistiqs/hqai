@@ -2,7 +2,7 @@
 // Returns the latest transcript for a response. Uses the service-role admin
 // client because prescreen_transcripts has RLS enabled and the dashboard's
 // browser-side anon-key client can't read it. Auth gate: requires a logged-in
-// Supabase user (any user — staff dashboard).
+// Supabase user (any user - staff dashboard).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'

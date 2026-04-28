@@ -208,7 +208,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     if (!evaluatedStatuses.has(status)) return
     if (evalByResponse[expanded] !== undefined) return
 
-    // Fetch via server route — browser anon-key client can't read
+    // Fetch via server route - browser anon-key client can't read
     // prescreen_evaluations (RLS enabled). The route uses service-role
     // and gates on user auth.
     fetch(`/api/prescreen/responses/${expanded}/evaluation`)
@@ -225,7 +225,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     const openId = Object.entries(transcriptOpen).find(([, v]) => v)?.[0]
     if (!openId) return
     if (transcriptByResponse[openId] !== undefined) return
-    // Fetch via the server route — browser anon-key client can't read
+    // Fetch via the server route - browser anon-key client can't read
     // prescreen_transcripts (RLS enabled). The route uses service-role
     // and gates on user auth.
     fetch(`/api/prescreen/responses/${openId}/transcript`)
@@ -945,7 +945,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
         </div>
       )}
 
-      {/* Transcript modal — branded preview + DOCX download */}
+      {/* Transcript modal - branded preview + DOCX download */}
       {transcriptModal && (() => {
         const r = mergedResponses.find(x => x.id === transcriptModal.responseId)
         if (!r) return null

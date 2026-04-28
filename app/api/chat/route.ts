@@ -11,7 +11,7 @@ export const maxDuration = 180
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
 // 3 iterations: iter 0 forced search, iter 1 model can refine (auto),
-// iter 2 final stream (tool_choice='none'). MAX=2 was too aggressive —
+// iter 2 final stream (tool_choice='none'). MAX=2 was too aggressive -
 // the model often wants a second search to narrow down results.
 const MAX_TOOL_ITERATIONS = 3
 
@@ -115,15 +115,15 @@ export async function POST(req: NextRequest) {
 
         // Emit an immediate status pulse so the UI can show activity within
         // ~100ms instead of waiting 30-60s for the first tool-discovery
-        // round trip to Anthropic to come back. Conversational copy — what
+        // round trip to Anthropic to come back. Conversational copy - what
         // an HR consultant would say while checking something rather than
         // formal "Searching the Fair Work Act…" framing.
         const SEARCH_PHRASES = [
-          'One sec — let me grab the right reference for you.',
+          'One sec - let me grab the right reference for you.',
           'Just checking the awards on this one…',
-          'Hang on — quickly looking this up.',
+          'Hang on - quickly looking this up.',
           'Pulling up the Fair Work guidance now.',
-          'Give me a moment — checking the rules for this.',
+          'Give me a moment - checking the rules for this.',
         ]
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
           status: 'searching',
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
           for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
             if (iter > 0) {
               const DRAFT_PHRASES = [
-                'Got it — putting this together for you now.',
+                'Got it - putting this together for you now.',
                 'Cool, writing it up now.',
                 'Right, let me pull this into an answer.',
                 'Alright, drafting a response.',
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
               })
 
               if (res.stop_reason !== 'tool_use') {
-                // Model answered without calling a tool — stream the text out.
+                // Model answered without calling a tool - stream the text out.
                 const text = res.content
                   .filter(b => b.type === 'text')
                   .map(b => (b as { type: 'text'; text: string }).text)
@@ -187,13 +187,13 @@ export async function POST(req: NextRequest) {
                 return
               }
 
-              // Tool use requested — dispatch each tool_use block, append results.
+              // Tool use requested - dispatch each tool_use block, append results.
               working.push({ role: 'assistant', content: res.content })
               const toolUseBlocks = res.content.filter(b => b.type === 'tool_use') as Array<{
                 type: 'tool_use'; id: string; name: string; input: Record<string, unknown>
               }>
 
-              // Run all tool calls in parallel — independent (no shared
+              // Run all tool calls in parallel - independent (no shared
               // state during dispatch), so a model emitting two search
               // queries in one turn doesn't pay 2× round-trip latency.
               // Use a placeholder citation offset so each tool gets a
@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
               continue
             }
 
-            // Final iteration — stream the answer. Force no further tool use
+            // Final iteration - stream the answer. Force no further tool use
             // so the model commits to text instead of attempting another
             // tool_use block that would never resolve in the streaming path.
             const finalRes = await anthropic.messages.create({
@@ -278,7 +278,7 @@ export async function POST(req: NextRequest) {
 
     return new Response(stream, {
       headers: {
-        // Explicit utf-8 — without it, browsers default to ISO-8859-1 for
+        // Explicit utf-8 - without it, browsers default to ISO-8859-1 for
         // text/event-stream and Unicode characters (emoji, em dashes,
         // smart quotes, the registered-trademark symbol, etc.) render as
         // garbled Latin-1 bytes instead of their intended glyphs.
@@ -359,7 +359,7 @@ async function finalise(opts: {
     }
   }
 
-  // Audit log — fire-and-forget through `after()` so Vercel doesn't freeze
+  // Audit log - fire-and-forget through `after()` so Vercel doesn't freeze
   // the lambda before the insert completes (same fix as the transcribe pipeline).
   // Skip auditing for eval-bypass requests (placeholder UUID would FK-violate).
   if (user.id === '00000000-0000-0000-0000-000000000000') return

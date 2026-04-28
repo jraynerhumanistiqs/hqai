@@ -23,6 +23,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const [docsOpen, setDocsOpen] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
   const [leadershipOpen, setLeadershipOpen] = useState(false)
+  const [businessOpen, setBusinessOpen] = useState(false)
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
 
   async function signOut() {
@@ -193,11 +194,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </button>
         {complianceOpen && (
           <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/compliance/assessment"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/compliance/assessment') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Workplace Compliance Assessment
-            </Link>
             <Link href="/dashboard/compliance/audit"
               className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
@@ -231,7 +227,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <Link href="/dashboard/leadership/development"
               className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Performance Development
+              Team Development
             </Link>
             <Link href="/dashboard/leadership/coaching"
               className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -241,13 +237,36 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </div>
         )}
 
-        {/* Recruitment-tools section removed — Shortlist Agent lives in HQ Recruit
-            already, and Candidate Screening + Campaign Coach were moved into the
-            HQ Recruit dropdown above. */}
+        {/* Business */}
+        <button onClick={() => setBusinessOpen(!businessOpen)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+            ${isActive('/dashboard/business')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <BusinessIcon active={isActive('/dashboard/business')} />
+          <span className="flex-1 text-left">Business</span>
+          <ChevronIcon open={businessOpen} />
+        </button>
+        {businessOpen && (
+          <div className="ml-6 space-y-0.5">
+            <Link href="/dashboard/business/strategy-coach"
+              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Strategy Coach
+            </Link>
+          </div>
+        )}
 
-        {/* Settings */}
+        {/* Recruitment-tools section removed - Shortlist Agent lives in HQ Recruit
+            already, and Candidate Screening + Campaign Coach were moved into the
+            HQ Recruit dropdown above. Settings link is rendered outside the
+            scroll area, just above the advisor footer. */}
+      </div>
+
+      {/* Settings - pinned just above the advisor footer */}
+      <div className="px-2 pt-2 border-t border-white/8 flex-shrink-0">
         <Link href="/dashboard/settings"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all mt-2
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg my-1 text-sm font-bold transition-all
             ${isActive('/dashboard/settings')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
@@ -369,6 +388,11 @@ function ShieldIcon({ active }: { active: boolean }) {
 function LeaderIcon({ active }: { active: boolean }) {
   return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+  </svg>
+}
+function BusinessIcon({ active }: { active: boolean }) {
+  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
+    <path d="M4 4a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h3a1 1 0 010 2H7a1 1 0 01-1-1z"/>
   </svg>
 }
 function SearchIcon({ active }: { active: boolean }) {

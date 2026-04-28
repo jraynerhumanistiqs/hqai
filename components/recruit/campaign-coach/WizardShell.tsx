@@ -84,7 +84,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         dispatch({
           type: 'REPLACE_LAST_COACH_MESSAGE',
           text:
-            "Sorry — I couldn't reach my brain just then. Try again, or carry on and I'll catch up.",
+            "Sorry - I couldn't reach my brain just then. Try again, or carry on and I'll catch up.",
         })
       } finally {
         dispatch({ type: 'SET_STREAMING', streaming: false })
@@ -116,7 +116,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       if (!res.ok) throw new Error('Launch failed')
       return await res.json()
     } catch {
-      return { ok: false, error: 'Launch failed — please try again.' }
+      return { ok: false, error: 'Launch failed - please try again.' }
     } finally {
       dispatch({ type: 'SET_STREAMING', streaming: false })
     }
@@ -136,11 +136,17 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
     }
   })()
 
+  // True once Step 1 has produced a role_profile. After that, returning
+  // to Step 1 changes the CTA copy + behaviour: it no longer auto-advances
+  // to Step 2 unless the user explicitly clicks 'Ask Coach to Try Again'.
+  const isReturningToStep1 = state.step === 1 && state.hasBriefed && !!state.role_profile
+
   const primaryCtaLabel = (() => {
     switch (state.step) {
-      case 1: return 'Brief the coach →'
-      case 2: return 'Looks good — draft it →'
-      case 3: return 'All approved — continue →'
+      case 1:
+        return isReturningToStep1 ? 'Ask Coach to Try Again' : 'Brief the coach →'
+      case 2: return 'Looks good - draft it →'
+      case 3: return 'All approved - continue →'
       case 4: return 'Get prefilled links →'
       case 5: return 'Launch campaign →'
     }
@@ -155,10 +161,14 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         // eslint-disable-next-line no-console
         console.log('[campaign-coach] step 1 response:', out)
         if (out?.role_profile) {
-          dispatch({ type: 'SET_STEP', step: 2 })
+          dispatch({ type: 'MARK_BRIEFED' })
+          // If this is a "Try Again" run from Step 1 (user already
+          // briefed and came back), stay on Step 1 so they can confirm
+          // the new extract before moving forward. Otherwise advance.
+          if (!isReturningToStep1) {
+            dispatch({ type: 'SET_STEP', step: 2 })
+          }
         } else {
-          // Full diagnostic in the chat panel so we can see exactly what
-          // came back without needing DevTools.
           const dump = (() => {
             try { return JSON.stringify(out, null, 2).slice(0, 1500) }
             catch { return String(out) }
@@ -177,7 +187,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         } else {
           dispatch({
             type: 'REPLACE_LAST_COACH_MESSAGE',
-            text: "I couldn't draft the ad cleanly — give me one more try.",
+            text: "I couldn't draft the ad cleanly - give me one more try.",
           })
         }
         break
@@ -215,7 +225,14 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
             <p className="text-xs text-muted mb-3">
               {business.name ? `For ${business.name}` : 'AI-coached recruitment campaign'}
             </p>
-            <StepProgress step={state.step} onJump={goStep} />
+            <StepProgress
+              step={state.step}
+              onJump={goStep}
+              hasRoleProfile={!!state.role_profile}
+              hasJobAd={!!state.job_ad_draft}
+              hasDistribution={!!state.distribution_plan}
+            />
+
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-8 bg-bg">
@@ -288,10 +305,27 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
 function StepProgress({
   step,
   onJump,
+  hasRoleProfile,
+  hasJobAd,
+  hasDistribution,
 }: {
   step: 1 | 2 | 3 | 4 | 5
   onJump: (s: 1 | 2 | 3 | 4 | 5) => void
+  hasRoleProfile: boolean
+  hasJobAd: boolean
+  hasDistribution: boolean
 }) {
+  // A step is reachable if (a) it's behind the current step, or (b) the
+  // wizard has the data needed to render it usefully. Lets users navigate
+  // freely once they've moved past Step 1.
+  const reachable = (n: 1 | 2 | 3 | 4 | 5): boolean => {
+    if (n <= step) return n !== step
+    if (n === 2) return hasRoleProfile
+    if (n === 3) return hasRoleProfile && hasJobAd
+    if (n === 4) return hasRoleProfile && hasJobAd && hasDistribution
+    if (n === 5) return hasRoleProfile && hasJobAd && hasDistribution
+    return false
+  }
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
       {STEP_LABELS.map((label, i) => {
@@ -303,7 +337,7 @@ function StepProgress({
           : isCompleted
           ? 'bg-charcoal text-white'
           : 'bg-light text-mid'
-        const clickable = n < step
+        const clickable = reachable(n)
         return (
           <button
             key={n}

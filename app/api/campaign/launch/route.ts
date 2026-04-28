@@ -1,4 +1,4 @@
-// POST /api/campaign/launch — atomic hand-off from Campaign Coach to HQ Recruit.
+// POST /api/campaign/launch - atomic hand-off from Campaign Coach to HQ Recruit.
 // See docs/CAMPAIGN-COACH-RESEARCH.md §5.1.
 
 import { NextRequest, NextResponse } from 'next/server'

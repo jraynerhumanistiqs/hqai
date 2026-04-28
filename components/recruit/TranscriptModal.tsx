@@ -85,7 +85,7 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
 
       const doc = new Document({
         creator: 'HQ Recruit',
-        title: `${title} — ${candidateName}`,
+        title: `${title} - ${candidateName}`,
         styles: {
           default: {
             document: { run: { font: 'Calibri' } },
@@ -147,7 +147,7 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
           </div>
         </div>
 
-        {/* Body — scrollable transcript text with question headings styled */}
+        {/* Body - scrollable transcript text with question headings styled */}
         <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-5">
           <div className="space-y-3">
             {text.split(/\n\n+/).map((para, i) => {

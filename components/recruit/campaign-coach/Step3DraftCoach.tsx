@@ -13,7 +13,7 @@ export default function Step3DraftCoach() {
         type: 'PUSH_COACH_MESSAGE',
         msg: {
           role: 'coach',
-          text: "I've drafted something for each section — have a look and approve when you're happy.",
+          text: "I've drafted something for each section - have a look and approve when you're happy.",
           ts: Date.now(),
         },
       })
@@ -29,7 +29,7 @@ export default function Step3DraftCoach() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-2">
-            Step 3 — Draft & approve
+            Step 3 - Draft & approve
           </h2>
           <p className="text-sm text-mid leading-relaxed max-w-xl">
             Edit each block, then hit <strong className="text-charcoal">Approve section</strong>.

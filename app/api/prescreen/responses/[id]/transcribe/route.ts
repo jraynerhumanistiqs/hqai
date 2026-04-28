@@ -53,7 +53,7 @@ export async function POST(
         try {
           const { text, utterances, raw } = await transcribeCloudflareVideo(uid)
           // Offset utterance timestamps by previous videos' duration so the
-          // merged utterance list is monotonic — handy for diarisation UIs.
+          // merged utterance list is monotonic - handy for diarisation UIs.
           return { i, uid, text, utterances, raw, error: null as null | string }
         } catch (err) {
           return { i, uid, text: '', utterances: [] as any[], raw: null, error: (err as Error).message }

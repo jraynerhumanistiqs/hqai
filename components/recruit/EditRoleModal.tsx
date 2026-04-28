@@ -109,7 +109,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
       if (willRescore) {
         setSaving(false)
         setRescoring(true)
-        setStatusMsg('Saving — re-scoring candidates with the new rubric…')
+        setStatusMsg('Saving - re-scoring candidates with the new rubric…')
         try {
           const rsRes = await fetch(`/api/prescreen/sessions/${session.id}/rescore`, {
             method: 'POST',
@@ -119,11 +119,11 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
           if (!rsRes.ok) {
             setStatusMsg(`Rubric saved, but rescore failed: ${rsData?.error ?? `HTTP ${rsRes.status}`}`)
           } else if (rsData.queued === 0) {
-            setStatusMsg('Done — no scored candidates to re-score yet.')
+            setStatusMsg('Done - no scored candidates to re-score yet.')
           } else if ((rsData.errors?.length ?? 0) > 0) {
-            setStatusMsg(`Done — ${rsData.queued - rsData.errors.length}/${rsData.queued} candidates re-scored. ${rsData.errors.length} failed.`)
+            setStatusMsg(`Done - ${rsData.queued - rsData.errors.length}/${rsData.queued} candidates re-scored. ${rsData.errors.length} failed.`)
           } else {
-            setStatusMsg(`Done — ${rsData.queued} candidate${rsData.queued === 1 ? '' : 's'} re-scored.`)
+            setStatusMsg(`Done - ${rsData.queued} candidate${rsData.queued === 1 ? '' : 's'} re-scored.`)
           }
         } catch (e) {
           setStatusMsg(`Rubric saved, but rescore failed: ${(e as Error).message}`)

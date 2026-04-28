@@ -164,7 +164,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       setRecState('error')
       const raw = err?.message || 'Unknown error'
       if (raw.startsWith('RECORDING_EMPTY')) {
-        setErrorMsg('No video was captured. Please record again — make sure your camera is on.')
+        setErrorMsg('No video was captured. Please record again - make sure your camera is on.')
       } else if (raw.startsWith('UPLOAD_URL_')) {
         setErrorMsg(`Could not prepare upload. Please refresh and try again. (${raw.split(':')[0]})`)
       } else if (raw.startsWith('CF_UPLOAD_')) {
