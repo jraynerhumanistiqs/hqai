@@ -152,23 +152,20 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       case 1: {
         if (!state.briefText.trim()) return
         const out = await callDraft(1, { brief: { raw_text: state.briefText } })
-        // Log the full output to the browser console for diagnosis if
-        // the wizard refuses to advance — makes it easy to spot whether
-        // the deploy is stale (would still show old shape).
         // eslint-disable-next-line no-console
         console.log('[campaign-coach] step 1 response:', out)
         if (out?.role_profile) {
           dispatch({ type: 'SET_STEP', step: 2 })
         } else {
-          const detail = out?._parseFailed
-            ? "(structured output came back empty — check server logs)"
-            : out
-            ? `(unexpected shape: ${Object.keys(out).slice(0, 5).join(', ')})`
-            : '(no response)'
+          // Full diagnostic in the chat panel so we can see exactly what
+          // came back without needing DevTools.
+          const dump = (() => {
+            try { return JSON.stringify(out, null, 2).slice(0, 1500) }
+            catch { return String(out) }
+          })()
           dispatch({
             type: 'REPLACE_LAST_COACH_MESSAGE',
-            text:
-              `I had a wobble parsing that one ${detail}. Could you try again? Adding the location, contract type, and a salary range often helps.`,
+            text: `I had a wobble parsing that one. The server returned:\n\n${dump}`,
           })
         }
         break

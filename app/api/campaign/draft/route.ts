@@ -406,7 +406,28 @@ export async function POST(req: NextRequest) {
             const toolUse = (res.content as any[]).find(b => b.type === 'tool_use')
             const output = toolUse?.input ?? null
             console.log('[campaign/draft] step 1 structured output:', output ? 'OK' : 'FAILED', 'stop:', res.stop_reason)
-            send({ done: true, output: output ?? { _parseFailed: true } })
+            if (!output) {
+              // Surface what the model actually returned so the wizard can
+              // show it inline. Includes stop_reason, content-block types,
+              // and any plain text the model emitted instead of using the
+              // forced tool.
+              const contentSummary = (res.content as any[]).map(b => ({
+                type: b.type,
+                text: b.type === 'text' ? String(b.text || '').slice(0, 600) : undefined,
+                tool_name: b.type === 'tool_use' ? b.name : undefined,
+              }))
+              send({
+                done: true,
+                output: {
+                  _parseFailed: true,
+                  _stop_reason: res.stop_reason,
+                  _content: contentSummary,
+                  _model: MODEL,
+                },
+              })
+            } else {
+              send({ done: true, output })
+            }
             controller.close()
             return
           }
