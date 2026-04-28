@@ -152,15 +152,23 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       case 1: {
         if (!state.briefText.trim()) return
         const out = await callDraft(1, { brief: { raw_text: state.briefText } })
+        // Log the full output to the browser console for diagnosis if
+        // the wizard refuses to advance — makes it easy to spot whether
+        // the deploy is stale (would still show old shape).
+        // eslint-disable-next-line no-console
+        console.log('[campaign-coach] step 1 response:', out)
         if (out?.role_profile) {
           dispatch({ type: 'SET_STEP', step: 2 })
         } else {
-          // Coach didn't return a usable role_profile — keep the user on
-          // Step 1 with a clear error message so they can retry.
+          const detail = out?._parseFailed
+            ? "(structured output came back empty — check server logs)"
+            : out
+            ? `(unexpected shape: ${Object.keys(out).slice(0, 5).join(', ')})`
+            : '(no response)'
           dispatch({
             type: 'REPLACE_LAST_COACH_MESSAGE',
             text:
-              "I had a wobble parsing that one. Could you try again? Adding the location, contract type, and a salary range often helps.",
+              `I had a wobble parsing that one ${detail}. Could you try again? Adding the location, contract type, and a salary range often helps.`,
           })
         }
         break

@@ -28,14 +28,14 @@ export default function Step1Brief() {
           onChange={e => dispatch({ type: 'SET_BRIEF_TEXT', text: e.target.value })}
           placeholder="Tell me about the role you're hiring for…"
           rows={8}
-          className="w-full bg-transparent text-2xl sm:text-3xl text-charcoal placeholder-muted resize-none outline-none leading-relaxed font-medium tracking-tight"
+          className="w-full bg-transparent text-2xl sm:text-3xl text-charcoal placeholder-muted resize-none outline-none leading-relaxed font-medium tracking-tight pr-14"
         />
 
-        <div className="absolute top-4 right-4">
+        <div className="absolute bottom-4 right-4">
           <button
             disabled
             title="Voice input — coming soon"
-            className="w-9 h-9 rounded-full bg-light text-muted flex items-center justify-center cursor-not-allowed"
+            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center cursor-not-allowed shadow-card"
             aria-label="Voice input — coming soon"
           >
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
