@@ -451,8 +451,18 @@ export async function POST(req: NextRequest) {
           controller.close()
         } catch (err) {
           const detail = err instanceof Error ? err.message : String(err)
-          console.error('[campaign/draft] stream error:', detail)
+          const stack = err instanceof Error
+            ? err.stack?.split('\n').slice(0, 4).join(' | ')
+            : undefined
+          console.error('[campaign/draft] stream error:', detail, stack)
+          // Send BOTH a soft error chunk AND a `done` with the error in
+          // the output payload — so the wizard's diagnostic dump shows
+          // exactly what blew up server-side instead of `null`.
           send({ error: 'Stream error', detail })
+          send({
+            done: true,
+            output: { _parseFailed: true, _error: detail, _stack: stack },
+          })
           controller.close()
         }
       },
