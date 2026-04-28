@@ -167,6 +167,113 @@ function userPromptForStep(step: 1 | 2 | 3 | 4, body: any): string {
   return `RoleProfile (JSON):\n\n${JSON.stringify(body?.role_profile ?? {}, null, 2)}\n\nReturn the DistributionPlan as instructed.`
 }
 
+// Tool definitions used as STRUCTURED OUTPUTS for steps 2/3/4. The
+// model is forced (via tool_choice) to call exactly one of these and
+// the `input` it produces IS the typed result we return to the client.
+function stepStructuredTool(step: 1 | 2 | 3 | 4): any {
+  if (step === 2) {
+    return {
+      name: 'submit_job_ad_draft',
+      description: 'Submit the drafted job ad as composable blocks.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          blocks: {
+            type: 'object',
+            properties: {
+              overview: { type: 'string' },
+              about_us: { type: 'string' },
+              responsibilities: { type: 'array', items: { type: 'string' } },
+              requirements: {
+                type: 'object',
+                properties: {
+                  must: { type: 'array', items: { type: 'string' } },
+                  nice: { type: 'array', items: { type: 'string' } },
+                },
+                required: ['must', 'nice'],
+              },
+              benefits: { type: 'array', items: { type: 'string' } },
+              apply_cta: { type: 'string' },
+            },
+            required: ['overview', 'about_us', 'responsibilities', 'requirements', 'benefits', 'apply_cta'],
+          },
+          meta: {
+            type: 'object',
+            properties: {
+              word_count: { type: 'number' },
+              reading_grade: { type: 'number' },
+            },
+            required: ['word_count', 'reading_grade'],
+          },
+        },
+        required: ['blocks', 'meta'],
+      },
+    }
+  }
+  if (step === 3) {
+    return {
+      name: 'submit_coach_score',
+      description: 'Submit the coach score and warnings for this draft.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          overall: { type: 'number' },
+          inclusivity: { type: 'number' },
+          clarity: { type: 'number' },
+          legal: { type: 'number' },
+          attractiveness: { type: 'number' },
+          warnings: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                block: { type: 'string' },
+                severity: { type: 'string', enum: ['info', 'warn', 'error'] },
+                message: { type: 'string' },
+                suggestion: { type: 'string' },
+              },
+              required: ['block', 'severity', 'message'],
+            },
+          },
+        },
+        required: ['overall', 'inclusivity', 'clarity', 'legal', 'attractiveness', 'warnings'],
+      },
+    }
+  }
+  // step 4
+  return {
+    name: 'submit_distribution_plan',
+    description: 'Submit the distribution plan with board recommendations.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        boards: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                enum: ['seek', 'indeed', 'linkedin', 'jora', 'careerone', 'ethicaljobs', 'hqai_careers'],
+              },
+              method: {
+                type: 'string',
+                enum: ['deep_link', 'api', 'copy_paste', 'internal'],
+              },
+              estimated_cost_aud: { type: 'number' },
+              rationale: { type: 'string' },
+              prefill_url: { type: 'string' },
+            },
+            required: ['id', 'method', 'rationale'],
+          },
+        },
+        total_estimated_cost_aud: { type: 'number' },
+      },
+      required: ['boards', 'total_estimated_cost_aud'],
+    },
+  }
+}
+
 function extractJson(raw: string): unknown | null {
   // Prefer the first ```json fenced block; fall back to first {...} blob.
   const fence = raw.match(/```json\s*([\s\S]*?)```/i)
@@ -222,74 +329,104 @@ export async function POST(req: NextRequest) {
             { role: 'user', content: userMsg },
           ]
 
-          // Step 1 gets the search_knowledge tool for award grounding.
-          // One tool iteration max, then forced final-answer turn.
+          // Step 1: use a structured-output tool to guarantee shape.
+          // Anthropic's tool_use with a tool_choice forces the model to
+          // emit a tool_use block whose input matches our JSON schema —
+          // no fragile prose-+-JSON parsing. We don't actually run the
+          // tool; we just read its `input` as the typed result.
           if (step === 1) {
-            const tools = chatTools.filter(t => t.name === 'search_knowledge')
-            const MAX_ITERS = 1
-            let citationOffset = 0
-            for (let iter = 0; iter <= MAX_ITERS; iter++) {
-              const isFinal = iter === MAX_ITERS
-              const res = await anthropic.messages.create({
-                model: MODEL,
-                max_tokens: 2048,
-                system: systemPrompt,
-                tools,
-                tool_choice: isFinal ? { type: 'none' } : { type: 'auto' },
-                messages: working,
-              })
-              if (res.stop_reason !== 'tool_use' || isFinal) {
-                const text = res.content
-                  .filter((b: any) => b.type === 'text')
-                  .map((b: any) => b.text)
-                  .join('')
-                const parsed = extractJson(text)
-                console.log('[campaign/draft] step 1 final, parsed:', parsed ? 'OK' : 'FAILED', 'text-len:', text.length)
-                if (!parsed) {
-                  console.log('[campaign/draft] step 1 raw text preview:', text.slice(0, 500))
-                }
-                if (parsed) send({ partial: parsed })
-                send({ done: true, output: parsed ?? { raw: text, _parseFailed: true } })
-                controller.close()
-                return
-              }
-              working.push({ role: 'assistant', content: res.content })
-              const toolUseBlocks = res.content.filter((b: any) => b.type === 'tool_use') as Array<{
-                type: 'tool_use'; id: string; name: string; input: Record<string, unknown>
-              }>
-              const results = await Promise.all(
-                toolUseBlocks.map((tu, i) =>
-                  runTool(tu.id, tu.name, tu.input, citationOffset + i * 16),
-                ),
-              )
-              const toolResults = toolUseBlocks.map((tu, i) => ({
-                type: 'tool_result' as const,
-                tool_use_id: tu.id,
-                content: results[i].output,
-                is_error: results[i].isError,
-              }))
-              citationOffset += results.reduce((acc, r) => acc + r.citations.length, 0)
-              working.push({ role: 'user', content: toolResults })
+            const submitProfile: any = {
+              name: 'submit_role_profile',
+              description: 'Submit the extracted role profile and award classification.',
+              input_schema: {
+                type: 'object',
+                properties: {
+                  role_profile: {
+                    type: 'object',
+                    properties: {
+                      title: { type: 'string' },
+                      alt_titles: { type: 'array', items: { type: 'string' } },
+                      level: { type: 'string', enum: ['entry', 'mid', 'senior', 'lead', 'manager'] },
+                      contract_type: {
+                        type: 'string',
+                        enum: ['permanent_ft', 'permanent_pt', 'fixed_term', 'casual', 'contract'],
+                      },
+                      hours_per_week: { type: 'number' },
+                      location: {
+                        type: 'object',
+                        properties: {
+                          suburb: { type: 'string' },
+                          state: { type: 'string', enum: ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT'] },
+                          postcode: { type: 'string' },
+                          remote: { type: 'string', enum: ['no', 'hybrid', 'full'] },
+                        },
+                        required: ['suburb', 'state', 'remote'],
+                      },
+                      salary: {
+                        type: 'object',
+                        properties: {
+                          min: { type: 'number' },
+                          max: { type: 'number' },
+                          currency: { type: 'string' },
+                          super_inclusive: { type: 'boolean' },
+                          source: { type: 'string', enum: ['user', 'estimate'] },
+                        },
+                        required: ['min', 'max', 'currency', 'super_inclusive', 'source'],
+                      },
+                      must_have_skills: { type: 'array', items: { type: 'string' } },
+                      nice_to_have_skills: { type: 'array', items: { type: 'string' } },
+                      team_context: { type: 'string' },
+                      eeo_flags: { type: 'array', items: { type: 'string' } },
+                    },
+                    required: ['title', 'alt_titles', 'level', 'contract_type', 'location', 'salary', 'must_have_skills', 'nice_to_have_skills', 'eeo_flags'],
+                  },
+                  award_suggestion: {
+                    type: 'object',
+                    properties: {
+                      code: { type: 'string' },
+                      name: { type: 'string' },
+                      classification: { type: 'string' },
+                      min_weekly_rate: { type: 'number' },
+                      source_url: { type: 'string' },
+                      confidence: { type: 'number' },
+                    },
+                  },
+                },
+                required: ['role_profile'],
+              },
             }
+            const res = await anthropic.messages.create({
+              model: MODEL,
+              max_tokens: 2048,
+              system: systemPrompt,
+              tools: [submitProfile],
+              tool_choice: { type: 'tool', name: 'submit_role_profile' },
+              messages: working,
+            })
+            const toolUse = (res.content as any[]).find(b => b.type === 'tool_use')
+            const output = toolUse?.input ?? null
+            console.log('[campaign/draft] step 1 structured output:', output ? 'OK' : 'FAILED', 'stop:', res.stop_reason)
+            send({ done: true, output: output ?? { _parseFailed: true } })
+            controller.close()
             return
           }
 
-          // Steps 2/3/4 — single non-streaming call, then emit partial+done.
-          // We don't true-stream JSON here because partials are unparseable
-          // until the closing brace; UX-wise the status pulse covers latency.
+          // Steps 2/3/4 — same structured-output pattern. Force the model
+          // to emit a single tool_use block whose `input` IS the typed
+          // result. No JSON-parsing fragility.
+          const stepTool = stepStructuredTool(step)
           const res = await anthropic.messages.create({
             model: MODEL,
             max_tokens: 4096,
             system: systemPrompt,
+            tools: [stepTool],
+            tool_choice: { type: 'tool', name: stepTool.name },
             messages: working,
           })
-          const text = (res.content as any[])
-            .filter(b => b.type === 'text')
-            .map(b => b.text)
-            .join('')
-          const parsed = extractJson(text)
-          if (parsed) send({ partial: parsed })
-          send({ done: true, output: parsed ?? { raw: text } })
+          const toolUse2 = (res.content as any[]).find(b => b.type === 'tool_use')
+          const output2 = toolUse2?.input ?? null
+          console.log(`[campaign/draft] step ${step} structured output:`, output2 ? 'OK' : 'FAILED', 'stop:', res.stop_reason)
+          send({ done: true, output: output2 ?? { _parseFailed: true } })
           controller.close()
         } catch (err) {
           const detail = err instanceof Error ? err.message : String(err)
