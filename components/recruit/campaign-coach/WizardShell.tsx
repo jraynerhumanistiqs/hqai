@@ -21,12 +21,14 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
   const [coachOpenMobile, setCoachOpenMobile] = useState(false)
 
   const callDraft = useCallback(
-    async (step: number, extra: Record<string, any> = {}) => {
+    async (step: number, extra: Record<string, any> = {}): Promise<any | null> => {
       dispatch({ type: 'SET_STREAMING', streaming: true })
       dispatch({
         type: 'PUSH_COACH_MESSAGE',
         msg: { role: 'coach', text: '', ts: Date.now() },
       })
+
+      let finalOutput: any = null
 
       try {
         const res = await fetch('/api/campaign/draft', {
@@ -70,6 +72,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
                 dispatch({ type: 'REPLACE_LAST_COACH_MESSAGE', text: coachText })
               }
               if (data.done && data.output) {
+                finalOutput = data.output
                 applyOutput(step, data.output, dispatch)
               }
             } catch {
@@ -86,6 +89,8 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       } finally {
         dispatch({ type: 'SET_STREAMING', streaming: false })
       }
+
+      return finalOutput
     },
     [state.brief, state.role_profile, state.job_ad_draft, business],
   )
@@ -146,13 +151,30 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
     switch (state.step) {
       case 1: {
         if (!state.briefText.trim()) return
-        await callDraft(1, { brief: { raw_text: state.briefText } })
-        dispatch({ type: 'SET_STEP', step: 2 })
+        const out = await callDraft(1, { brief: { raw_text: state.briefText } })
+        if (out?.role_profile) {
+          dispatch({ type: 'SET_STEP', step: 2 })
+        } else {
+          // Coach didn't return a usable role_profile — keep the user on
+          // Step 1 with a clear error message so they can retry.
+          dispatch({
+            type: 'REPLACE_LAST_COACH_MESSAGE',
+            text:
+              "I had a wobble parsing that one. Could you try again? Adding the location, contract type, and a salary range often helps.",
+          })
+        }
         break
       }
       case 2: {
-        await callDraft(2)
-        dispatch({ type: 'SET_STEP', step: 3 })
+        const out = await callDraft(2)
+        if (out?.blocks || out?.job_ad_draft) {
+          dispatch({ type: 'SET_STEP', step: 3 })
+        } else {
+          dispatch({
+            type: 'REPLACE_LAST_COACH_MESSAGE',
+            text: "I couldn't draft the ad cleanly — give me one more try.",
+          })
+        }
         break
       }
       case 3: {

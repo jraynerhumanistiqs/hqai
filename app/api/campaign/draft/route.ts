@@ -14,7 +14,7 @@ import { tools as chatTools, runTool } from '@/lib/chat-tools'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 90
+export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
@@ -223,10 +223,10 @@ export async function POST(req: NextRequest) {
           ]
 
           // Step 1 gets the search_knowledge tool for award grounding.
-          // Cap at 2 tool iterations + 1 final answer turn.
+          // One tool iteration max, then forced final-answer turn.
           if (step === 1) {
             const tools = chatTools.filter(t => t.name === 'search_knowledge')
-            const MAX_ITERS = 2
+            const MAX_ITERS = 1
             let citationOffset = 0
             for (let iter = 0; iter <= MAX_ITERS; iter++) {
               const isFinal = iter === MAX_ITERS
@@ -244,8 +244,12 @@ export async function POST(req: NextRequest) {
                   .map((b: any) => b.text)
                   .join('')
                 const parsed = extractJson(text)
+                console.log('[campaign/draft] step 1 final, parsed:', parsed ? 'OK' : 'FAILED', 'text-len:', text.length)
+                if (!parsed) {
+                  console.log('[campaign/draft] step 1 raw text preview:', text.slice(0, 500))
+                }
                 if (parsed) send({ partial: parsed })
-                send({ done: true, output: parsed ?? { raw: text } })
+                send({ done: true, output: parsed ?? { raw: text, _parseFailed: true } })
                 controller.close()
                 return
               }
