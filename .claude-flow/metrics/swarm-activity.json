@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-04-13T03:44:08.314Z",
+  "timestamp": "2026-04-22T02:30:20.294Z",
   "processes": {
     "agentic_flow": 0,
     "mcp_server": 0,
     "estimated_agents": 0
   },
   "swarm": {
-    "active": false,
-    "agent_count": 0,
-    "coordination_active": false
+    "active": true,
+    "agent_count": 4,
+    "coordination_active": true
   },
   "integration": {
     "agentic_flow_active": false,
