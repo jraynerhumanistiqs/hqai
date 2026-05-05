@@ -106,12 +106,12 @@ function contentToParagraphs(content: string): Paragraph[] {
         spacing: { after: 60 },
       }))
     }
-    // Numbered items
+    // Numbered items - keep the literal "1. " prefix as text rather than
+    // using docx numbering refs (which require a numbering config block in
+    // the Document and corrupt the file when the ref is undefined).
     else if (/^\d+\.\s/.test(trimmed)) {
-      const text = trimmed.replace(/^\d+\.\s/, '')
       paragraphs.push(new Paragraph({
-        numbering: { reference: 'default-numbering', level: 0 },
-        children: parseInlineFormatting(text),
+        children: parseInlineFormatting(trimmed),
         spacing: { after: 60 },
       }))
     }

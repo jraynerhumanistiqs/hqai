@@ -43,6 +43,9 @@ export default function MessageCitations({ citations }: MessageCitationsProps) {
           </li>
         ))}
       </ol>
+      <p className="text-[10px] text-muted mt-2 leading-snug">
+        General information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.
+      </p>
     </div>
   )
 }

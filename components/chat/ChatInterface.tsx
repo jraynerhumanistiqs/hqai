@@ -11,6 +11,7 @@ interface Message {
   content: string
   escalate?: boolean
   docType?: string | null
+  docId?: string | null
   formType?: string | null
   formCompleted?: boolean
   // NOTE: persisted client-side only for now. If the Supabase messages schema
@@ -319,6 +320,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         throw new Error(err.error || 'Generation failed')
       }
 
+      // Capture the saved document id so the re-download button can fetch
+      // the actual DOCX from the library rather than regenerating from the
+      // chat confirmation message text.
+      const newDocId = res.headers.get('X-Document-Id')
+
       // Download the DOCX blob
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -339,6 +345,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           role: 'assistant',
           content: `Your **${docType}** has been generated and downloaded as a Word document. It's also been saved to your documents library.\n\nThe document includes your company logo and all required clauses tailored to your business. Please review it carefully and make any necessary adjustments before issuing to the employee.`,
           docType: docType,
+          docId: newDocId,
         }
         return updated
       })
@@ -539,11 +546,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           {cites.citations.length > 0 && !isStreamingThis && (
                             <MessageCitations citations={cites.citations} />
                           )}
-                          {module === 'people' && !isStreamingThis && (
-                            <p className="text-[11px] text-muted italic mt-2">
-                              General information, not legal advice. Confirm with your advisor before acting.
-                            </p>
-                          )}
                         </>
                       )
                     })()
@@ -640,7 +642,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         </p>
                       </div>
                       <div className="flex gap-2 ml-6">
-                        <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} />
+                        <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} docId={msg.docId || null} />
                         {savedDocId && (
                           <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
                             View in library →
@@ -998,17 +1000,23 @@ function DocumentFormCard({
   )
 }
 
-function DownloadDocxButton({ content, title, docType }: { content: string; title: string; docType: string }) {
+function DownloadDocxButton({ content, title, docType, docId }: { content: string; title: string; docType: string; docId: string | null }) {
   const [downloading, setDownloading] = useState(false)
 
   async function handleDownload() {
     setDownloading(true)
     try {
-      const res = await fetch('/api/documents/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, title: `${title} - ${new Date().toLocaleDateString('en-AU')}`, docType }),
-      })
+      // Prefer the library download endpoint when we have a saved doc id -
+      // that fetches the original generated content. The /generate fallback
+      // would otherwise re-render whatever string was last shown in chat
+      // (often the confirmation copy, not the actual document body).
+      const res = docId
+        ? await fetch(`/api/documents/download?id=${encodeURIComponent(docId)}`)
+        : await fetch('/api/documents/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, title: `${title} - ${new Date().toLocaleDateString('en-AU')}`, docType }),
+          })
 
       if (!res.ok) throw new Error('Generation failed')
 

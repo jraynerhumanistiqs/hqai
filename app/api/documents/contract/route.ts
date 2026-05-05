@@ -150,23 +150,35 @@ export async function POST(req: NextRequest) {
   const buffer = await Packer.toBuffer(document)
   const filename = `${title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
 
-  // Also save to documents library
+  // Also save to documents library and return the new doc id so the chat
+  // re-download button can fetch the same artefact instead of regenerating
+  // from the chat confirmation message text.
+  let savedDocId: string | null = null
   try {
-    await supabase.from('documents').insert({
-      business_id: business?.id,
-      user_id: user.id,
-      title,
-      type: (docType || 'employment-contract').toLowerCase().replace(/\s+/g, '-'),
-      content: contractText,
-    })
+    const { data: insertRes } = await supabase
+      .from('documents')
+      .insert({
+        business_id: business?.id,
+        user_id: user.id,
+        title,
+        type: (docType || 'employment-contract').toLowerCase().replace(/\s+/g, '-'),
+        content: contractText,
+      })
+      .select('id')
+      .single()
+    savedDocId = insertRes?.id ?? null
   } catch {}
 
-  return new NextResponse(buffer, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    },
-  })
+  const responseHeaders: Record<string, string> = {
+    'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+  }
+  if (savedDocId) {
+    responseHeaders['X-Document-Id'] = savedDocId
+    responseHeaders['Access-Control-Expose-Headers'] = 'X-Document-Id'
+  }
+
+  return new NextResponse(buffer, { headers: responseHeaders })
 }
 
 function contractToParagraphs(content: string): Paragraph[] {

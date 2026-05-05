@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function BookingPage() {
   const [calendlyUrl, setCalendlyUrl] = useState('')
-  const [advisorName, setAdvisorName] = useState('')
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -13,10 +12,9 @@ export default function BookingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data: profile } = await supabase
-        .from('profiles').select('businesses(advisor_name, calendly_link)')
+        .from('profiles').select('businesses(calendly_link)')
         .eq('id', user.id).single()
       const biz = profile?.businesses as any
-      setAdvisorName(biz?.advisor_name || 'Your advisor')
       setCalendlyUrl(biz?.calendly_link || '')
       setLoading(false)
     }
@@ -52,7 +50,7 @@ export default function BookingPage() {
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
             </svg>
           </div>
-          <h2 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-2">Book a call with {advisorName}</h2>
+          <h2 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-2">Book a call with your Humanistiqs advisor</h2>
           <p className="text-sm text-gray-400 mb-6">
             No Calendly link has been set up yet. Add your advisor&apos;s Calendly link in Settings to enable booking.
           </p>
@@ -68,7 +66,7 @@ export default function BookingPage() {
     <div className="flex-1 overflow-y-auto bg-[#000000]">
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h1 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-1">Book a call with {advisorName}</h1>
+          <h1 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-1">Book a call with your Humanistiqs advisor</h1>
           <p className="text-sm text-gray-400">
             Schedule a 1-on-1 session with your dedicated Humanistiqs advisor.
             Same advisor every time - no repeating yourself.
