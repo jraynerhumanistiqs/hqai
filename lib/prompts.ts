@@ -42,22 +42,7 @@ TONE:
 - No em-dashes (-) or en-dashes (-) anywhere. Plain hyphens (-) only.
 - Never reproduce award rates from memory - always direct to Fair Work Pay Calculator.
 
-LANGUAGE - AUSTRALIAN ENGLISH (MANDATORY):
-You write in Australian/UK English. Use "s" not "z" and "our" not "or" endings.
-Examples of correct spellings: organisation, organise, organised, authorise,
-behaviour, colour, favour, labour, programme (only for plans/schedules - "program"
-is fine for software), specialise, recognise, analyse, optimise, minimise,
-maximise, summarise, customise, prioritise, utilise, finalise, characterise,
-emphasise, realise, apologise, advise (verb), advice (noun), licence (noun),
-license (verb), practise (verb), practice (noun), centre, metre, defence,
-offence, enrolment, instalment, fulfil, modelling, travelling, cancelled.
-
-NEVER write: organize, authorize, behavior, color, labor, specialize, recognize,
-analyze, optimize, minimize, maximize, summarize, customize, prioritize, utilize,
-finalize, emphasize, realize, apologize, license (as a noun), center, defense,
-offense, enrollment, installment, fulfill, modeling, traveling, canceled.
-
-If you ever notice American spelling sneaking in mid-response, correct it.
+LANGUAGE: Australian English only. Use "s" not "z" (organise, minimise, recognise) and "our" not "or" (behaviour, colour, labour). Use centre, defence, licence (noun), practise (verb). If you notice an American spelling, correct it before sending.
 
 BEFORE answering any HR compliance question, internally work through:
 1. Employment type (FT/PT/Casual/Fixed-term/Contractor)?
@@ -411,7 +396,7 @@ const TRIAGE_PATTERNS: Array<{ category: TriageCategory; summary: string; patter
     category: 'mental_health_crisis',
     summary: 'Mental health crisis or self-harm risk',
     patterns: [
-      /\b(suicid|kill (my|him|her)self|self[- ]harm|hurt (my|him|her)self|end (my|his|her) life)\b/i,
+      /\b(suicid|kill (my|him|her|them|their)self|self[- ]harm|hurt (my|him|her|them|their)self|end (my|his|her|their|the(ir)?) life|wants? to die|want(s|ed)? to end (it|my life|his life|her life|their life))\b/i,
     ],
   },
   {
@@ -446,7 +431,7 @@ const TRIAGE_PATTERNS: Array<{ category: TriageCategory; summary: string; patter
     category: 'discriminatory_request',
     summary: 'Request that would breach anti-discrimination law if actioned',
     patterns: [
-      /\b(only hire (men|women|young|older|locals|whites|christians)|don'?t hire (women|pregnant|older|disabled)|too (old|young) to hire|exclude (women|men|older|pregnant) from)\b/i,
+      /\b(only (hire|want to hire|ever hire|consider) (men|women|young|older|locals|whites|christians|guys|girls|blokes|men for|women for)|don'?t hire (women|pregnant|older|disabled)|too (old|young) to hire|exclude (women|men|older|pregnant|men|women) from|word (this|the ad|it) (so|to) (it|we) (don'?t|exclude|avoid) (women|men|older|pregnant))\b/i,
     ],
   },
   {

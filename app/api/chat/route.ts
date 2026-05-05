@@ -339,20 +339,22 @@ export async function POST(req: NextRequest) {
             )
 
             let lastChunkAt = Date.now()
-            const STREAM_GAP_LIMIT_MS = 30_000
+            let stalled = false
+            const STREAM_GAP_LIMIT_MS = 25_000
+            const STREAM_TOTAL_LIMIT_MS = 50_000
+            const streamStartedAt = Date.now()
             const watchdog = setInterval(() => {
-              if (Date.now() - lastChunkAt > STREAM_GAP_LIMIT_MS) {
-                try {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                    error: 'Stream stalled',
-                    detail: `No streaming chunk received in ${STREAM_GAP_LIMIT_MS}ms.`,
-                  })}\n\n`))
-                } catch {}
+              const overGap = Date.now() - lastChunkAt > STREAM_GAP_LIMIT_MS
+              const overTotal = Date.now() - streamStartedAt > STREAM_TOTAL_LIMIT_MS
+              if (overGap || overTotal) {
+                stalled = true
+                clearInterval(watchdog)
               }
-            }, 5_000)
+            }, 2_000)
 
             try {
               for await (const chunk of finalRes) {
+                if (stalled) break
                 lastChunkAt = Date.now()
                 if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
                   const text = chunk.delta.text
@@ -362,6 +364,9 @@ export async function POST(req: NextRequest) {
               }
             } finally {
               clearInterval(watchdog)
+            }
+            if (stalled && !fullResponse) {
+              throw new Error('Streaming stalled before any text arrived')
             }
             const { cleanText, citations } = parseCitations(fullResponse)
             const finalCitations = mergeCitations(accumulatedCitations, citations)
