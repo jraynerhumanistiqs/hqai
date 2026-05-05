@@ -324,16 +324,20 @@ export async function POST(req: NextRequest) {
                 message: 'Quick answer coming - rest will follow if you ask me to expand.',
               })}\n\n`))
             }
+            const streamAbort = new AbortController()
             const finalRes = await withTimeout(
-              anthropic.messages.create({
-                model: MODEL,
-                max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
-                system: systemPrompt,
-                tools,
-                tool_choice: { type: 'none' },
-                messages: working,
-                stream: true,
-              }),
+              anthropic.messages.create(
+                {
+                  model: MODEL,
+                  max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
+                  system: systemPrompt,
+                  tools,
+                  tool_choice: { type: 'none' },
+                  messages: working,
+                  stream: true,
+                },
+                { signal: streamAbort.signal },
+              ),
               30_000,
               'Anthropic streaming start',
             )
@@ -349,12 +353,12 @@ export async function POST(req: NextRequest) {
               if (overGap || overTotal) {
                 stalled = true
                 clearInterval(watchdog)
+                try { streamAbort.abort() } catch {}
               }
             }, 2_000)
 
             try {
               for await (const chunk of finalRes) {
-                if (stalled) break
                 lastChunkAt = Date.now()
                 if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
                   const text = chunk.delta.text
@@ -362,6 +366,8 @@ export async function POST(req: NextRequest) {
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
                 }
               }
+            } catch (err) {
+              if (!stalled) throw err
             } finally {
               clearInterval(watchdog)
             }

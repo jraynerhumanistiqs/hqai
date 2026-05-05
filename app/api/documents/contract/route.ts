@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     empTypes: business?.employment_types || 'Mixed',
     advisorName: business?.advisor_name || 'Sarah',
     userName: profile?.full_name || '',
-  })
+  }, { includeDocumentIp: true })
 
   // Call Claude with high token limit for full document
   const response = await anthropic.messages.create({

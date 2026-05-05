@@ -78,11 +78,17 @@ NAMING DISCIPLINE:
 - Do not refer to yourself by a name. You are the AI advisor; the user knows what to call you from the UI.
 
 DOCUMENT GENERATION:
-When generating employment documents, confirm employment type, award coverage, and state jurisdiction first. Add a compliance check summary at the end. Never generate dismissal, redundancy, or serious misconduct documents without escalating first.
+When the user asks for a document (contract, letter, PIP, etc.), confirm employment type, award coverage, and state jurisdiction. Never generate dismissal, redundancy, or serious misconduct documents without escalating first. The chat surface only ever offers a high-level summary of what will go in the document - the actual clause-by-clause draft is produced by the dedicated /api/documents/contract endpoint, which loads the full Humanistiqs template IP.
 
-When generating a document, you MUST produce a COMPLETE, COMPREHENSIVE, READY-TO-USE document - not a summary or outline. The document should be professional and include ALL necessary clauses. Never abbreviate, skip sections, or write "[insert details]" placeholders. Use the business context loaded from the client profile to fill in employer details.
+FORMAT: Use markdown. Bold key terms. Use bullet points for lists.
 
-EMPLOYMENT CONTRACT TEMPLATE - HUMANISTIQS IP STRUCTURE:
+COMPLIANCE DISCLAIMER: Do NOT add a disclaimer footer to your response. The frontend renders a Sources panel under any response with citations, and the legal-advice disclaimer lives there in small text - not in the prose.\`
+
+// Document template IP - only loaded for routes that actually generate
+// documents (e.g. /api/documents/contract). Keeping it out of the chat
+// system prompt cuts ~3000 input tokens per query, which dropped simple
+// query latency from 60-90s back to 20-30s.
+export const DOCUMENT_TEMPLATE_IP = \`EMPLOYMENT CONTRACT TEMPLATE - HUMANISTIQS IP STRUCTURE:
 When generating any employment contract, you MUST follow this EXACT clause structure (adapted for employment type - FT/PT/Casual/Fixed-term). This is our proprietary template IP:
 
 TITLE: "[EMPLOYMENT TYPE] Employment Contract"
@@ -198,9 +204,7 @@ WARNING LETTER TEMPLATE - must include:
 - Employee's right to have a support person
 - Signature blocks
 
-FORMAT: Use markdown. Bold key terms. Use bullet points for lists. For documents, generate the FULL COMPLETE content - every clause, every detail. Documents should be 2000-3000+ words for contracts. Do not truncate or summarise.
-
-COMPLIANCE DISCLAIMER: Do NOT add a disclaimer footer to your response. The frontend renders a Sources panel under any response with citations, and the legal-advice disclaimer lives there in small text - not in the prose.`
+FORMAT FOR DOCUMENTS: Use markdown. Bold key terms. Use bullet points for lists. For documents, generate the FULL COMPLETE content - every clause, every detail. Documents should be 2000-3000+ words for contracts. Do not truncate or summarise.`
 
 export const HQ_PEOPLE_MODULE = `
 MODULE: HQ People - HR Compliance & Administration
@@ -346,9 +350,23 @@ export function buildSystemPrompt(module: 'people' | 'recruit', business: {
   empTypes: string
   advisorName: string
   userName?: string
-}) {
+}, opts?: { includeDocumentIp?: boolean }): string {
+  return _buildSystemPrompt(module, business, opts)
+}
+
+function _buildSystemPrompt(module: 'people' | 'recruit', business: {
+  name: string
+  industry: string
+  state: string
+  award: string
+  headcount: string
+  empTypes: string
+  advisorName: string
+  userName?: string
+}, opts?: { includeDocumentIp?: boolean }) {
   const modulePrompt = module === 'recruit' ? HQ_RECRUIT_MODULE : HQ_PEOPLE_MODULE
   const groundingBlock = module === 'people' ? `\n\n${HQ_PEOPLE_GROUNDING}` : ''
+  const documentIpBlock = opts?.includeDocumentIp ? `\n\n${DOCUMENT_TEMPLATE_IP}` : ''
   const businessContext = `
 BUSINESS CONTEXT (loaded from client profile):
 - Business name: ${business.name}
@@ -361,7 +379,7 @@ BUSINESS CONTEXT (loaded from client profile):
 
 When you escalate, refer to the human you're handing off to as "your Humanistiqs advisor". Do not append a name. Do not use any name from this profile as if it were the human advisor's name.`
 
-  return `${MASTER_SYSTEM_PROMPT}\n\n${modulePrompt}${groundingBlock}\n\n${businessContext}`
+  return `${MASTER_SYSTEM_PROMPT}${documentIpBlock}\n\n${modulePrompt}${groundingBlock}\n\n${businessContext}`
 }
 
 export function detectEscalation(text: string): boolean {
