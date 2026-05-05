@@ -296,17 +296,16 @@ export default function Step2Extract() {
               <strong className="text-charcoal">
                 ${(profile.award.min_weekly_rate / FT_WEEKLY_HOURS).toFixed(2)}/hr
               </strong>{' '}
-              <span className="text-muted">
-                (based on ${profile.award.min_weekly_rate}/wk over {FT_WEEKLY_HOURS}h)
-              </span>
+              <span className="text-muted">(full-time week assumed at {FT_WEEKLY_HOURS} hours)</span>
             </p>
             <a
-              href={profile.award.source_url}
+              href={fwoAwardUrl(profile.award.code)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-charcoal underline underline-offset-2 break-all"
+              className="inline-flex items-center gap-1.5 bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
             >
-              {profile.award.source_url}
+              View on Fair Work
+              <span aria-hidden="true">↗</span>
             </a>
             <p className="text-xs text-muted mt-4 leading-relaxed">
               Source: Fair Work Commission. Always confirm classification with your advisor for
