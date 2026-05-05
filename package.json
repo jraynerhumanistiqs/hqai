@@ -11,7 +11,8 @@
     "ingest:awards": "tsx scripts/ingest/ingest-awards.ts",
     "ingest:fwo": "tsx scripts/ingest/ingest-fwo.ts",
     "ingest:act": "tsx scripts/ingest/ingest-act.ts",
-    "eval": "tsx tests/eval/run-eval.ts"
+    "eval": "tsx tests/eval/run-eval.ts",
+    "smoke:chat": "node scripts/smoke-chat.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",

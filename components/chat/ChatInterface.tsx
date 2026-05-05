@@ -136,6 +136,37 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
     const controller = new AbortController()
     abortRef.current = controller
+    let timedOut = false
+
+    // Demo-safety guard: if the route hasn't completed in 60s, surface a
+    // graceful escalation card instead of letting the user watch the spinner
+    // forever. Pro plan tolerates 300s but the user experience suffers well
+    // before that.
+    const TIMEOUT_MS = 60_000
+    const timeoutId = setTimeout(() => {
+      timedOut = true
+      try { controller.abort() } catch {}
+      setMessages(prev => {
+        const updated = [...prev]
+        const last = updated[updated.length - 1]
+        if (last && last.role === 'assistant') {
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content:
+              "I'm taking longer than I should on this one. Rather than leave you waiting, let me hand it to your Humanistiqs advisor. Want me to send them a context summary, or book a call?",
+            escalate: true,
+          }
+        } else {
+          updated.push({
+            role: 'assistant',
+            content:
+              "I'm taking longer than I should on this one. Rather than leave you waiting, let me hand it to your Humanistiqs advisor. Want me to send them a context summary, or book a call?",
+            escalate: true,
+          })
+        }
+        return updated
+      })
+    }, TIMEOUT_MS)
 
     setIsLoading(true)
     const newMessages: Message[] = [...messages, { role: 'user', content }]
@@ -271,7 +302,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       }
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        // User stopped - keep partial content, no error message
+        // Either the user stopped or the timeout above tripped. The timeout
+        // handler has already injected the escalation card, so just exit.
+        // User-stop case keeps partial content with no extra error message.
       } else {
         const detail =
           err instanceof Error ? err.message : String(err ?? 'Unknown error')
@@ -285,8 +318,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       }
     }
 
+    clearTimeout(timeoutId)
     abortRef.current = null
     setIsLoading(false)
+    void timedOut
   }, [messages, isLoading, conversationId, module])
 
   // Handle form submission - generate DOCX backend-side and deliver download
