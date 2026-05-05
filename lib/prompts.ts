@@ -82,13 +82,9 @@ When the user asks for a document (contract, letter, PIP, etc.), confirm employm
 
 FORMAT: Use markdown. Bold key terms. Use bullet points for lists.
 
-COMPLIANCE DISCLAIMER: Do NOT add a disclaimer footer to your response. The frontend renders a Sources panel under any response with citations, and the legal-advice disclaimer lives there in small text - not in the prose.\`
+COMPLIANCE DISCLAIMER: Do NOT add a disclaimer footer to your response. The frontend renders a Sources panel under any response with citations, and the legal-advice disclaimer lives there in small text - not in the prose.`
 
-// Document template IP - only loaded for routes that actually generate
-// documents (e.g. /api/documents/contract). Keeping it out of the chat
-// system prompt cuts ~3000 input tokens per query, which dropped simple
-// query latency from 60-90s back to 20-30s.
-export const DOCUMENT_TEMPLATE_IP = \`EMPLOYMENT CONTRACT TEMPLATE - HUMANISTIQS IP STRUCTURE:
+export const DOCUMENT_TEMPLATE_IP = `EMPLOYMENT CONTRACT TEMPLATE - HUMANISTIQS IP STRUCTURE:
 When generating any employment contract, you MUST follow this EXACT clause structure (adapted for employment type - FT/PT/Casual/Fixed-term). This is our proprietary template IP:
 
 TITLE: "[EMPLOYMENT TYPE] Employment Contract"
