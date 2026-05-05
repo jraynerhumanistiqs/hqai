@@ -1,0 +1,63 @@
+{
+  "_comment": "This file shows the full input schema for generate_ref_check.js. It is produced automatically by process_ref_check.py but can also be hand-edited for manual runs.",
+
+  "candidate_name": "Olivia Zhao",
+  "position": "Finance Officer",
+  "organisation": "Wellness Partners Foundation",
+  "reference_date": "30 April 2026",
+  "referee_name": "Andrew Vivian",
+  "relationship": "Former Employer",
+
+  "form_data": {
+    "referee_name": "Andrew Vivian",
+    "candidate_name": "Olivia Zhao",
+    "relationship": "Former employer",
+    "q4_responsibilities": "Accountant",
+    "q5_culture": "Oliva integrated and contributed to the workplace culture & team morale.",
+    "q6_finance_rating": "Above Average",
+    "q7_finance_examples": "Olivia is thorough and conscientious",
+    "q8_timeliness_rating": "Always",
+    "q9_timeliness_examples": null,
+    "q10_attention_detail": "Yes",
+    "q11_attention_examples": null,
+    "q12_software_rating": "Above Average",
+    "q13_software_examples": null,
+    "q14_independence": "Olivia has the experience that allows her to work independently and show initiative,",
+    "q15_deadlines": "Olivia will be able to manage all reasonable deadlines",
+    "q16_stakeholders": "Olivia was able to handle key stakeholder interactions",
+    "q17_communication": "Yes",
+    "q18_strengths": "Olivia is thorough, conscientious and will look for a solution to a problem",
+    "q19_development": "None known",
+    "q20_rehire": "I recommend Olivia for the finance role",
+    "q21_final": null
+  },
+
+  "narrative": {
+    "role_overview": "Andrew Vivian provided this reference in his capacity as a former employer of Olivia Zhao. During her time with the organisation, Olivia's primary role was that of Accountant. Her responsibilities covered the core functions expected of that position, including financial accounting and related duties.",
+    "workplace_integration": "Andrew noted that Olivia integrated and contributed positively to the workplace culture and team morale. No concerns were raised regarding her conduct, attitude, or interpersonal behaviour within the team environment.",
+    "financial_capability": "Andrew rated Olivia's ability to perform Finance Officer responsibilities — including transactional processing, reconciliations, and standard reporting — as Above Average. He described her as thorough and conscientious, noting that she approaches her work with care and diligence. He also confirmed that she will look for a solution to a problem, reflecting a proactive and solution-oriented mindset.",
+    "finance_rating": "Above Average",
+    "accuracy_timeliness": "Andrew indicated that Olivia always delivered her key tasks in an accurate and timely manner. No supporting examples were provided for this rating; however, this response reflects a consistent and reliable standard of output across her time in the role.",
+    "timeliness_rating": "Always",
+    "attention_detail": "Andrew confirmed that Olivia demonstrated strong attention to detail and adherence to internal controls. The unqualified 'Yes' response indicates confidence in her ability to maintain appropriate controls and accuracy in a finance function.",
+    "attention_to_detail": "Yes",
+    "systems_proficiency": "Andrew rated Olivia's ability to use financial software as Above Average. No specific software systems were cited. This rating nonetheless signals a level of competency that exceeds baseline expectations and is relevant to the Finance Officer role at Wellness Partners Foundation.",
+    "software_rating": "Above Average",
+    "software_used": [],
+    "independence": "Andrew described Olivia as having the experience that allows her to work independently and show initiative. This reflects a candidate who does not require close supervision and is capable of self-directing her work within an established framework.",
+    "deadline_management": "Andrew indicated that Olivia will be able to manage all reasonable deadlines. While this is framed as a forward-looking statement, it reflects confidence in her capacity to handle competing workload demands and deliver within expected timeframes.",
+    "stakeholder_communication": "Andrew noted that Olivia was able to handle key stakeholder interactions, and confirmed that she demonstrated good communication, teamwork, and a willingness to assist others. The affirmative response across both questions points to a candidate who engages professionally with internal and external stakeholders.",
+    "key_strengths": [
+      "Thorough and conscientious approach to work",
+      "Proactive problem-solving mindset",
+      "Consistent delivery of accurate, timely outputs",
+      "Strong attention to detail and adherence to internal controls",
+      "Above Average financial systems capability",
+      "Capable of working independently and showing initiative",
+      "Effective stakeholder communication and teamwork"
+    ],
+    "areas_for_development": "No areas for development were identified by the referee.",
+    "recommendation": "Would rehire / recommend: Yes. Andrew Vivian explicitly stated: 'I recommend Olivia for the finance role.' No additional comments were provided beyond this recommendation.",
+    "overall_assessment": "This reference is positive across all assessed dimensions. Andrew Vivian's responses reflect a candidate who is technically capable, reliable, and professional in her conduct. His above average ratings across financial capability, systems proficiency, and accuracy — combined with a clear and unqualified recommendation for a finance role — provide strong endorsement of Olivia Zhao's suitability for the Finance Officer position at Wellness Partners Foundation."
+  }
+}

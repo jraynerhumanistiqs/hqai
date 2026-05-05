@@ -154,7 +154,16 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         signal: controller.signal,
       })
 
-      if (!res.ok || !res.body) throw new Error('Stream failed')
+      if (!res.ok || !res.body) {
+        // Surface the HTTP status so an outage at the route level (401 if
+        // session cookie expired, 500 if the route crashed before streaming)
+        // is visible in-app rather than as a generic apology.
+        const bodyText = await res.text().catch(() => '')
+        throw new Error(
+          `Stream failed (HTTP ${res.status}${res.statusText ? ' ' + res.statusText : ''})` +
+            (bodyText ? `: ${bodyText.slice(0, 200)}` : ''),
+        )
+      }
 
       const reader = res.body.getReader()
       // utf-8 decoder with stream:true so multi-byte chars (emoji, em
@@ -166,6 +175,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       let finalEscalate = false
       let finalDocType: string | null = null
       let finalCitations: Citation[] | undefined = undefined
+      // When the backend emits {error, detail}, we need to surface it directly
+      // in the chat bubble - previously the frontend ignored the field and
+      // the user saw a blank reply. Demo-critical: lets us diagnose API key /
+      // credit / Anthropic outages on sight instead of having to open dev tools.
+      let serverError: { error: string; detail?: string } | null = null
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
@@ -210,12 +224,28 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               // Some wire formats emit citations as a separate event before done
               finalCitations = data.citations as Citation[]
             }
+            if (data.error) {
+              serverError = { error: String(data.error), detail: data.detail }
+            }
           } catch {}
         }
       }
 
       setMessages(prev => {
         const updated = [...prev]
+        // If the backend sent an explicit error event AND we have no usable
+        // text, render a diagnostic bubble so the user can see the real cause
+        // (API key, credit, Anthropic 5xx, Supabase auth) without dev tools.
+        if (serverError && !assistantContent.trim()) {
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content:
+              `Chat ran into a server error. ${serverError.error}` +
+              (serverError.detail ? `\n\nDetails: ${serverError.detail}` : '') +
+              `\n\nIf this keeps happening, check the Anthropic console for credit/key status and the Vercel deployment logs.`,
+          }
+          return updated
+        }
         // Fallback: if the route didn't send a separate citations array,
         // parse the trailing ```citations``` block from the assistant text.
         let citations = finalCitations
@@ -242,9 +272,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       if (err?.name === 'AbortError') {
         // User stopped - keep partial content, no error message
       } else {
+        const detail =
+          err instanceof Error ? err.message : String(err ?? 'Unknown error')
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: 'I\'m having trouble connecting right now. Please try again in a moment.',
+          content:
+            `I'm having trouble connecting right now.\n\nDetails: ${detail}\n\n` +
+            `Please try again in a moment. If this keeps happening, check the Anthropic ` +
+            `console for credit/key status and the Vercel deployment logs.`,
         }])
       }
     }

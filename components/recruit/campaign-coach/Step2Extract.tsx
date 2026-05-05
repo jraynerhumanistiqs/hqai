@@ -27,38 +27,49 @@ const REMOTE_LABELS: Record<'no' | 'hybrid' | 'full', string> = {
 
 const AU_STATES: AU_State[] = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT']
 
+// Alphabetised by name. AWARD_FREE pinned to the bottom so users see all real
+// awards first when scanning. Source URLs use FWO's library (library.fairwork
+// .gov.au/award/?krn=...) which lands directly on the award page, unlike the
+// FWC search-results redirect which often shows a 404-like search interstitial.
 const COMMON_AWARDS = [
-  { code: 'MA000002', name: 'Clerks - Private Sector Award' },
-  { code: 'MA000004', name: 'General Retail Industry Award' },
-  { code: 'MA000020', name: 'Building and Construction General On-site Award' },
-  { code: 'MA000010', name: 'Manufacturing and Associated Industries and Occupations Award' },
-  { code: 'MA000009', name: 'Hospitality Industry (General) Award' },
-  { code: 'MA000119', name: 'Restaurant Industry Award' },
-  { code: 'MA000003', name: 'Fast Food Industry Award' },
-  { code: 'MA000005', name: 'Hair and Beauty Industry Award' },
   { code: 'MA000018', name: 'Aged Care Award' },
-  { code: 'MA000027', name: 'Health Professionals and Support Services Award' },
-  { code: 'MA000034', name: 'Nurses Award' },
-  { code: 'MA000012', name: 'Pharmacy Industry Award' },
-  { code: 'MA000038', name: 'Road Transport and Distribution Award' },
-  { code: 'MA000043', name: 'Waste Management Award' },
-  { code: 'MA000100', name: 'Social, Community, Home Care and Disability Services Industry Award' },
-  { code: 'MA000022', name: 'Cleaning Services Award' },
-  { code: 'MA000016', name: 'Security Services Industry Award' },
-  { code: 'MA000025', name: 'Electrical, Electronic and Communications Contracting Award' },
-  { code: 'MA000036', name: 'Plumbing and Fire Sprinklers Award' },
-  { code: 'MA000019', name: 'Banking, Finance and Insurance Award' },
-  { code: 'MA000116', name: 'Legal Services Award' },
+  { code: 'MA000118', name: 'Animal Care and Veterinary Services Award' },
   { code: 'MA000079', name: 'Architects Award' },
-  { code: 'MA000031', name: 'Medical Practitioners Award' },
+  { code: 'MA000019', name: 'Banking, Finance and Insurance Award' },
+  { code: 'MA000020', name: 'Building and Construction General On-site Award' },
+  { code: 'MA000120', name: "Children's Services Award" },
+  { code: 'MA000022', name: 'Cleaning Services Award' },
+  { code: 'MA000002', name: 'Clerks - Private Sector Award' },
   { code: 'MA000076', name: 'Educational Services (Schools) General Staff Award' },
   { code: 'MA000077', name: 'Educational Services (Teachers) Award' },
-  { code: 'MA000120', name: "Children's Services Award" },
+  { code: 'MA000025', name: 'Electrical, Electronic and Communications Contracting Award' },
+  { code: 'MA000003', name: 'Fast Food Industry Award' },
+  { code: 'MA000004', name: 'General Retail Industry Award' },
+  { code: 'MA000005', name: 'Hair and Beauty Industry Award' },
+  { code: 'MA000027', name: 'Health Professionals and Support Services Award' },
+  { code: 'MA000009', name: 'Hospitality Industry (General) Award' },
+  { code: 'MA000116', name: 'Legal Services Award' },
+  { code: 'MA000010', name: 'Manufacturing and Associated Industries and Occupations Award' },
   { code: 'MA000093', name: 'Marine Tourism and Charter Vessels Award' },
-  { code: 'MA000118', name: 'Animal Care and Veterinary Services Award' },
+  { code: 'MA000031', name: 'Medical Practitioners Award' },
   { code: 'MA000104', name: 'Miscellaneous Award' },
+  { code: 'MA000034', name: 'Nurses Award' },
+  { code: 'MA000012', name: 'Pharmacy Industry Award' },
+  { code: 'MA000036', name: 'Plumbing and Fire Sprinklers Award' },
+  { code: 'MA000119', name: 'Restaurant Industry Award' },
+  { code: 'MA000038', name: 'Road Transport and Distribution Award' },
+  { code: 'MA000016', name: 'Security Services Industry Award' },
+  { code: 'MA000100', name: 'Social, Community, Home Care and Disability Services Industry Award' },
+  { code: 'MA000043', name: 'Waste Management Award' },
   { code: 'AWARD_FREE', name: 'Award-free / Enterprise agreement' },
 ]
+
+// Standard NES full-time week (38 hrs). Hourly = weekly / 38.
+const FT_WEEKLY_HOURS = 38
+const fwoAwardUrl = (code: string) =>
+  code === 'AWARD_FREE'
+    ? 'https://www.fairwork.gov.au/employment-conditions/awards'
+    : `https://library.fairwork.gov.au/award/?krn=${code}`
 
 export default function Step2Extract() {
   const { state, dispatch } = useWizard()
@@ -175,7 +186,7 @@ export default function Step2Extract() {
                         name: found.name,
                         classification: profile.award?.classification || '',
                         min_weekly_rate: profile.award?.min_weekly_rate || 0,
-                        source_url: `https://www.fwc.gov.au/document-search?options=SearchType_2&mrn=${found.code}`,
+                        source_url: fwoAwardUrl(found.code),
                         confidence: 1,
                       },
                     })
@@ -211,7 +222,8 @@ export default function Step2Extract() {
           ) : profile.award ? (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="bg-light text-charcoal text-xs font-bold rounded-full px-3 py-1.5">
-                {profile.award.code} - {profile.award.classification} - ${profile.award.min_weekly_rate}/wk
+                {profile.award.code} - {profile.award.classification} - $
+                {(profile.award.min_weekly_rate / FT_WEEKLY_HOURS).toFixed(2)}/hr
               </span>
               <button
                 onClick={() => setShowAwardDrawer(true)}
@@ -280,7 +292,13 @@ export default function Step2Extract() {
             <p className="text-sm text-mid mb-4">
               Classification: <strong className="text-charcoal">{profile.award.classification}</strong>
               <br />
-              Minimum weekly rate: <strong className="text-charcoal">${profile.award.min_weekly_rate}</strong>
+              Minimum hourly rate:{' '}
+              <strong className="text-charcoal">
+                ${(profile.award.min_weekly_rate / FT_WEEKLY_HOURS).toFixed(2)}/hr
+              </strong>{' '}
+              <span className="text-muted">
+                (based on ${profile.award.min_weekly_rate}/wk over {FT_WEEKLY_HOURS}h)
+              </span>
             </p>
             <a
               href={profile.award.source_url}
