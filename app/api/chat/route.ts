@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { buildSystemPrompt, detectEscalation, detectDocumentRequest } from '@/lib/prompts'
+import { buildSystemPrompt, detectEscalation, detectDocumentRequest, detectHardTriage, buildTriageReply } from '@/lib/prompts'
 import { tools, runTool, ToolRunResult } from '@/lib/chat-tools'
 import { parseCitations } from '@/lib/parse-citations'
 import { NextRequest, after } from 'next/server'
@@ -68,6 +68,71 @@ export async function POST(req: NextRequest) {
 
     const lastUserMsg = messages[messages.length - 1]?.content || ''
     const requestedDoc = detectDocumentRequest(lastUserMsg)
+    const triage = detectHardTriage(lastUserMsg)
+
+    // Pre-flight short-circuit: high-stakes incidents go straight to a triage
+    // response without any LLM call. Returns a structured handoff payload
+    // within ~50ms instead of risking a hallucinated answer at 30s. Frontend
+    // renders this via the existing escalation card UX.
+    if (triage) {
+      const advisorName = business?.advisor_name || 'your advisor'
+      const replyText = buildTriageReply(triage, advisorName)
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            const size = 60
+            for (let i = 0; i < replyText.length; i += size) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                text: replyText.slice(i, i + size),
+              })}\n\n`))
+            }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              done: true,
+              escalate: true,
+              triage: { category: triage.category, summary: triage.summary },
+            })}\n\n`))
+
+            if (conversationId && user) {
+              try {
+                await supabase.from('messages').insert([
+                  { conversation_id: conversationId, role: 'user', content: lastUserMsg },
+                  {
+                    conversation_id: conversationId,
+                    role: 'assistant',
+                    content: replyText,
+                    has_escalation: true,
+                    has_document: false,
+                  },
+                ])
+                await supabase.from('conversations')
+                  .update({
+                    escalated: true,
+                    escalation_summary: `[${triage.category}] ${lastUserMsg.substring(0, 200)}`,
+                  })
+                  .eq('id', conversationId)
+              } catch (err) {
+                console.warn('[chat] triage persist failed:', (err as Error).message)
+              }
+            }
+            controller.close()
+          } catch (err) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              error: 'Triage error', detail: (err as Error).message,
+            })}\n\n`))
+            controller.close()
+          }
+        },
+      })
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
+      })
+    }
 
     const systemPrompt = buildSystemPrompt(mod, {
       name: business?.name || 'Unknown',

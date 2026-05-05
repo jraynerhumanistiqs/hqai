@@ -352,6 +352,106 @@ export function detectEscalation(text: string): boolean {
   return triggers.some(t => lower.includes(t))
 }
 
+export type TriageCategory =
+  | 'workplace_violence'
+  | 'sexual_harassment_incident'
+  | 'mental_health_crisis'
+  | 'active_litigation'
+  | 'visa_immigration'
+  | 'discriminatory_request'
+  | 'imminent_termination'
+
+export interface HardTriage {
+  category: TriageCategory
+  summary: string
+}
+
+const TRIAGE_PATTERNS: Array<{ category: TriageCategory; summary: string; patterns: RegExp[] }> = [
+  {
+    category: 'mental_health_crisis',
+    summary: 'Mental health crisis or self-harm risk',
+    patterns: [
+      /\b(suicid|kill (my|him|her)self|self[- ]harm|hurt (my|him|her)self|end (my|his|her) life)\b/i,
+    ],
+  },
+  {
+    category: 'workplace_violence',
+    summary: 'Physical violence, weapon use, or threatening conduct in the workplace',
+    patterns: [
+      /\b(assault(ed)?|punch(ed|ing) (me|him|her|them)|grinder|knife|weapon|threaten(ed|ing) (me|him|her|them|to)|grabbed (me|him|her|them)|pushed (me|him|her|them) (over|down|into|against))\b/i,
+    ],
+  },
+  {
+    category: 'sexual_harassment_incident',
+    summary: 'Specific sexual harassment incident requiring formal investigation',
+    patterns: [
+      /\b(sexually harass(ed|ing|ment)?|groped|indecent|inappropriate touching|unwanted (advance|touching|kiss))\b/i,
+    ],
+  },
+  {
+    category: 'active_litigation',
+    summary: 'Active claim, served papers, or formal regulator action',
+    patterns: [
+      /\b(served (with )?papers|statement of claim|served on|fwc application|f[. ]?w[. ]?c application|fair work commission filed|filed (a|an) (claim|application|complaint)|subpoena)\b/i,
+    ],
+  },
+  {
+    category: 'visa_immigration',
+    summary: 'Visa, sponsorship, or migration-agent territory',
+    patterns: [
+      /\b(sponsor (a|the)? ?visa|482 visa|457 visa|tss visa|subclass \d{3}|labour market testing|nomination application|migration agent)\b/i,
+    ],
+  },
+  {
+    category: 'discriminatory_request',
+    summary: 'Request that would breach anti-discrimination law if actioned',
+    patterns: [
+      /\b(only hire (men|women|young|older|locals|whites|christians)|don'?t hire (women|pregnant|older|disabled)|too (old|young) to hire|exclude (women|men|older|pregnant) from)\b/i,
+    ],
+  },
+  {
+    category: 'imminent_termination',
+    summary: 'Termination decision being actioned today or this week',
+    patterns: [
+      /\b(firing (him|her|them) (today|tomorrow|this (afternoon|morning|week))|terminate (him|her|them) (today|tomorrow|this (afternoon|morning|week))|sacking (him|her|them) (today|tomorrow|this (afternoon|morning|week)))\b/i,
+    ],
+  },
+]
+
+export function detectHardTriage(text: string): HardTriage | null {
+  if (!text) return null
+  for (const { category, summary, patterns } of TRIAGE_PATTERNS) {
+    if (patterns.some(p => p.test(text))) {
+      return { category, summary }
+    }
+  }
+  return null
+}
+
+export function buildTriageReply(t: HardTriage, advisorName: string): string {
+  const intro: Record<TriageCategory, string> = {
+    workplace_violence:
+      "I can see this is a serious incident involving potential workplace violence. This isn't something I should walk you through alone - it needs your advisor's eyes on it straight away, and likely SafeWork notification too.",
+    sexual_harassment_incident:
+      "Thank you for raising this. A specific sexual harassment incident requires a formal, documented response - not AI-drafted advice. Your advisor handles these directly so the investigation is procedurally sound.",
+    mental_health_crisis:
+      "If anyone is in immediate danger, please call 000. For ongoing support, Lifeline is 13 11 14 and Beyond Blue is 1300 22 4636.",
+    active_litigation:
+      "Once a claim is filed or papers are served, anything you write to the AI here could be discoverable. I'm stepping back so your advisor can guide the response under privilege.",
+    visa_immigration:
+      "Visa and sponsorship questions are MARA-registered migration agent territory - I'm not licensed to advise on them and getting it wrong has serious consequences for both you and the worker.",
+    discriminatory_request:
+      "I can't help draft or action this. The framing as written would breach the Sex Discrimination Act, Age Discrimination Act, and Fair Work Act general protections. Happy to help you write a lawful, role-criteria-based version instead.",
+    imminent_termination:
+      "If a termination is happening today or this week, I'd rather your advisor walk you through the exact steps in real time. Procedural fairness, notice, final pay, and exposure are too easy to get wrong on a tight clock.",
+  }
+  const followup =
+    t.category === 'mental_health_crisis'
+      ? `\n\nIf this is about an employee at work and they're safe right now, ${advisorName} can help you with the workplace response. Want me to flag it?`
+      : `\n\nI've flagged this for ${advisorName}. They'll get the full conversation summary and can be in touch within their next available slot. Want me to book that now?`
+  return intro[t.category] + followup
+}
+
 export function detectDocumentRequest(text: string): string | null {
   const docs: [string[], string][] = [
     [['employment contract', 'contract of employment'], 'Employment Contract'],
