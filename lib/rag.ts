@@ -55,8 +55,14 @@ export async function embedQuery(text: string): Promise<number[]> {
   return emb
 }
 
+// Per-hit content is truncated to keep total tool_result payload small.
+// Long Fair Work Act sections can be 5k+ chars each; with 4 hits that's a
+// 20k+ char prompt addition that slows the streaming turn. 1500 chars
+// keeps enough context for the model to cite while halving final-turn TTFB.
+const MAX_HIT_CONTENT_CHARS = 1500
+
 export async function searchKnowledge(input: SearchKnowledgeInput): Promise<KnowledgeHit[]> {
-  const { query, topK = 6, minSimilarity = 0.4, sourceFilter, jurisdictionFilter } = input
+  const { query, topK = 4, minSimilarity = 0.4, sourceFilter, jurisdictionFilter } = input
   if (!query || !query.trim()) return []
 
   let embedding: number[]
@@ -83,7 +89,13 @@ export async function searchKnowledge(input: SearchKnowledgeInput): Promise<Know
     console.warn('[rag] match_knowledge RPC error:', error.message)
     return []
   }
-  return (data as KnowledgeHit[]) ?? []
+  const hits = (data as KnowledgeHit[]) ?? []
+  return hits.map(h => ({
+    ...h,
+    content: h.content.length > MAX_HIT_CONTENT_CHARS
+      ? h.content.slice(0, MAX_HIT_CONTENT_CHARS) + '…'
+      : h.content,
+  }))
 }
 
 // Format hits into a compact string the model can read as a tool_result.

@@ -10,10 +10,14 @@ export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
-// 3 iterations: iter 0 forced search, iter 1 model can refine (auto),
-// iter 2 final stream (tool_choice='none'). MAX=2 was too aggressive -
-// the model often wants a second search to narrow down results.
-const MAX_TOOL_ITERATIONS = 3
+// 2 iterations: iter 0 forced search (model can emit multiple parallel
+// search_knowledge calls in one turn via Promise.all dispatch), iter 1
+// final stream (tool_choice='none'). Was 3 but Vercel Hobby caps at 60s
+// silently regardless of maxDuration=180, and 3 iterations on complex
+// multi-domain queries blew past that. 2 keeps complex queries under cap.
+const MAX_TOOL_ITERATIONS = 2
+const HEARTBEAT_MS = 8000
+const SOFT_BUDGET_MS = 45000
 
 type AnthropicMessage = { role: 'user' | 'assistant'; content: any }
 
@@ -148,21 +152,17 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
-              // Force search_knowledge on iter 0 so the model can't
-              // sidestep grounding (nes-003 was returning 0 citations
-              // when this was 'auto'). Subsequent iterations are auto
-              // so the model can refine its search if needed.
-              const toolChoice = iter === 0
-                ? { type: 'tool' as const, name: 'search_knowledge' }
-                : { type: 'auto' as const }
-              const res = await anthropic.messages.create({
-                model: MODEL,
-                max_tokens: iter === 0 ? 512 : 1024,
-                system: systemPrompt,
-                tools,
-                tool_choice: toolChoice,
-                messages: working,
-              })
+              const toolChoice = { type: 'tool' as const, name: 'search_knowledge' }
+              const res = await withHeartbeat(controller, encoder, () =>
+                anthropic.messages.create({
+                  model: MODEL,
+                  max_tokens: 768,
+                  system: systemPrompt,
+                  tools,
+                  tool_choice: toolChoice,
+                  messages: working,
+                })
+              )
 
               if (res.stop_reason !== 'tool_use') {
                 // Model answered without calling a tool - stream the text out.
@@ -202,8 +202,10 @@ export async function POST(req: NextRequest) {
               const startingOffsets = toolUseBlocks.map((_, i) =>
                 citationCursor + (toolUseBlocks.slice(0, i).length === 0 ? 0 : i * 16)
               )
-              const toolRuns = await Promise.all(
-                toolUseBlocks.map((tu, i) => runTool(tu.id, tu.name, tu.input, startingOffsets[i]))
+              const toolRuns = await withHeartbeat(controller, encoder, () =>
+                Promise.all(
+                  toolUseBlocks.map((tu, i) => runTool(tu.id, tu.name, tu.input, startingOffsets[i]))
+                )
               )
               const toolResults: Array<{ type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }> = []
               for (let i = 0; i < toolUseBlocks.length; i++) {
@@ -230,9 +232,16 @@ export async function POST(req: NextRequest) {
             // Final iteration - stream the answer. Force no further tool use
             // so the model commits to text instead of attempting another
             // tool_use block that would never resolve in the streaming path.
+            const elapsed = Date.now() - started
+            if (elapsed > SOFT_BUDGET_MS) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                status: 'drafting',
+                message: 'Quick answer coming - rest will follow if you ask me to expand.',
+              })}\n\n`))
+            }
             const finalRes = await anthropic.messages.create({
               model: MODEL,
-              max_tokens: requestedDoc ? 4096 : 1500,
+              max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
               system: systemPrompt,
               tools, // still declared so the model can still cite [n]
               tool_choice: { type: 'none' },
@@ -295,6 +304,36 @@ export async function POST(req: NextRequest) {
 }
 
 // --- helpers -----------------------------------------------------------------
+
+// Keeps the SSE channel alive while waiting on a non-streaming Anthropic call
+// or a Promise.all of tool runs. Vercel Hobby has a silent 60s function cap;
+// long quiet periods between turns also make browsers/proxies treat the
+// response as stalled. Pulse a status event every 8s during waits.
+async function withHeartbeat<T>(
+  controller: ReadableStreamDefaultController<any>,
+  encoder: TextEncoder,
+  work: () => Promise<T>,
+): Promise<T> {
+  const PULSES = [
+    'Still on it - cross-checking the legislation.',
+    'One sec - this one needs a couple of references.',
+    'Almost there - just confirming the right section.',
+    'Working on it - want to give you the right answer.',
+  ]
+  const interval = setInterval(() => {
+    try {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+        status: 'searching',
+        message: PULSES[Math.floor(Math.random() * PULSES.length)],
+      })}\n\n`))
+    } catch {}
+  }, HEARTBEAT_MS)
+  try {
+    return await work()
+  } finally {
+    clearInterval(interval)
+  }
+}
 
 function mergeCitations<T extends { n: number; label: string; url?: string }>(
   primary: T[],
