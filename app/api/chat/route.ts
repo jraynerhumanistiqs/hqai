@@ -154,14 +154,18 @@ export async function POST(req: NextRequest) {
             if (!isFinalIter) {
               const toolChoice = { type: 'tool' as const, name: 'search_knowledge' }
               const res = await withHeartbeat(controller, encoder, () =>
-                anthropic.messages.create({
-                  model: MODEL,
-                  max_tokens: 768,
-                  system: systemPrompt,
-                  tools,
-                  tool_choice: toolChoice,
-                  messages: working,
-                })
+                withTimeout(
+                  anthropic.messages.create({
+                    model: MODEL,
+                    max_tokens: 768,
+                    system: systemPrompt,
+                    tools,
+                    tool_choice: toolChoice,
+                    messages: working,
+                  }),
+                  60_000,
+                  'Anthropic tool-discovery turn',
+                )
               )
 
               if (res.stop_reason !== 'tool_use') {
@@ -203,9 +207,25 @@ export async function POST(req: NextRequest) {
                 citationCursor + (toolUseBlocks.slice(0, i).length === 0 ? 0 : i * 16)
               )
               const toolRuns = await withHeartbeat(controller, encoder, () =>
-                Promise.all(
-                  toolUseBlocks.map((tu, i) => runTool(tu.id, tu.name, tu.input, startingOffsets[i]))
-                )
+                withTimeout(
+                  Promise.all(
+                    toolUseBlocks.map((tu, i) =>
+                      withTimeout(
+                        runTool(tu.id, tu.name, tu.input, startingOffsets[i]),
+                        15_000,
+                        `runTool ${tu.name}`,
+                      ).catch((err) => ({
+                        toolUseId: tu.id,
+                        name: tu.name,
+                        output: `Tool failed or timed out: ${(err as Error).message}`,
+                        citations: [] as ToolRunResult['citations'],
+                        isError: true,
+                      } as ToolRunResult))
+                    ),
+                  ),
+                  30_000,
+                  'parallel tool dispatch',
+                ),
               )
               const toolResults: Array<{ type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }> = []
               for (let i = 0; i < toolUseBlocks.length; i++) {
@@ -239,22 +259,44 @@ export async function POST(req: NextRequest) {
                 message: 'Quick answer coming - rest will follow if you ask me to expand.',
               })}\n\n`))
             }
-            const finalRes = await anthropic.messages.create({
-              model: MODEL,
-              max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
-              system: systemPrompt,
-              tools, // still declared so the model can still cite [n]
-              tool_choice: { type: 'none' },
-              messages: working,
-              stream: true,
-            })
+            const finalRes = await withTimeout(
+              anthropic.messages.create({
+                model: MODEL,
+                max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
+                system: systemPrompt,
+                tools,
+                tool_choice: { type: 'none' },
+                messages: working,
+                stream: true,
+              }),
+              30_000,
+              'Anthropic streaming start',
+            )
 
-            for await (const chunk of finalRes) {
-              if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-                const text = chunk.delta.text
-                fullResponse += text
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+            let lastChunkAt = Date.now()
+            const STREAM_GAP_LIMIT_MS = 30_000
+            const watchdog = setInterval(() => {
+              if (Date.now() - lastChunkAt > STREAM_GAP_LIMIT_MS) {
+                try {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                    error: 'Stream stalled',
+                    detail: `No streaming chunk received in ${STREAM_GAP_LIMIT_MS}ms.`,
+                  })}\n\n`))
+                } catch {}
               }
+            }, 5_000)
+
+            try {
+              for await (const chunk of finalRes) {
+                lastChunkAt = Date.now()
+                if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+                  const text = chunk.delta.text
+                  fullResponse += text
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+                }
+              }
+            } finally {
+              clearInterval(watchdog)
             }
             const { cleanText, citations } = parseCitations(fullResponse)
             const finalCitations = mergeCitations(accumulatedCitations, citations)
@@ -305,10 +347,24 @@ export async function POST(req: NextRequest) {
 
 // --- helpers -----------------------------------------------------------------
 
+// Hard timeout wrapper - races a promise against a setTimeout so no awaited
+// call can hang indefinitely. Pro plan has 300s ceiling but in practice we
+// want each phase to fail fast so the user sees an error rather than a
+// repeating heartbeat. ms applies to the whole work() resolution.
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timeout: ${label} exceeded ${ms}ms`)), ms)
+    work.then(
+      v => { clearTimeout(timer); resolve(v) },
+      e => { clearTimeout(timer); reject(e) },
+    )
+  })
+}
+
 // Keeps the SSE channel alive while waiting on a non-streaming Anthropic call
-// or a Promise.all of tool runs. Vercel Hobby has a silent 60s function cap;
-// long quiet periods between turns also make browsers/proxies treat the
-// response as stalled. Pulse a status event every 8s during waits.
+// or a Promise.all of tool runs. Long quiet periods between turns make
+// browsers/proxies treat the response as stalled. Pulse a status event every
+// 8s during waits.
 async function withHeartbeat<T>(
   controller: ReadableStreamDefaultController<any>,
   encoder: TextEncoder,
