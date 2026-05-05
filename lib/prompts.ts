@@ -357,8 +357,9 @@ BUSINESS CONTEXT (loaded from client profile):
 - Applicable award: ${business.award}
 - Headcount: ${business.headcount}
 - Employment types: ${business.empTypes}
-- Named advisor: ${business.advisorName}
-- User: ${business.userName || 'Not provided'}`
+- User: ${business.userName || 'Not provided'}
+
+When you escalate, refer to the human you're handing off to as "your Humanistiqs advisor". Do not append a name. Do not use any name from this profile as if it were the human advisor's name.`
 
   return `${MASTER_SYSTEM_PROMPT}\n\n${modulePrompt}${groundingBlock}\n\n${businessContext}`
 }
