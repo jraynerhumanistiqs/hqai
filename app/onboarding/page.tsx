@@ -144,9 +144,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-block">
-            <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-[140px] h-auto" />
-          </div>
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-[140px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl border border-border p-8">

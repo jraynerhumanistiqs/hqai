@@ -95,10 +95,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="inline-block mb-3">
-            <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-[140px] h-auto" />
-          </div>
+        <div className="text-center mb-8">
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-[140px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl p-8">
