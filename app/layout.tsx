@@ -5,7 +5,14 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'HQ.ai by Humanistiqs',
   description: 'AI-powered HR & recruitment for Australian businesses',
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
