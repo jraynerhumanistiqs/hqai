@@ -51,9 +51,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   return (
     <aside className="w-[232px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
       {/* Logo */}
-      <div className="relative px-4 py-4 border-b border-white/8 flex items-center justify-center min-h-[72px]">
+      <div className="relative px-4 py-3 border-b border-white/8 flex items-center justify-center">
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={240} height={240} className="opacity-90 w-[132px] max-w-full h-auto" priority />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={571} className="opacity-90 w-[132px] max-w-full h-auto" priority />
         </Link>
         {onClose && (
           <button onClick={onClose} className="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">

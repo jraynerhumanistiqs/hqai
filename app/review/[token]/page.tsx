@@ -46,7 +46,7 @@ export default function ReviewPage() {
   return (
     <div className="min-h-screen bg-bg">
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
-        <Image src="/logo-black.svg" alt="HQ.ai" width={80} height={80} className="w-14 h-auto" />
+        <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-14 h-auto" />
         {data?.expires_at && !error && (
           <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-light text-mid border border-border">
             Expires {new Date(data.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
