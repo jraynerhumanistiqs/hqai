@@ -2,14 +2,23 @@
 import { useMemo, useState } from 'react'
 import {
   type CandidateScreening,
+  type Rubric,
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
 } from '@/lib/cv-screening-types'
 import { getRubric } from '@/lib/cv-screening-rubrics'
 
+interface CustomRubricRow {
+  id: string
+  label: string
+  rubric: Rubric
+  created_at: string
+}
+
 interface Props {
   screening: CandidateScreening
+  customRubrics?: CustomRubricRow[]
   onClose: () => void
 }
 
@@ -18,8 +27,12 @@ interface HandoffResult {
   questions: string[]
 }
 
-export default function CandidateScorecardPanel({ screening, onClose }: Props) {
-  const rubric = useMemo(() => getRubric(screening.rubric_id), [screening.rubric_id])
+export default function CandidateScorecardPanel({ screening, customRubrics, onClose }: Props) {
+  const rubric = useMemo(() => {
+    const standard = getRubric(screening.rubric_id)
+    if (standard) return standard
+    return customRubrics?.find(c => c.id === screening.rubric_id)?.rubric ?? null
+  }, [screening.rubric_id, customRubrics])
   const criteriaById = useMemo(() => {
     const map: Record<string, string> = {}
     rubric?.criteria.forEach(c => { map[c.id] = c.label })

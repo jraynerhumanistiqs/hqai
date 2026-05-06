@@ -210,7 +210,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 <li key={p.id} className="flex items-center justify-between text-xs bg-light rounded-full px-4 py-2">
                   <span className="text-charcoal font-bold truncate max-w-[60%]">{p.filename}</span>
                   <span className={p.status === 'error' ? 'text-danger' : 'text-mid'}>
-                    {p.status === 'error' ? `error - ${p.error}` : p.status}
+                    {p.status === 'error' ? `Couldn't process - ${p.error}` : statusLabel(p.status)}
                   </span>
                 </li>
               ))}
@@ -236,7 +236,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 </button>
               )}
               <span className="text-xs text-muted">
-                {busy ? 'Scoring...' : `${filtered.length} candidates`}
+                {busy ? 'Analysing CVs...' : `${filtered.length} candidates`}
               </span>
             </div>
           </div>
@@ -299,6 +299,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {selected && (
         <CandidateScorecardPanel
           screening={selected}
+          customRubrics={customRubrics}
           onClose={() => setSelectedId(null)}
         />
       )}
@@ -315,6 +316,17 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       )}
     </div>
   )
+}
+
+function statusLabel(status: PendingUpload['status']): string {
+  switch (status) {
+    case 'queued': return 'Queued'
+    case 'parsing': return 'Reading CV'
+    case 'scoring': return 'Scoring'
+    case 'done': return 'Done'
+    case 'error': return 'Error'
+    default: return status
+  }
 }
 
 function FilterChip({ label, active }: { label: string; active?: boolean }) {

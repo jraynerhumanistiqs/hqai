@@ -81,6 +81,31 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
     setDraftRubric({ ...draftRubric, criteria: draftRubric.criteria.filter(c => c.id !== id) })
   }
 
+  function updateCriterionLabel(id: string, label: string) {
+    if (!draftRubric) return
+    setDraftRubric({
+      ...draftRubric,
+      criteria: draftRubric.criteria.map(c => c.id === id ? { ...c, label } : c),
+    })
+  }
+
+  function addCriterion() {
+    if (!draftRubric) return
+    const newId = `custom_${Date.now().toString(36)}`
+    setDraftRubric({
+      ...draftRubric,
+      criteria: [
+        ...draftRubric.criteria,
+        {
+          id: newId,
+          label: 'New criterion',
+          weight: 0.10,
+          type: 'ordinal_5' as const,
+        },
+      ],
+    })
+  }
+
   const totalWeight = draftRubric?.criteria.reduce((acc, c) => acc + c.weight, 0) ?? 0
   const weightOff = Math.abs(totalWeight - 1) > 0.01
 
@@ -174,7 +199,11 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                     <li key={c.id} className="bg-light rounded-2xl px-4 py-3">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1">
-                          <p className="text-sm font-bold text-charcoal">{c.label}</p>
+                          <input
+                            value={c.label}
+                            onChange={e => updateCriterionLabel(c.id, e.target.value)}
+                            className="text-sm font-bold text-charcoal bg-transparent border-b border-transparent focus:border-charcoal outline-none w-full"
+                          />
                           {c.hard_gate && (
                             <span className="inline-block mt-0.5 text-[10px] font-bold uppercase tracking-wider bg-warning/10 text-warning rounded-full px-2 py-0.5">
                               Hard gate
@@ -183,7 +212,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                         </div>
                         <button
                           onClick={() => removeCriterion(c.id)}
-                          className="text-xs text-mid hover:text-danger"
+                          className="text-xs text-mid hover:text-danger flex-shrink-0"
                         >
                           Remove
                         </button>
@@ -210,6 +239,12 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                     </li>
                   ))}
                 </ul>
+                <button
+                  onClick={addCriterion}
+                  className="mt-3 w-full bg-white border border-dashed border-border text-charcoal text-sm font-bold rounded-2xl px-4 py-3 hover:bg-light hover:border-charcoal"
+                >
+                  + Add criterion
+                </button>
               </div>
 
               <div className={`rounded-2xl px-4 py-3 text-sm ${weightOff ? 'bg-warning/10 text-warning' : 'bg-light text-mid'}`}>
