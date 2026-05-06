@@ -39,6 +39,37 @@ export default function CvScreeningClient({ businessName, initialScreenings }: P
   }
   const selected = screenings.find(s => s.id === selectedId) ?? null
 
+  const advanceableCount = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes').length
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkResult, setBulkResult] = useState<{ sent: number; failed: number } | null>(null)
+
+  async function bulkSendVideo() {
+    const advanceable = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes')
+    if (!advanceable.length) return
+    if (!confirm(`Generate and send video pre-screens for ${advanceable.length} candidate${advanceable.length === 1 ? '' : 's'}? This calls the AI question generator for each and creates a separate pre-screen session per candidate.`)) {
+      return
+    }
+    setBulkBusy(true)
+    setBulkResult(null)
+    let sent = 0
+    let failed = 0
+    for (const s of advanceable) {
+      try {
+        const res = await fetch('/api/cv-screening/handoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ screening_id: s.id }),
+        })
+        if (res.ok) sent++
+        else failed++
+      } catch {
+        failed++
+      }
+    }
+    setBulkResult({ sent, failed })
+    setBulkBusy(false)
+  }
+
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     const fileArr = Array.from(files)
     if (!fileArr.length) return
@@ -161,10 +192,28 @@ export default function CvScreeningClient({ businessName, initialScreenings }: P
             <FilterChip label={`Yes (${counts.yes})`} />
             <FilterChip label={`Maybe (${counts.maybe})`} />
             <FilterChip label={`No (${counts.no})`} />
-            <span className="ml-auto text-xs text-muted">
-              {busy ? 'Scoring...' : `${filtered.length} candidates`}
-            </span>
+            <div className="ml-auto flex items-center gap-2">
+              {advanceableCount > 0 && (
+                <button
+                  onClick={bulkSendVideo}
+                  disabled={bulkBusy}
+                  className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
+                >
+                  {bulkBusy ? 'Sending...' : `Send video pre-screen to ${advanceableCount} Yes/Strong`}
+                </button>
+              )}
+              <span className="text-xs text-muted">
+                {busy ? 'Scoring...' : `${filtered.length} candidates`}
+              </span>
+            </div>
           </div>
+          {bulkResult && (
+            <div className="px-6 py-2 border-b border-border bg-light text-xs text-mid">
+              Bulk handoff complete: {bulkResult.sent} sent
+              {bulkResult.failed > 0 && `, ${bulkResult.failed} failed`}.
+              Sessions are visible in the Video Pre-screen tab.
+            </div>
+          )}
 
           {filtered.length === 0 ? (
             <div className="px-6 py-12 text-center">
