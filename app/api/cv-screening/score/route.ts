@@ -1,12 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { getRubric } from '@/lib/cv-screening-rubrics'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
 import {
   bandFromScore,
   defaultActionForBand,
   type CandidateScreening,
   type CriterionScore,
   type FairnessChecks,
+  type Rubric,
 } from '@/lib/cv-screening-types'
 import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
     const rubricId = String(form.get('rubricId') ?? '')
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
-    const rubric = getRubric(rubricId)
+    const rubric = await resolveRubric(rubricId)
     if (!rubric) return NextResponse.json({ error: `Unknown rubric: ${rubricId}` }, { status: 400 })
 
     const filename = file.name || 'cv'
@@ -50,7 +52,12 @@ export async function POST(req: NextRequest) {
 
     // Mask common PII before sending to model. Belt-and-braces with the prompt
     // instruction below telling the model to score on substance only.
-    const blinded = blindPII(cvText)
+    // Extract the candidate's real full name BEFORE we blind the CV. The
+    // recruiter sees the full name in the pipeline; the model only sees the
+    // blinded version when actually scoring so demographic signals can't
+    // influence the score.
+    const realName = extractRealName(cvText, filename)
+    const blinded = blindNameInText(blindPII(cvText), realName)
 
     const scoreResult = await scoreCv(blinded, rubric.role, rubric.criteria)
 
@@ -74,7 +81,7 @@ export async function POST(req: NextRequest) {
           business_id: businessId,
           user_id: user.id,
           rubric_id: rubric.rubric_id,
-          candidate_label: scoreResult.candidate_label || filenameToLabel(filename),
+          candidate_label: realName || scoreResult.candidate_label || filenameToLabel(filename),
           candidate_email: scoreResult.candidate_email ?? null,
           cv_text: cvText,
           cv_filename: filename,
@@ -99,7 +106,7 @@ export async function POST(req: NextRequest) {
       business_id: businessId ?? '',
       user_id: user.id,
       rubric_id: rubric.rubric_id,
-      candidate_label: scoreResult.candidate_label || filenameToLabel(filename),
+      candidate_label: realName || scoreResult.candidate_label || filenameToLabel(filename),
       candidate_email: scoreResult.candidate_email ?? null,
       cv_text: cvText,
       overall_score: overall,
@@ -118,6 +125,18 @@ export async function POST(req: NextRequest) {
     const detail = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: 'Scoring failed', detail }, { status: 500 })
   }
+}
+
+async function resolveRubric(rubricId: string): Promise<Rubric | null> {
+  const standard = getStandardRubric(rubricId)
+  if (standard) return standard
+  // Fall through to a custom rubric stored against the business.
+  const { data } = await supabaseAdmin
+    .from('cv_custom_rubrics')
+    .select('rubric')
+    .eq('id', rubricId)
+    .single()
+  return (data?.rubric as Rubric | undefined) ?? null
 }
 
 async function extractText(buffer: Buffer, ext: string): Promise<string> {
@@ -157,6 +176,51 @@ async function extractText(buffer: Buffer, ext: string): Promise<string> {
   throw new Error(`Unsupported file type: .${ext}`)
 }
 
+// Pulls the candidate's full name from the top of the CV. CVs almost always
+// open with the name on the first non-empty line, sometimes followed by a
+// title or contact line. We take the first line that looks like a name
+// (2-4 capitalised tokens, no digits, no @). Falls back to filename if the
+// first lines look like a header/title.
+function extractRealName(cvText: string, filename: string): string | null {
+  const lines = cvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean).slice(0, 8)
+  const namePattern = /^[A-Z][a-z'\-]+(?:\s+[A-Z][a-z'\-]+){1,3}$/
+  for (const line of lines) {
+    if (line.length > 60) continue
+    if (line.includes('@') || /\d/.test(line)) continue
+    if (namePattern.test(line)) return line
+  }
+  // Try splitting by common separators in case the line has a title attached
+  // (e.g. "Jane Smith - Senior Business Analyst").
+  for (const line of lines) {
+    if (line.includes('@') || /\d/.test(line)) continue
+    const candidate = line.split(/\s[-|]\s|,/)[0]?.trim()
+    if (candidate && candidate.length <= 60 && namePattern.test(candidate)) return candidate
+  }
+  // Last resort: filename like "James_Williams_CV.pdf" -> "James Williams"
+  const cleaned = filename
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b(cv|resume|curriculum vitae)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (namePattern.test(cleaned)) return cleaned
+  return null
+}
+
+function blindNameInText(text: string, name: string | null): string {
+  if (!name) return text
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`\\b${escaped}\\b`, 'gi')
+  let blinded = text.replace(re, '[NAME]')
+  // Also blind first name and last name individually in case they appear separately.
+  for (const part of name.split(/\s+/)) {
+    if (part.length < 3) continue
+    const partRe = new RegExp(`\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g')
+    blinded = blinded.replace(partRe, '[NAME]')
+  }
+  return blinded
+}
+
 function blindPII(text: string): string {
   // Light-touch redaction. Pre-empts the obvious leaks before the model
   // even sees the CV. Real anti-discrimination depends on the model
@@ -184,7 +248,7 @@ interface ScoreResult {
 async function scoreCv(
   cvText: string,
   role: string,
-  criteria: ReturnType<typeof getRubric> extends infer T ? (T extends { criteria: infer C } ? C : never) : never,
+  criteria: Rubric['criteria'],
 ): Promise<ScoreResult> {
   const criteriaList = (criteria as Array<{ id: string; label: string; weight: number; type: string; anchors?: Record<string, string>; hard_gate?: boolean }>)
   const tool = {
@@ -203,7 +267,7 @@ async function scoreCv(
             type: 'object',
             properties: {
               id: { type: 'string' },
-              score: { type: 'number', description: 'Integer 1-5. For binary criteria use 5 for yes, 1 for no.' },
+              score: { type: 'number', description: 'Integer 0-5. Use 0 if there is no evidence in the CV at all. Use 2 only if a transferable skill is explicitly named in the rationale. For binary hard-gate criteria use 5 for yes, 0 for clear no.' },
               confidence: { type: 'number', description: '0-1' },
               evidence: {
                 type: 'array',
@@ -240,15 +304,25 @@ async function scoreCv(
   const systemPrompt = `You are an Australian recruitment assistant scoring CVs against a structured rubric for the role: ${role}.
 
 RULES:
-1. Score on substance only. Names, photos, addresses, dates of birth, gender, ethnicity, school name, and graduation year MUST NOT influence the score.
-2. Each score must be backed by a verbatim CV span you quote in the evidence array. If you cannot find evidence, score conservatively at 2 with low confidence.
-3. Tenure gaps are not penalties unless the candidate had no work history. Note any reason given (caregiving, study, illness) in tenure_note rather than reducing the tenure score.
-4. For binary hard-gate criteria like AU work rights, score 5 if the CV indicates citizenship, permanent residency, or a current valid AU work visa with sufficient duration. Score 1 only if the CV states no work rights. Score 3 with low confidence if uncertain.
-5. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
-6. No em-dashes (-) or en-dashes (-) in your output. Plain hyphens only.
+1. Score on substance only. The candidate's name has been replaced with [NAME] in the CV. Photos, addresses, dates of birth, gender, ethnicity, school name, and graduation year MUST NOT influence the score.
+2. Scoring scale (0-5):
+   - 5: Strong, well-evidenced match
+   - 4: Solid match, multiple evidence points
+   - 3: Adequate, single clear evidence point
+   - 2: Marginal evidence OR clear transferable skill identified (must name the transfer, e.g. "BA in finance ops translates to CS ops process work")
+   - 1: Weak signal, mostly inferred
+   - 0: NO EVIDENCE in the CV. Use 0 by default if the criterion is not addressed at all - do NOT default to 2.
+3. Use 0 when the CV is silent on a criterion. Only score 2 if you can explicitly name a transferable skill from another domain that maps to this criterion. Naming the transfer is mandatory in the rationale.
+4. Each non-zero score must be backed by a verbatim CV span you quote in the evidence array. A score of 0 must have an empty evidence array and the rationale "No evidence in CV".
+5. For binary hard-gate criteria like AU work rights and location: score 5 if the CV indicates AU citizenship, permanent residency, valid work visa, or a current Brisbane/QLD address. Score 0 only if the CV states no work rights or is clearly overseas with no relocation indication. Score 3 with low confidence if uncertain.
+6. Tenure gaps are not penalties unless the candidate had no work history. Note any reason given (caregiving, study, illness) in tenure_note rather than reducing any tenure score.
+7. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
+8. No em-dashes (-) or en-dashes (-) in your output. Plain hyphens only.
 
 The criteria you must score:
 ${criteriaPrompt}
+
+For candidate_label, use a generic placeholder like "Candidate" - the system already has the real name from a separate extraction pass.
 
 Output only via the submit_score tool.`
 
@@ -293,7 +367,7 @@ Output only via the submit_score tool.`
 
 function computeOverall(
   scores: CriterionScore[],
-  criteria: ReturnType<typeof getRubric> extends infer T ? (T extends { criteria: infer C } ? C : never) : never,
+  criteria: Rubric['criteria'],
 ): number {
   const cList = criteria as Array<{ id: string; weight: number }>
   let weighted = 0

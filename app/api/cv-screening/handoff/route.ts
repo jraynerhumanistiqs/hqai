@@ -1,8 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { getRubric } from '@/lib/cv-screening-rubrics'
-import type { CandidateScreening, CriterionScore } from '@/lib/cv-screening-types'
+import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
+import type { CandidateScreening, CriterionScore, Rubric } from '@/lib/cv-screening-types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
     const s = screening as CandidateScreening
 
-    const rubric = getRubric(s.rubric_id)
+    const rubric = await resolveRubric(s.rubric_id)
     if (!rubric) return NextResponse.json({ error: `Rubric ${s.rubric_id} not found` }, { status: 400 })
 
     // Generate questions targeted at the candidate's lowest-scoring criteria,
@@ -108,10 +108,21 @@ export async function POST(req: NextRequest) {
   }
 }
 
+async function resolveRubric(rubricId: string): Promise<Rubric | null> {
+  const standard = getStandardRubric(rubricId)
+  if (standard) return standard
+  const { data } = await supabaseAdmin
+    .from('cv_custom_rubrics')
+    .select('rubric')
+    .eq('id', rubricId)
+    .single()
+  return (data?.rubric as Rubric | undefined) ?? null
+}
+
 async function generateTargetedQuestions(
   s: CandidateScreening,
   role: string,
-  criteria: NonNullable<ReturnType<typeof getRubric>>['criteria'],
+  criteria: Rubric['criteria'],
 ): Promise<string[]> {
   // Find the 3-4 weakest criteria - these are the candidate's gaps and the
   // questions should probe them so the video answers fill in what the CV

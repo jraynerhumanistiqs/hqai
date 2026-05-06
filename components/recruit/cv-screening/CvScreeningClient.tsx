@@ -3,15 +3,25 @@ import { useState, useCallback } from 'react'
 import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
 import {
   type CandidateScreening,
+  type Rubric,
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
 } from '@/lib/cv-screening-types'
 import CandidateScorecardPanel from './CandidateScorecardPanel'
+import NewRubricModal from './NewRubricModal'
+
+interface CustomRubricRow {
+  id: string
+  label: string
+  rubric: Rubric
+  created_at: string
+}
 
 interface Props {
   businessName: string
   initialScreenings: CandidateScreening[]
+  initialCustomRubrics: CustomRubricRow[]
 }
 
 interface PendingUpload {
@@ -21,13 +31,17 @@ interface PendingUpload {
   error?: string
 }
 
-export default function CvScreeningClient({ businessName, initialScreenings }: Props) {
-  const [rubricId, setRubricId] = useState(ALL_RUBRICS[0].rubric_id)
+export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics }: Props) {
+  const [customRubrics, setCustomRubrics] = useState<CustomRubricRow[]>(initialCustomRubrics)
+  const [rubricId, setRubricId] = useState<string>(
+    initialCustomRubrics[0]?.id ?? ALL_RUBRICS[0].rubric_id,
+  )
   const [screenings, setScreenings] = useState<CandidateScreening[]>(initialScreenings)
   const [pending, setPending] = useState<PendingUpload[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [showNewRubric, setShowNewRubric] = useState(false)
 
   const filtered = screenings.filter(s => s.rubric_id === rubricId)
   const counts = {
@@ -124,19 +138,38 @@ export default function CvScreeningClient({ businessName, initialScreenings }: P
               <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
                 Rubric
               </p>
-              <select
-                value={rubricId}
-                onChange={e => setRubricId(e.target.value)}
-                className="bg-light text-sm text-charcoal rounded-full px-4 py-2 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal"
-              >
-                {ALL_RUBRICS.map(r => (
-                  <option key={r.rubric_id} value={r.rubric_id}>
-                    {r.role}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={rubricId}
+                  onChange={e => setRubricId(e.target.value)}
+                  className="bg-light text-sm text-charcoal rounded-full px-4 py-2 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal"
+                >
+                  {customRubrics.length > 0 && (
+                    <optgroup label="Your custom rubrics">
+                      {customRubrics.map(cr => (
+                        <option key={cr.id} value={cr.id}>
+                          {cr.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Standard rubrics">
+                    {ALL_RUBRICS.map(r => (
+                      <option key={r.rubric_id} value={r.rubric_id}>
+                        {r.role}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <button
+                  onClick={() => setShowNewRubric(true)}
+                  className="bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2 hover:bg-light"
+                >
+                  + New rubric
+                </button>
+              </div>
               <p className="text-xs text-muted mt-1.5">
-                Rubric editing comes in v2. For the demo, pick the closest match - all three are AU-tuned and blind by default.
+                Standard rubrics are AU-tuned and blind by default. Create a custom rubric from a job ad or paste your own description for a passive-search role.
               </p>
             </div>
           </div>
@@ -267,6 +300,17 @@ export default function CvScreeningClient({ businessName, initialScreenings }: P
         <CandidateScorecardPanel
           screening={selected}
           onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      {showNewRubric && (
+        <NewRubricModal
+          onClose={() => setShowNewRubric(false)}
+          onCreated={(saved) => {
+            setCustomRubrics(prev => [saved, ...prev])
+            setRubricId(saved.id)
+            setShowNewRubric(false)
+          }}
         />
       )}
     </div>
