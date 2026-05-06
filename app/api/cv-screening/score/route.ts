@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       id: savedId,
       business_id: businessId ?? '',
       user_id: user.id,
-      rubric_id: rubric.rubric_id,
+      rubric_id: rubricId,
       candidate_label: realName || scoreResult.candidate_label || filenameToLabel(filename),
       candidate_email: scoreResult.candidate_email ?? null,
       cv_text: cvText,
