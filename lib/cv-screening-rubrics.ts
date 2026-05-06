@@ -2,65 +2,84 @@ import type { Rubric } from './cv-screening-types'
 
 const STANDARD_BLIND_FIELDS = ['name', 'photo', 'address', 'dob', 'gender_inferred', 'graduation_year', 'school_name']
 
-export const RUBRIC_BACKEND_ENGINEER: Rubric = {
-  rubric_id: 'rub_eng_senior_be_au_v1',
-  role: 'Senior Backend Engineer',
+export const RUBRIC_CI_ANALYST: Rubric = {
+  rubric_id: 'rub_ci_analyst_au_v1',
+  role: 'Continuous Improvement Analyst (Customer Service, Contract)',
   country: 'AU',
   version: 1,
   criteria: [
     {
-      id: 'depth_backend',
-      label: 'Backend depth',
+      id: 'process_improvement_depth',
+      label: 'Process improvement / business analysis experience',
       weight: 0.25,
       type: 'ordinal_5',
       anchors: {
-        '1': 'No production backend experience',
-        '2': '1-2 yrs, single language, CRUD only',
-        '3': '3-5 yrs, owns services, basic distributed concepts',
-        '4': '5-8 yrs, designs systems, mentors, performance tuning',
-        '5': '8+ yrs, sets architecture, multi-region, deep concurrency',
+        '1': 'No PI or BA experience',
+        '2': '1-2 yrs in coordinator/admin role with light improvement work',
+        '3': '3-5 yrs as a BA or PI analyst, has owned individual workflow reviews',
+        '4': '5-8 yrs leading multi-team operational reviews end-to-end with measurable outcomes',
+        '5': '8+ yrs senior BA/PI lead, multiple complex reviews delivered with quantified ROI',
       },
       evidence_required: true,
     },
     {
-      id: 'scale_signals',
-      label: 'Scale and reliability signals',
+      id: 'workflow_mapping',
+      label: 'Workflow mapping and analysis ability',
+      weight: 0.20,
+      type: 'ordinal_5',
+      anchors: {
+        '1': 'No documented mapping experience',
+        '2': 'Has used templates but not led mapping work',
+        '3': 'BPMN, swimlane or value-stream mapping at a working level',
+        '4': 'Maps complex multi-system workflows with current/future state and quantified pain points',
+        '5': 'Multiple end-to-end mapping engagements delivered with measurable improvements after handover',
+      },
+      evidence_required: true,
+    },
+    {
+      id: 'lean_methodology',
+      label: 'Lean / continuous improvement methodology',
       weight: 0.15,
       type: 'ordinal_5',
       anchors: {
-        '1': 'No traffic or scale signal',
-        '3': 'Mentions 100k+ users or 1k+ RPS',
-        '5': 'Owned 1M+ DAU or 50k+ RPS systems with SLO ownership',
+        '1': 'No Lean, Six Sigma or Kaizen exposure',
+        '3': 'Lean awareness from a course or single project',
+        '4': 'Lean / Six Sigma Green Belt or equivalent applied across multiple projects',
+        '5': 'Lean Six Sigma Black Belt or equivalent with delivered Kaizen/value-stream initiatives',
       },
     },
     {
-      id: 'tenure_stability',
-      label: 'Tenure pattern',
-      weight: 0.05,
+      id: 'stakeholder_engagement',
+      label: 'Stakeholder engagement (all levels)',
+      weight: 0.15,
       type: 'ordinal_5',
-      fairness_flag: 'tenure_can_correlate_with_caregiving_gaps',
+      anchors: {
+        '1': 'Limited stakeholder-facing experience',
+        '3': 'Comfortable engaging at team-lead and ops-manager level',
+        '4': 'Regular engagement with executive sponsors plus frontline, facilitates workshops',
+        '5': 'C-suite engagement, runs cross-functional steering groups, manages competing priorities',
+      },
+    },
+    {
+      id: 'domain_fit_cs_ops',
+      label: 'Customer service / operations / support domain fit',
+      weight: 0.10,
+      type: 'ordinal_5',
+      anchors: {
+        '1': 'No customer-service or operations domain experience',
+        '3': 'Some exposure via projects in contact centres, ops or shared services',
+        '5': 'Deep CS / contact-centre / shared-services / support-ops background',
+      },
     },
     {
       id: 'communication',
-      label: 'Written communication (CV clarity)',
-      weight: 0.10,
-      type: 'ordinal_5',
-    },
-    {
-      id: 'leadership',
-      label: 'Tech leadership signals',
-      weight: 0.20,
-      type: 'ordinal_5',
-    },
-    {
-      id: 'domain_fit',
-      label: 'Domain fit',
-      weight: 0.15,
+      label: 'Written communication (CV clarity, quantified outcomes)',
+      weight: 0.05,
       type: 'ordinal_5',
     },
     {
       id: 'location_eligibility',
-      label: 'AU work rights / location',
+      label: 'AU work rights and Brisbane / hybrid available',
       weight: 0.10,
       type: 'binary',
       hard_gate: true,
@@ -191,7 +210,7 @@ export const RUBRIC_OPS_MANAGER: Rubric = {
 }
 
 export const ALL_RUBRICS: Rubric[] = [
-  RUBRIC_BACKEND_ENGINEER,
+  RUBRIC_CI_ANALYST,
   RUBRIC_SALES_AE,
   RUBRIC_OPS_MANAGER,
 ]
