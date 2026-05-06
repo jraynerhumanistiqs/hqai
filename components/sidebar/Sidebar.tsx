@@ -134,15 +134,20 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </button>
         {recruitOpen && (
           <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/recruit"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit', true) ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Shortlist Agent
-            </Link>
             <Link href="/dashboard/recruit/campaign-coach"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               Campaign Coach
+            </Link>
+            <Link href="/dashboard/recruit/cv-screening"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              CV Screening
+            </Link>
+            <Link href="/dashboard/recruit"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/recruit', true) ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Video Pre-screen
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
