@@ -56,6 +56,52 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const advanceableCount = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes').length
   const [bulkBusy, setBulkBusy] = useState(false)
   const [bulkResult, setBulkResult] = useState<{ sent: number; failed: number } | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [reportBusy, setReportBusy] = useState(false)
+  const selectedCount = selectedIds.size
+
+  function toggleSelected(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+  function clearSelected() { setSelectedIds(new Set()) }
+  function selectAllVisible() {
+    setSelectedIds(new Set(filtered.map(s => s.id)))
+  }
+
+  async function generateReport() {
+    if (selectedIds.size === 0) return
+    setReportBusy(true)
+    try {
+      const res = await fetch('/api/cv-screening/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screening_ids: Array.from(selectedIds) }),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const cd = res.headers.get('Content-Disposition') || ''
+      const m = /filename="([^"]+)"/.exec(cd)
+      a.download = m?.[1] ?? 'Candidate_Score_Summary.docx'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      alert(`Report failed: ${err instanceof Error ? err.message : 'unknown error'}`)
+    }
+    setReportBusy(false)
+  }
 
   async function bulkSendVideo() {
     const advanceable = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes')
@@ -255,33 +301,59 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-border">
-              {filtered
-                .slice()
-                .sort((a, b) => Number(b.overall_score) - Number(a.overall_score))
-                .map(s => (
-                  <li key={s.id}>
-                    <button
-                      onClick={() => setSelectedId(s.id)}
-                      className="w-full px-6 py-4 grid grid-cols-12 gap-3 items-center text-left hover:bg-light transition-colors"
-                    >
-                      <span className="col-span-4 text-sm font-bold text-charcoal truncate">
-                        {s.candidate_label}
-                      </span>
-                      <span className="col-span-2 text-sm text-charcoal font-bold">
-                        {Number(s.overall_score).toFixed(2)}
-                      </span>
-                      <span className={`col-span-2 inline-flex items-center text-[11px] font-bold rounded-full px-3 py-1 ${BAND_COLOURS[s.band as keyof typeof BAND_COLOURS] ?? ''}`}>
-                        {BAND_LABELS[s.band as keyof typeof BAND_LABELS] ?? s.band}
-                      </span>
-                      <span className="col-span-3 text-xs text-mid truncate">
-                        {ACTION_LABELS[s.next_action as keyof typeof ACTION_LABELS] ?? s.next_action}
-                      </span>
-                      <span className="col-span-1 text-xs text-muted text-right">View</span>
-                    </button>
-                  </li>
-                ))}
-            </ul>
+            <>
+              <div className="px-6 py-2 border-b border-border bg-light/50 flex items-center gap-3 text-xs">
+                <button
+                  onClick={selectedCount === filtered.length ? clearSelected : selectAllVisible}
+                  className="text-mid hover:text-charcoal font-bold"
+                >
+                  {selectedCount === filtered.length ? 'Clear selection' : 'Select all'}
+                </button>
+                {selectedCount > 0 && (
+                  <span className="text-mid">
+                    {selectedCount} selected
+                  </span>
+                )}
+              </div>
+              <ul className="divide-y divide-border">
+                {filtered
+                  .slice()
+                  .sort((a, b) => Number(b.overall_score) - Number(a.overall_score))
+                  .map(s => {
+                    const checked = selectedIds.has(s.id)
+                    return (
+                      <li key={s.id} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center hover:bg-light transition-colors ${checked ? 'bg-light' : ''}`}>
+                        <label className="col-span-1 flex items-center cursor-pointer" onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleSelected(s.id)}
+                            className="w-4 h-4 rounded border-border accent-black cursor-pointer"
+                          />
+                        </label>
+                        <button
+                          onClick={() => setSelectedId(s.id)}
+                          className="col-span-11 grid grid-cols-11 gap-3 items-center text-left"
+                        >
+                          <span className="col-span-4 text-sm font-bold text-charcoal truncate">
+                            {s.candidate_label}
+                          </span>
+                          <span className="col-span-1 text-sm text-charcoal font-bold">
+                            {Number(s.overall_score).toFixed(2)}
+                          </span>
+                          <span className={`col-span-2 inline-flex items-center text-[11px] font-bold rounded-full px-3 py-1 ${BAND_COLOURS[s.band as keyof typeof BAND_COLOURS] ?? ''}`}>
+                            {BAND_LABELS[s.band as keyof typeof BAND_LABELS] ?? s.band}
+                          </span>
+                          <span className="col-span-3 text-xs text-mid truncate">
+                            {ACTION_LABELS[s.next_action as keyof typeof ACTION_LABELS] ?? s.next_action}
+                          </span>
+                          <span className="col-span-1 text-xs text-muted text-right">View</span>
+                        </button>
+                      </li>
+                    )
+                  })}
+              </ul>
+            </>
           )}
         </section>
 
@@ -313,6 +385,34 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             setShowNewRubric(false)
           }}
         />
+      )}
+
+      {selectedCount > 0 && (
+        <div className="sticky bottom-4 mx-auto max-w-3xl z-30 px-6">
+          <div className="bg-black text-white rounded-full shadow-card flex items-center gap-3 px-5 py-3">
+            <span className="text-sm font-bold">
+              {selectedCount} selected
+            </span>
+            <span className="text-xs text-white/60 hidden sm:inline">
+              Generate a client-ready summary report for these candidates.
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={clearSelected}
+                className="text-xs font-bold text-white/70 hover:text-white px-3 py-1.5"
+              >
+                Clear
+              </button>
+              <button
+                onClick={generateReport}
+                disabled={reportBusy}
+                className="bg-white text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50"
+              >
+                {reportBusy ? 'Generating...' : 'Download summary report'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
