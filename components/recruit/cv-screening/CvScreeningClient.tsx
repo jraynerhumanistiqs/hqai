@@ -77,10 +77,18 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     if (selectedIds.size === 0) return
     setReportBusy(true)
     try {
+      // Send the full screening payloads from in-memory state. The server
+      // can render the report from these directly without a DB lookup, which
+      // sidesteps the case where rows live only in client state (e.g.
+      // migration not applied or DB insert failed silently).
+      const selectedScreenings = screenings.filter(s => selectedIds.has(s.id))
       const res = await fetch('/api/cv-screening/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ screening_ids: Array.from(selectedIds) }),
+        body: JSON.stringify({
+          screening_ids: Array.from(selectedIds),
+          screenings: selectedScreenings,
+        }),
       })
       if (!res.ok) {
         const text = await res.text().catch(() => '')

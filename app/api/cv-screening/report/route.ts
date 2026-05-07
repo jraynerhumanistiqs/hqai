@@ -30,7 +30,8 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 interface Body {
-  screening_ids: string[]
+  screening_ids?: string[]
+  screenings?: CandidateScreening[]
 }
 
 export async function POST(req: NextRequest) {
@@ -58,20 +59,44 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json() as Body
-    if (!Array.isArray(body.screening_ids) || body.screening_ids.length === 0) {
+    const inlineScreenings = Array.isArray(body.screenings) ? body.screenings : []
+    const idList = Array.isArray(body.screening_ids) ? body.screening_ids : []
+
+    if (inlineScreenings.length === 0 && idList.length === 0) {
       return NextResponse.json({ error: 'No candidates selected' }, { status: 400 })
     }
 
-    const { data: rows, error } = await supabaseAdmin
-      .from('cv_screenings')
-      .select('*')
-      .in('id', body.screening_ids)
-      .eq('business_id', business.id)
-      .order('overall_score', { ascending: false })
-    if (error || !rows || rows.length === 0) {
-      return NextResponse.json({ error: 'Could not load screenings' }, { status: 404 })
+    let screenings: CandidateScreening[] = []
+
+    // Prefer inline payloads when supplied - works regardless of whether the
+    // cv_screenings migration is applied or whether the rows persisted with
+    // matching business_id. Falls back to a DB lookup if only IDs are sent.
+    if (inlineScreenings.length > 0) {
+      screenings = inlineScreenings
+        .slice()
+        .sort((a, b) => Number(b.overall_score) - Number(a.overall_score))
+    } else {
+      const { data: rows, error } = await supabaseAdmin
+        .from('cv_screenings')
+        .select('*')
+        .in('id', idList)
+        .eq('business_id', business.id)
+        .order('overall_score', { ascending: false })
+      if (error) {
+        console.error('[cv-screening/report] DB lookup failed:', error)
+        return NextResponse.json({
+          error: 'Could not load screenings',
+          detail: error.message,
+        }, { status: 500 })
+      }
+      if (!rows || rows.length === 0) {
+        return NextResponse.json({
+          error: 'Could not load screenings',
+          detail: `No matching rows for ${idList.length} ID${idList.length === 1 ? '' : 's'}. Send the full screening payload via the 'screenings' field as a fallback.`,
+        }, { status: 404 })
+      }
+      screenings = rows as CandidateScreening[]
     }
-    const screenings = rows as CandidateScreening[]
 
     const rubricCache = new Map<string, Rubric | null>()
     const resolveRubric = async (id: string): Promise<Rubric | null> => {
