@@ -357,14 +357,31 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           )}
         </section>
 
-        <section className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
-          <p className="font-bold text-charcoal mb-2 text-sm">How scoring works</p>
-          <p>
-            CVs are scored against a structured rubric with 6-8 weighted criteria. Names, photos, addresses, dates of birth and graduation years are masked from the model so it scores on substance, not signal. Every score points to a verbatim CV span as evidence. No candidate is auto-rejected - the system recommends a next step but a human always clicks through.
-          </p>
-          <p className="mt-2">
-            Bias dashboards, counterfactual probes, and rubric editing come in v1.5. The full v1 spec lives in <code className="text-charcoal">docs/CV-SCREENING-RESEARCH.md</code>.
-          </p>
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
+            <p className="font-bold text-charcoal mb-2 text-sm">How scoring works</p>
+            <p>
+              CVs are scored against a structured rubric with 6-8 weighted criteria. Names, photos, addresses, dates of birth and graduation years are masked from the model so it scores on substance, not signal. Every score points to a verbatim CV span as evidence. No candidate is auto-rejected - the system recommends a next step but a human always clicks through.
+            </p>
+            <p className="mt-2">
+              For each candidate, click into the scorecard and use the <strong className="text-charcoal">Run name probe</strong> button under Fairness checks to test whether the score moves when the name is swapped to a different cultural background.
+            </p>
+          </div>
+
+          <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed border border-dashed border-border">
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-bold text-charcoal text-sm">Disparate impact dashboard</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-2 py-0.5">
+                Coming in v2.5
+              </span>
+            </div>
+            <p>
+              Population-level four-fifths rule monitoring across roles. Flags any role where the selection rate of any inferred cohort drops below 80% of the top cohort. Needs a population larger than a single demo cohort and proper opt-in demographic data, so we're shipping it once the corpus is real.
+            </p>
+            <p className="mt-2">
+              Per-candidate name-swap robustness is live now via the scorecard probe - that covers the individual decision; the dashboard covers the population.
+            </p>
+          </div>
         </section>
       </div>
 

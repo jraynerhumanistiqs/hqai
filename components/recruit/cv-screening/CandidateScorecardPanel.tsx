@@ -27,6 +27,14 @@ interface HandoffResult {
   questions: string[]
 }
 
+interface ProbeResult {
+  original: { name: string; overall: number }
+  probes: Array<{ name: string; overall: number | null; error: string | null }>
+  max_delta: number
+  flagged: boolean
+  verdict: string
+}
+
 export default function CandidateScorecardPanel({ screening, customRubrics, onClose }: Props) {
   const rubric = useMemo(() => {
     const standard = getRubric(screening.rubric_id)
@@ -45,6 +53,29 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   const [handoffResult, setHandoffResult] = useState<HandoffResult | null>(null)
   const [draftQuestions, setDraftQuestions] = useState<string[] | null>(null)
   const [copied, setCopied] = useState(false)
+
+  const [probeBusy, setProbeBusy] = useState(false)
+  const [probeError, setProbeError] = useState<string | null>(null)
+  const [probeResult, setProbeResult] = useState<ProbeResult | null>(null)
+
+  async function runCounterfactual() {
+    setProbeBusy(true)
+    setProbeError(null)
+    setProbeResult(null)
+    try {
+      const res = await fetch('/api/cv-screening/counterfactual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screening_id: screening.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      setProbeResult(data as ProbeResult)
+    } catch (err) {
+      setProbeError(err instanceof Error ? err.message : 'Probe failed')
+    }
+    setProbeBusy(false)
+  }
 
   const canSendVideo = ['strong_yes', 'yes', 'maybe'].includes(screening.band)
 
@@ -162,12 +193,46 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
           </div>
 
           {screening.fairness_checks && (
-            <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-1">
-              <p className="font-bold text-charcoal text-sm mb-1">Fairness checks</p>
-              <p>Name blinded: {screening.fairness_checks.name_blinded ? 'yes' : 'no'}</p>
+            <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-bold text-charcoal text-sm">Fairness checks</p>
+                <button
+                  onClick={runCounterfactual}
+                  disabled={probeBusy}
+                  className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
+                >
+                  {probeBusy ? 'Probing...' : 'Run name probe'}
+                </button>
+              </div>
+              <p>Name blinded from scorer: {screening.fairness_checks.name_blinded ? 'yes' : 'no'}</p>
               <p>Demographic inference suppressed: {screening.fairness_checks.demographic_inference_suppressed ? 'yes' : 'no'}</p>
               {screening.fairness_checks.tenure_gap_explained && (
                 <p>Tenure gap noted: {screening.fairness_checks.tenure_gap_explained}</p>
+              )}
+
+              {probeError && (
+                <p className="text-danger">Probe failed: {probeError}</p>
+              )}
+
+              {probeResult && (
+                <div className="mt-2 pt-2 border-t border-border space-y-1.5">
+                  <p className={`font-bold text-sm ${probeResult.flagged ? 'text-warning' : 'text-success'}`}>
+                    {probeResult.flagged ? 'Flagged' : 'Stable'} - max delta {probeResult.max_delta}
+                  </p>
+                  <p>{probeResult.verdict}</p>
+                  <ul className="space-y-0.5 mt-1.5">
+                    <li className="flex justify-between">
+                      <span className="text-charcoal font-bold">{probeResult.original.name} (original)</span>
+                      <span className="text-charcoal font-bold">{probeResult.original.overall.toFixed(2)}</span>
+                    </li>
+                    {probeResult.probes.map(p => (
+                      <li key={p.name} className="flex justify-between">
+                        <span>{p.name}</span>
+                        <span>{p.overall != null ? p.overall.toFixed(2) : '-'}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           )}
