@@ -530,29 +530,48 @@ async function finalise(opts: {
     }
   }
 
-  // Audit log - fire-and-forget through `after()` so Vercel doesn't freeze
-  // the lambda before the insert completes (same fix as the transcribe pipeline).
-  // Skip auditing for eval-bypass requests (placeholder UUID would FK-violate).
-  if (user.id === '00000000-0000-0000-0000-000000000000') return
+  // Audit log + telemetry - fire-and-forget through `after()` so Vercel
+  // doesn't freeze the lambda before the inserts complete. Eval bypass
+  // requests use a placeholder UUID that would FK-violate the audit log,
+  // so skip there. Telemetry is allowed because chat_telemetry has no FK.
   after(async () => {
+    if (user.id !== '00000000-0000-0000-0000-000000000000') {
+      try {
+        await supabase.from('chat_audit_log').insert({
+          user_id: user.id,
+          business_id: business?.id ?? null,
+          conversation_id: conversationId ?? null,
+          module,
+          user_message: lastUserMsg,
+          assistant_text: fullResponse,
+          citations,
+          tool_calls: toolCalls,
+          escalated: escalate,
+          doc_type: docType,
+          latency_ms: latencyMs,
+          model: MODEL,
+        })
+      } catch (err) {
+        console.warn('[chat] audit log insert failed:', (err as Error).message)
+      }
+    }
     try {
-      await supabase.from('chat_audit_log').insert({
-        user_id: user.id,
-        business_id: business?.id ?? null,
+      const inputTokens = toolCalls.reduce((acc, t) => acc + (t.output_summary?.length ?? 0), 0)
+      await supabase.from('chat_telemetry').insert({
         conversation_id: conversationId ?? null,
+        user_id: user.id === '00000000-0000-0000-0000-000000000000' ? null : user.id,
+        business_id: business?.id ?? null,
         module,
-        user_message: lastUserMsg,
-        assistant_text: fullResponse,
-        citations,
-        tool_calls: toolCalls,
-        escalated: escalate,
-        doc_type: docType,
-        latency_ms: latencyMs,
+        query_chars: lastUserMsg.length,
+        tools_called: toolCalls.map(t => t.name),
+        retrieval_chunks: inputTokens > 0 ? Math.ceil(inputTokens / 1500) : 0,
+        total_ms: latencyMs,
         model: MODEL,
+        triage_category: null,
+        errored: false,
       })
     } catch (err) {
-      // chat_audit_log may not exist yet (pre-migration). Swallow quietly.
-      console.warn('[chat] audit log insert failed:', (err as Error).message)
+      console.warn('[chat] telemetry insert failed:', (err as Error).message)
     }
   })
 

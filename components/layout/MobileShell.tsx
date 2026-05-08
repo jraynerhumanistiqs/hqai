@@ -5,12 +5,16 @@ import Sidebar from '@/components/sidebar/Sidebar'
 import Image from 'next/image'
 import Link from 'next/link'
 
+type AppRole = 'owner' | 'test_admin' | 'member'
+
 interface SidebarProps {
   userName: string
   bizName: string
   bizLogoUrl?: string | null
   advisorName: string
   plan: string
+  role: AppRole
+  flags: Record<string, boolean>
 }
 
 export default function MobileShell({ sidebarProps, children }: { sidebarProps: SidebarProps; children: React.ReactNode }) {

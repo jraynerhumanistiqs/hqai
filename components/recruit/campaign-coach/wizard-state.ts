@@ -34,6 +34,10 @@ export type WizardState = {
   // Controls whether returning to Step 1 shows the 'Ask Coach to Try Again'
   // CTA (vs the initial 'Brief the coach →').
   hasBriefed: boolean
+  // Snapshot of the AI-generated role_profile at Step 1 success - used by
+  // the field-edit telemetry to compare against the user-edited final value
+  // when they advance from Step 2.
+  role_profile_initial?: RoleProfile
 }
 
 export type WizardAction =
@@ -74,7 +78,11 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
     case 'SET_BRIEF':
       return { ...state, brief: action.brief }
     case 'SET_ROLE_PROFILE':
-      return { ...state, role_profile: action.profile }
+      return {
+        ...state,
+        role_profile: action.profile,
+        role_profile_initial: state.role_profile_initial ?? action.profile,
+      }
     case 'PATCH_ROLE_PROFILE':
       return state.role_profile
         ? { ...state, role_profile: { ...state.role_profile, ...action.patch } }

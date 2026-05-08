@@ -181,6 +181,28 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         break
       }
       case 2: {
+        // Capture per-field edits between the AI-generated role_profile
+        // (snapshotted on Step 1 success) and the user-edited final value
+        // before we move on to Step 3. Fire-and-forget; never blocks.
+        if (state.role_profile && state.role_profile_initial) {
+          const ai = state.role_profile_initial as Record<string, unknown>
+          const final = state.role_profile as Record<string, unknown>
+          const fields = Array.from(new Set([...Object.keys(ai), ...Object.keys(final)]))
+          for (const f of fields) {
+            void fetch('/api/telemetry/field-edit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                surface: 'coach',
+                step: 'step2_role_profile',
+                field_name: f,
+                ai_value: ai[f] ?? null,
+                final_value: final[f] ?? null,
+              }),
+            }).catch(() => {})
+          }
+        }
+
         const out = await callDraft(2)
         if (out?.blocks || out?.job_ad_draft) {
           dispatch({ type: 'SET_STEP', step: 3 })

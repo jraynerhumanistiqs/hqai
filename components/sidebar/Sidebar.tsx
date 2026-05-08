@@ -5,16 +5,22 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type AppRole = 'owner' | 'test_admin' | 'member'
+
 interface SidebarProps {
   userName: string
   bizName: string
   bizLogoUrl?: string | null
   advisorName: string
   plan: string
+  role?: AppRole
+  flags?: Record<string, boolean>
   onClose?: () => void
 }
 
-export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, onClose }: SidebarProps) {
+export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, role, flags, onClose }: SidebarProps) {
+  const flag = (k: string) => flags?.[k] ?? false
+  const isInternal = role === 'owner' || role === 'test_admin'
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -187,78 +193,102 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Tools - 3 categories */}
         <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 mt-4 font-display">Tools</p>
 
-        {/* Compliance */}
-        <button onClick={() => setComplianceOpen(!complianceOpen)}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-            ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
-          <span className="flex-1 text-left">Compliance</span>
-          <ChevronIcon open={complianceOpen} />
-        </button>
-        {complianceOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/compliance/audit"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Workplace Compliance Audit
-            </Link>
-            <Link href="/dashboard/awards"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Award Interpreter
-            </Link>
-          </div>
+        {/* Compliance - hidden from member role until Compliance modules are real */}
+        {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
+          <>
+            <button onClick={() => setComplianceOpen(!complianceOpen)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
+                  ? 'bg-white/11 text-white'
+                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
+              <span className="flex-1 text-left">Compliance</span>
+              <ChevronIcon open={complianceOpen} />
+            </button>
+            {complianceOpen && (
+              <div className="ml-6 space-y-0.5">
+                {(isInternal || flag('compliance_audit')) && (
+                  <Link href="/dashboard/compliance/audit"
+                    className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                      ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                    Workplace Compliance Audit
+                  </Link>
+                )}
+                {(isInternal || flag('awards_interpreter')) && (
+                  <Link href="/dashboard/awards"
+                    className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                      ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                    Award Interpreter
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
         )}
 
-        {/* Leadership */}
-        <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-            ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
-          <span className="flex-1 text-left">Leadership</span>
-          <ChevronIcon open={leadershipOpen} />
-        </button>
-        {leadershipOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/performance"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Performance Management
-            </Link>
-            <Link href="/dashboard/leadership/development"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Team Development
-            </Link>
-            <Link href="/dashboard/leadership/coaching"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Coaching
-            </Link>
-          </div>
+        {/* Leadership - hidden from member role */}
+        {(isInternal || flag('team_development')) && (
+          <>
+            <button onClick={() => setLeadershipOpen(!leadershipOpen)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
+                  ? 'bg-white/11 text-white'
+                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
+              <span className="flex-1 text-left">Leadership</span>
+              <ChevronIcon open={leadershipOpen} />
+            </button>
+            {leadershipOpen && (
+              <div className="ml-6 space-y-0.5">
+                <Link href="/dashboard/performance"
+                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                    ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                  Performance Management
+                </Link>
+                <Link href="/dashboard/leadership/development"
+                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                    ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                  Team Development
+                </Link>
+                <Link href="/dashboard/leadership/coaching"
+                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                    ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                  Coaching
+                </Link>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Business */}
-        <button onClick={() => setBusinessOpen(!businessOpen)}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-            ${isActive('/dashboard/business')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <BusinessIcon active={isActive('/dashboard/business')} />
-          <span className="flex-1 text-left">Business</span>
-          <ChevronIcon open={businessOpen} />
-        </button>
-        {businessOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/business/strategy-coach"
-              className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Strategy Coach
-            </Link>
+        {/* Business - hidden from member role */}
+        {(isInternal || flag('strategy_coach')) && (
+          <>
+            <button onClick={() => setBusinessOpen(!businessOpen)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                ${isActive('/dashboard/business')
+                  ? 'bg-white/11 text-white'
+                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              <BusinessIcon active={isActive('/dashboard/business')} />
+              <span className="flex-1 text-left">Business</span>
+              <ChevronIcon open={businessOpen} />
+            </button>
+            {businessOpen && (
+              <div className="ml-6 space-y-0.5">
+                <Link href="/dashboard/business/strategy-coach"
+                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                    ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                  Strategy Coach
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Read-only watermark for test_admin */}
+        {role === 'test_admin' && (
+          <div className="mt-3 mx-2 px-3 py-2 rounded-lg bg-white/5 text-white/60 text-[11px] leading-snug">
+            <p className="font-bold uppercase tracking-wider mb-0.5">Read-only access</p>
+            <p>You can view every surface. Owner approval is required for any save, edit, or send action.</p>
           </div>
         )}
 

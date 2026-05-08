@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Sidebar from '@/components/sidebar/Sidebar'
 import MobileShell from '@/components/layout/MobileShell'
+import { flagMap } from '@/lib/auth/feature-flags'
+import type { AppRole } from '@/lib/auth/roles'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -23,6 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const business = profile.businesses as any
+  const role: AppRole = (profile.role === 'owner' || profile.role === 'test_admin') ? profile.role : 'member'
 
   const sidebarProps = {
     userName: profile.full_name || '',
@@ -30,6 +32,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     bizLogoUrl: business?.logo_url || null,
     advisorName: business?.advisor_name || 'Hugo',
     plan: business?.plan || 'free',
+    role,
+    flags: flagMap(role),
   }
 
   return (
