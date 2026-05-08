@@ -255,13 +255,27 @@ function LaunchSuccess({ result }: { result: any }) {
           </div>
         </div>
 
-        <div className="pt-3 border-t border-border flex justify-end">
-          <Link
-            href={sessionId ? `/dashboard/recruit/${sessionId}` : '/dashboard/recruit'}
-            className="bg-black text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
-          >
-            Done - view in HQ Recruit →
-          </Link>
+        <div className="pt-3 border-t border-border space-y-3">
+          <p className="text-[11px] font-bold text-muted uppercase tracking-wider">
+            What's next
+          </p>
+          <p className="text-sm text-mid leading-relaxed">
+            Once applications start arriving, head to CV Screening to score them against this role's rubric, then on to the Shortlist Agent for video pre-screens.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Link
+              href="/dashboard/recruit/cv-screening"
+              className="bg-black text-white text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-charcoal transition-colors"
+            >
+              Move to CV Screening →
+            </Link>
+            <Link
+              href={sessionId ? `/dashboard/recruit/shortlist` : '/dashboard/recruit/shortlist'}
+              className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-light transition-colors"
+            >
+              Skip to Shortlist Agent →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

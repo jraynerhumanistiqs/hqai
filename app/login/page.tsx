@@ -109,9 +109,14 @@ export default function LoginPage() {
 
           {magicSent ? (
             <div className="text-center py-4">
-              <div className="text-3xl mb-4">📬</div>
-              <p className="font-medium text-white mb-2">Check your email</p>
-              <p className="text-sm text-gray-400">We sent a sign-in link to <strong className="text-white">{email}</strong></p>
+              <div className="text-4xl mb-4">📬</div>
+              <p className="font-bold text-charcoal text-base mb-2">Check your email</p>
+              <p className="text-sm text-mid">
+                We sent a sign-in link to <strong className="text-charcoal break-all">{email}</strong>.
+              </p>
+              <p className="text-xs text-muted mt-3">
+                The link expires in 60 minutes. If it doesn't arrive within a couple of minutes, check your spam folder or try again.
+              </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

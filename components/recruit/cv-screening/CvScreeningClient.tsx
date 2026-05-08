@@ -179,11 +179,29 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   return (
     <div className="flex-1 overflow-y-auto bg-bg">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        <header>
-          <h1 className="font-display text-h2 font-bold text-charcoal">CV Screening</h1>
-          <p className="text-sm text-mid mt-1">
-            Drop CVs in, get a ranked, scored shortlist. Every score points to evidence in the CV. {businessName} keeps the final call - no candidate is auto-rejected.
-          </p>
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
+                CV Screening
+              </h1>
+              <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
+                New
+              </span>
+            </div>
+            <p className="text-xs text-muted mb-2">
+              {businessName ? `For ${businessName}` : 'AI-scored CV shortlisting'}
+            </p>
+            <p className="text-sm text-mid leading-relaxed max-w-2xl">
+              Drop CVs in, get a ranked, scored shortlist. Every score points to evidence in the CV. {businessName} keeps the final call - no candidate is auto-rejected.
+            </p>
+          </div>
+          <a
+            href="/dashboard/recruit/shortlist"
+            className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
+          >
+            Move to Shortlist Agent →
+          </a>
         </header>
 
         <section className="bg-white shadow-card rounded-3xl p-6 space-y-5">

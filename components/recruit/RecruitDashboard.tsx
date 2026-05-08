@@ -134,7 +134,7 @@ export function RecruitDashboard() {
         {/* Header */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
           <div className="flex items-center justify-between mb-0.5">
-            <h1 className="font-serif text-base font-bold text-black tracking-tight">HQ Recruit</h1>
+            <h1 className="font-display text-base font-bold text-charcoal uppercase tracking-wider">Shortlist Agent</h1>
             <button
               onClick={() => setShowCreate(true)}
               className="bg-accent hover:bg-accent2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors"

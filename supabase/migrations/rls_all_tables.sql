@@ -151,26 +151,36 @@ create policy "campaigns_business_write" on public.campaigns
     and (select role from public.profiles where id = auth.uid()) = 'owner'
   );
 
--- 3k. prescreen_evaluations - resolves business via response -> session
+-- prescreen_sessions does NOT have a business_id column - it resolves
+-- business via created_by -> profiles.business_id (per supabase/rls_prescreen.sql).
+-- All prescreen-derived policies use the same chain.
+
+-- 3k. prescreen_evaluations - resolves business via response -> session -> created_by
 drop policy if exists "prescreen_evaluations_business_select" on public.prescreen_evaluations;
 create policy "prescreen_evaluations_business_select" on public.prescreen_evaluations
   for select using (
     response_id in (
       select cr.id from public.candidate_responses cr
       join public.prescreen_sessions ps on ps.id = cr.session_id
-      where ps.business_id = public.current_business_id()
+      where ps.created_by in (
+        select id from public.profiles
+        where business_id = public.current_business_id()
+      )
     )
   );
 
 -- 3l. prescreen_notes / share_links / outcome_events / interview_bookings
--- All resolve to business via response -> session -> business_id chain.
+-- All resolve to business via response -> session -> created_by -> profiles.business_id.
 drop policy if exists "prescreen_notes_business_select" on public.prescreen_notes;
 create policy "prescreen_notes_business_select" on public.prescreen_notes
   for select using (
     response_id in (
       select cr.id from public.candidate_responses cr
       join public.prescreen_sessions ps on ps.id = cr.session_id
-      where ps.business_id = public.current_business_id()
+      where ps.created_by in (
+        select id from public.profiles
+        where business_id = public.current_business_id()
+      )
     )
   );
 
@@ -180,7 +190,10 @@ create policy "prescreen_share_links_business_select" on public.prescreen_share_
     response_id in (
       select cr.id from public.candidate_responses cr
       join public.prescreen_sessions ps on ps.id = cr.session_id
-      where ps.business_id = public.current_business_id()
+      where ps.created_by in (
+        select id from public.profiles
+        where business_id = public.current_business_id()
+      )
     )
   );
 
@@ -190,7 +203,10 @@ create policy "prescreen_outcome_events_business_select" on public.prescreen_out
     response_id in (
       select cr.id from public.candidate_responses cr
       join public.prescreen_sessions ps on ps.id = cr.session_id
-      where ps.business_id = public.current_business_id()
+      where ps.created_by in (
+        select id from public.profiles
+        where business_id = public.current_business_id()
+      )
     )
   );
 
@@ -200,7 +216,10 @@ create policy "prescreen_interview_bookings_business_select" on public.prescreen
     response_id in (
       select cr.id from public.candidate_responses cr
       join public.prescreen_sessions ps on ps.id = cr.session_id
-      where ps.business_id = public.current_business_id()
+      where ps.created_by in (
+        select id from public.profiles
+        where business_id = public.current_business_id()
+      )
     )
   );
 

@@ -31,6 +31,11 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const [leadershipOpen, setLeadershipOpen] = useState(false)
   const [businessOpen, setBusinessOpen] = useState(false)
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
+  const [supportType, setSupportType] = useState<'hr' | 'recruitment' | null>(null)
+  const [supportSummary, setSupportSummary] = useState('')
+  const [supportSending, setSupportSending] = useState(false)
+  const [supportSent, setSupportSent] = useState(false)
+  const [supportError, setSupportError] = useState<string | null>(null)
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -47,11 +52,38 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   }
 
   function handleContactPartner() {
-    if (plan === 'free') {
-      setShowPartnerPopup(true)
-    } else {
-      router.push('/dashboard/booking')
+    setSupportType(null)
+    setSupportSummary('')
+    setSupportSent(false)
+    setSupportError(null)
+    setShowPartnerPopup(true)
+  }
+
+  async function submitSupportRequest() {
+    if (!supportType || !supportSummary.trim()) {
+      setSupportError('Add a short summary of what you need')
+      return
     }
+    setSupportSending(true)
+    setSupportError(null)
+    try {
+      const res = await fetch('/api/support/contact-advisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          support_type: supportType,
+          summary: supportSummary.trim(),
+        }),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+      setSupportSent(true)
+    } catch (err) {
+      setSupportError(err instanceof Error ? err.message : 'Could not send')
+    }
+    setSupportSending(false)
   }
 
   return (
@@ -118,7 +150,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <Link href="/dashboard/people"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/people') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              AI Advisor ({advisorName || 'HQ'})
+              AI Advisor
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -150,10 +182,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 ${isActive('/dashboard/recruit/cv-screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               CV Screening
             </Link>
-            <Link href="/dashboard/recruit"
+            <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit', true) ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              Video Pre-screen
+                ${isActive('/dashboard/recruit/shortlist') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              Shortlist Agent
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -312,20 +344,11 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
       {/* Footer */}
       <div className="px-2.5 pb-3 space-y-1.5 flex-shrink-0">
-        {/* Advisor card */}
-        <div className="bg-[#111111] border border-[#222222] rounded-lg p-2.5">
-          <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider mb-1.5">Your HQ.ai Advisor</p>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="relative">
-              <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-xs font-medium text-white">
-                {advisorName[0]}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-[#000000] animate-pulse" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium text-white truncate">{advisorName}</p>
-            </div>
-          </div>
+        {/* Advisor handoff - small note + button that opens the contact modal */}
+        <div className="px-1 pt-1">
+          <p className="text-[11px] text-white/55 leading-snug mb-1.5">
+            Need more HR or recruitment support?
+          </p>
           <button onClick={handleContactPartner}
             className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-1.5 rounded-full transition-colors">
             Contact HQ Advisor
@@ -342,29 +365,87 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </button>
       </div>
 
-      {/* Partner popup for free plan */}
+      {/* Contact HQ Advisor - HR / Recruitment decision-tree modal */}
       {showPartnerPopup && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowPartnerPopup(false)}>
-          <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold text-white uppercase tracking-wider mb-2">Partner Support</h3>
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-              Your current subscription does not include HQ Advisor support.
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => !supportSending && setShowPartnerPopup(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-h3 font-bold text-charcoal mb-1">Contact HQ Advisor</h3>
+            <p className="text-sm text-mid mb-5">
+              Your Humanistiqs advisor handles complex matters where AI shouldn't.
             </p>
-            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4">
-              <p className="text-xs text-gray-500 mb-1">Hourly rates</p>
-              <p className="text-sm font-bold text-white">Phone consultation - $250+GST/hr</p>
-            </div>
-            <p className="text-sm text-gray-400 mb-4">Would you like to book a call with an HQ Advisor?</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowPartnerPopup(false)}
-                className="flex-1 py-2.5 bg-[#1a1a1a] hover:bg-[#222222] text-gray-400 rounded-full text-sm font-bold border border-[#333333] transition-colors">
-                Maybe later
-              </button>
-              <Link href="/dashboard/booking" onClick={() => setShowPartnerPopup(false)}
-                className="flex-1 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold text-center transition-colors">
-                Book a call
-              </Link>
-            </div>
+
+            {supportSent ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-3">✅</div>
+                <p className="font-bold text-charcoal text-base mb-2">Request sent</p>
+                <p className="text-sm text-mid">Your Humanistiqs advisor will be in touch within their next available slot.</p>
+                <button onClick={() => setShowPartnerPopup(false)}
+                  className="mt-5 bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal">
+                  Done
+                </button>
+              </div>
+            ) : !supportType ? (
+              <div className="space-y-3">
+                <p className="text-[11px] font-bold text-muted uppercase tracking-wider">Which area do you need support in?</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => setSupportType('hr')}
+                    className="bg-light hover:bg-border rounded-2xl px-4 py-5 text-center">
+                    <div className="text-2xl mb-1">👥</div>
+                    <p className="text-sm font-bold text-charcoal">HR Support</p>
+                    <p className="text-xs text-mid mt-0.5">Compliance, performance, complex cases</p>
+                  </button>
+                  <button onClick={() => setSupportType('recruitment')}
+                    className="bg-light hover:bg-border rounded-2xl px-4 py-5 text-center">
+                    <div className="text-2xl mb-1">🎯</div>
+                    <p className="text-sm font-bold text-charcoal">Recruitment Support</p>
+                    <p className="text-xs text-mid mt-0.5">Search, executive hires, retained briefs</p>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-light rounded-2xl px-4 py-3 flex items-center justify-between">
+                  <p className="text-sm font-bold text-charcoal">
+                    {supportType === 'hr' ? '👥 HR Support' : '🎯 Recruitment Support'}
+                  </p>
+                  <button onClick={() => setSupportType(null)}
+                    className="text-xs text-mid hover:text-charcoal underline">
+                    Change
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
+                    Quick summary
+                  </label>
+                  <textarea
+                    value={supportSummary}
+                    onChange={e => setSupportSummary(e.target.value)}
+                    rows={5}
+                    placeholder={
+                      supportType === 'hr'
+                        ? 'e.g. Need help with a performance management process for an underperforming senior staff member.'
+                        : 'e.g. Need help recruiting an Operations Manager. Brisbane-based, $120-140k, urgent.'
+                    }
+                    className="w-full bg-light rounded-2xl px-4 py-3 text-sm text-charcoal outline-none focus:bg-white focus:ring-1 focus:ring-charcoal resize-none leading-relaxed"
+                  />
+                </div>
+                {supportError && (
+                  <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{supportError}</div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setShowPartnerPopup(false)}
+                    disabled={supportSending}
+                    className="flex-1 bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50">
+                    Cancel
+                  </button>
+                  <button onClick={submitSupportRequest}
+                    disabled={supportSending || !supportSummary.trim()}
+                    className="flex-1 bg-black text-white text-sm font-bold rounded-full px-4 py-2.5 hover:bg-charcoal disabled:opacity-50">
+                    {supportSending ? 'Sending...' : 'Send to advisor'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

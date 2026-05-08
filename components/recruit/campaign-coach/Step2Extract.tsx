@@ -238,6 +238,12 @@ export default function Step2Extract() {
               >
                 Change award
               </button>
+              <button
+                onClick={() => patch({ award: undefined })}
+                className="text-xs font-bold text-mid hover:text-danger hover:underline"
+              >
+                Remove from campaign
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">

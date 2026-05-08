@@ -2,13 +2,14 @@
 import { useState } from 'react'
 import type { CandidateResponse, PrescreenEvaluation } from '@/lib/recruit-types'
 
-export type KanbanStage = 'new' | 'in_review' | 'shortlisted' | 'rejected'
+export type KanbanStage = 'new' | 'in_review' | 'video_interview' | 'shortlisted' | 'rejected'
 
-const STAGE_ORDER: KanbanStage[] = ['new', 'in_review', 'shortlisted', 'rejected']
+const STAGE_ORDER: KanbanStage[] = ['new', 'in_review', 'video_interview', 'shortlisted', 'rejected']
 
 const STAGE_LABEL: Record<KanbanStage, string> = {
   new: 'New',
   in_review: 'In Review',
+  video_interview: 'Video Interview',
   shortlisted: 'Shortlisted',
   rejected: 'Rejected',
 }
@@ -16,6 +17,7 @@ const STAGE_LABEL: Record<KanbanStage, string> = {
 const STAGE_CLS: Record<KanbanStage, string> = {
   new: 'bg-light text-mid border-border',
   in_review: 'bg-blue-50 text-blue-600 border-blue-200',
+  video_interview: 'bg-amber-50 text-amber-700 border-amber-200',
   shortlisted: 'bg-green-50 text-green-600 border-green-200',
   rejected: 'bg-red-50 text-red-600 border-red-200',
 }
@@ -67,7 +69,7 @@ export function ResponsesKanban({
   const [overStage, setOverStage] = useState<KanbanStage | null>(null)
 
   const byStage: Record<KanbanStage, CandidateResponse[]> = {
-    new: [], in_review: [], shortlisted: [], rejected: [],
+    new: [], in_review: [], video_interview: [], shortlisted: [], rejected: [],
   }
   for (const r of responses) {
     const s = ((r as any).stage as KanbanStage) || 'new'
@@ -75,7 +77,7 @@ export function ResponsesKanban({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
       {STAGE_ORDER.map(stage => {
         const cards = byStage[stage]
         const isOver = overStage === stage
