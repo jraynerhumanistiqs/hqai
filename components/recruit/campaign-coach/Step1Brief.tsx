@@ -99,14 +99,12 @@ export default function Step1Brief() {
       "Compliance heads-up: I'll auto-classify the Modern Award and check the rate against the Fair Work Pay Calculator on the next step. No need to know it now.",
       "Plain English wins. Skip the rockstar/ninja/guru words - they discourage women and older candidates from applying and they're not specific enough to filter for skill.",
     ]
-    let delay = 0
-    for (const text of tips) {
-      const t = setTimeout(() => {
+    tips.forEach((text, i) => {
+      const stagger = i === 0 ? 0 : 200 + i * 800
+      setTimeout(() => {
         dispatch({ type: 'PUSH_COACH_MESSAGE', msg: { role: 'coach', text, ts: Date.now() } })
-      }, delay)
-      delay += text === tips[0] ? 0 : 700
-      void t
-    }
+      }, stagger)
+    })
   }, [dispatch, state.coach_messages.length])
 
   return (
