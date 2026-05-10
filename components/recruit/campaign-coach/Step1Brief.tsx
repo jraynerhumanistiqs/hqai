@@ -1,89 +1,59 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useWizard } from './wizard-state'
 
-const FALLBACK_PROMPTS = [
-  'Site Manager, Brisbane - residential builds, full-time, $130k + super.',
+interface RecentCampaign {
+  id: string
+  title: string
+  brief: string
+  created_at: string
+}
+
+interface SuggestionsResponse {
+  industry: string | null
+  industry_source: 'profile' | 'inferred' | 'fallback'
+  examples: string[]
+  recent_campaigns: RecentCampaign[]
+}
+
+const PLACEHOLDER_EXAMPLES = [
   'Office Manager / EA in Melbourne CBD, full-time, $80-90k + super.',
-  'Casual barista, Newtown - 4 shifts across weekday mornings, $30+/hr.',
   'Bookkeeper, Adelaide CBD - 2 days a week, must know Xero and BAS.',
-  'Registered Nurse, aged-care facility in Geelong - full-time, weekday days.',
+  'Customer Service Lead, Brisbane - hybrid, $75k + super.',
 ]
-
-const INDUSTRY_PROMPTS: Record<string, string[]> = {
-  construction: [
-    'Site Manager, Brisbane - residential builds, full-time, $130k + super.',
-    'Foreman / leading hand on a Sydney commercial fit-out crew, full-time.',
-    'Project Manager, civil infrastructure - Townsville, $160k + super + vehicle.',
-    'Qualified electrician, residential service work, Northern Beaches - full-time.',
-    'Carpenter (formwork), tier-2 commercial builder, Perth - 2-year project.',
-  ],
-  hospitality: [
-    'Casual barista, Newtown - 4 shifts across weekday mornings, $30+/hr.',
-    'Restaurant Manager, Surry Hills - full-time, can run a full lunch and dinner service solo.',
-    'Sous Chef, fine dining, Brisbane - 5 days, $80-90k + tips.',
-    'Function and events coordinator, hotel - Melbourne CBD, full-time.',
-    'Front-of-house supervisor, gastropub - Newcastle, full-time evenings.',
-  ],
-  retail: [
-    'Assistant Store Manager, Westfield Parramatta - full-time, mid-level retail experience.',
-    'Visual Merchandiser, fashion - 4 stores across Sydney, casual.',
-    'Store Manager, hardware/trade - Geelong, $75k + super + bonuses.',
-    'E-commerce coordinator, Shopify + meta ads - hybrid Melbourne, $70-80k.',
-    'Casual sales assistant, weekends - Bondi flagship store.',
-  ],
-  healthcare: [
-    'Registered Nurse, aged-care facility in Geelong - full-time, weekday days.',
-    'Practice Manager, GP clinic - 3 doctors, Hobart - full-time.',
-    'Allied health receptionist, physiotherapy - Brisbane Northside, part-time.',
-    'Disability Support Worker, NDIS provider - South Sydney, casual rotating shifts.',
-    'Enrolled Nurse, day surgery - Adelaide, Mon-Fri, $70-80k.',
-  ],
-  professional_services: [
-    'Bookkeeper, Adelaide CBD - 2 days a week, must know Xero and BAS.',
-    'Office Manager / EA in Melbourne CBD, full-time, $80-90k + super.',
-    'Junior accountant, business services - Brisbane Inner West, full-time.',
-    'Paralegal, family law - Sydney CBD, full-time, $75-85k.',
-    'Marketing coordinator, agency - hybrid Melbourne, full-time.',
-  ],
-  trades: [
-    'Qualified electrician, residential service work, Northern Beaches - full-time.',
-    'Plumber, commercial maintenance - Perth, full-time, $100k + vehicle.',
-    'HVAC technician, refrigeration ticket - Adelaide, full-time.',
-    'Apprentice carpenter, 2nd or 3rd year - Sunshine Coast, residential builds.',
-    'Glazier, commercial - Western Sydney, full-time.',
-  ],
-  manufacturing: [
-    'Production Supervisor, food manufacturing - Toowoomba, day shift.',
-    'CNC machinist, swing shift - Western Sydney, $80-90k + overtime.',
-    'Quality Assurance Officer, ISO 9001 - Geelong, full-time.',
-    'Warehouse Team Leader, FMCG - Truganina, $75-85k + super.',
-    'Forklift driver (LF licence), 6am start - Eastern Creek, $32+/hr casual.',
-  ],
-}
-
-function pickPromptsForIndustry(industry: string | undefined): string[] {
-  const key = (industry || '').toLowerCase().trim()
-  if (!key) return FALLBACK_PROMPTS
-  // Loose match: 'professional services' / 'professional_services' / 'consulting'
-  const normalised = key
-    .replace(/[\s/\-]+/g, '_')
-    .replace(/&/g, 'and')
-  if (INDUSTRY_PROMPTS[normalised]) return INDUSTRY_PROMPTS[normalised]
-  // Fuzzy keyword fall-through.
-  if (/(constru|build|site|civil)/i.test(key)) return INDUSTRY_PROMPTS.construction
-  if (/(hospo|hotel|caf|restaurant|food.*bev|hospitality)/i.test(key)) return INDUSTRY_PROMPTS.hospitality
-  if (/(retail|store|shop|ecomm)/i.test(key)) return INDUSTRY_PROMPTS.retail
-  if (/(health|medical|nurse|aged|ndis|disab)/i.test(key)) return INDUSTRY_PROMPTS.healthcare
-  if (/(consult|legal|accounting|professional|advisory|finance)/i.test(key)) return INDUSTRY_PROMPTS.professional_services
-  if (/(trade|electric|plumb|hvac|carpent)/i.test(key)) return INDUSTRY_PROMPTS.trades
-  if (/(manufact|warehouse|logistic|production|fmcg)/i.test(key)) return INDUSTRY_PROMPTS.manufacturing
-  return FALLBACK_PROMPTS
-}
 
 export default function Step1Brief() {
   const { state, dispatch, business } = useWizard()
-  const prompts = pickPromptsForIndustry(business?.industry).slice(0, 5)
+  const [suggestions, setSuggestions] = useState<SuggestionsResponse | null>(null)
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true)
+
+  // Fetch industry-tuned examples + recent campaigns from the backend.
+  // Backend reads business.industry from the profile, falls back to inferring
+  // the industry from the business name, then asks Claude for 3 contextual
+  // example briefs. Recent campaigns come from the campaigns table.
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/campaign-coach/suggestions', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as SuggestionsResponse
+        if (!cancelled) setSuggestions(data)
+      } catch {
+        if (!cancelled) {
+          setSuggestions({
+            industry: null,
+            industry_source: 'fallback',
+            examples: PLACEHOLDER_EXAMPLES,
+            recent_campaigns: [],
+          })
+        }
+      } finally {
+        if (!cancelled) setLoadingSuggestions(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   // Push initial coaching messages on first Step 1 render so the right-side
   // panel reads like a real conversation. Tips are AU-tuned best-practice
@@ -106,6 +76,10 @@ export default function Step1Brief() {
       }, stagger)
     })
   }, [dispatch, state.coach_messages.length])
+
+  const examples = suggestions?.examples ?? PLACEHOLDER_EXAMPLES
+  const recentCampaigns = suggestions?.recent_campaigns ?? []
+  const industryLabel = suggestions?.industry?.toLowerCase() ?? business?.industry?.toLowerCase()
 
   return (
     <div className="space-y-5">
@@ -145,20 +119,56 @@ export default function Step1Brief() {
 
       <div>
         <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-          {business?.industry ? `Common roles in ${business.industry.toLowerCase()}` : 'Or try an example'}
+          {loadingSuggestions
+            ? 'Tailoring examples to your business...'
+            : industryLabel
+              ? `Common roles in ${industryLabel}`
+              : 'Or try an example'}
         </p>
         <div className="flex flex-wrap gap-2">
-          {prompts.map((p, i) => (
+          {examples.map((p, i) => (
             <button
-              key={i}
+              key={`ex-${i}`}
               onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: p })}
-              className="bg-light hover:bg-border text-charcoal text-xs sm:text-sm font-medium px-4 py-2 rounded-full transition-colors text-left max-w-full"
+              disabled={loadingSuggestions}
+              className="bg-light hover:bg-border text-charcoal text-xs sm:text-sm font-medium px-4 py-2 rounded-full transition-colors text-left max-w-full disabled:opacity-50"
             >
               {p}
             </button>
           ))}
         </div>
+        {suggestions?.industry_source === 'inferred' && (
+          <p className="text-[11px] text-muted mt-2 italic">
+            Industry detected from your business profile. If this looks wrong, set it correctly in Settings.
+          </p>
+        )}
       </div>
+
+      {recentCampaigns.length > 0 && (
+        <div>
+          <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
+            Recent campaigns - reuse a brief
+          </p>
+          <div className="space-y-2">
+            {recentCampaigns.map(c => (
+              <button
+                key={c.id}
+                onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: c.brief })}
+                className="w-full bg-white shadow-card hover:shadow-modal rounded-2xl px-4 py-3 text-left transition-shadow"
+              >
+                <p className="text-sm font-bold text-charcoal mb-0.5">{c.title}</p>
+                <p className="text-xs text-mid leading-relaxed line-clamp-2">{c.brief}</p>
+                <p className="text-[10px] text-muted mt-1">
+                  {new Date(c.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted mt-1.5">
+            Click any campaign to pre-fill the notes above. You can edit before submitting.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
