@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [magicSent, setMagicSent] = useState(false)
+  const [sentToEmail, setSentToEmail] = useState('')
   const supabase = createClient()
 
   async function handleSubmit(e: React.FormEvent) {
@@ -83,8 +84,19 @@ export default function LoginPage() {
   async function handleMagicLink() {
     if (!email) { setError('Enter your email first'); return }
     setLoading(true)
-    const { error: magicError } = await supabase.auth.signInWithOtp({ email })
-    if (magicError) { setError(magicError.message) } else { setMagicSent(true) }
+    const callback = typeof window !== 'undefined'
+      ? `${window.location.origin}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://hqai.vercel.app'}/auth/callback`
+    const { error: magicError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: callback },
+    })
+    if (magicError) {
+      setError(magicError.message)
+    } else {
+      setSentToEmail(email)
+      setMagicSent(true)
+    }
     setLoading(false)
   }
 
@@ -112,11 +124,21 @@ export default function LoginPage() {
               <div className="text-4xl mb-4">📬</div>
               <p className="font-bold text-charcoal text-base mb-2">Check your email</p>
               <p className="text-sm text-mid">
-                We sent a sign-in link to <strong className="text-charcoal break-all">{email}</strong>.
+                We sent a sign-in link to{' '}
+                <strong className="text-charcoal break-all">
+                  {sentToEmail || email || 'your inbox'}
+                </strong>
+                .
               </p>
               <p className="text-xs text-muted mt-3">
                 The link expires in 60 minutes. If it doesn't arrive within a couple of minutes, check your spam folder or try again.
               </p>
+              <button
+                onClick={() => { setMagicSent(false); setSentToEmail('') }}
+                className="text-xs text-mid hover:text-charcoal underline underline-offset-2 mt-4"
+              >
+                Use a different email
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

@@ -5,6 +5,7 @@ import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/tem
 import { parseCitations, type Citation } from '@/lib/parse-citations'
 import CitationChip from './CitationChip'
 import MessageCitations from './MessageCitations'
+import TopicPicker from './TopicPicker'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -69,6 +70,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [skipTopicPicker, setSkipTopicPicker] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [showAdvisorModal, setShowAdvisorModal] = useState(false)
   const [savedDocId, setSavedDocId] = useState<string | null>(null)
@@ -494,33 +496,43 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-10">
         {messages.length === 0 && (
-          <div className="max-w-2xl mx-auto">
-            {/* Centred greeting */}
-            <div className="text-center pt-8 sm:pt-16 pb-8">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
-                {userName ? `${greeting}, ${userName}` : greeting}
-              </h2>
-              <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
-                {module === 'recruit'
-                  ? 'Ask me anything about hiring - I\'ll help you write ads, screen candidates, and shortlist faster.'
-                  : 'Ask me anything about HR, Fair Work, awards, contracts, leave, or managing your team.'
-                }
-              </p>
-            </div>
+          module === 'people' && !skipTopicPicker ? (
+            <TopicPicker
+              userName={userName}
+              greeting={greeting}
+              bizName={bizName}
+              onPick={(q) => { setSkipTopicPicker(true); sendMessage(q) }}
+              onSkip={() => setSkipTopicPicker(true)}
+            />
+          ) : (
+            <div className="max-w-2xl mx-auto">
+              {/* Centred greeting */}
+              <div className="text-center pt-8 sm:pt-16 pb-8">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
+                  {userName ? `${greeting}, ${userName}` : greeting}
+                </h2>
+                <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
+                  {module === 'recruit'
+                    ? 'Ask me anything about hiring - I\'ll help you write ads, screen candidates, and shortlist faster.'
+                    : 'Ask me anything about HR, Fair Work, awards, contracts, leave, or managing your team.'
+                  }
+                </p>
+              </div>
 
-            {/* Pill-chip suggestions */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => sendMessage(s)}
-                  className="bg-light hover:bg-border text-charcoal text-sm font-medium px-4 py-2 rounded-full transition-colors"
-                >
-                  {s}
-                </button>
-              ))}
+              {/* Pill-chip suggestions */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(s)}
+                    className="bg-light hover:bg-border text-charcoal text-sm font-medium px-4 py-2 rounded-full transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         <div className="max-w-3xl mx-auto space-y-5">
@@ -635,7 +647,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                                 ))
                               }}
                               className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
-                              Continue talking with {advisorName}
+                              Continue talking with the AI Advisor
                             </button>
                           </div>
                         </div>

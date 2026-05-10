@@ -764,16 +764,26 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                   </p>
                                 </div>
                                 {r.video_ids[i] ? (
-                                  <div className="p-2">
-                                    <VideoPlayer
-                                      cloudflareUid={r.video_ids[i]}
-                                      onTimeUpdate={(sec) =>
-                                        setVideoTimeByResponse(prev => ({ ...prev, [r.id]: sec }))
-                                      }
-                                      seekToSec={videoSeekByResponse[r.id]}
-                                      title={`${name} Q${i + 1}`}
-                                    />
-                                  </div>
+                                  anonymise ? (
+                                    <div className="aspect-video bg-light flex flex-col items-center justify-center text-center px-4">
+                                      <div className="text-2xl mb-1.5">🔒</div>
+                                      <p className="text-xs text-mid font-bold">Video hidden</p>
+                                      <p className="text-[11px] text-muted mt-0.5">
+                                        Anonymise mode is on. Review the AI summary and scores below first, then turn anonymise off to watch.
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="p-2">
+                                      <VideoPlayer
+                                        cloudflareUid={r.video_ids[i]}
+                                        onTimeUpdate={(sec) =>
+                                          setVideoTimeByResponse(prev => ({ ...prev, [r.id]: sec }))
+                                        }
+                                        seekToSec={videoSeekByResponse[r.id]}
+                                        title={`${name} Q${i + 1}`}
+                                      />
+                                    </div>
+                                  )
                                 ) : (
                                   <div className="aspect-video bg-light flex items-center justify-center">
                                     <p className="text-xs text-mid">No response recorded</p>
