@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       .eq('id', profile?.business_id)
   }
 
-  const origin = req.headers.get('origin') || 'https://hqai.vercel.app'
+  const origin = req.headers.get('origin') || 'https://www.humanistiqs.ai'
 
   const session = await getStripe().checkout.sessions.create({
     customer: customerId,

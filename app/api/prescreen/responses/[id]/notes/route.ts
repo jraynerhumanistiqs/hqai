@@ -97,7 +97,7 @@ export async function POST(
           .from('profiles').select('full_name, email').eq('id', user.id).single()
         const { data: targets } = await supabaseAdmin
           .from('profiles').select('id, full_name, email').in('id', mentions)
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
         const deepLink = `${baseUrl}/dashboard/recruit?role=${own.session.id}&candidate=${id}`
         const excerpt = text.length > 140 ? text.slice(0, 140) + '...' : text
         for (const t of targets ?? []) {

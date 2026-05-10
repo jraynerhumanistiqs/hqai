@@ -22,9 +22,13 @@ export interface RubricDimensionScore {
   insufficient_evidence?: boolean
 }
 
+export type RecommendationAction = 'progress_to_shortlist' | 'consider_with_caution' | 'reject'
+
 export interface ScoreResult {
   rubric: RubricDimensionScore[]
   overall_summary: string
+  recommendation_action: RecommendationAction
+  recommendation_rationale: string
   raw: any
 }
 
@@ -73,6 +77,8 @@ export async function scoreResponse(args: {
       insufficient_evidence: 'boolean, true if confidence < 0.5',
     })),
     overall_summary: 'string, 2-3 sentences, neutral, evidence-based',
+    recommendation_action: 'one of: progress_to_shortlist | consider_with_caution | reject',
+    recommendation_rationale: 'string, 1-2 sentences explaining the recommendation strictly from rubric scores and transcript evidence. No protected attributes, no personality inference.',
   }
 
   const userContent = [
@@ -127,9 +133,24 @@ export async function scoreResponse(args: {
     insufficient_evidence: Boolean(r.insufficient_evidence) || (Number(r.confidence) || 0) < 0.5,
   }))
 
+  const allowedActions: RecommendationAction[] = ['progress_to_shortlist', 'consider_with_caution', 'reject']
+  const rawAction = String(parsed.recommendation_action ?? '').toLowerCase()
+  const recommendation_action: RecommendationAction = (allowedActions as string[]).includes(rawAction)
+    ? (rawAction as RecommendationAction)
+    : (() => {
+        // Fallback: derive from average score if model didn't supply.
+        const scores = rubricOut.map(r => r.score)
+        const avg = scores.reduce((a, b) => a + b, 0) / Math.max(1, scores.length)
+        if (avg >= 4) return 'progress_to_shortlist'
+        if (avg >= 3) return 'consider_with_caution'
+        return 'reject'
+      })()
+
   return {
     rubric: rubricOut,
     overall_summary: String(parsed.overall_summary ?? ''),
+    recommendation_action,
+    recommendation_rationale: String(parsed.recommendation_rationale ?? ''),
     raw: parsed,
   }
 }

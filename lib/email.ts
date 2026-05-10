@@ -73,6 +73,37 @@ export async function sendCandidateSubmittedEmail({
 
 // ── Send pre-screen invite link to candidate ────────────────────────────────
 
+// Default subject and plain-text body templates the recruiter can preview and
+// edit before sending. Returned by buildInviteEmailDefaults so the UI can
+// pre-fill the modal.
+export function buildInviteEmailDefaults(args: {
+  candidateName?: string
+  roleTitle: string
+  company: string
+  inviteUrl: string
+  timeLimitSeconds: number
+  questionCount: number
+}) {
+  const { candidateName, roleTitle, company, inviteUrl, timeLimitSeconds, questionCount } = args
+  const timeLabel = timeLimitSeconds < 120
+    ? `${timeLimitSeconds} seconds`
+    : `${Math.round(timeLimitSeconds / 60)} minutes`
+  const subject = `Your video pre-screen for ${roleTitle} at ${company}`
+  const body = `${candidateName ? `Hi ${candidateName},` : 'Hi,'}
+
+You've been invited to complete a short video pre-screen for the ${roleTitle} role at ${company}.
+
+It takes about ${questionCount * Math.ceil(timeLimitSeconds / 60)} minute${questionCount === 1 ? '' : 's'} total - ${questionCount} question${questionCount === 1 ? '' : 's'}, ${timeLabel} per answer. You can re-record each answer until you're happy with it.
+
+Start your pre-screen here:
+${inviteUrl}
+
+If you have any questions, reply to this email. Good luck.
+
+The ${company} hiring team`
+  return { subject, body }
+}
+
 export async function sendCandidateInviteEmail({
   candidateEmail,
   candidateName,
@@ -81,6 +112,8 @@ export async function sendCandidateInviteEmail({
   inviteUrl,
   timeLimitSeconds,
   questionCount,
+  customSubject,
+  customBody,
 }: {
   candidateEmail: string
   candidateName?: string
@@ -89,6 +122,8 @@ export async function sendCandidateInviteEmail({
   inviteUrl: string
   timeLimitSeconds: number
   questionCount: number
+  customSubject?: string
+  customBody?: string
 }) {
   const resend = getResend()
   if (!resend) return
@@ -96,6 +131,36 @@ export async function sendCandidateInviteEmail({
   const timeLabel = timeLimitSeconds < 120
     ? `${timeLimitSeconds} seconds`
     : `${Math.round(timeLimitSeconds / 60)} minutes`
+
+  // If the recruiter supplied a custom subject and body, use them. The body
+  // becomes the email content with line breaks preserved; the invite URL is
+  // appended at the end if not already present so it's always reachable.
+  if (customSubject && customBody) {
+    const safeBody = customBody.includes(inviteUrl) ? customBody : `${customBody}\n\n${inviteUrl}`
+    const escaped = safeBody.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const linked = escaped.replace(
+      new RegExp(inviteUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+      `<a href="${inviteUrl}" style="color:#000;text-decoration:underline;">${inviteUrl}</a>`,
+    )
+    try {
+      await resend.emails.send({
+        from: FROM,
+        to: candidateEmail,
+        subject: customSubject,
+        html: `
+          <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A; line-height: 1.6;">
+            <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
+              <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+            </div>
+            <div style="white-space: pre-wrap; color: #1F1F1F;">${linked}</div>
+          </div>
+        `,
+      })
+    } catch (err) {
+      console.error('[email] sendCandidateInviteEmail (custom) failed:', err)
+    }
+    return
+  }
 
   try {
     await resend.emails.send({

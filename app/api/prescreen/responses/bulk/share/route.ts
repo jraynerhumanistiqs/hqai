@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     if (!allowed.length) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
 
     const rows = allowed.map((id, i) => ({
       response_id: id,

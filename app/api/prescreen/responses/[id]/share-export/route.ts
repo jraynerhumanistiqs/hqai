@@ -29,7 +29,7 @@ export async function POST(
 
     if (error) throw error
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
     return NextResponse.json({ shareUrl: `${baseUrl}/review/${shareToken}` })
   } catch (err) {
     console.error('[POST /api/prescreen/responses/:id/share-export]', err)

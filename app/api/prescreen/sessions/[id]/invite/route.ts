@@ -18,7 +18,7 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
-    const { candidate_email, candidate_name } = await req.json()
+    const { candidate_email, candidate_name, subject, body } = await req.json()
     if (!candidate_email) return NextResponse.json({ error: 'candidate_email is required' }, { status: 400 })
 
     const { data: session, error } = await supabaseAdmin
@@ -29,7 +29,7 @@ export async function POST(
 
     if (error || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
     const inviteUrl = `${baseUrl}/prescreen/${(session as any).slug || session_id}`
 
     await sendCandidateInviteEmail({
@@ -40,6 +40,8 @@ export async function POST(
       inviteUrl,
       timeLimitSeconds: session.time_limit_seconds,
       questionCount: session.questions.length,
+      customSubject: typeof subject === 'string' && subject.trim() ? subject.trim() : undefined,
+      customBody: typeof body === 'string' && body.trim() ? body.trim() : undefined,
     })
 
     return NextResponse.json({ sent: true })

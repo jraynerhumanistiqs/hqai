@@ -86,7 +86,7 @@ export default function LoginPage() {
     setLoading(true)
     const callback = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/callback`
-      : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://hqai.vercel.app'}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'}/auth/callback`
     const { error: magicError } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: callback },

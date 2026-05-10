@@ -7,7 +7,7 @@ import { businessSlug, campaignSlug, extractCampaignShortId } from '@/lib/slugs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 300
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://hqai.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'
 
 interface JobAdDraft {
   blocks: {

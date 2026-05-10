@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No billing account' }, { status: 400 })
   }
 
-  const origin = req.headers.get('origin') || 'https://hqai.vercel.app'
+  const origin = req.headers.get('origin') || 'https://www.humanistiqs.ai'
 
   const session = await getStripe().billingPortal.sessions.create({
     customer: customerId,

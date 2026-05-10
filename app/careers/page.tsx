@@ -6,7 +6,7 @@ import { businessSlug, campaignSlug } from '@/lib/slugs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 600
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://hqai.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'
 
 export const metadata: Metadata = {
   title: 'Hiring with HQ.ai · Open roles across Australia',

@@ -104,6 +104,36 @@ export function AiSuggestionCard({
             <p className="text-sm text-charcoal">{evaluation.overall_summary}</p>
           </div>
         )}
+
+        {(evaluation as any).recommendation_action && (
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-1">AI recommendation</p>
+            {(() => {
+              const action = (evaluation as any).recommendation_action as string
+              const labels: Record<string, { text: string; cls: string }> = {
+                progress_to_shortlist: { text: 'Progress to shortlist', cls: 'bg-success/10 text-success' },
+                consider_with_caution: { text: 'Consider with caution', cls: 'bg-warning/10 text-warning' },
+                reject: { text: 'Recommend reject', cls: 'bg-danger/10 text-danger' },
+              }
+              const meta = labels[action] || { text: action, cls: 'bg-light text-mid' }
+              return (
+                <div>
+                  <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1 ${meta.cls}`}>
+                    {meta.text}
+                  </span>
+                  {(evaluation as any).recommendation_rationale && (
+                    <p className="text-sm text-charcoal mt-2 leading-relaxed">
+                      {(evaluation as any).recommendation_rationale}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-muted mt-2">
+                    AI recommendation only. Final decision rests with the hiring manager.
+                  </p>
+                </div>
+              )
+            })()}
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-3 border-t border-border flex items-center justify-end gap-2 bg-bg/40">

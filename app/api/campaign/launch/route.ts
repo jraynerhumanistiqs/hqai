@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
     const roleDescription = buildRoleDescription(body.job_ad_draft)
     const customRubric = deriveCustomRubric(body.role_profile)
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
     const cookieHeader = req.headers.get('cookie') ?? ''
     const sessionRes = await fetch(`${baseUrl}/api/prescreen/sessions`, {
       method: 'POST',

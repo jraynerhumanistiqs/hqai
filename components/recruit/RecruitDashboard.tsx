@@ -131,20 +131,25 @@ export function RecruitDashboard() {
       {/* -- Left panel: role list -- */}
       <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-white flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
 
-        {/* Header */}
+        {/* Header - matches Campaign Coach + CV Screening header style */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
-          <div className="flex items-center justify-between mb-0.5">
-            <h1 className="font-display text-base font-bold text-charcoal uppercase tracking-wider">Shortlist Agent</h1>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="bg-accent hover:bg-accent2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors"
-            >
-              + New
-            </button>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
+              Shortlist Agent
+            </h1>
+            <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
+              New
+            </span>
           </div>
-          <p className="text-xs text-mid">
+          <p className="text-xs text-muted mb-2">
             {activeCount} active · {draftCount} draft / pending
           </p>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="bg-black hover:bg-charcoal text-white text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
+          >
+            + New role
+          </button>
         </div>
 
         {/* Role list (scrollable) */}

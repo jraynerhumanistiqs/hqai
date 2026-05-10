@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { businessSlug, campaignSlug } from '@/lib/slugs'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://hqai.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {

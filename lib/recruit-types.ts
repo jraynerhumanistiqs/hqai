@@ -31,11 +31,15 @@ export interface RubricDimensionScore {
   insufficient_evidence?: boolean
 }
 
+export type RecommendationAction = 'progress_to_shortlist' | 'consider_with_caution' | 'reject'
+
 export interface PrescreenEvaluation {
   id: string
   response_id: string
   rubric: RubricDimensionScore[]
   overall_summary: string | null
+  recommendation_action?: RecommendationAction | null
+  recommendation_rationale?: string | null
   model: string | null
   created_at: string
 }
@@ -73,7 +77,7 @@ export interface CandidateResponse {
   notes: string | null
   share_token: string | null
   share_expires_at: string | null
-  stage?: 'new' | 'in_review' | 'shortlisted' | 'rejected'
+  stage?: 'new' | 'in_review' | 'video_interview' | 'shortlisted' | 'rejected'
 }
 
 // -- Phase 3 ----------------------------------------------------------------

@@ -75,6 +75,8 @@ export async function POST(
         response_id: id,
         rubric: result.rubric,
         overall_summary: result.overall_summary,
+        recommendation_action: result.recommendation_action,
+        recommendation_rationale: result.recommendation_rationale,
         model: SCORING_MODEL,
       })
     if (evalErr) throw evalErr

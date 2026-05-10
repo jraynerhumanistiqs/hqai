@@ -86,6 +86,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [showInvite, setShowInvite]       = useState(false)
   const [inviteEmail, setInviteEmail]     = useState('')
   const [inviteName, setInviteName]       = useState('')
+  const [showEmailEditor, setShowEmailEditor] = useState(false)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailBody, setEmailBody] = useState('')
   const [sendingInvite, setSendingInvite] = useState(false)
   const [inviteSent, setInviteSent]       = useState(false)
 
@@ -119,7 +122,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [shareDialogFor, setShareDialogFor] = useState<string | null>(null)
 
   const pathSegment = session.slug || session.id
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://hqai.vercel.app'
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.humanistiqs.ai'
   const candidateUrl = initialCandidateUrl || `${origin}/prescreen/${pathSegment}`
 
   useEffect(() => {
@@ -284,18 +287,43 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function prepareEmailDraft() {
+    // Pre-fill the email editor with a templated subject + body for the
+    // recruiter to tweak before sending. Uses the candidate name field if
+    // typed, otherwise leaves the salutation generic.
+    const timeMin = Math.max(1, Math.round(session.time_limit_seconds / 60))
+    const totalMin = session.questions.length * timeMin
+    const greeting = inviteName.trim() ? `Hi ${inviteName.trim()},` : 'Hi,'
+    setEmailSubject(`Your video pre-screen for ${session.role_title} at ${session.company}`)
+    setEmailBody(
+      `${greeting}\n\nYou've been invited to complete a short video pre-screen for the ${session.role_title} role at ${session.company}.\n\nIt takes about ${totalMin} minute${totalMin === 1 ? '' : 's'} total - ${session.questions.length} question${session.questions.length === 1 ? '' : 's'}, ${timeMin} minute per answer. You can re-record each answer until you're happy with it.\n\nStart your pre-screen here:\n${candidateUrl}\n\nIf you have any questions, reply to this email. Good luck.\n\nThe ${session.company} hiring team`,
+    )
+    setShowEmailEditor(true)
+  }
+
   async function sendInvite() {
     if (!inviteEmail.trim()) return
     setSendingInvite(true)
     try {
+      const payload: Record<string, string> = {
+        candidate_email: inviteEmail.trim(),
+        candidate_name: inviteName.trim(),
+      }
+      if (showEmailEditor && emailSubject.trim() && emailBody.trim()) {
+        payload.subject = emailSubject.trim()
+        payload.body = emailBody.trim()
+      }
       await fetch(`/api/prescreen/sessions/${session.id}/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate_email: inviteEmail.trim(), candidate_name: inviteName.trim() }),
+        body: JSON.stringify(payload),
       })
       setInviteSent(true)
       setInviteEmail('')
       setInviteName('')
+      setShowEmailEditor(false)
+      setEmailSubject('')
+      setEmailBody('')
       setTimeout(() => { setInviteSent(false); setShowInvite(false) }, 2500)
     } finally {
       setSendingInvite(false)
@@ -560,28 +588,80 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             </div>
 
             {showInvite && (
-              <div className="mt-3 pt-3 border-t border-border">
-                <div className="flex items-end gap-2">
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+              <div className="mt-3 pt-3 border-t border-border space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-black mb-1">Candidate name</label>
+                    <input className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-black mb-1">Email address</label>
+                    <input type="email" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+                  </div>
+                </div>
+
+                {!showEmailEditor ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-mid leading-relaxed">
+                      A pre-written email goes out under HQ.ai branding. Want to tweak the wording?
+                    </p>
+                    <button
+                      onClick={() => prepareEmailDraft()}
+                      className="text-xs font-bold text-charcoal hover:underline whitespace-nowrap"
+                    >
+                      Preview &amp; edit email
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2 bg-light rounded-2xl p-3">
                     <div>
-                      <label className="block text-xs font-bold text-black mb-1">Candidate Name</label>
-                      <input className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
+                      <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1">Subject</label>
+                      <input
+                        value={emailSubject}
+                        onChange={e => setEmailSubject(e.target.value)}
+                        className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal"
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-black mb-1">Email Address</label>
-                      <input type="email" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendInvite()} />
+                      <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1">Body</label>
+                      <textarea
+                        value={emailBody}
+                        onChange={e => setEmailBody(e.target.value)}
+                        rows={9}
+                        className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal leading-relaxed font-mono"
+                      />
+                      <p className="text-[10px] text-muted mt-1">
+                        The candidate's video link will appear in the email automatically.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowEmailEditor(false)}
+                        className="text-xs font-bold text-mid hover:text-charcoal"
+                      >
+                        Use the default template
+                      </button>
                     </div>
                   </div>
+                )}
+
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setShowInvite(false)}
+                    className="text-xs font-bold text-mid hover:text-charcoal"
+                  >
+                    Cancel
+                  </button>
                   <button
                     onClick={sendInvite}
                     disabled={sendingInvite || !inviteEmail.trim()}
-                    className={`text-sm font-bold px-4 py-2 rounded-full transition-colors flex-shrink-0 ${
+                    className={`text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                       inviteSent
                         ? 'bg-success/10 text-success border border-success/20'
-                        : 'bg-accent hover:bg-accent2 disabled:opacity-40 text-white'
+                        : 'bg-black hover:bg-charcoal disabled:opacity-40 text-white'
                     }`}
                   >
-                    {inviteSent ? 'Sent' : sendingInvite ? 'Sending...' : 'Send'}
+                    {inviteSent ? 'Sent' : sendingInvite ? 'Sending...' : showEmailEditor ? 'Send custom email' : 'Send default email'}
                   </button>
                 </div>
               </div>

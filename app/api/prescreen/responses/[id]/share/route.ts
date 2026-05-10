@@ -56,7 +56,7 @@ export async function POST(
     .single()
   if (error || !data) return NextResponse.json({ error: error?.message ?? 'Insert failed' }, { status: 500 })
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
   return NextResponse.json({ link: data, url: `${baseUrl}/review/${token}` })
 }
 
@@ -85,7 +85,7 @@ export async function GET(
   const counts: Record<string, number> = {}
   for (const v of views ?? []) counts[v.link_id] = (counts[v.link_id] ?? 0) + 1
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://hqai.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
   const hydrated = (links ?? []).map(l => ({
     ...l,
     view_count: counts[l.id] ?? 0,
