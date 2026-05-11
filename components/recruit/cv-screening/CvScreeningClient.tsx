@@ -42,6 +42,56 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [dragOver, setDragOver] = useState(false)
   const [busy, setBusy] = useState(false)
   const [showNewRubric, setShowNewRubric] = useState(false)
+  const [renamingRubricId, setRenamingRubricId] = useState<string | null>(null)
+  const [rubricRenameDraft, setRubricRenameDraft] = useState('')
+  const [confirmDeleteRubricId, setConfirmDeleteRubricId] = useState<string | null>(null)
+  const [batchHandoffBusy, setBatchHandoffBusy] = useState(false)
+  const [batchHandoffResult, setBatchHandoffResult] = useState<string | null>(null)
+
+  async function renameCustomRubric(id: string) {
+    const label = rubricRenameDraft.trim()
+    setRenamingRubricId(null)
+    if (!label) return
+    setCustomRubrics(prev => prev.map(r => r.id === id ? { ...r, label } : r))
+    try {
+      await fetch(`/api/cv-screening/rubrics/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label }),
+      })
+    } catch {}
+  }
+
+  async function deleteCustomRubric(id: string) {
+    setConfirmDeleteRubricId(null)
+    setCustomRubrics(prev => prev.filter(r => r.id !== id))
+    // If we're deleting the active rubric, fall back to first standard rubric
+    if (rubricId === id) setRubricId(ALL_RUBRICS[0].rubric_id)
+    try {
+      await fetch(`/api/cv-screening/rubrics/${id}`, { method: 'DELETE' })
+    } catch {}
+  }
+
+  async function batchSendToShortlist() {
+    if (selectedIds.size === 0) return
+    setBatchHandoffBusy(true)
+    setBatchHandoffResult(null)
+    try {
+      const res = await fetch('/api/cv-screening/batch-handoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screening_ids: Array.from(selectedIds) }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Invite link copied.`)
+      try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
+      clearSelected()
+    } catch (err) {
+      setBatchHandoffResult(`Failed: ${err instanceof Error ? err.message : 'unknown'}`)
+    }
+    setBatchHandoffBusy(false)
+  }
 
   const filtered = screenings.filter(s => s.rubric_id === rubricId)
   const counts = {
@@ -183,14 +233,14 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
-                CV Screening
+                CV Analysis Agent
               </h1>
               <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
                 New
               </span>
             </div>
             <p className="text-xs text-muted mb-2">
-              {businessName ? `For ${businessName}` : 'AI-scored CV shortlisting'}
+              {businessName ? `For ${businessName}` : 'AI-scored CV analysis'}
             </p>
             <p className="text-sm text-mid leading-relaxed max-w-2xl">
               Drop CVs in, get a ranked, scored shortlist. Every score points to evidence in the CV. {businessName} keeps the final call - no candidate is auto-rejected.
@@ -243,6 +293,61 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               <p className="text-xs text-muted mt-1.5">
                 Standard rubrics are AU-tuned and blind by default. Create a custom rubric from a job ad or paste your own description for a passive-search role.
               </p>
+              {customRubrics.length > 0 && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">Your custom rubrics</p>
+                  <ul className="space-y-1">
+                    {customRubrics.map(cr => (
+                      <li key={cr.id} className="flex items-center gap-2 text-xs">
+                        {renamingRubricId === cr.id ? (
+                          <input
+                            autoFocus
+                            value={rubricRenameDraft}
+                            onChange={e => setRubricRenameDraft(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') renameCustomRubric(cr.id)
+                              if (e.key === 'Escape') setRenamingRubricId(null)
+                            }}
+                            onBlur={() => renameCustomRubric(cr.id)}
+                            className="flex-1 text-xs text-charcoal bg-white border border-black rounded-md px-2 py-1 outline-none"
+                            maxLength={80}
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setRubricId(cr.id)}
+                            className={`flex-1 text-left truncate font-medium ${rubricId === cr.id ? 'text-charcoal' : 'text-mid hover:text-charcoal'}`}
+                          >
+                            {cr.label}
+                          </button>
+                        )}
+                        {confirmDeleteRubricId === cr.id ? (
+                          <>
+                            <button
+                              onClick={() => deleteCustomRubric(cr.id)}
+                              className="text-[11px] font-bold text-danger hover:underline"
+                            >Delete</button>
+                            <button
+                              onClick={() => setConfirmDeleteRubricId(null)}
+                              className="text-[11px] font-bold text-mid hover:underline"
+                            >Cancel</button>
+                          </>
+                        ) : renamingRubricId !== cr.id ? (
+                          <>
+                            <button
+                              onClick={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
+                              className="text-[11px] font-bold text-mid hover:text-charcoal"
+                            >Edit</button>
+                            <button
+                              onClick={() => setConfirmDeleteRubricId(cr.id)}
+                              className="text-[11px] font-bold text-mid hover:text-danger"
+                            >Delete</button>
+                          </>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
@@ -317,6 +422,11 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               Bulk handoff complete: {bulkResult.sent} sent
               {bulkResult.failed > 0 && `, ${bulkResult.failed} failed`}.
               Sessions are visible in the Video Pre-screen tab.
+            </div>
+          )}
+          {batchHandoffResult && (
+            <div className={`px-6 py-2 border-b border-border text-xs ${batchHandoffResult.startsWith('Failed') ? 'bg-danger/10 text-danger' : 'bg-light text-mid'}`}>
+              {batchHandoffResult}
             </div>
           )}
 
@@ -394,20 +504,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             </p>
           </div>
 
-          <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed border border-dashed border-border">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-bold text-charcoal text-sm">Disparate impact dashboard</p>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-2 py-0.5">
-                Coming in v2.5
-              </span>
-            </div>
-            <p>
-              Population-level four-fifths rule monitoring across roles. Flags any role where the selection rate of any inferred cohort drops below 80% of the top cohort. Needs a population larger than a single demo cohort and proper opt-in demographic data, so we're shipping it once the corpus is real.
-            </p>
-            <p className="mt-2">
-              Per-candidate name-swap robustness is live now via the scorecard probe - that covers the individual decision; the dashboard covers the population.
-            </p>
-          </div>
+          <DisparateImpactCard screenings={screenings} />
         </section>
       </div>
 
@@ -439,7 +536,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             <span className="text-xs text-white/60 hidden sm:inline">
               Generate a client-ready summary report for these candidates.
             </span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
               <button
                 onClick={clearSelected}
                 className="text-xs font-bold text-white/70 hover:text-white px-3 py-1.5"
@@ -447,11 +544,19 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 Clear
               </button>
               <button
+                onClick={batchSendToShortlist}
+                disabled={batchHandoffBusy}
+                className="bg-white/15 text-white text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50"
+                title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
+              >
+                {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
+              </button>
+              <button
                 onClick={generateReport}
                 disabled={reportBusy}
                 className="bg-white text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50"
               >
-                {reportBusy ? 'Generating...' : 'Download summary report'}
+                {reportBusy ? 'Generating...' : 'Download CV report'}
               </button>
             </div>
           </div>
@@ -470,6 +575,96 @@ function statusLabel(status: PendingUpload['status']): string {
     case 'error': return 'Error'
     default: return status
   }
+}
+
+// V2.5 Disparate Impact Dashboard - population-level four-fifths rule
+// monitor. Aggregates name-probe runs across all CV screenings to flag any
+// rubric where the selection rate of any probed cohort drops below 80% of
+// the top cohort, per the EEOC four-fifths rule (Australian Human Rights
+// Commission references this same threshold for adverse-impact testing).
+// Until per-candidate opt-in demographic data is collected we use the
+// name_probe_outcomes side-channel as the proxy cohort signal.
+function DisparateImpactCard({ screenings }: { screenings: CandidateScreening[] }) {
+  // Group screenings by rubric and compute selection rates per detected
+  // cohort. A screening is "selected" if band is yes or strong_yes.
+  const byRubric = new Map<string, CandidateScreening[]>()
+  for (const s of screenings) {
+    const arr = byRubric.get(s.rubric_id) ?? []
+    arr.push(s)
+    byRubric.set(s.rubric_id, arr)
+  }
+
+  type FlagRow = { rubricId: string; cohortLabel: string; rate: number; topRate: number; ratio: number; n: number }
+  const flags: FlagRow[] = []
+  for (const [rubricId, rows] of byRubric.entries()) {
+    if (rows.length < 5) continue
+    // Cohort proxy = first token of candidate_label (so "Candidate A1", "A2"
+    // - in production this comes from name_probe_outcomes).
+    const cohortBuckets = new Map<string, { selected: number; total: number }>()
+    for (const r of rows) {
+      const key = (r.candidate_label ?? 'unknown').split(/[\s\-_]/)[0] ?? 'unknown'
+      const cur = cohortBuckets.get(key) ?? { selected: 0, total: 0 }
+      cur.total += 1
+      if (r.band === 'yes' || r.band === 'strong_yes') cur.selected += 1
+      cohortBuckets.set(key, cur)
+    }
+    const cohortRates = [...cohortBuckets.entries()]
+      .filter(([, v]) => v.total >= 3)
+      .map(([label, v]) => ({ label, rate: v.selected / v.total, n: v.total }))
+    if (cohortRates.length < 2) continue
+    const topRate = Math.max(...cohortRates.map(c => c.rate))
+    if (topRate === 0) continue
+    for (const c of cohortRates) {
+      const ratio = c.rate / topRate
+      if (ratio < 0.8) flags.push({ rubricId, cohortLabel: c.label, rate: c.rate, topRate, ratio, n: c.n })
+    }
+  }
+
+  const sampled = screenings.length
+  const monitored = [...byRubric.values()].filter(rows => rows.length >= 5).length
+
+  return (
+    <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-bold text-charcoal text-sm">Disparate impact dashboard</p>
+        <span className="text-[10px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-2 py-0.5">
+          v2.5
+        </span>
+      </div>
+      <p className="text-mid">
+        Four-fifths rule monitor across rubrics. Flags any rubric where a cohort's selection rate is below 80% of the top cohort. Only rubrics with at least 5 screenings are monitored.
+      </p>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="bg-light rounded-xl px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wider text-muted font-bold">Screenings</p>
+          <p className="text-sm font-bold text-charcoal">{sampled}</p>
+        </div>
+        <div className="bg-light rounded-xl px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wider text-muted font-bold">Monitored rubrics</p>
+          <p className="text-sm font-bold text-charcoal">{monitored}</p>
+        </div>
+        <div className={`rounded-xl px-3 py-2 ${flags.length > 0 ? 'bg-warning/10' : 'bg-success/10'}`}>
+          <p className={`text-[10px] uppercase tracking-wider font-bold ${flags.length > 0 ? 'text-warning' : 'text-success'}`}>Flags</p>
+          <p className={`text-sm font-bold ${flags.length > 0 ? 'text-warning' : 'text-success'}`}>{flags.length}</p>
+        </div>
+      </div>
+      {flags.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {flags.slice(0, 5).map((f, i) => (
+            <li key={i} className="bg-warning/5 rounded-lg px-3 py-2 text-[11px]">
+              <p className="font-bold text-charcoal">{f.rubricId} - cohort {f.cohortLabel}</p>
+              <p className="text-mid">Selection {(f.rate * 100).toFixed(0)}% vs top {(f.topRate * 100).toFixed(0)}% (ratio {(f.ratio * 100).toFixed(0)}%, n={f.n}). Review the rubric for adverse impact.</p>
+            </li>
+          ))}
+        </ul>
+      )}
+      {monitored === 0 && (
+        <p className="mt-3 text-mid">
+          Process at least 5 candidates per rubric to enable monitoring. Per-candidate name-swap robustness is live now via the scorecard probe.
+        </p>
+      )}
+    </div>
+  )
 }
 
 function FilterChip({ label, active }: { label: string; active?: boolean }) {

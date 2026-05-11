@@ -8,10 +8,10 @@ const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) 
 const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 
 const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number }> = {
-  free: { name: 'Free Trial', price: '$0', seats: 1 },
-  essentials: { name: 'Essentials', price: '$99/mo', seats: 3 },
-  growth: { name: 'Growth', price: '$199/mo', seats: 6 },
-  scale: { name: 'Scale', price: '$379/mo', seats: 12 },
+  free: { name: 'Free Trial', price: 'Price TBC', seats: 1 },
+  essentials: { name: 'Essentials', price: 'Price TBC', seats: 3 },
+  growth: { name: 'Growth', price: 'Price TBC', seats: 6 },
+  scale: { name: 'Scale', price: 'Price TBC', seats: 12 },
 }
 
 const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
@@ -224,7 +224,39 @@ export default function SettingsPage() {
                 <input className={inputCls} value={form.advisor_email} onChange={e => setForm(f => ({ ...f, advisor_email: e.target.value }))} placeholder="sarah@humanistiqs.com.au" />
               </Field>
             </div>
-            <Field label="Calendly booking link">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-mid mb-1.5">Book a time</label>
+                <a
+                  href={form.calendly_link || '#'}
+                  target={form.calendly_link ? '_blank' : undefined}
+                  rel={form.calendly_link ? 'noopener noreferrer' : undefined}
+                  onClick={e => { if (!form.calendly_link) e.preventDefault() }}
+                  aria-disabled={!form.calendly_link}
+                  className={`w-full inline-flex items-center justify-center gap-2 bg-black text-white font-bold px-4 py-2.5 rounded-full text-sm transition-colors ${form.calendly_link ? 'hover:bg-[#1a1a1a]' : 'opacity-50 cursor-not-allowed'}`}
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                  </svg>
+                  Calendly booking
+                </a>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-mid mb-1.5">Or call them</label>
+                <a
+                  href={form.advisor_email ? `mailto:${form.advisor_email}?subject=HQ.ai%20advisor%20call` : '#'}
+                  onClick={e => { if (!form.advisor_email) e.preventDefault() }}
+                  aria-disabled={!form.advisor_email}
+                  className={`w-full inline-flex items-center justify-center gap-2 bg-white border border-black text-charcoal font-bold px-4 py-2.5 rounded-full text-sm transition-colors ${form.advisor_email ? 'hover:bg-light' : 'opacity-50 cursor-not-allowed'}`}
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                  </svg>
+                  Call my HQ Advisor
+                </a>
+              </div>
+            </div>
+            <Field label="Calendly booking link (URL)">
               <input className={inputCls} value={form.calendly_link} onChange={e => setForm(f => ({ ...f, calendly_link: e.target.value }))} placeholder="https://calendly.com/your-advisor" />
             </Field>
           </div>

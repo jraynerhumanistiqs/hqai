@@ -12,6 +12,39 @@ import { searchKnowledge, formatHitsForModel, KnowledgeHit } from './rag'
 
 export const tools: Anthropic.Tool[] = [
   {
+    name: 'request_clarification',
+    description:
+      'Ask the user a SINGLE clarifying question when an entitlement, pay rate, or award question cannot be answered accurately without knowing one more piece of information. Use this BEFORE answering when the user asks something like "what is the minimum pay rate for a teacher" without saying which sector (early childhood, primary, secondary, TAFE, independent school) - or "annual leave for a casual" without specifying if they mean casual loading vs accrual. Returns a structured chip list the UI renders as clickable options. The model should NOT call this if the question is already specific enough to answer from one search.\n\nGood examples to use this for:\n  - "What is the pay rate for a teacher?" -> ask which sector (Early Childhood / Primary or Secondary State School / Catholic or Independent School / TAFE)\n  - "What annual leave does my casual get?" -> ask which entitlement (annual leave accrual / casual loading / personal leave)\n  - "What are the penalty rates?" -> ask which award and shift type\n\nDo NOT use for:\n  - Simple questions with one clear answer\n  - Document generation requests (use form intercept)\n  - High-stakes triage situations (those short-circuit upstream)\n\nThe followUpHint must rephrase the user question as a complete question that incorporates whichever option the user picks. The frontend will substitute "{option}" with the picked label before sending it back as the next user message.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        question: {
+          type: 'string',
+          description: 'One short sentence asking the user which option applies. e.g. "Which teaching sector are you asking about?"',
+        },
+        options: {
+          type: 'array',
+          minItems: 2,
+          maxItems: 6,
+          items: {
+            type: 'object',
+            properties: {
+              label: { type: 'string', description: 'Short option label shown on the chip, e.g. "Primary or Secondary state school".' },
+              hint: { type: 'string', description: 'Optional sub-text shown under the label.' },
+            },
+            required: ['label'],
+          },
+          description: 'Mutually-exclusive choices the user can click. The user can also type free text - the UI always offers an "Other" free-text option.',
+        },
+        followUpHint: {
+          type: 'string',
+          description: 'How the user question would be rephrased once a choice is made. Must include the literal placeholder "{option}". e.g. "What is the minimum pay rate for a {option} teacher?"',
+        },
+      },
+      required: ['question', 'options', 'followUpHint'],
+    },
+  },
+  {
     name: 'get_pay_rate',
     description:
       'Look up the authoritative Modern Award base pay rate for a classification and employment type from the Fair Work Commission Modern Awards Pay Database (MAPD). Use this for any question about how much an employee is entitled to be paid under an award. Do NOT guess dollar figures.',
@@ -71,6 +104,14 @@ export interface ToolRunResult {
   output: string                    // string the model reads back
   citations: Array<{ n: number; label: string; url?: string; source?: string; chunkId?: number }>
   isError?: boolean
+  // Non-standard: when the model calls request_clarification, runTool returns
+  // the structured payload here so the route can short-circuit to a SSE
+  // clarify event instead of looping back to the model.
+  clarify?: {
+    question: string
+    options: Array<{ label: string; hint?: string }>
+    followUpHint: string
+  }
 }
 
 // Dispatch a single tool call and return a formatted result + any citations
@@ -83,6 +124,32 @@ export async function runTool(
   citationOffset: number,
 ): Promise<ToolRunResult> {
   try {
+    if (name === 'request_clarification') {
+      const q = typeof input.question === 'string' ? input.question.trim() : ''
+      const opts = Array.isArray(input.options) ? (input.options as Array<{ label?: string; hint?: string }>) : []
+      const cleanOpts = opts
+        .filter(o => o && typeof o.label === 'string' && o.label.trim().length > 0)
+        .slice(0, 6)
+        .map(o => ({ label: String(o.label).trim(), hint: o.hint ? String(o.hint).trim() : undefined }))
+      const hint = typeof input.followUpHint === 'string' ? input.followUpHint.trim() : ''
+      if (!q || cleanOpts.length < 2 || !hint) {
+        return {
+          toolUseId,
+          name,
+          output: 'request_clarification called with invalid input - falling back to direct answer.',
+          citations: [],
+          isError: true,
+        }
+      }
+      return {
+        toolUseId,
+        name,
+        output: `Asked the user: ${q}`,
+        citations: [],
+        clarify: { question: q, options: cleanOpts, followUpHint: hint },
+      }
+    }
+
     if (name === 'get_pay_rate') {
       const rate = await getPayRate({
         awardCode: String(input.awardCode),

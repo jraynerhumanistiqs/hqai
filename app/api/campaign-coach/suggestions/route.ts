@@ -220,15 +220,22 @@ async function generateExamples(
     },
   }
 
+  // Seed the prompt with industry-specific reference examples (researched
+  // against Fair Work Pay Calculator + SEEK/Hays data) so Claude generates
+  // variations of those roles rather than drifting to generic office hires.
+  const referenceExamples = industryFallbackExamples(industry)
+  const referenceBlock = referenceExamples.map(s => `- "${s}"`).join('\n')
+
   try {
     const res = await Promise.race([
       anthropic.messages.create({
         model: MODEL,
         max_tokens: 600,
-        system: `You produce 3 example role briefs for an Australian SME working in ${industry}. Each brief is one short sentence with: role title - location - contract type - salary range or hourly - 1-3 quick must-haves. Use Australian spelling, plain hyphens (no em-dashes or en-dashes), AUD currency, and locations from the business's state if known. Match the tone and structure of these reference examples:
-- "Site Manager, Brisbane - residential builds, full-time, $130k + super."
-- "Bookkeeper, Adelaide CBD - 2 days a week, must know Xero and BAS."
-- "Registered Nurse, aged-care facility in Geelong - full-time, weekday days."
+        system: `You produce 3 example role briefs for an Australian SME working in ${industry}. Each brief is one short sentence with: role title - location - contract type - salary range or hourly - 1-3 quick must-haves. Use Australian spelling, plain hyphens (no em-dashes or en-dashes), AUD currency, and locations from the business's state if known.
+
+CRITICAL: roles must be the MOST COMMON hires an Australian SME in ${industry} actually makes. Do NOT default to generic office roles (Office Manager, Bookkeeper, Customer Service Lead) unless this industry actually hires them frequently. Use the reference examples below as your guide for which kinds of roles to surface and what salary bands/qualifications to include. Vary the specifics (location, exact salary, must-haves) but keep the role types in the same family as the references:
+
+${referenceBlock}
 
 Output via the submit_examples tool only.`,
         tools: [tool],
@@ -240,9 +247,9 @@ Output via the submit_examples tool only.`,
       }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 10_000)),
     ])
-    if (!res || !('content' in res)) return FALLBACK_EXAMPLES
+    if (!res || !('content' in res)) return industryFallbackExamples(industry)
     const toolBlock = res.content.find(b => b.type === 'tool_use')
-    if (!toolBlock || toolBlock.type !== 'tool_use') return FALLBACK_EXAMPLES
+    if (!toolBlock || toolBlock.type !== 'tool_use') return industryFallbackExamples(industry)
     const input = toolBlock.input as { examples?: string[] }
     const arr = Array.isArray(input.examples)
       ? input.examples.map(s => String(s).trim()).filter(Boolean)
@@ -253,34 +260,97 @@ Output via the submit_examples tool only.`,
   }
 }
 
+// Industry example library - grounded in Fair Work Pay Calculator (1 July 2025
+// award rates) and SEEK/Hays/ABS market data. Reviewed quarterly.
+// Keys are checked for exact match first then case-insensitive substring match,
+// so "Construction & Trades" (Settings dropdown) resolves to "Construction".
 const INDUSTRY_EXAMPLE_MAP: Record<string, string[]> = {
-  Construction: [
-    'Site Manager, Brisbane - residential builds, full-time, $130k + super.',
-    'Carpenter, Gold Coast - commercial fit-outs, full-time, $38-42/hr + super.',
-    'Project Administrator, Sydney - construction office, full-time, $70-80k + super.',
-  ],
-  Healthcare: [
-    'Registered Nurse, aged-care facility in Geelong - full-time, weekday days.',
-    'Practice Manager, GP clinic in Brisbane - full-time, $75-85k + super.',
-    'Allied Health Assistant, Melbourne - part-time 3 days, $30-34/hr + super.',
+  Retail: [
+    'Retail Sales Assistant, Melbourne - casual, $31.50/hr inc. casual loading, weekend availability and POS experience.',
+    'Store Manager, Brisbane - full-time, $65-78k + super, 2+ years retail leadership and rostering experience.',
+    'Assistant Store Manager / 2IC, Sydney - full-time, $58-66k + super, visual merchandising and stock control.',
   ],
   Hospitality: [
-    'Venue Manager, Brisbane CBD - full-time, $80-90k + super, 2+ years experience.',
-    'Chef de Partie, Melbourne - full-time, $65-72k + super, fine dining.',
-    'Front of House Supervisor, Sydney - casual, $32-36/hr, weekend availability.',
+    'Barista, Melbourne - part-time, $28-34/hr, 1+ years specialty coffee experience and 5am starts.',
+    'Chef de Partie, Sydney - full-time, $70-82k + super, a la carte service and 50-hour weeks.',
+    'Front of House / Wait Staff, Adelaide - casual, $33.41/hr inc. casual loading, RSA certificate and Friday-Sunday nights.',
   ],
-  Retail: [
-    'Store Manager, Brisbane CBD - full-time, $70-80k + super, 3+ years retail.',
-    'Visual Merchandiser, Melbourne - part-time 3 days, $30-34/hr + super.',
-    'Customer Service Lead, Adelaide - full-time, $60-68k + super.',
+  Healthcare: [
+    'Personal Care Worker (Cert III), Newcastle - part-time, $30.86-33.50/hr, NDIS Worker Screening and own car.',
+    'Registered Nurse, Geelong - full-time, $82-98k + super, current AHPRA registration and aged care experience.',
+    'Home Care Worker, Sunshine Coast - casual, $36-41/hr inc. loadings, Cert III Individual Support and driver licence.',
+  ],
+  Pharmacy: [
+    'Pharmacy Assistant (S2/S3 trained), Canberra - casual, $30-33/hr, S2/S3 modules completed and Saturday rotation.',
+    'Retail Pharmacist, Townsville - full-time, $95-120k + super, AHPRA registration and FRED/Minfos/LOTS experience.',
+    'Pharmacy Technician, Wollongong - part-time, $28-32/hr, Cert IV in Community Pharmacy and dispensing experience.',
+  ],
+  Construction: [
+    'Carpenter, Brisbane - full-time, $38-48/hr, white card, own tools and residential framing experience.',
+    'Site Supervisor / Foreman, Sydney - full-time, $110-140k + ute + super, white card and supervisor ticket.',
+    'Apprentice (1st-4th year), Adelaide - full-time, $14-25/hr per award year + tools allowance, school leaver with reliable transport.',
   ],
   'Professional Services': [
-    'Senior Accountant, Brisbane CBD - full-time, $90-110k + super, CA/CPA.',
-    'Office Manager / EA, Melbourne CBD - full-time, $80-90k + super.',
-    'Marketing Coordinator, Sydney - full-time, $65-75k + super.',
+    'Bookkeeper / Accounts Officer, Melbourne - part-time, $35-45/hr, Xero certified and BAS Agent registration preferred.',
+    'Administration Assistant, Sydney - full-time, $60-72k + super, MS 365 fluency and 2+ years in a small office.',
+    'Junior Accountant, Brisbane - full-time, $65-78k + super + study support, CA/CPA enrolled and Xero/MYOB experience.',
+  ],
+  Education: [
+    'Early Childhood Educator (Cert III), Melbourne - full-time, $26-32/hr, Cert III in ECEC, WWCC and First Aid + anaphylaxis.',
+    'Diploma Educator / Room Leader, Sydney - full-time, $32-38/hr, Diploma of ECEC and 2+ years in a long day care room.',
+    'OSHC Educator, Perth - part-time split shift, $30-35/hr, Cert III (or working toward) and afternoon availability 2-6pm.',
+  ],
+  'Community Services': [
+    'Disability Support Worker, Hobart - casual, $38-45/hr inc. casual loading, NDIS Worker Screening, manual handling and own vehicle.',
+    'Case Manager, Canberra - full-time, $80-92k + super + salary packaging, Cert IV in community services and NDIS pricing knowledge.',
+    'Youth Worker, Geelong - part-time, $38-44/hr, Cert IV in Youth Work, WWCC and afternoon/evening shifts.',
+  ],
+  Technology: [
+    'Full Stack Developer (mid), Melbourne - full-time, $110-140k + super, 3+ years React/Node and AWS experience.',
+    'IT Support / Helpdesk (L1-L2), Sydney - full-time, $65-85k + super, M365 admin, Intune and 1+ years MSP experience.',
+    'Junior Developer / Graduate, Brisbane - full-time, $70-85k + super, CS degree or bootcamp and a portfolio repo.',
+  ],
+  Manufacturing: [
+    'Production Operator, Melbourne - full-time, $28-34/hr, forklift licence and rotating shift availability.',
+    'Warehouse / Storeperson, Sydney - full-time, $28-34/hr + super, forklift licence and 2+ years in dispatch.',
+    'Maintenance Technician, Brisbane - full-time, $75-95k + super, mechanical trade qualification and PLC experience.',
+  ],
+  Agriculture: [
+    'Farm Hand, regional Victoria - full-time, $28-35/hr, manual licence and livestock or cropping experience.',
+    'Vineyard Worker, Adelaide Hills - casual, $26-31/hr, hand-pruning experience and weekend availability in vintage.',
+    'Dairy Hand, regional NSW - full-time + on-farm housing, $60-72k + super, early starts and milking shed experience.',
+  ],
+  Automotive: [
+    'Motor Mechanic, Perth - full-time, $32-42/hr + tool allowance, MV trade qualification and 3+ years dealership experience.',
+    'Service Advisor, Brisbane - full-time, $65-80k + super, dealership DMS experience and customer-facing.',
+    'Apprentice Motor Mechanic, Adelaide - full-time, $14-22/hr per award year, school leaver with manual licence.',
+  ],
+  Cleaning: [
+    'Commercial Cleaner, Sydney - part-time evenings, $32-36/hr, own transport and 2+ years experience.',
+    'Cleaning Supervisor, Melbourne - full-time, $55-65k + super, rostering and team leadership.',
+    'Domestic Cleaner, Brisbane - casual, $33-38/hr inc. loadings, NDIS Worker Screening and own vehicle.',
+  ],
+  Security: [
+    'Security Officer, Melbourne - casual, $33-38/hr inc. casual loading, current Security Licence and First Aid.',
+    'Control Room Operator, Sydney - full-time, $60-72k + super, 12-hour rotating shifts and Security Licence.',
+    'Crowd Controller, Gold Coast - casual, $36-42/hr, RSA + Crowd Control Licence and weekend nights.',
+  ],
+  Other: [
+    'Administration Officer, Melbourne - full-time, $60-70k + super, MS 365 and 1+ years in a small business.',
+    'Customer Service Representative, Sydney - full-time, $58-68k + super, phone-based support and CRM experience.',
+    'Operations Coordinator, Brisbane - full-time, $70-85k + super, scheduling, supplier liaison and 2+ years in operations.',
   ],
 }
 
 function industryFallbackExamples(industry: string): string[] {
-  return INDUSTRY_EXAMPLE_MAP[industry] ?? FALLBACK_EXAMPLES
+  // Exact match first
+  if (INDUSTRY_EXAMPLE_MAP[industry]) return INDUSTRY_EXAMPLE_MAP[industry]
+  // Fuzzy match - check if any key is a substring of the industry label.
+  // Handles Settings dropdown values like "Construction & Trades",
+  // "Healthcare & Aged Care", "Education & Childcare".
+  const lower = industry.toLowerCase()
+  for (const key of Object.keys(INDUSTRY_EXAMPLE_MAP)) {
+    if (lower.includes(key.toLowerCase())) return INDUSTRY_EXAMPLE_MAP[key]
+  }
+  return FALLBACK_EXAMPLES
 }

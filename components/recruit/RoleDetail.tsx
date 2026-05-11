@@ -694,28 +694,31 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           </div>
 
           <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border gap-3 flex-wrap">
               <p className="text-xs font-bold text-black uppercase tracking-widest">
                 Candidates
                 {mergedResponses.length > 0 && (
                   <span className="ml-2 text-mid normal-case font-normal">{mergedResponses.length}</span>
                 )}
               </p>
-              {mergedResponses.length > 0 && viewMode === 'list' && (
-                <div className="flex items-center gap-1">
-                  {(['all', 'submitted', 'scored', 'staff_reviewed', 'shared'] as Filter[]).map(f => (
-                    <button
-                      key={f}
-                      onClick={() => setFilter(f)}
-                      className={`text-xs px-2.5 py-1 rounded-full font-bold capitalize transition-colors ${
-                        filter === f ? 'bg-accent text-white' : 'text-mid hover:text-black'
-                      }`}
-                    >
-                      {f === 'staff_reviewed' ? 'reviewed' : f}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <CandidateSummaryButton responses={mergedResponses} />
+                {mergedResponses.length > 0 && viewMode === 'list' && (
+                  <div className="flex items-center gap-1">
+                    {(['all', 'submitted', 'scored', 'staff_reviewed', 'shared'] as Filter[]).map(f => (
+                      <button
+                        key={f}
+                        onClick={() => setFilter(f)}
+                        className={`text-xs px-2.5 py-1 rounded-full font-bold capitalize transition-colors ${
+                          filter === f ? 'bg-accent text-white' : 'text-mid hover:text-black'
+                        }`}
+                      >
+                        {f === 'staff_reviewed' ? 'reviewed' : f}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {loadingResponses && (
@@ -1058,6 +1061,51 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   )
 }
 
+// Generates the combined CV + Video Candidate Summary report for all
+// responses that have at least an overall video score. Joins back to the
+// CV scoring via the prescreen_session_id link set during batch-handoff.
+function CandidateSummaryButton({ responses }: { responses: CandidateResponse[] }) {
+  const [busy, setBusy] = useState(false)
+  const eligible = responses.filter(r => typeof r.overall_score === 'number' || (r.rubric_scores && (r.rubric_scores as unknown[]).length > 0))
+  if (eligible.length === 0) return null
 
+  async function download() {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/recruit/candidate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ response_ids: eligible.map(r => r.id) }),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const cd = res.headers.get('Content-Disposition') || ''
+      const m = /filename="([^"]+)"/.exec(cd)
+      a.download = m?.[1] ?? 'Candidate_Summary.docx'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      alert(`Summary failed: ${err instanceof Error ? err.message : 'unknown error'}`)
+    }
+    setBusy(false)
+  }
 
-
+  return (
+    <button
+      onClick={download}
+      disabled={busy}
+      title="Download combined CV + Video Candidate Summary report"
+      className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-charcoal disabled:opacity-50"
+    >
+      {busy ? 'Generating...' : `Candidate Summary (${eligible.length})`}
+    </button>
+  )
+}

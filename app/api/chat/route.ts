@@ -287,7 +287,10 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
-              const toolChoice = { type: 'tool' as const, name: 'search_knowledge' }
+              // Tool choice "any" forces SOME tool call but lets the model pick
+              // between search_knowledge (when it can answer with one search)
+              // and request_clarification (when the question is ambiguous).
+              const toolChoice = { type: 'any' as const }
               const res = await withHeartbeat(controller, encoder, () =>
                 withTimeout(
                   anthropic.messages.create({
@@ -363,6 +366,7 @@ export async function POST(req: NextRequest) {
                 ),
               )
               const toolResults: Array<{ type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }> = []
+              let clarifyPayload: ToolRunResult['clarify'] | null = null
               for (let i = 0; i < toolUseBlocks.length; i++) {
                 const tu = toolUseBlocks[i]
                 const r: ToolRunResult = toolRuns[i]
@@ -373,6 +377,7 @@ export async function POST(req: NextRequest) {
                   input: tu.input,
                   output_summary: r.output.slice(0, 500),
                 })
+                if (r.clarify && !clarifyPayload) clarifyPayload = r.clarify
                 toolResults.push({
                   type: 'tool_result',
                   tool_use_id: tu.id,
@@ -380,6 +385,25 @@ export async function POST(req: NextRequest) {
                   is_error: r.isError,
                 })
               }
+
+              // Short-circuit: the model asked the user a clarifying question.
+              // Emit the chip card and finish - the user's pick will come back
+              // as the next user message.
+              if (clarifyPayload) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                  clarify: clarifyPayload,
+                })}\n\n`))
+                await finalise({
+                  controller, encoder, supabase, conversationId,
+                  fullResponse: clarifyPayload.question,
+                  lastUserMsg, module: mod,
+                  user, business, citations: accumulatedCitations,
+                  toolCalls: accumulatedToolCalls,
+                  latencyMs: Date.now() - started,
+                })
+                return
+              }
+
               working.push({ role: 'user', content: toolResults })
               continue
             }

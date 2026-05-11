@@ -7,6 +7,12 @@ import CitationChip from './CitationChip'
 import MessageCitations from './MessageCitations'
 import TopicPicker from './TopicPicker'
 
+interface ClarifyPayload {
+  question: string
+  options: Array<{ label: string; hint?: string }>
+  followUpHint: string
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
@@ -18,6 +24,8 @@ interface Message {
   // NOTE: persisted client-side only for now. If the Supabase messages schema
   // later accepts a `citations` jsonb column, wire it in the chat route too.
   citations?: Citation[]
+  clarify?: ClarifyPayload
+  clarifyAnswered?: boolean
 }
 
 // Build DOC_FORMS lookup from template-ip definitions
@@ -81,6 +89,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [historyOpen, setHistoryOpen] = useState(false)
   const [historyItems, setHistoryItems] = useState<Array<{ id: string; title: string; module: string; created_at: string; escalated: boolean }>>([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameDraft, setRenameDraft] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -104,6 +115,43 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     const next = !historyOpen
     setHistoryOpen(next)
     if (next) loadHistory()
+  }
+
+  function startRename(id: string, current: string) {
+    setRenamingId(id)
+    setRenameDraft(current || '')
+  }
+
+  async function commitRename(id: string) {
+    const title = renameDraft.trim()
+    setRenamingId(null)
+    if (!title) return
+    // Optimistic update
+    setHistoryItems(items => items.map(c => c.id === id ? { ...c, title } : c))
+    try {
+      await fetch(`/api/conversations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      })
+    } catch {}
+  }
+
+  async function deleteConversation(id: string) {
+    setConfirmDeleteId(null)
+    // Optimistic remove
+    setHistoryItems(items => items.filter(c => c.id !== id))
+    // If we're deleting the active conversation, clear it
+    if (id === conversationId) {
+      setConversationId(null)
+      setMessages([])
+    }
+    try {
+      await fetch(`/api/conversations/${id}`, { method: 'DELETE' })
+    } catch {
+      // Reload to recover if the delete failed
+      loadHistory()
+    }
   }
 
   useEffect(() => {
@@ -243,6 +291,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       let finalEscalate = false
       let finalDocType: string | null = null
       let finalCitations: Citation[] | undefined = undefined
+      let finalClarify: ClarifyPayload | undefined = undefined
       // When the backend emits {error, detail}, we need to surface it directly
       // in the chat bubble - previously the frontend ignored the field and
       // the user saw a blank reply. Demo-critical: lets us diagnose API key /
@@ -288,6 +337,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 finalCitations = data.citations as Citation[]
               }
             }
+            if (data.clarify && typeof data.clarify === 'object') {
+              finalClarify = data.clarify as ClarifyPayload
+              // Render the question as assistant text immediately so the user
+              // sees it without waiting for the final 'done' event.
+              assistantContent = finalClarify.question
+              renderCurrent()
+            }
             if (Array.isArray(data.citations)) {
               // Some wire formats emit citations as a separate event before done
               finalCitations = data.citations as Citation[]
@@ -329,6 +385,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           escalate: finalEscalate,
           docType: finalDocType,
           citations: citations && citations.length > 0 ? citations : undefined,
+          clarify: finalClarify,
         }
         return updated
       })
@@ -668,6 +725,37 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     </div>
                   )}
 
+                  {/* Clarify card - clickable disambiguation chips */}
+                  {msg.clarify && !msg.clarifyAnswered && (
+                    <div className="mt-3 bg-white border border-border rounded-xl p-3.5">
+                      <p className="text-xs font-bold text-charcoal mb-2.5">Pick the option that fits:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {msg.clarify.options.map((opt, oi) => (
+                          <button
+                            key={oi}
+                            onClick={() => {
+                              const followUp = msg.clarify!.followUpHint.replace('{option}', opt.label)
+                              // Mark this card answered so it doesn't render twice
+                              setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
+                              sendMessage(followUp)
+                            }}
+                            className="bg-light hover:bg-border text-charcoal text-xs sm:text-sm font-medium px-3 py-2 rounded-full transition-colors text-left"
+                          >
+                            <span className="font-semibold">{opt.label}</span>
+                            {opt.hint && <span className="block text-[10px] text-mid mt-0.5">{opt.hint}</span>}
+                          </button>
+                        ))}
+                      </div>
+                      <ClarifyFreeText
+                        followUpHint={msg.clarify.followUpHint}
+                        onSubmit={(text) => {
+                          setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
+                          sendMessage(text)
+                        }}
+                      />
+                    </div>
+                  )}
+
                   {/* Escalation card */}
                   {msg.escalate && (
                     <>
@@ -832,21 +920,75 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             ) : (
               <ul className="divide-y divide-border">
                 {historyItems.map(c => (
-                  <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors">
+                  <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors group">
                     <div className="flex items-start gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-charcoal truncate">{(c.title || 'Untitled').replace(/[—–]/g, '-')}</p>
+                        {renamingId === c.id ? (
+                          <input
+                            autoFocus
+                            value={renameDraft}
+                            onChange={e => setRenameDraft(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') commitRename(c.id)
+                              if (e.key === 'Escape') setRenamingId(null)
+                            }}
+                            onBlur={() => commitRename(c.id)}
+                            className="w-full text-sm font-medium text-charcoal bg-white border border-black rounded-md px-2 py-1 outline-none"
+                            maxLength={120}
+                          />
+                        ) : (
+                          <p className="text-sm font-medium text-charcoal truncate">{(c.title || 'Untitled').replace(/[—–]/g, '-')}</p>
+                        )}
                         <p className="text-[10px] text-muted mt-0.5">
                           {c.module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'}
                           {' - '}
                           {formatHistoryDate(c.created_at)}
                         </p>
                       </div>
-                      {c.escalated && (
+                      {c.escalated && renamingId !== c.id && confirmDeleteId !== c.id && (
                         <span className="text-[10px] bg-warning/10 text-warning px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Escalated</span>
                       )}
+                      {renamingId !== c.id && confirmDeleteId !== c.id && (
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => startRename(c.id, c.title)}
+                            title="Rename"
+                            className="w-6 h-6 flex items-center justify-center rounded-full text-mid hover:bg-border hover:text-charcoal transition-colors"
+                          >
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(c.id)}
+                            title="Delete"
+                            className="w-6 h-6 flex items-center justify-center rounded-full text-mid hover:bg-danger/10 hover:text-danger transition-colors"
+                          >
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
+                    {confirmDeleteId === c.id && (
+                      <div className="mt-2 flex items-center gap-2 pl-3">
+                        <span className="text-[11px] text-mid">Delete this chat?</span>
+                        <button
+                          onClick={() => deleteConversation(c.id)}
+                          className="text-[11px] font-bold text-danger hover:underline"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-[11px] font-bold text-mid hover:underline"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -1011,6 +1153,45 @@ function MessageContent({
   flushList()
 
   return <div>{elements}</div>
+}
+
+function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onSubmit: (text: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('')
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-2 text-[11px] font-bold text-mid hover:text-charcoal hover:underline"
+      >
+        + Type a different answer
+      </button>
+    )
+  }
+  const handleSend = () => {
+    const text = value.trim()
+    if (!text) return
+    onSubmit(followUpHint.replace('{option}', text))
+  }
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <input
+        autoFocus
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleSend() }}
+        placeholder="Type your answer..."
+        className="flex-1 text-xs px-3 py-2 bg-white border border-border rounded-full outline-none focus:border-black"
+      />
+      <button
+        onClick={handleSend}
+        disabled={!value.trim()}
+        className="bg-black text-white text-xs font-bold px-3 py-2 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors"
+      >
+        Send
+      </button>
+    </div>
+  )
 }
 
 function formatHistoryDate(iso: string) {
