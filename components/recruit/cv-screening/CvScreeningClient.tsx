@@ -10,10 +10,14 @@ import {
 } from '@/lib/cv-screening-types'
 import CandidateScorecardPanel from './CandidateScorecardPanel'
 import NewRubricModal from './NewRubricModal'
+import EditRubricModal from './EditRubricModal'
 
 interface CustomRubricRow {
   id: string
   label: string
+  label_family: string | null
+  parent_rubric_id: string | null
+  version_number: number | null
   rubric: Rubric
   created_at: string
 }
@@ -42,6 +46,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [dragOver, setDragOver] = useState(false)
   const [busy, setBusy] = useState(false)
   const [showNewRubric, setShowNewRubric] = useState(false)
+  const [editingRubric, setEditingRubric] = useState<CustomRubricRow | null>(null)
   const [renamingRubricId, setRenamingRubricId] = useState<string | null>(null)
   const [rubricRenameDraft, setRubricRenameDraft] = useState('')
   const [confirmDeleteRubricId, setConfirmDeleteRubricId] = useState<string | null>(null)
@@ -230,7 +235,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   // (custom vs standard). Used in the right-panel header.
   const activeCustom = customRubrics.find(cr => cr.id === rubricId)
   const activeStandard = ALL_RUBRICS.find(r => r.rubric_id === rubricId)
-  const activeRubricLabel = activeCustom?.label ?? activeStandard?.role ?? 'Select a rubric'
+  const activeFamily = activeCustom
+    ? customRubrics.filter(cr => (cr.parent_rubric_id ?? cr.id) === (activeCustom.parent_rubric_id ?? activeCustom.id))
+        .sort((a, b) => (b.version_number ?? 1) - (a.version_number ?? 1))
+    : []
+  const activeRubricLabel = activeCustom
+    ? (activeFamily.length > 1
+        ? `${activeCustom.label_family ?? activeCustom.label} (v${activeCustom.version_number ?? 1})`
+        : activeCustom.label)
+    : (activeStandard?.role ?? 'Select a rubric')
   const activeRubricKind: 'custom' | 'standard' | null = activeCustom ? 'custom' : (activeStandard ? 'standard' : null)
 
   // Mobile back state: when a rubric is selected we hide the left panel
@@ -240,6 +253,28 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
 
   const customCount = customRubrics.length
   const standardCount = ALL_RUBRICS.length
+
+  // Group custom rubrics by their family (parent_rubric_id). Each family
+  // contains its versions sorted newest first so "Senior Carpenter v2"
+  // appears above "Senior Carpenter v1". Families themselves are sorted by
+  // the most recent version's created_at so recently-edited families float
+  // to the top of the list.
+  const customFamilies = (() => {
+    const byFamily = new Map<string, CustomRubricRow[]>()
+    for (const cr of customRubrics) {
+      const fid = cr.parent_rubric_id ?? cr.id
+      const list = byFamily.get(fid) ?? []
+      list.push(cr)
+      byFamily.set(fid, list)
+    }
+    return [...byFamily.entries()]
+      .map(([familyId, versions]) => {
+        versions.sort((a, b) => (b.version_number ?? 1) - (a.version_number ?? 1))
+        const familyLabel = versions[0]?.label_family ?? versions[0]?.label ?? 'Custom rubric'
+        return { familyId, familyLabel, versions }
+      })
+      .sort((a, b) => new Date(b.versions[0].created_at).getTime() - new Date(a.versions[0].created_at).getTime())
+  })()
 
   const [customOpen, setCustomOpen] = useState(true)
   const [standardOpen, setStandardOpen] = useState(true)
@@ -277,24 +312,44 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           {customOpen && customCount === 0 && (
             <p className="text-xs text-mid px-4 py-3">No custom rubrics yet. Create one from a job ad or description.</p>
           )}
-          {customOpen && customRubrics.map(cr => (
-            <RubricRow
-              key={cr.id}
-              label={cr.label}
-              sub={`Created ${new Date(cr.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
-              selected={rubricId === cr.id}
-              onSelect={() => { setRubricId(cr.id); setMobileShowList(false) }}
-              renaming={renamingRubricId === cr.id}
-              renameDraft={rubricRenameDraft}
-              onRenameDraft={setRubricRenameDraft}
-              onCommitRename={() => renameCustomRubric(cr.id)}
-              onCancelRename={() => setRenamingRubricId(null)}
-              onStartRename={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
-              confirmDelete={confirmDeleteRubricId === cr.id}
-              onConfirmDelete={() => deleteCustomRubric(cr.id)}
-              onAskDelete={() => setConfirmDeleteRubricId(cr.id)}
-              onCancelDelete={() => setConfirmDeleteRubricId(null)}
-            />
+          {customOpen && customFamilies.map(fam => (
+            <div key={fam.familyId}>
+              {/* Family header - only render if there are 2+ versions */}
+              {fam.versions.length > 1 && (
+                <div className="px-4 pt-2 pb-1 bg-white">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider truncate">{fam.familyLabel}</p>
+                </div>
+              )}
+              {fam.versions.map((cr) => {
+                const cohort = screenings.filter(s => s.rubric_id === cr.id).length
+                const subParts = [
+                  `v${cr.version_number ?? 1}`,
+                  cohort > 0 ? `${cohort} scored` : 'no candidates yet',
+                  fam.versions.length === 1 ? new Date(cr.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : null,
+                ].filter(Boolean) as string[]
+                return (
+                  <RubricRow
+                    key={cr.id}
+                    label={fam.versions.length === 1 ? cr.label : `${cr.label_family ?? cr.label} (v${cr.version_number ?? 1})`}
+                    sub={subParts.join(' - ')}
+                    selected={rubricId === cr.id}
+                    onSelect={() => { setRubricId(cr.id); setMobileShowList(false) }}
+                    renaming={renamingRubricId === cr.id}
+                    renameDraft={rubricRenameDraft}
+                    onRenameDraft={setRubricRenameDraft}
+                    onCommitRename={() => renameCustomRubric(cr.id)}
+                    onCancelRename={() => setRenamingRubricId(null)}
+                    onStartRename={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
+                    onStartEditCriteria={() => setEditingRubric(cr)}
+                    confirmDelete={confirmDeleteRubricId === cr.id}
+                    onConfirmDelete={() => deleteCustomRubric(cr.id)}
+                    onAskDelete={() => setConfirmDeleteRubricId(cr.id)}
+                    onCancelDelete={() => setConfirmDeleteRubricId(null)}
+                    versionBadge={fam.versions.length > 1 ? `v${cr.version_number ?? 1}` : undefined}
+                  />
+                )
+              })}
+            </div>
           ))}
 
           <RubricGroupHeader label="Standard rubrics" count={standardCount} open={standardOpen} onToggle={() => setStandardOpen(v => !v)} tone="draft" />
@@ -334,7 +389,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
                 {/* Rubric header */}
-                <header className="flex items-start justify-between gap-3">
+                <header className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                       {activeRubricKind === 'custom' ? 'Custom rubric' : 'Standard rubric'}
@@ -346,13 +401,56 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       Drop CVs in - every score points to evidence in the CV. {businessName} keeps the final call, no candidate is auto-rejected.
                     </p>
                   </div>
-                  <a
-                    href="/dashboard/recruit/shortlist"
-                    className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center flex-shrink-0"
-                  >
-                    Move to Shortlist Agent →
-                  </a>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {activeCustom && (
+                      <button
+                        onClick={() => setEditingRubric(activeCustom)}
+                        className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light inline-flex items-center gap-1.5"
+                        title="Edit criteria (creates a new version, keeps existing scores under v{activeCustom.version_number})"
+                      >
+                        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2h2a1 1 0 010 2h-2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8H3a1 1 0 010-2h2V4zm2 4v8h6V8H7zm2-4v2h2V4H9z"/>
+                        </svg>
+                        Edit criteria
+                      </button>
+                    )}
+                    <a
+                      href="/dashboard/recruit/shortlist"
+                      className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
+                    >
+                      Move to Shortlist Agent →
+                    </a>
+                  </div>
                 </header>
+
+                {/* Version switcher - only when this rubric has 2+ versions */}
+                {activeCustom && activeFamily.length > 1 && (
+                  <div className="bg-white shadow-card rounded-3xl px-5 py-3 flex items-center gap-2 flex-wrap">
+                    <p className="text-[11px] font-bold text-muted uppercase tracking-wider mr-2">Versions</p>
+                    {activeFamily.map(v => {
+                      const cohort = screenings.filter(s => s.rubric_id === v.id).length
+                      const isActive = v.id === activeCustom.id
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={() => setRubricId(v.id)}
+                          className={`text-xs font-bold rounded-full px-3 py-1.5 transition-colors ${
+                            isActive ? 'bg-black text-white' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
+                          }`}
+                          title={`v${v.version_number ?? 1} - ${cohort} candidate${cohort === 1 ? '' : 's'} scored`}
+                        >
+                          v{v.version_number ?? 1}
+                          <span className={`ml-1.5 ${isActive ? 'text-white/70' : 'text-muted'}`}>
+                            {cohort}
+                          </span>
+                        </button>
+                      )
+                    })}
+                    <p className="text-[10px] text-muted ml-1">
+                      Each version keeps its own candidate scores.
+                    </p>
+                  </div>
+                )}
 
                 {/* Upload area */}
                 <section className="bg-white shadow-card rounded-3xl p-6 space-y-5">
@@ -552,9 +650,30 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         <NewRubricModal
           onClose={() => setShowNewRubric(false)}
           onCreated={(saved) => {
-            setCustomRubrics(prev => [saved, ...prev])
-            setRubricId(saved.id)
+            // NewRubricModal returns the legacy shape; coerce to the full
+            // versioned row shape so the new list rendering stays happy.
+            const row: CustomRubricRow = {
+              ...(saved as unknown as { id: string; label: string; rubric: Rubric; created_at: string }),
+              label_family: (saved as any).label ?? null,
+              parent_rubric_id: (saved as any).id ?? null,
+              version_number: 1,
+            }
+            setCustomRubrics(prev => [row, ...prev])
+            setRubricId(row.id)
             setShowNewRubric(false)
+          }}
+        />
+      )}
+
+      {/* Edit criteria modal - creates a new version */}
+      {editingRubric && (
+        <EditRubricModal
+          rubric={editingRubric}
+          onClose={() => setEditingRubric(null)}
+          onSaved={(newVersion) => {
+            setCustomRubrics(prev => [newVersion, ...prev])
+            setRubricId(newVersion.id)
+            setEditingRubric(null)
           }}
         />
       )}
@@ -623,10 +742,13 @@ function RubricGroupHeader({
 
 // Row mirrors Shortlist Agent's SessionRow but for rubrics. Selected row
 // gets a left accent bar + bg shift; custom rubrics expose Edit/Delete on
-// hover, with inline rename and a confirm step on delete.
+// hover, with inline rename and a confirm step on delete. The pencil icon
+// opens the criteria editor (creates a new version); the inline rename
+// path is reserved for label-only changes.
 function RubricRow({
-  label, sub, selected, onSelect, readOnly,
+  label, sub, selected, onSelect, readOnly, versionBadge,
   renaming, renameDraft, onRenameDraft, onCommitRename, onCancelRename, onStartRename,
+  onStartEditCriteria,
   confirmDelete, onConfirmDelete, onAskDelete, onCancelDelete,
 }: {
   label: string
@@ -634,12 +756,14 @@ function RubricRow({
   selected: boolean
   onSelect: () => void
   readOnly?: boolean
+  versionBadge?: string
   renaming?: boolean
   renameDraft?: string
   onRenameDraft?: (v: string) => void
   onCommitRename?: () => void
   onCancelRename?: () => void
   onStartRename?: () => void
+  onStartEditCriteria?: () => void
   confirmDelete?: boolean
   onConfirmDelete?: () => void
   onAskDelete?: () => void
@@ -669,13 +793,31 @@ function RubricRow({
         />
       ) : (
         <>
-          <p className="text-sm font-medium text-charcoal truncate">{label}</p>
-          {sub && <p className="text-[10px] text-muted mt-0.5 truncate">{sub}</p>}
+          <div className="flex items-center gap-1.5 pr-16">
+            <p className="text-sm font-medium text-charcoal truncate flex-1">{label}</p>
+            {versionBadge && (
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-1.5 py-0.5 flex-shrink-0">
+                {versionBadge}
+              </span>
+            )}
+          </div>
+          {sub && <p className="text-[10px] text-muted mt-0.5 truncate pr-16">{sub}</p>}
         </>
       )}
 
       {!readOnly && !renaming && !confirmDelete && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onStartEditCriteria && (
+            <button
+              onClick={e => { e.stopPropagation(); onStartEditCriteria() }}
+              title="Edit criteria (creates a new version)"
+              className="w-6 h-6 flex items-center justify-center rounded-full text-mid hover:bg-border hover:text-charcoal transition-colors"
+            >
+              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2h2a1 1 0 010 2h-2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8H3a1 1 0 010-2h2V4zm2 4v8h6V8H7zm2-4v2h2V4H9z"/>
+              </svg>
+            </button>
+          )}
           <button
             onClick={e => { e.stopPropagation(); onStartRename?.() }}
             title="Rename"

@@ -32,7 +32,7 @@ export async function GET(_req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('cv_custom_rubrics')
-    .select('id, label, rubric, created_at')
+    .select('id, label, label_family, parent_rubric_id, version_number, rubric, created_at')
     .eq('business_id', businessId)
     .order('created_at', { ascending: false })
 

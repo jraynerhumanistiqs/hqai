@@ -8,6 +8,9 @@ export const dynamic = 'force-dynamic'
 interface CustomRubricRow {
   id: string
   label: string
+  label_family: string | null
+  parent_rubric_id: string | null
+  version_number: number | null
   rubric: Rubric
   created_at: string
 }
@@ -36,7 +39,7 @@ export default async function Page() {
         .limit(50),
       supabase
         .from('cv_custom_rubrics')
-        .select('id, label, rubric, created_at')
+        .select('id, label, label_family, parent_rubric_id, version_number, rubric, created_at')
         .eq('business_id', business.id)
         .order('created_at', { ascending: false }),
     ])
