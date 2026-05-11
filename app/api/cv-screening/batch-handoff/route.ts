@@ -108,19 +108,93 @@ export async function POST(req: NextRequest) {
       console.warn('[batch-handoff] could not persist CV<>session link:', linkErr)
     }
 
+    // Create a prescreen_response row per CV so the candidates appear
+    // immediately in the Shortlist Agent role detail with their CV scoring
+    // pre-loaded. video_ids stays empty until they record. Status uses the
+    // existing 'submitted' value so the rows surface under the default
+    // filters; the cv_screening_id link distinguishes them from videos.
+    let attached = 0
+    try {
+      const responseRows = (screenings as CandidateScreening[]).map(s => {
+        // Map the CV rubric scores into the prescreen_responses.rubric_scores
+        // shape (name + score + rationale) so the Shortlist UI renders them
+        // alongside any later video scoring.
+        const rubricScores = (s.criteria_scores as Array<{ id?: string; label?: string; score: number; evidence?: string }>)
+          .filter(cs => typeof cs.score === 'number')
+          .map(cs => ({
+            name: cs.label ?? cs.id ?? 'Criterion',
+            score: cs.score,
+            confidence: 1,
+            evidence_quote: cs.evidence ?? '',
+            evidence_timestamp_sec: 0,
+            insufficient_evidence: false,
+          }))
+        return {
+          session_id: session.id,
+          candidate_name: s.candidate_label || 'Candidate',
+          candidate_email: (s as unknown as { candidate_email?: string | null }).candidate_email ?? null,
+          consent: true,
+          video_ids: [],
+          status: 'submitted',
+          rubric_scores: rubricScores,
+          overall_score: s.overall_score,
+          recommendation_action: mapCvActionToRecommendation(s.next_action),
+          recommendation_rationale: s.rationale_short ?? null,
+          cv_screening_id: s.id,
+        }
+      })
+
+      const { data: inserted, error: respErr } = await supabaseAdmin
+        .from('prescreen_responses')
+        .insert(responseRows)
+        .select('id')
+
+      if (respErr) {
+        // If cv_screening_id column doesn't exist (migration not applied),
+        // retry without it so candidates still flow through.
+        if (respErr.message?.includes('cv_screening_id')) {
+          const fallbackRows = responseRows.map(({ cv_screening_id: _ignored, ...rest }) => rest)
+          const { data: retried, error: retryErr } = await supabaseAdmin
+            .from('prescreen_responses')
+            .insert(fallbackRows)
+            .select('id')
+          if (retryErr) throw retryErr
+          attached = retried?.length ?? 0
+        } else {
+          throw respErr
+        }
+      } else {
+        attached = inserted?.length ?? 0
+      }
+    } catch (respCreateErr) {
+      console.warn('[batch-handoff] could not create response rows:', respCreateErr)
+    }
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
     const slug = (session.slug as string | null) ?? session.id
     return NextResponse.json({
       session_id: session.id,
       role_title: session.role_title,
       candidate_url: `${baseUrl}/prescreen/${slug}`,
-      candidates_attached: screenings.length,
+      candidates_attached: attached || screenings.length,
     })
   } catch (err) {
     console.error('[batch-handoff]', err)
     const detail = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: 'Batch handoff failed', detail }, { status: 500 })
   }
+}
+
+// Map the CV next_action vocabulary to the prescreen_responses
+// recommendation_action enum. Anything below "phone_screen" passes through
+// as 'consider_with_caution' so it doesn't auto-reject candidates that
+// happened to score lower on CV signal alone.
+function mapCvActionToRecommendation(next: string | null | undefined): 'progress_to_shortlist' | 'consider_with_caution' | 'reject' {
+  if (!next) return 'consider_with_caution'
+  const lower = String(next).toLowerCase()
+  if (lower.includes('schedule_panel') || lower.includes('shortlist') || lower.includes('progress')) return 'progress_to_shortlist'
+  if (lower.includes('reject') || lower.includes('do_not')) return 'reject'
+  return 'consider_with_caution'
 }
 
 async function resolveRubric(rubricId: string): Promise<Rubric | null> {

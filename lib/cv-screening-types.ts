@@ -51,7 +51,10 @@ export type CandidateBand = 'strong_yes' | 'yes' | 'maybe' | 'likely_no' | 'reje
 export type NextAction =
   | 'schedule_panel'
   | 'schedule_phone_screen'
+  | 'schedule_video_interview'
   | 'send_technical_task'
+  | 'reference_check'
+  | 'request_more_info'
   | 'hold_for_review'
   | 'reject'
 
@@ -78,6 +81,21 @@ export interface CandidateScreening {
   status: 'parsing' | 'scoring' | 'scored' | 'failed'
   error_message?: string | null
   created_at: string
+  // Reviewer overrides (optional - set when a human edits the AI's call)
+  override_band?: CandidateBand | null
+  override_next_action?: string | null
+  override_comment?: string | null
+  override_at?: string | null
+  override_by?: string | null
+}
+
+// Effective band / action reading helpers - prefer human override when set.
+export function effectiveBand(s: { band: CandidateBand; override_band?: string | null }): CandidateBand {
+  return (s.override_band as CandidateBand) || s.band
+}
+
+export function effectiveNextAction(s: { next_action: NextAction; override_next_action?: string | null }): NextAction {
+  return (s.override_next_action as NextAction) || s.next_action
 }
 
 // Band thresholds match the research report Section 6.
@@ -110,7 +128,10 @@ export const BAND_LABELS: Record<CandidateBand, string> = {
 export const ACTION_LABELS: Record<NextAction, string> = {
   schedule_panel: 'Schedule panel',
   schedule_phone_screen: 'Phone screen',
+  schedule_video_interview: 'Video interview',
   send_technical_task: 'Technical task',
+  reference_check: 'Reference check',
+  request_more_info: 'Request more info',
   hold_for_review: 'Hold for review',
   reject: 'Reject (needs human click)',
 }

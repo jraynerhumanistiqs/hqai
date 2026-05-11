@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
           business_id: businessId,
           user_id: user.id,
           rubric_id: rubricId,
-          candidate_label: realName || scoreResult.candidate_label || filenameToLabel(filename),
+          // Prefer the extracted CV name. If extraction failed, prefer the filename
+// over Claude's literal "Candidate" placeholder so the user sees something
+// meaningful rather than a generic word.
+candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
           candidate_email: scoreResult.candidate_email ?? null,
           cv_text: cvText,
           cv_filename: filename,
@@ -106,7 +109,10 @@ export async function POST(req: NextRequest) {
       business_id: businessId ?? '',
       user_id: user.id,
       rubric_id: rubricId,
-      candidate_label: realName || scoreResult.candidate_label || filenameToLabel(filename),
+      // Prefer the extracted CV name. If extraction failed, prefer the filename
+// over Claude's literal "Candidate" placeholder so the user sees something
+// meaningful rather than a generic word.
+candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
       candidate_email: scoreResult.candidate_email ?? null,
       cv_text: cvText,
       overall_score: overall,
@@ -181,29 +187,86 @@ async function extractText(buffer: Buffer, ext: string): Promise<string> {
 // title or contact line. We take the first line that looks like a name
 // (2-4 capitalised tokens, no digits, no @). Falls back to filename if the
 // first lines look like a header/title.
+// Lines we explicitly never treat as a name even if they pass the
+// capitalisation heuristic. Covers AU CV headers and work-rights banners
+// that are the classic false positives (e.g. "Australian Citizen").
+const NON_NAME_HEADERS = /^(curriculum vitae|resume|cv|profile|professional profile|career profile|summary|career summary|professional summary|objective|career objective|contact|contact details|personal details|personal information|address|phone|mobile|email|linkedin|github|portfolio|skills|core skills|key skills|experience|work experience|professional experience|employment|employment history|education|qualifications|certifications|references|australian citizen|permanent resident|new zealand citizen|nz citizen|working holiday|work rights|right to work|visa holder|tfn holder)\b/i
+
+// Title-case a name that may have arrived as ALL CAPS. Keep particles like
+// "de", "van", "von", "of" lowercase and recognise common Mc/Mac/O' patterns
+// so "JANE MCDONALD" -> "Jane McDonald", not "Jane Mcdonald".
+function titleCaseName(input: string): string {
+  return input
+    .toLowerCase()
+    .split(/\s+/)
+    .map((tok, i) => {
+      if (i > 0 && /^(de|del|della|der|van|von|of|du|da|la|le|al|el|bin|ibn|y)$/.test(tok)) return tok
+      // Mc + capitalised tail
+      const mc = tok.match(/^(mc)(.+)$/)
+      if (mc) return 'Mc' + mc[2].charAt(0).toUpperCase() + mc[2].slice(1)
+      // Mac + capitalised tail (>= 5 chars to avoid mangling "Mack")
+      const mac = tok.match(/^(mac)(.{3,})$/)
+      if (mac) return 'Mac' + mac[2].charAt(0).toUpperCase() + mac[2].slice(1)
+      // Hyphen / apostrophe each component
+      if (tok.includes('-') || tok.includes("'") || tok.includes('’')) {
+        return tok.split(/(['’-])/).map(seg => seg.length > 1 ? seg.charAt(0).toUpperCase() + seg.slice(1) : seg).join('')
+      }
+      // Single-letter initial - keep upper with trailing dot if any
+      if (tok.length <= 2 && /^[a-z]\.?$/.test(tok)) return tok.toUpperCase()
+      return tok.charAt(0).toUpperCase() + tok.slice(1)
+    })
+    .join(' ')
+}
+
+// Heuristic name extractor. Looks at the first ~15 non-empty lines and
+// accepts the first one that looks like a personal name and doesn't match
+// the non-name header denylist. Handles ALL CAPS, middle initials, accented
+// chars, hyphens, apostrophes, and Mc/Mac prefixes.
 function extractRealName(cvText: string, filename: string): string | null {
-  const lines = cvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean).slice(0, 8)
-  const namePattern = /^[A-Z][a-z'\-]+(?:\s+[A-Z][a-z'\-]+){1,3}$/
-  for (const line of lines) {
-    if (line.length > 60) continue
-    if (line.includes('@') || /\d/.test(line)) continue
-    if (namePattern.test(line)) return line
+  const lines = cvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean).slice(0, 15)
+  // 2-4 capitalised tokens (allowing ALL CAPS), optional middle initial
+  // ("Jane A. Smith"), Unicode-aware letter class. Trailing punctuation
+  // like (she/her) or - Title is stripped before testing in the second pass.
+  const namePattern = /^(?:\p{Lu}\.?\p{Ll}*[’'\-]?\p{Lu}*\p{Ll}*|\p{Lu}{2,})(?:\s+(?:\p{Lu}\.?\p{Ll}*[’'\-]?\p{Lu}*\p{Ll}*|\p{Lu}{2,}|\p{Lu}\.))?(?:\s+(?:\p{Lu}\.?\p{Ll}*[’'\-]?\p{Lu}*\p{Ll}*|\p{Lu}{2,}|\p{Lu}\.)){0,2}$/u
+  const isLikelyName = (s: string) => {
+    if (!s || s.length > 60) return false
+    if (NON_NAME_HEADERS.test(s)) return false
+    if (s.includes('@') || /\d/.test(s)) return false
+    return namePattern.test(s)
   }
-  // Try splitting by common separators in case the line has a title attached
-  // (e.g. "Jane Smith - Senior Business Analyst").
+  const normalise = (s: string) => {
+    const trimmed = s.trim()
+    return /^[A-Z\s.'’\-]+$/.test(trimmed) && trimmed === trimmed.toUpperCase() && trimmed.length > 3
+      ? titleCaseName(trimmed)
+      : trimmed
+  }
+  for (const line of lines) {
+    if (isLikelyName(line)) return normalise(line)
+  }
+  // Pass 2 - strip parenthetical pronouns / title suffixes, then retry.
   for (const line of lines) {
     if (line.includes('@') || /\d/.test(line)) continue
-    const candidate = line.split(/\s[-|]\s|,/)[0]?.trim()
-    if (candidate && candidate.length <= 60 && namePattern.test(candidate)) return candidate
+    const cleaned = line
+      .replace(/\([^)]*\)/g, '')
+      .split(/\s[-|]\s|,/)[0]
+      ?.trim()
+    if (cleaned && isLikelyName(cleaned)) return normalise(cleaned)
   }
-  // Last resort: filename like "James_Williams_CV.pdf" -> "James Williams"
-  const cleaned = filename
+  // Filename fallback - "James_Williams_CV.pdf" -> "James Williams"
+  const fromFile = filename
     .replace(/\.[^.]+$/, '')
     .replace(/[_-]+/g, ' ')
-    .replace(/\b(cv|resume|curriculum vitae)\b/gi, '')
+    .replace(/\b(cv|resume|curriculum vitae|final|draft|v\d+|copy|updated)\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim()
-  if (namePattern.test(cleaned)) return cleaned
+  if (isLikelyName(fromFile)) return normalise(fromFile)
+  // Final fallback - title-case the filename if it has 2+ word-like tokens
+  // even when not strictly matching the name pattern. Better to show
+  // "Jane Smith-Doe" from a filename than "Candidate" or "Australian Citizen".
+  const fromFileTokens = fromFile.split(/\s+/).filter(t => t.length >= 2)
+  if (fromFileTokens.length >= 2 && fromFileTokens.length <= 4 && !NON_NAME_HEADERS.test(fromFile)) {
+    return titleCaseName(fromFile)
+  }
   return null
 }
 

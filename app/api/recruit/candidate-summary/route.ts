@@ -58,10 +58,10 @@ export async function POST(req: NextRequest) {
       return jsonError('response_ids required', 400)
     }
 
-    // Pull the candidate_responses, scoring data, and the parent prescreen
+    // Pull the prescreen_responses, scoring data, and the parent prescreen
     // session in one round-trip via the FK relationship.
     const { data: responses } = await supabaseAdmin
-      .from('candidate_responses')
+      .from('prescreen_responses')
       .select('id, candidate_name, candidate_email, session_id, rubric_scores, overall_score, recommendation_action, recommendation_rationale, prescreen_sessions(id, role_title, company, custom_rubric)')
       .in('id', body.response_ids)
 

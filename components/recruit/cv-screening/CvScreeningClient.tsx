@@ -7,10 +7,13 @@ import {
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
+  effectiveBand,
+  effectiveNextAction,
 } from '@/lib/cv-screening-types'
 import CandidateScorecardPanel from './CandidateScorecardPanel'
 import NewRubricModal from './NewRubricModal'
 import EditRubricModal from './EditRubricModal'
+import OverrideModal from './OverrideModal'
 
 interface CustomRubricRow {
   id: string
@@ -47,6 +50,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [busy, setBusy] = useState(false)
   const [showNewRubric, setShowNewRubric] = useState(false)
   const [editingRubric, setEditingRubric] = useState<CustomRubricRow | null>(null)
+  const [overrideTarget, setOverrideTarget] = useState<CandidateScreening | null>(null)
   const [renamingRubricId, setRenamingRubricId] = useState<string | null>(null)
   const [rubricRenameDraft, setRubricRenameDraft] = useState('')
   const [confirmDeleteRubricId, setConfirmDeleteRubricId] = useState<string | null>(null)
@@ -89,9 +93,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Invite link copied.`)
+      setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Taking you there now...`)
       try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
       clearSelected()
+      // Auto-navigate to the new Shortlist Agent role so the user sees the
+      // candidates that flowed through. Short delay so the success toast is
+      // readable.
+      setTimeout(() => {
+        window.location.href = `/dashboard/recruit/shortlist?session=${data.session_id}`
+      }, 800)
     } catch (err) {
       setBatchHandoffResult(`Failed: ${err instanceof Error ? err.message : 'unknown'}`)
     }
@@ -101,16 +111,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const filtered = screenings.filter(s => s.rubric_id === rubricId)
   const counts = {
     all: filtered.length,
-    strong: filtered.filter(s => s.band === 'strong_yes').length,
-    yes: filtered.filter(s => s.band === 'yes').length,
-    maybe: filtered.filter(s => s.band === 'maybe').length,
-    no: filtered.filter(s => s.band === 'likely_no' || s.band === 'reject').length,
+    strong: filtered.filter(s => effectiveBand(s) === 'strong_yes').length,
+    yes: filtered.filter(s => effectiveBand(s) === 'yes').length,
+    maybe: filtered.filter(s => effectiveBand(s) === 'maybe').length,
+    no: filtered.filter(s => { const b = effectiveBand(s); return b === 'likely_no' || b === 'reject' }).length,
   }
   const selected = screenings.find(s => s.id === selectedId) ?? null
 
-  const advanceableCount = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes').length
-  const [bulkBusy, setBulkBusy] = useState(false)
-  const [bulkResult, setBulkResult] = useState<{ sent: number; failed: number } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [reportBusy, setReportBusy] = useState(false)
   const selectedCount = selectedIds.size
@@ -164,33 +171,6 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       alert(`Report failed: ${err instanceof Error ? err.message : 'unknown error'}`)
     }
     setReportBusy(false)
-  }
-
-  async function bulkSendVideo() {
-    const advanceable = filtered.filter(s => s.band === 'strong_yes' || s.band === 'yes')
-    if (!advanceable.length) return
-    if (!confirm(`Generate and send video pre-screens for ${advanceable.length} candidate${advanceable.length === 1 ? '' : 's'}? This calls the AI question generator for each and creates a separate pre-screen session per candidate.`)) {
-      return
-    }
-    setBulkBusy(true)
-    setBulkResult(null)
-    let sent = 0
-    let failed = 0
-    for (const s of advanceable) {
-      try {
-        const res = await fetch('/api/cv-screening/handoff', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ screening_id: s.id }),
-        })
-        if (res.ok) sent++
-        else failed++
-      } catch {
-        failed++
-      }
-    }
-    setBulkResult({ sent, failed })
-    setBulkBusy(false)
   }
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
@@ -506,28 +486,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     <FilterChip label={`Yes (${counts.yes})`} />
                     <FilterChip label={`Maybe (${counts.maybe})`} />
                     <FilterChip label={`No (${counts.no})`} />
-                    <div className="ml-auto flex items-center gap-2">
-                      {advanceableCount > 0 && (
-                        <button
-                          onClick={bulkSendVideo}
-                          disabled={bulkBusy}
-                          className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
-                        >
-                          {bulkBusy ? 'Sending...' : `Send video pre-screen to ${advanceableCount} Yes/Strong`}
-                        </button>
-                      )}
-                      <span className="text-xs text-muted">
-                        {busy ? 'Analysing CVs...' : `${filtered.length} candidates`}
-                      </span>
-                    </div>
+                    <span className="ml-auto text-xs text-muted">
+                      {busy ? 'Analysing CVs...' : `${filtered.length} candidates`}
+                    </span>
                   </div>
-                  {bulkResult && (
-                    <div className="px-6 py-2 border-b border-border bg-light text-xs text-mid">
-                      Bulk handoff complete: {bulkResult.sent} sent
-                      {bulkResult.failed > 0 && `, ${bulkResult.failed} failed`}.
-                      Sessions are visible in the Video Pre-screen tab.
-                    </div>
-                  )}
                   {batchHandoffResult && (
                     <div className={`px-6 py-2 border-b border-border text-xs ${batchHandoffResult.startsWith('Failed') ? 'bg-danger/10 text-danger' : 'bg-light text-mid'}`}>
                       {batchHandoffResult}
@@ -554,11 +516,24 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         )}
                       </div>
                       <ul className="divide-y divide-border">
+                        {/* Header row */}
+                        <li className="px-6 py-2 hidden sm:grid grid-cols-12 gap-3 items-center text-[10px] font-bold uppercase tracking-wider text-muted bg-light/50">
+                          <span className="col-span-1" />
+                          <span className="col-span-3">Candidate</span>
+                          <span className="col-span-1">Score</span>
+                          <span className="col-span-2">Band</span>
+                          <span className="col-span-2">Next step</span>
+                          <span className="col-span-2">Comments</span>
+                          <span className="col-span-1 text-right">View</span>
+                        </li>
                         {filtered
                           .slice()
                           .sort((a, b) => Number(b.overall_score) - Number(a.overall_score))
                           .map(s => {
                             const checked = selectedIds.has(s.id)
+                            const band = effectiveBand(s)
+                            const action = effectiveNextAction(s)
+                            const hasOverride = !!(s.override_band || s.override_next_action || s.override_comment)
                             return (
                               <li key={s.id} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center hover:bg-light transition-colors ${checked ? 'bg-light' : ''}`}>
                                 <label className="col-span-1 flex items-center cursor-pointer" onClick={e => e.stopPropagation()}>
@@ -571,21 +546,44 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 </label>
                                 <button
                                   onClick={() => setSelectedId(s.id)}
-                                  className="col-span-11 grid grid-cols-11 gap-3 items-center text-left"
+                                  className="col-span-3 text-sm font-bold text-charcoal truncate text-left"
                                 >
-                                  <span className="col-span-4 text-sm font-bold text-charcoal truncate">
-                                    {s.candidate_label}
-                                  </span>
-                                  <span className="col-span-1 text-sm text-charcoal font-bold">
-                                    {Number(s.overall_score).toFixed(2)}
-                                  </span>
-                                  <span className={`col-span-2 inline-flex items-center text-[11px] font-bold rounded-full px-3 py-1 ${BAND_COLOURS[s.band as keyof typeof BAND_COLOURS] ?? ''}`}>
-                                    {BAND_LABELS[s.band as keyof typeof BAND_LABELS] ?? s.band}
-                                  </span>
-                                  <span className="col-span-3 text-xs text-mid truncate">
-                                    {ACTION_LABELS[s.next_action as keyof typeof ACTION_LABELS] ?? s.next_action}
-                                  </span>
-                                  <span className="col-span-1 text-xs text-muted text-right">View</span>
+                                  {s.candidate_label}
+                                </button>
+                                <button
+                                  onClick={() => setSelectedId(s.id)}
+                                  className="col-span-1 text-sm text-charcoal font-bold text-left"
+                                >
+                                  {Number(s.overall_score).toFixed(2)}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title="Click to override the AI's band"
+                                  className={`col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-charcoal transition-all justify-start ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
+                                >
+                                  {BAND_LABELS[band as keyof typeof BAND_LABELS] ?? band}
+                                  {s.override_band && <span className="text-[9px] opacity-70">edited</span>}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title="Click to override the AI's next step"
+                                  className="col-span-2 text-xs text-mid truncate text-left hover:text-charcoal hover:underline"
+                                >
+                                  {ACTION_LABELS[action as keyof typeof ACTION_LABELS] ?? action}
+                                  {s.override_next_action && <span className="text-[9px] ml-1 opacity-70">edited</span>}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title={s.override_comment || 'Click to add a comment'}
+                                  className={`col-span-2 text-xs truncate text-left ${hasOverride ? 'text-charcoal hover:underline' : 'text-muted hover:text-charcoal italic'}`}
+                                >
+                                  {s.override_comment ? s.override_comment : 'Add comment...'}
+                                </button>
+                                <button
+                                  onClick={() => setSelectedId(s.id)}
+                                  className="col-span-1 text-xs text-muted text-right hover:text-charcoal"
+                                >
+                                  View
                                 </button>
                               </li>
                             )
@@ -678,37 +676,47 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         />
       )}
 
-      {/* Sticky selection bar */}
+      {/* Manual override modal - human edit of band/next_action/comment */}
+      {overrideTarget && (
+        <OverrideModal
+          screening={overrideTarget}
+          onClose={() => setOverrideTarget(null)}
+          onSaved={(updated) => {
+            setScreenings(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s))
+            setOverrideTarget(null)
+          }}
+        />
+      )}
+
+      {/* Sticky selection bar - single line, scales width with content */}
       {selectedCount > 0 && (
-        <div className="absolute bottom-4 left-0 right-0 mx-auto max-w-3xl z-30 px-6">
-          <div className="bg-black text-white rounded-full shadow-card flex items-center gap-3 px-5 py-3">
-            <span className="text-sm font-bold">{selectedCount} selected</span>
-            <span className="text-xs text-white/60 hidden sm:inline">
-              Generate a client-ready summary report for these candidates.
+        <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
+          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-black text-white rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+            <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
+            <span className="text-xs text-white/60 hidden md:inline">
+              Generate a client-ready summary or send to Shortlist Agent.
             </span>
-            <div className="ml-auto flex items-center gap-2 flex-wrap">
-              <button
-                onClick={clearSelected}
-                className="text-xs font-bold text-white/70 hover:text-white px-3 py-1.5"
-              >
-                Clear
-              </button>
-              <button
-                onClick={batchSendToShortlist}
-                disabled={batchHandoffBusy}
-                className="bg-white/15 text-white text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50"
-                title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
-              >
-                {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
-              </button>
-              <button
-                onClick={generateReport}
-                disabled={reportBusy}
-                className="bg-white text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50"
-              >
-                {reportBusy ? 'Generating...' : 'Download CV report'}
-              </button>
-            </div>
+            <button
+              onClick={clearSelected}
+              className="text-xs font-bold text-white/70 hover:text-white px-2 py-1 flex-shrink-0"
+            >
+              Clear
+            </button>
+            <button
+              onClick={batchSendToShortlist}
+              disabled={batchHandoffBusy}
+              className="bg-white/15 text-white text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
+              title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
+            >
+              {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
+            </button>
+            <button
+              onClick={generateReport}
+              disabled={reportBusy}
+              className="bg-white text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50 flex-shrink-0"
+            >
+              {reportBusy ? 'Generating...' : 'Download CV report'}
+            </button>
           </div>
         </div>
       )}
