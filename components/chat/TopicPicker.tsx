@@ -75,8 +75,8 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
         </h2>
         <p className="text-sm text-mid max-w-lg mx-auto leading-relaxed">
           {selected
-            ? 'Pick the question that fits, or write your own below.'
-            : 'Pick a topic to get started, or jump straight into your own question.'}
+            ? 'Pick the question that fits, or describe your situation below.'
+            : 'I work best when you share the specific situation, who is involved, and what you have tried so far.'}
         </p>
       </div>
 

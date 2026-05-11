@@ -69,7 +69,9 @@ export async function GET(_req: NextRequest): Promise<NextResponse<SuggestionsRe
     }
 
     // No industry in profile - try to infer from business name + about.
-    const inferred = await inferIndustry(business?.name, business?.about)
+    // First try fast keyword match, then fall back to Claude inference.
+    const keywordIndustry = inferIndustryFromKeywords(business?.name, business?.about)
+    const inferred = keywordIndustry || await inferIndustry(business?.name, business?.about)
     if (inferred) {
       const examples = await generateExamples(inferred, business)
       return NextResponse.json({
@@ -139,6 +141,32 @@ async function loadRecentCampaigns(
       }
     })
     .filter((r): r is RecentCampaign => r !== null)
+}
+
+const INDUSTRY_KEYWORDS: Array<{ industry: string; patterns: RegExp }> = [
+  { industry: 'Construction', patterns: /\b(construct|build(er|ing)|plumb|electri|carpent|concret|excavat|demolit|scaffold|roofing|tiling|landscap|civil|trade|hvac|welding|steel|formwork)\b/i },
+  { industry: 'Healthcare', patterns: /\b(health|medical|hospital|clinic|nurs|doctor|physio|dental|pharmacy|aged.?care|allied.?health|patholog|radiol|optometr)\b/i },
+  { industry: 'Hospitality', patterns: /\b(hotel|restaurant|cafe|caf[eé]|bar |pub |hospit|catering|food.?service|accommodation|motel|resort|brew|kitchen|chef)\b/i },
+  { industry: 'Retail', patterns: /\b(retail|shop|store|boutique|supermarket|grocer|fashion|apparel|merchand)\b/i },
+  { industry: 'Professional Services', patterns: /\b(consult|account|legal|law firm|financ|advisory|architect|engineer|design|market|advertis|recruit|real.?estate|insur|wealth)\b/i },
+  { industry: 'Education', patterns: /\b(school|educat|teach|university|college|childcare|kindergarten|daycare|early.?learn|tutor|training)\b/i },
+  { industry: 'Manufacturing', patterns: /\b(manufactur|factory|production|assembly|fabricat|packag|warehouse|logistics|freight|transport)\b/i },
+  { industry: 'Technology', patterns: /\b(software|tech|digital|cyber|data|cloud|saas|app |web |develop|program|startup)\b/i },
+  { industry: 'Community Services', patterns: /\b(community|nfp|not.?for.?profit|charity|social.?work|disability|ndis|welfare|council)\b/i },
+  { industry: 'Agriculture', patterns: /\b(farm|agri|pastoral|livestock|grain|dairy|horticulture|vineyard|wine|crop)\b/i },
+  { industry: 'Mining', patterns: /\b(min(e|ing)|resource|oil|gas|drill|explor|quarry|mineral)\b/i },
+  { industry: 'Automotive', patterns: /\b(auto|motor|mechanic|panel.?beat|smash.?repair|car.?wash|tyre|tire|dealer)\b/i },
+  { industry: 'Cleaning', patterns: /\b(clean|janitor|sanit|waste|hygiene)\b/i },
+  { industry: 'Security', patterns: /\b(security|guard|patrol|surveillance|protecti)\b/i },
+]
+
+function inferIndustryFromKeywords(name?: string, about?: string): string | null {
+  const text = [name, about].filter(Boolean).join(' ')
+  if (!text) return null
+  for (const { industry, patterns } of INDUSTRY_KEYWORDS) {
+    if (patterns.test(text)) return industry
+  }
+  return null
 }
 
 async function inferIndustry(name?: string, about?: string): Promise<string | null> {
@@ -219,8 +247,40 @@ Output via the submit_examples tool only.`,
     const arr = Array.isArray(input.examples)
       ? input.examples.map(s => String(s).trim()).filter(Boolean)
       : []
-    return arr.length === 3 ? arr : FALLBACK_EXAMPLES
+    return arr.length === 3 ? arr : industryFallbackExamples(industry)
   } catch {
-    return FALLBACK_EXAMPLES
+    return industryFallbackExamples(industry)
   }
+}
+
+const INDUSTRY_EXAMPLE_MAP: Record<string, string[]> = {
+  Construction: [
+    'Site Manager, Brisbane - residential builds, full-time, $130k + super.',
+    'Carpenter, Gold Coast - commercial fit-outs, full-time, $38-42/hr + super.',
+    'Project Administrator, Sydney - construction office, full-time, $70-80k + super.',
+  ],
+  Healthcare: [
+    'Registered Nurse, aged-care facility in Geelong - full-time, weekday days.',
+    'Practice Manager, GP clinic in Brisbane - full-time, $75-85k + super.',
+    'Allied Health Assistant, Melbourne - part-time 3 days, $30-34/hr + super.',
+  ],
+  Hospitality: [
+    'Venue Manager, Brisbane CBD - full-time, $80-90k + super, 2+ years experience.',
+    'Chef de Partie, Melbourne - full-time, $65-72k + super, fine dining.',
+    'Front of House Supervisor, Sydney - casual, $32-36/hr, weekend availability.',
+  ],
+  Retail: [
+    'Store Manager, Brisbane CBD - full-time, $70-80k + super, 3+ years retail.',
+    'Visual Merchandiser, Melbourne - part-time 3 days, $30-34/hr + super.',
+    'Customer Service Lead, Adelaide - full-time, $60-68k + super.',
+  ],
+  'Professional Services': [
+    'Senior Accountant, Brisbane CBD - full-time, $90-110k + super, CA/CPA.',
+    'Office Manager / EA, Melbourne CBD - full-time, $80-90k + super.',
+    'Marketing Coordinator, Sydney - full-time, $65-75k + super.',
+  ],
+}
+
+function industryFallbackExamples(industry: string): string[] {
+  return INDUSTRY_EXAMPLE_MAP[industry] ?? FALLBACK_EXAMPLES
 }

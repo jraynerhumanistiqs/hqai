@@ -145,13 +145,15 @@ export async function POST(req: NextRequest) {
       userName: profile?.full_name || '',
     })
 
-    // Save user message
+    // Save user message (fire-and-forget to avoid blocking the response)
     const userMessage = messages[messages.length - 1]
     if (conversationId && userMessage?.role === 'user') {
-      await supabase.from('messages').insert({
+      supabase.from('messages').insert({
         conversation_id: conversationId,
         role: 'user',
         content: userMessage.content,
+      }).then(({ error }) => {
+        if (error) console.warn('[chat] user message insert failed:', error.message)
       })
     }
 
@@ -173,6 +175,11 @@ export async function POST(req: NextRequest) {
     }
 
     // --- HQ People: tool-use loop, then stream the final turn ------------
+    // Tier-1 fast path: simple conversational queries (greetings, thanks,
+    // follow-ups, clarifications) don't need RAG search. Skip the forced
+    // tool_choice loop and go straight to streaming - cuts latency ~50%.
+    const skipRag = isSimpleQuery(lastUserMsg, claudeMessages)
+
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
@@ -194,12 +201,75 @@ export async function POST(req: NextRequest) {
           'Pulling up the Fair Work guidance now.',
           'Give me a moment - checking the rules for this.',
         ]
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-          status: 'searching',
-          message: SEARCH_PHRASES[Math.floor(Math.random() * SEARCH_PHRASES.length)],
-        })}\n\n`))
+        if (!skipRag) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+            status: 'searching',
+            message: SEARCH_PHRASES[Math.floor(Math.random() * SEARCH_PHRASES.length)],
+          })}\n\n`))
+        }
 
         try {
+          // Fast path: simple queries skip the tool-use loop entirely.
+          if (skipRag) {
+            const streamAbort = new AbortController()
+            const fastRes = await withTimeout(
+              anthropic.messages.create(
+                {
+                  model: MODEL,
+                  max_tokens: 1500,
+                  system: systemPrompt,
+                  tools,
+                  tool_choice: { type: 'auto' },
+                  messages: working,
+                  stream: true,
+                },
+                { signal: streamAbort.signal },
+              ),
+              45_000,
+              'Anthropic streaming (simple query)',
+            )
+
+            let lastChunkAt = Date.now()
+            let stalled = false
+            const streamStartedAt = Date.now()
+            const watchdog = setInterval(() => {
+              if (Date.now() - lastChunkAt > 20_000 || Date.now() - streamStartedAt > 40_000) {
+                stalled = true
+                clearInterval(watchdog)
+                try { streamAbort.abort() } catch {}
+              }
+            }, 2_000)
+
+            try {
+              for await (const chunk of fastRes) {
+                lastChunkAt = Date.now()
+                if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+                  fullResponse += chunk.delta.text
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`))
+                }
+              }
+            } catch (err) {
+              if (!stalled) throw err
+            } finally {
+              clearInterval(watchdog)
+            }
+            if (stalled && !fullResponse) {
+              throw new Error('Streaming stalled before any text arrived')
+            }
+            const { cleanText, citations } = parseCitations(fullResponse)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              replaceText: cleanText,
+              citations: citations,
+            })}\n\n`))
+            await finalise({
+              controller, encoder, supabase, conversationId,
+              fullResponse: cleanText, lastUserMsg, module: mod,
+              user, business, citations, toolCalls: [],
+              latencyMs: Date.now() - started,
+            })
+            return
+          }
+
           for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
             if (iter > 0) {
               const DRAFT_PHRASES = [
@@ -576,6 +646,41 @@ async function finalise(opts: {
   })
 
   controller.close()
+}
+
+// Tier-1 classifier: detect queries that don't need RAG search.
+// Greetings, thanks, clarifications, and short follow-ups can go straight
+// to streaming. Anything that looks like an HR/compliance question (keywords
+// from awards, legislation, leave types, pay, etc.) must go through RAG.
+function isSimpleQuery(text: string, history: AnthropicMessage[]): boolean {
+  const trimmed = text.trim()
+  const lower = trimmed.toLowerCase()
+  const wordCount = trimmed.split(/\s+/).length
+
+  // Very short messages that are clearly conversational
+  if (wordCount <= 3) {
+    const conversational = /^(hi|hey|hello|thanks|thank you|cheers|ta|ok|okay|sure|yes|no|yep|nope|cool|great|got it|noted|perfect|good|fine|right|awesome|appreciate it|much appreciated|will do|understood|makes sense)/i
+    if (conversational.test(trimmed)) return true
+  }
+
+  // Short follow-ups that reference the prior answer
+  if (wordCount <= 8) {
+    const followUp = /^(can you (explain|clarify|expand|elaborate)|what do you mean|tell me more|go on|keep going|and |but what about|what about|how so|why is that|is that right|are you sure|sorry|pardon)/i
+    if (followUp.test(trimmed)) return true
+  }
+
+  // HR/compliance keywords that MUST go through RAG
+  const ragRequired = /\b(award|nts|nes|fair work|leave|annual leave|personal leave|sick leave|parental|redundancy|termination|dismiss|unfair|notice period|pay rate|minimum wage|casual conversion|overtime|penalty rate|allowance|super(annuation)?|long service|public holiday|contract|probation|classification|entitlement|right to disconnect|flexible work|stand ?down|wage|underpay|overpay|deduction|shift work|roster|hours of work|modern award|enterprise agreement|sham contract|contractor|payslip|record[- ]keeping|work health|whs|ohs|discrimination|harassment|bullying|worker.?s? comp|pip|performance improvement|warning letter|show cause|section \d|s\.\d|act \d{4}|fwc|ombudsman)\b/i
+  if (ragRequired.test(lower)) return false
+
+  // Document generation requests always need full processing
+  if (/\b(draft|write|generate|create|make) (a |an |me |the )?(contract|letter|pip|template|document|policy|warning|offer|termination|redundancy|variation|reference)/i.test(lower)) return false
+
+  // If the conversation already has context (follow-up to an HR question),
+  // let short messages through without RAG
+  if (wordCount <= 6 && history.length >= 2) return true
+
+  return false
 }
 
 async function legacyStream(opts: {

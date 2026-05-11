@@ -28,10 +28,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function SettingsPage() {
   const [form, setForm] = useState({ name: '', industry: '', state: '', award: '', headcount: '', employment_types: '', advisor_name: '', advisor_email: '', calendly_link: '' })
-  const [calendlyUrl, setCalendlyUrl] = useState('')
-  const [calendlyUrlSaving, setCalendlyUrlSaving] = useState(false)
-  const [calendlyUrlError, setCalendlyUrlError] = useState('')
-  const [calendlyUrlSaved, setCalendlyUrlSaved] = useState(false)
   const [userName, setUserName] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -63,7 +59,6 @@ export default function SettingsPage() {
         setSubscriptionStatus(biz.subscription_status || 'trialing')
         setHasStripe(!!biz.stripe_customer_id)
         setLogoUrl(biz.logo_url || '')
-        setCalendlyUrl(biz.calendly_url || '')
         setForm({
           name: biz.name || '', industry: biz.industry || '', state: biz.state || '',
           award: biz.award || '', headcount: biz.headcount || '',
@@ -115,28 +110,6 @@ export default function SettingsPage() {
     setLogoUploading(false)
   }
 
-  async function saveCalendlyUrl() {
-    setCalendlyUrlSaving(true)
-    setCalendlyUrlError('')
-    try {
-      const res = await fetch('/api/business', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ calendly_url: calendlyUrl.trim() || null }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setCalendlyUrlError(data.error || 'Could not save')
-        return
-      }
-      setCalendlyUrlSaved(true)
-      setTimeout(() => setCalendlyUrlSaved(false), 2500)
-    } catch {
-      setCalendlyUrlError('Network error')
-    } finally {
-      setCalendlyUrlSaving(false)
-    }
-  }
   async function openPortal() {
     setBillingLoading(true)
     try {
@@ -263,27 +236,6 @@ export default function SettingsPage() {
         </button>
 
 
-        {/* Scheduling - Phase 4: candidate interview booking */}
-        <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mt-5">
-          <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Scheduling</h2>
-          <p className="text-xs text-muted mb-4">Default Calendly link shortlisted candidates are invited to. Individual roles can override this.</p>
-          <Field label="Calendly URL">
-            <input
-              className={inputCls}
-              value={calendlyUrl}
-              onChange={e => setCalendlyUrl(e.target.value)}
-              placeholder="https://calendly.com/your-team/interview-30"
-            />
-          </Field>
-          {calendlyUrlError && <p className="text-xs text-danger mt-2">{calendlyUrlError}</p>}
-          <button
-            onClick={saveCalendlyUrl}
-            disabled={calendlyUrlSaving}
-            className="mt-3 bg-black hover:bg-[#1a1a1a] text-white font-bold px-5 py-2 rounded-full text-sm transition-colors disabled:opacity-60"
-          >
-            {calendlyUrlSaving ? 'Saving...' : calendlyUrlSaved ? '\u2713 Saved' : 'Save Calendly URL'}
-          </button>
-        </section>
         {/* Billing */}
         <section className="bg-white shadow-card rounded-2xl p-6 mt-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Billing & subscription</h2>

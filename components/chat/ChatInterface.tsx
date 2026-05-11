@@ -78,11 +78,33 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [extraContext, setExtraContext] = useState('')
   const [activeForm, setActiveForm] = useState<string | null>(null)
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyItems, setHistoryItems] = useState<Array<{ id: string; title: string; module: string; created_at: string; escalated: boolean }>>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
   const suggestions = module === 'recruit' ? SUGGESTIONS_RECRUIT : SUGGESTIONS_PEOPLE
+
+  async function loadHistory() {
+    if (historyLoading) return
+    setHistoryLoading(true)
+    try {
+      const res = await fetch('/api/conversations')
+      if (res.ok) {
+        const data = await res.json()
+        setHistoryItems(Array.isArray(data) ? data : [])
+      }
+    } catch {}
+    setHistoryLoading(false)
+  }
+
+  function toggleHistory() {
+    const next = !historyOpen
+    setHistoryOpen(next)
+    if (next) loadHistory()
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -90,17 +112,29 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
   async function ensureConversation(firstMessage: string) {
     if (conversationId) return conversationId
-    const res = await fetch('/api/conversations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: firstMessage.substring(0, 60),
-        module,
+    try {
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: firstMessage.substring(0, 60),
+          module,
+        })
       })
-    })
-    const data = await res.json()
-    setConversationId(data.id)
-    return data.id
+      if (!res.ok) {
+        console.warn('[chat] conversation creation failed:', res.status)
+        return null
+      }
+      const data = await res.json()
+      if (data?.id) {
+        setConversationId(data.id)
+        return data.id
+      }
+      return null
+    } catch (err) {
+      console.warn('[chat] conversation creation error:', err)
+      return null
+    }
   }
 
   async function saveDocument(content: string, docType: string) {
@@ -470,12 +504,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
   }
 
-  const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'HQ People'
-  const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : 'HR compliance & advisory'
+  const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'
+  const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : bizName
   const greeting = getGreeting()
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex h-full bg-white">
+      {/* Main chat column */}
+      <div className={`flex flex-col flex-1 min-w-0 ${historyOpen ? 'hidden sm:flex' : ''}`}>
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-white flex-shrink-0">
         <div className="min-w-0">
@@ -483,7 +519,15 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <div className="bg-light rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-mid hidden sm:block">{bizName}</div>
+          <button
+            onClick={toggleHistory}
+            className="bg-light rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap hidden sm:flex items-center gap-1.5"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+            </svg>
+            Chat History
+          </button>
           <button
             onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
             className="bg-light rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap"
@@ -514,7 +558,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
                   {module === 'recruit'
                     ? 'Ask me anything about hiring - I\'ll help you write ads, screen candidates, and shortlist faster.'
-                    : 'Ask me anything about HR, Fair Work, awards, contracts, leave, or managing your team.'
+                    : 'Tell me the specific situation, who is involved, and what you have tried so far - I\'ll give you the right guidance.'
                   }
                 </p>
               </div>
@@ -724,8 +768,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               onChange={autoResize}
               onKeyDown={handleKey}
               placeholder={module === 'recruit'
-                ? 'Ask HQ Recruit about ads, screening, candidates…'
-                : 'Ask HQ People about HR, Fair Work, payroll…'
+                ? 'Ask HQ Recruit about ads, screening, candidates...'
+                : 'Describe the situation - who is involved and what you have tried so far...'
               }
               rows={1}
               className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1.5"
@@ -752,13 +796,64 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             )}
           </div>
           <p className="text-[10px] text-muted text-center mt-2 leading-relaxed px-4">
-            {moduleLabel} provides general guidance grounded in Australian employment law - not legal advice. Verify critical decisions.{' '}
+            AI Advisor provides general guidance grounded in Australian employment law - not legal advice. Verify critical decisions.{' '}
             <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
               Talk to an HQ Advisor
             </Link>
           </p>
         </div>
       </div>
+
+      </div>
+
+      {/* Chat History sidebar */}
+      {historyOpen && (
+        <div className="w-full sm:w-[280px] md:w-[320px] border-l border-border bg-white flex flex-col flex-shrink-0 h-full">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <h2 className="font-display text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
+            <button
+              onClick={() => setHistoryOpen(false)}
+              className="w-7 h-7 rounded-full hover:bg-light flex items-center justify-center text-mid hover:text-charcoal transition-colors"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {historyLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="text-center py-10 px-4">
+                <p className="text-sm text-muted">No conversations yet</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {historyItems.map(c => (
+                  <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors">
+                    <div className="flex items-start gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-charcoal truncate">{(c.title || 'Untitled').replace(/[—–]/g, '-')}</p>
+                        <p className="text-[10px] text-muted mt-0.5">
+                          {c.module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'}
+                          {' - '}
+                          {formatHistoryDate(c.created_at)}
+                        </p>
+                      </div>
+                      {c.escalated && (
+                        <span className="text-[10px] bg-warning/10 text-warning px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Escalated</span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Advisor modal */}
       {showAdvisorModal && (
@@ -916,6 +1011,20 @@ function MessageContent({
   flushList()
 
   return <div>{elements}</div>
+}
+
+function formatHistoryDate(iso: string) {
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  const diffHrs = Math.floor(diffMins / 60)
+  if (diffHrs < 24) return `${diffHrs}h ago`
+  const diffDays = Math.floor(diffHrs / 24)
+  if (diffDays < 7) return `${diffDays}d ago`
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
 function formatInline(text: string, isUser: boolean): string {

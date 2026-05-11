@@ -17,18 +17,22 @@ export default async function DashboardHome() {
   const business = profile?.businesses as any
   const firstName = (profile?.full_name || '').split(' ')[0] || 'there'
 
-  // Fetch recent conversations
-  const convoQuery = supabase
-    .from('conversations')
-    .select('id, title, module, created_at, escalated')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  if (business?.id) {
-    convoQuery.eq('business_id', business.id)
-  } else {
-    convoQuery.eq('user_id', user.id)
-  }
+  // Fetch recent conversations - use OR to catch conversations created both
+  // with business_id and with user_id (covers cases where business_id was
+  // null at creation time, or where the user didn't have a business yet).
+  const convoQuery = business?.id
+    ? supabase
+        .from('conversations')
+        .select('id, title, module, created_at, escalated')
+        .or(`business_id.eq.${business.id},user_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(5)
+    : supabase
+        .from('conversations')
+        .select('id, title, module, created_at, escalated')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
 
   const { data: recentConvos } = await convoQuery
 
