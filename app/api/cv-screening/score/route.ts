@@ -260,12 +260,39 @@ function extractRealName(cvText: string, filename: string): string | null {
     .replace(/\s+/g, ' ')
     .trim()
   if (isLikelyName(fromFile)) return normalise(fromFile)
-  // Final fallback - title-case the filename if it has 2+ word-like tokens
-  // even when not strictly matching the name pattern. Better to show
-  // "Jane Smith-Doe" from a filename than "Candidate" or "Australian Citizen".
+  // Filename fallback (relaxed) - title-case the filename if it has 2+
+  // word-like tokens even when not strictly matching the name pattern.
+  // Better to show "Jane Smith-Doe" from a filename than "Australian Citizen".
   const fromFileTokens = fromFile.split(/\s+/).filter(t => t.length >= 2)
   if (fromFileTokens.length >= 2 && fromFileTokens.length <= 4 && !NON_NAME_HEADERS.test(fromFile)) {
     return titleCaseName(fromFile)
+  }
+  // CV-text source-of-truth fallback. Most CVs put the candidate's full name
+  // on the first non-empty line. When the regex extractor and the filename
+  // both fail, fall back to the first line of the parsed CV text after
+  // skipping section headers, work-rights banners, and lines that obviously
+  // can't be a name (emails, phone numbers, postal addresses).
+  // This is preferred over Claude's "Candidate" placeholder because the
+  // user explicitly told us "most CV text will have Full Name as the first
+  // line item".
+  for (const line of lines) {
+    if (!line) continue
+    if (line.length > 80) continue
+    if (line.includes('@')) continue          // email
+    if (/\+?\d[\d\s\-()]{6,}/.test(line)) continue // phone
+    if (/\d/.test(line)) continue             // any digit -> probably address / DOB
+    if (NON_NAME_HEADERS.test(line)) continue // CV/Profile/Summary/Australian Citizen etc.
+    const cleaned = line
+      .replace(/\([^)]*\)/g, '')             // drop (she/her)
+      .split(/\s[-|]\s|,/)[0]                // drop " - Title" / ", Town" suffixes
+      ?.trim()
+    if (!cleaned) continue
+    const tokenCount = cleaned.split(/\s+/).filter(Boolean).length
+    if (tokenCount < 2 || tokenCount > 5) continue // single word or "address line" too long
+    // If all caps, title-case it. Otherwise return as-is.
+    return /^[A-Z\s.'’\-]+$/.test(cleaned) && cleaned === cleaned.toUpperCase()
+      ? titleCaseName(cleaned)
+      : cleaned
   }
   return null
 }
