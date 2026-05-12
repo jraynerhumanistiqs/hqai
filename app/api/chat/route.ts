@@ -287,10 +287,18 @@ export async function POST(req: NextRequest) {
 
             // Non-streaming tool-discovery turn (or the final streaming turn).
             if (!isFinalIter) {
-              // Tool choice "any" forces SOME tool call but lets the model pick
-              // between search_knowledge (when it can answer with one search)
-              // and request_clarification (when the question is ambiguous).
-              const toolChoice = { type: 'any' as const }
+              // Force search_knowledge on the discovery turn so the model
+              // grounds every HR / awards / NES / Fair Work answer in vetted
+              // retrieval before producing prose.
+              //
+              // Note on history: this was briefly relaxed to tool_choice
+              // 'any' so the model could choose request_clarification for
+              // ambiguous questions. In practice that combined with the
+              // system-prompt guidance made the model pick clarification on
+              // almost every query and the chat appeared to "time out" on
+              // anything HR. Reverted - clarification will return later as a
+              // post-search refinement once retrieval signals low confidence.
+              const toolChoice = { type: 'tool' as const, name: 'search_knowledge' }
               const res = await withHeartbeat(controller, encoder, () =>
                 withTimeout(
                   anthropic.messages.create({
