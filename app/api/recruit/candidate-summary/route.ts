@@ -23,6 +23,7 @@ import {
   AlignmentType,
   PageBreak,
 } from 'docx'
+import JSZip from 'jszip'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -78,10 +79,10 @@ export async function POST(req: NextRequest) {
       .in('prescreen_session_id', sessionIds.length > 0 ? sessionIds : ['__none__'])
       .order('created_at', { ascending: false })
 
-    const sections: Array<{ properties?: any; children: Paragraph[] }> = []
-
-    for (let i = 0; i < responses.length; i++) {
-      const r = responses[i] as any
+    // Build a single per-candidate DOCX buffer. Used for both the single
+    // response case (return one .docx) and for the multi-response case
+    // (zipped into one folder per role).
+    const buildOneDoc = async (r: any): Promise<{ buffer: Buffer; roleTitle: string; candidateName: string }> => {
       const session = r.prescreen_sessions
       const cv = (cvScreenings ?? []).find((c: any) =>
         c.prescreen_session_id === r.session_id &&
@@ -90,11 +91,6 @@ export async function POST(req: NextRequest) {
       ) ?? (cvScreenings ?? []).find((c: any) => c.prescreen_session_id === r.session_id) ?? null
 
       const children: Paragraph[] = []
-
-      if (i > 0) {
-        children.push(new Paragraph({ children: [new PageBreak()] }))
-      }
-
       children.push(new Paragraph({
         text: `Candidate Summary - ${r.candidate_name ?? 'Unnamed candidate'}`,
         heading: HeadingLevel.HEADING_1,
@@ -112,23 +108,13 @@ export async function POST(req: NextRequest) {
       }))
       children.push(new Paragraph({ text: '' }))
 
-      // Combined recommendation
       const combined = combinedRecommendation(cv?.overall_score, r.overall_score)
-      children.push(new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        text: 'Combined recommendation',
-      }))
-      children.push(new Paragraph({
-        children: [new TextRun({ text: combined.band, bold: true })],
-      }))
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, text: 'Combined recommendation' }))
+      children.push(new Paragraph({ children: [new TextRun({ text: combined.band, bold: true })] }))
       children.push(new Paragraph({ text: combined.rationale }))
       children.push(new Paragraph({ text: '' }))
 
-      // CV section
-      children.push(new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        text: 'CV scoring (Analysis Agent)',
-      }))
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, text: 'CV scoring (Analysis Agent)' }))
       if (cv) {
         children.push(new Paragraph({
           children: [new TextRun({ text: `Overall: ${Number(cv.overall_score).toFixed(2)} / 5.00 - ${cv.band ?? 'unranked'}`, bold: true })],
@@ -152,11 +138,7 @@ export async function POST(req: NextRequest) {
       }
       children.push(new Paragraph({ text: '' }))
 
-      // Video pre-screen section
-      children.push(new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        text: 'Video pre-screen scoring (Shortlist Agent)',
-      }))
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, text: 'Video pre-screen scoring (Shortlist Agent)' }))
       if (r.overall_score !== null && r.overall_score !== undefined) {
         children.push(new Paragraph({
           children: [new TextRun({ text: `Overall: ${Number(r.overall_score).toFixed(2)} / 5.00`, bold: true })],
@@ -190,11 +172,7 @@ export async function POST(req: NextRequest) {
       }
       children.push(new Paragraph({ text: '' }))
 
-      // Best-practice next steps
-      children.push(new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        text: 'Recommended next steps',
-      }))
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, text: 'Recommended next steps' }))
       for (const step of nextStepsFromCombined(combined.band)) {
         children.push(new Paragraph({
           children: [new TextRun({ text: '- ' }), new TextRun({ text: step })],
@@ -209,22 +187,58 @@ export async function POST(req: NextRequest) {
         })],
       }))
 
-      sections.push({ children })
+      const doc = new Document({
+        creator: 'HQ.ai Shortlist Agent',
+        title: `Candidate Summary - ${r.candidate_name ?? 'Candidate'}`,
+        sections: [{ children }],
+      })
+      const blob = await Packer.toBlob(doc)
+      return {
+        buffer: Buffer.from(await blob.arrayBuffer()),
+        roleTitle: session?.role_title ?? 'Role',
+        candidateName: r.candidate_name ?? 'Candidate',
+      }
     }
 
-    const doc = new Document({
-      creator: 'HQ.ai Shortlist Agent',
-      title: 'Candidate Summary',
-      sections,
-    })
+    // Single candidate -> return one Word doc.
+    if (responses.length === 1) {
+      const { buffer, candidateName } = await buildOneDoc(responses[0])
+      const safe = candidateName.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 60) || 'candidate'
+      return new Response(buffer as unknown as ArrayBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Content-Disposition': `attachment; filename="Candidate_Summary_-_${safe}.docx"`,
+        },
+      })
+    }
 
-    const blob = await Packer.toBlob(doc)
-    const buf = Buffer.from(await blob.arrayBuffer())
-    return new Response(buf, {
+    // Multiple candidates -> zip of individual DOCX files, one folder per
+    // role title. Naming matches the CV Analysis Agent zip convention:
+    // "[Role Title] - Candidate CV Scoring Reports".
+    const built = await Promise.all(responses.map(r => buildOneDoc(r)))
+    const roles = new Set<string>()
+    for (const b of built) roles.add(b.roleTitle)
+    const folderRole = roles.size === 1 ? [...roles][0] : 'Mixed roles'
+    const folderLabel = `${folderRole} - Candidate CV Scoring Reports`
+
+    const zip = new JSZip()
+    const seen = new Map<string, number>()
+    for (const { buffer, candidateName } of built) {
+      const base = candidateName.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 60) || 'candidate'
+      const n = (seen.get(base) ?? 0) + 1
+      seen.set(base, n)
+      const filename = n === 1 ? `${base}.docx` : `${base}-${n}.docx`
+      zip.file(`${folderLabel}/${filename}`, buffer)
+    }
+    const zipBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+    const today = new Date().toISOString().slice(0, 10)
+    const zipName = `${folderLabel.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 80)}_${today}.zip`
+    return new Response(zipBuf as unknown as ArrayBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="Candidate_Summary_${new Date().toISOString().slice(0, 10)}.docx"`,
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${zipName}"`,
       },
     })
   } catch (err) {
