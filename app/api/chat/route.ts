@@ -427,27 +427,49 @@ export async function POST(req: NextRequest) {
               })}\n\n`))
             }
             const streamAbort = new AbortController()
-            const finalRes = await withTimeout(
-              anthropic.messages.create(
-                {
-                  model: MODEL,
-                  max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
-                  system: systemPrompt,
-                  tools,
-                  tool_choice: { type: 'none' },
-                  messages: working,
-                  stream: true,
-                },
-                { signal: streamAbort.signal },
-              ),
-              30_000,
-              'Anthropic streaming start',
+            // Drop tool_choice='none' and don't pass tools on the streaming
+            // turn. The model has the tool_result from iter 0 in context and
+            // doesn't need access to tools again. Some model versions stall
+            // when handed a tools array with tool_choice='none' alongside a
+            // tool_result message - removing both ambiguity sources lets the
+            // model commit cleanly to text. The 'note from grounding' line
+            // in the system prompt still constrains it to ground answers in
+            // the search results.
+            const streamPromise = anthropic.messages.create(
+              {
+                model: MODEL,
+                max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
+                system: systemPrompt + '\n\nYou now have search results above. Produce the final answer in prose with citations. Do not call tools.',
+                messages: working,
+                stream: true,
+              },
+              { signal: streamAbort.signal },
             )
+            // Heartbeat covers the gap between the model returning the
+            // stream object and the first text_delta arriving. Without
+            // this the user sees a black bubble for up to ~30s on slow
+            // streaming starts. Emits a status pulse every 6s.
+            const startupHeartbeat = setInterval(() => {
+              try {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                  status: 'drafting',
+                  message: 'Pulling this together…',
+                })}\n\n`))
+              } catch {}
+            }, 6_000)
+            let finalRes
+            try {
+              finalRes = await withTimeout(streamPromise, 45_000, 'Anthropic streaming start')
+            } finally {
+              clearInterval(startupHeartbeat)
+            }
 
             let lastChunkAt = Date.now()
             let stalled = false
-            const STREAM_GAP_LIMIT_MS = 25_000
-            const STREAM_TOTAL_LIMIT_MS = 50_000
+            let sawTextDelta = false
+            let lastStopReason: string | undefined
+            const STREAM_GAP_LIMIT_MS = 35_000
+            const STREAM_TOTAL_LIMIT_MS = 90_000
             const streamStartedAt = Date.now()
             const watchdog = setInterval(() => {
               const overGap = Date.now() - lastChunkAt > STREAM_GAP_LIMIT_MS
@@ -463,9 +485,13 @@ export async function POST(req: NextRequest) {
               for await (const chunk of finalRes) {
                 lastChunkAt = Date.now()
                 if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+                  sawTextDelta = true
                   const text = chunk.delta.text
                   fullResponse += text
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+                } else if (chunk.type === 'message_delta' && 'delta' in chunk) {
+                  const d = chunk.delta as { stop_reason?: string }
+                  if (d.stop_reason) lastStopReason = d.stop_reason
                 }
               }
             } catch (err) {
@@ -476,6 +502,78 @@ export async function POST(req: NextRequest) {
             if (stalled && !fullResponse) {
               throw new Error('Streaming stalled before any text arrived')
             }
+            console.log(`[chat] iter 1 done sawTextDelta=${sawTextDelta} stop_reason=${lastStopReason ?? 'unknown'} fullResponse.length=${fullResponse.length}`)
+
+            // Recovery: model produced no text on the streaming turn (can
+            // happen when the deny-list constraint conflicts with the
+            // retrieved passages or the model hit refusal mode). Retry once
+            // with no tools at all and a forceful "answer now" addendum so
+            // the user sees something useful instead of a stuck bubble.
+            if (!fullResponse.trim()) {
+              console.warn('[chat] iter 1 produced empty response, retrying without tool_use messages')
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                status: 'drafting',
+                message: 'One more moment - rephrasing the answer.',
+              })}\n\n`))
+
+              // Build a flat conversation history that strips tool_use /
+              // tool_result blocks. Some models get stuck producing text
+              // when those blocks are in context with no tools available.
+              const flatMessages = working
+                .filter(m => typeof m.content === 'string' || Array.isArray(m.content))
+                .map(m => {
+                  if (typeof m.content === 'string') return { role: m.role, content: m.content }
+                  // Extract text blocks and tool_result content; drop tool_use
+                  const parts: string[] = []
+                  for (const b of m.content as Array<any>) {
+                    if (b.type === 'text' && b.text) parts.push(b.text)
+                    if (b.type === 'tool_result' && typeof b.content === 'string') {
+                      parts.push(`[Retrieved sources]\n${b.content}`)
+                    }
+                  }
+                  return { role: m.role, content: parts.join('\n\n') }
+                })
+                .filter(m => m.content && (m.content as string).trim().length > 0)
+
+              const retryAbort = new AbortController()
+              try {
+                const retry = await withTimeout(
+                  anthropic.messages.create(
+                    {
+                      model: MODEL,
+                      max_tokens: 1500,
+                      system: systemPrompt + '\n\nIMPORTANT: Answer the user\'s question NOW using the retrieved sources in the conversation above. Produce prose only - do not refuse, do not stall. If the topic is on the deny-list, give the brief general orientation + advisor handoff per the standard escalation format. Do not return an empty response.',
+                      messages: flatMessages as any,
+                      stream: true,
+                    },
+                    { signal: retryAbort.signal },
+                  ),
+                  30_000,
+                  'Anthropic recovery streaming start',
+                )
+                for await (const chunk of retry) {
+                  if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+                    const text = chunk.delta.text
+                    fullResponse += text
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+                  }
+                }
+              } catch (retryErr) {
+                console.error('[chat] recovery stream failed:', retryErr)
+              }
+            }
+
+            // If we STILL have no text after recovery, surface a clear
+            // error rather than leave the UI on a pulsing dot forever.
+            if (!fullResponse.trim()) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                error: 'No response generated',
+                detail: 'The model returned an empty response after retrieval. This sometimes happens on dismissal / underpayment / discrimination queries where the deny-list constraints conflict with the retrieved passages. Please rephrase the question, or use the Book a call with an HQ Advisor option.',
+              })}\n\n`))
+              controller.close()
+              return
+            }
+
             const { cleanText, citations } = parseCitations(fullResponse)
             const finalCitations = mergeCitations(accumulatedCitations, citations)
 
