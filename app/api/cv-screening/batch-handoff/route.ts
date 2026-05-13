@@ -1,4 +1,4 @@
-// Batch handoff: take N selected CVs from CV Analysis Agent and create ONE
+// Batch handoff: take N selected CVs from CV Scoring Agent and create ONE
 // Shortlist Agent role with all of them invited, carrying their CV scoring
 // through as starting context. Replaces the per-candidate handoff loop when
 // the user wants to ship the shortlist as a single Shortlist Agent campaign.
@@ -113,61 +113,86 @@ export async function POST(req: NextRequest) {
     // pre-loaded. video_ids stays empty until they record. Status uses the
     // existing 'submitted' value so the rows surface under the default
     // filters; the cv_screening_id link distinguishes them from videos.
+    //
+    // Insert is progressively-degrading: we try the full row shape first,
+    // then strip any column that the production schema is missing and
+    // retry. This means the flow-through works even when some of the
+    // recent migrations (cv_screening_id link, recommendation_action,
+    // rubric_scores) haven't been applied to a particular env.
     let attached = 0
-    try {
-      const responseRows = (screenings as CandidateScreening[]).map(s => {
-        // Map the CV rubric scores into the prescreen_responses.rubric_scores
-        // shape (name + score + rationale) so the Shortlist UI renders them
-        // alongside any later video scoring.
-        const rubricScores = (s.criteria_scores as Array<{ id?: string; label?: string; score: number; evidence?: string }>)
-          .filter(cs => typeof cs.score === 'number')
-          .map(cs => ({
-            name: cs.label ?? cs.id ?? 'Criterion',
-            score: cs.score,
-            confidence: 1,
-            evidence_quote: cs.evidence ?? '',
-            evidence_timestamp_sec: 0,
-            insufficient_evidence: false,
-          }))
-        return {
-          session_id: session.id,
-          candidate_name: s.candidate_label || 'Candidate',
-          candidate_email: (s as unknown as { candidate_email?: string | null }).candidate_email ?? null,
-          consent: true,
-          video_ids: [],
-          status: 'submitted',
-          rubric_scores: rubricScores,
-          overall_score: s.overall_score,
-          recommendation_action: mapCvActionToRecommendation(s.next_action),
-          recommendation_rationale: s.rationale_short ?? null,
-          cv_screening_id: s.id,
-        }
-      })
+    let lastInsertError: string | null = null
 
+    const buildRow = (s: CandidateScreening, includeKeys: Set<string>) => {
+      const rubricScores = (s.criteria_scores as Array<{ id?: string; label?: string; score: number; evidence?: string }>)
+        .filter(cs => typeof cs.score === 'number')
+        .map(cs => ({
+          name: cs.label ?? cs.id ?? 'Criterion',
+          score: cs.score,
+          confidence: 1,
+          evidence_quote: cs.evidence ?? '',
+          evidence_timestamp_sec: 0,
+          insufficient_evidence: false,
+        }))
+      const all: Record<string, unknown> = {
+        session_id: session.id,
+        candidate_name: s.candidate_label || 'Candidate',
+        candidate_email: (s as unknown as { candidate_email?: string | null }).candidate_email ?? null,
+        consent: true,
+        video_ids: [],
+        status: 'submitted',
+        rubric_scores: rubricScores,
+        overall_score: s.overall_score,
+        recommendation_action: mapCvActionToRecommendation(s.next_action),
+        recommendation_rationale: s.rationale_short ?? null,
+        cv_screening_id: s.id,
+      }
+      const out: Record<string, unknown> = {}
+      for (const k of Object.keys(all)) {
+        if (includeKeys.has(k)) out[k] = all[k]
+      }
+      return out
+    }
+
+    // Optional columns we'll drop one-by-one if the insert fails on them.
+    // session_id, candidate_name, video_ids, status, consent are required
+    // for the row to be meaningful and are kept in every attempt.
+    const REQUIRED = new Set(['session_id', 'candidate_name', 'video_ids', 'status', 'consent', 'candidate_email'])
+    const OPTIONAL_ORDER = ['cv_screening_id', 'rubric_scores', 'recommendation_action', 'recommendation_rationale', 'overall_score']
+    let active = new Set<string>([...REQUIRED, ...OPTIONAL_ORDER])
+
+    for (let attempt = 0; attempt < OPTIONAL_ORDER.length + 1; attempt++) {
+      const rows = (screenings as CandidateScreening[]).map(s => buildRow(s, active))
       const { data: inserted, error: respErr } = await supabaseAdmin
         .from('prescreen_responses')
-        .insert(responseRows)
+        .insert(rows)
         .select('id')
-
-      if (respErr) {
-        // If cv_screening_id column doesn't exist (migration not applied),
-        // retry without it so candidates still flow through.
-        if (respErr.message?.includes('cv_screening_id')) {
-          const fallbackRows = responseRows.map(({ cv_screening_id: _ignored, ...rest }) => rest)
-          const { data: retried, error: retryErr } = await supabaseAdmin
-            .from('prescreen_responses')
-            .insert(fallbackRows)
-            .select('id')
-          if (retryErr) throw retryErr
-          attached = retried?.length ?? 0
-        } else {
-          throw respErr
-        }
-      } else {
+      if (!respErr) {
         attached = inserted?.length ?? 0
+        break
       }
-    } catch (respCreateErr) {
-      console.warn('[batch-handoff] could not create response rows:', respCreateErr)
+      lastInsertError = respErr.message ?? 'unknown insert error'
+      // Find the offending column from the error message and drop it.
+      const dropped = OPTIONAL_ORDER.find(col => active.has(col) && respErr.message?.toLowerCase().includes(col.toLowerCase()))
+      if (dropped) {
+        console.warn(`[batch-handoff] insert failed on column ${dropped}, retrying without it. (${respErr.message})`)
+        active.delete(dropped)
+        continue
+      }
+      // Error doesn't mention an optional column - bail and surface it.
+      console.error('[batch-handoff] non-recoverable insert error:', respErr)
+      break
+    }
+
+    if (attached === 0) {
+      // Don't silently lie about success. Surface the underlying issue so
+      // the user knows the session was created but candidates didn't flow.
+      console.error('[batch-handoff] zero rows inserted, lastError:', lastInsertError)
+      return NextResponse.json({
+        error: 'Candidates could not be attached to the Shortlist role',
+        detail: lastInsertError ?? 'Unknown error inserting into prescreen_responses',
+        session_id: session.id,
+        role_title: session.role_title,
+      }, { status: 500 })
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
@@ -176,7 +201,7 @@ export async function POST(req: NextRequest) {
       session_id: session.id,
       role_title: session.role_title,
       candidate_url: `${baseUrl}/prescreen/${slug}`,
-      candidates_attached: attached || screenings.length,
+      candidates_attached: attached,
     })
   } catch (err) {
     console.error('[batch-handoff]', err)

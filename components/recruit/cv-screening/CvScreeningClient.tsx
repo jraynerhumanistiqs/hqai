@@ -269,7 +269,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         <div className="px-4 pt-5 pb-4 border-b border-border">
           <div className="flex items-center gap-2 mb-1">
             <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
-              CV Analysis Agent
+              CV Scoring Agent
             </h1>
             <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
               New

@@ -214,7 +214,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Multiple candidates -> zip of individual DOCX files, one folder per
-    // role title. Naming matches the CV Analysis Agent zip convention:
+    // role title. Naming matches the CV Scoring Agent zip convention:
     // "[Role Title] - Candidate CV Scoring Reports".
     const built = await Promise.all(responses.map(r => buildOneDoc(r)))
     const roles = new Set<string>()

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { PrescreenSession, CandidateResponse } from '@/lib/recruit-types'
 import { CreateRoleModal } from './CreateRoleModal'
 import { EditRoleModal } from './EditRoleModal'
@@ -8,6 +9,9 @@ import { RoleDetail } from './RoleDetail'
 import { BinPanel } from './BinPanel'
 
 export function RecruitDashboard() {
+  const searchParams = useSearchParams()
+  const requestedSessionId = searchParams?.get('session') ?? null
+
   const [sessions, setSessions]         = useState<PrescreenSession[]>([])
   const [selected, setSelected]         = useState<PrescreenSession | null>(null)
   const [responses, setResponses]       = useState<CandidateResponse[]>([])
@@ -26,11 +30,23 @@ export function RecruitDashboard() {
       .then(d => {
         const list: PrescreenSession[] = d.sessions ?? []
         setSessions(list)
+        // If the URL has ?session=<id> (set by CV Scoring Agent's
+        // Send-to-Shortlist redirect), auto-select that role so the user
+        // lands directly on the candidates they just sent through. Fall
+        // back to first session if the id can't be matched (e.g. fresh
+        // mount with no fetched data yet).
+        if (requestedSessionId) {
+          const match = list.find(s => s.id === requestedSessionId)
+          if (match) {
+            setSelected(match)
+            return
+          }
+        }
         if (list.length > 0) setSelected(list[0])
       })
       .catch(console.error)
       .finally(() => setLoadingSessions(false))
-  }, [])
+  }, [requestedSessionId])
 
   // Close the ⋮ menu on outside click
   useEffect(() => {

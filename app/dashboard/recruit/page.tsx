@@ -15,7 +15,7 @@ const TILES = [
   {
     href: '/dashboard/recruit/cv-screening',
     emoji: '📄',
-    title: 'CV Analysis Agent',
+    title: 'CV Scoring Agent',
     blurb: 'Drop the CVs in. Get a ranked, blind-by-default scorecard with verbatim evidence per criterion and a recommended next step per candidate.',
     order: 2,
   },
@@ -64,7 +64,7 @@ export default async function RecruitLanding() {
         </div>
 
         <p className="text-xs text-muted mt-8 leading-relaxed">
-          New here? Start with Campaign Coach. The role you brief there flows automatically into the CV Analysis Agent and the Shortlist Agent.
+          New here? Start with Campaign Coach. The role you brief there flows automatically into the CV Scoring Agent and the Shortlist Agent.
         </p>
       </div>
     </div>

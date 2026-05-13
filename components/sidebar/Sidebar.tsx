@@ -180,7 +180,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <Link href="/dashboard/recruit/cv-screening"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit/cv-screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              CV Analysis Agent
+              CV Scoring Agent
             </Link>
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
