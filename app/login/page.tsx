@@ -217,8 +217,8 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-muted mt-6">
           By signing in you agree to Humanistiqs{' '}
-          <a href="#" className="underline hover:text-gray-400">Terms of Service</a> and{' '}
-          <a href="#" className="underline hover:text-gray-400">Privacy Policy</a>
+          <a href="/terms" className="underline hover:text-gray-400">Terms of Service</a> and{' '}
+          <a href="/privacy" className="underline hover:text-gray-400">Privacy Policy</a>
         </p>
       </div>
     </div>

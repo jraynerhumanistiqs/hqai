@@ -17,7 +17,8 @@ export default function PrescreenPage() {
   const [session, setSession] = useState<PrescreenSession | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [candidateMeta, setCandidateMeta] = useState<{
-    name: string; email: string; consent: boolean
+    name: string; email: string; consent: boolean;
+    consent_text?: string; consent_version?: string;
   } | null>(null)
 
   useEffect(() => {
@@ -31,8 +32,8 @@ export default function PrescreenPage() {
       .catch(() => { setErrorMsg('Could not load this pre-screen.'); setStage('error') })
   }, [id])
 
-  async function handleGateSubmit(name: string, email: string, consent: boolean) {
-    setCandidateMeta({ name, email, consent })
+  async function handleGateSubmit(name: string, email: string, consent: boolean, meta?: { text: string; version: string }) {
+    setCandidateMeta({ name, email, consent, consent_text: meta?.text, consent_version: meta?.version })
     setStage('recording')
   }
 
@@ -46,6 +47,9 @@ export default function PrescreenPage() {
           candidate_name: candidateMeta.name,
           candidate_email: candidateMeta.email,
           consent: candidateMeta.consent,
+          consent_text: candidateMeta.consent_text,
+          consent_version: candidateMeta.consent_version,
+          consent_at: new Date().toISOString(),
           video_ids: videoIds,
         }),
       })

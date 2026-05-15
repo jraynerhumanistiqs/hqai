@@ -34,20 +34,53 @@ export async function POST(
   try {
     const body = await req.json()
 
-    const { data, error } = await supabaseAdmin
+    // APP 5 / APP 11 evidentiary record - capture the exact consent text the
+    // candidate saw, the version string, the timestamp, and their IP. The new
+    // columns are added by migration prescreen_responses_consent_meta.sql.
+    // If that migration hasn't been applied yet, the insert below falls back
+    // to the legacy column set so the candidate submission still works.
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
+      || null
+    const userAgent = req.headers.get('user-agent') || null
+    const baseRow = {
+      session_id,
+      candidate_name: body.candidate_name,
+      candidate_email: body.candidate_email,
+      consent: body.consent,
+      video_ids: body.video_ids,
+      status: 'submitted' as const,
+    }
+    const metaRow = {
+      ...baseRow,
+      consent_text: body.consent_text ?? null,
+      consent_version: body.consent_version ?? null,
+      consent_at: body.consent_at ?? new Date().toISOString(),
+      consent_ip: clientIp,
+      consent_user_agent: userAgent,
+    }
+    let inserted: { id: string } | null = null
+    let insertError: Error | null = null
+    const tryInsert = await supabaseAdmin
       .from('prescreen_responses')
-      .insert({
-        session_id,
-        candidate_name: body.candidate_name,
-        candidate_email: body.candidate_email,
-        consent: body.consent,
-        video_ids: body.video_ids,
-        status: 'submitted',
-      })
+      .insert(metaRow)
       .select()
       .single()
-
-    if (error) throw error
+    if (tryInsert.error) {
+      // Column missing - retry without metadata so the flow still works
+      // until the migration is applied.
+      const fallback = await supabaseAdmin
+        .from('prescreen_responses')
+        .insert(baseRow)
+        .select()
+        .single()
+      if (fallback.error) insertError = new Error(fallback.error.message)
+      else inserted = fallback.data
+    } else {
+      inserted = tryInsert.data
+    }
+    if (insertError) throw insertError
+    const data = inserted as { id: string }
 
     const { data: session } = await supabaseAdmin
       .from('prescreen_sessions')

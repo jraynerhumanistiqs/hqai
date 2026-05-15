@@ -1,12 +1,18 @@
 'use client'
 import { useState } from 'react'
 
+// Bump this version string whenever the consent label text below changes.
+// We persist the version on the candidate's response row so we have an
+// evidentiary record of which consent text they accepted.
+export const CONSENT_VERSION = '2026-05-15.v1'
+export const CONSENT_TEXT = 'I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against the hiring rubric (by Anthropic), securely stored (by Cloudflare Stream and Supabase) and shared with the Humanistiqs team and the relevant hiring team for this role. Recordings are retained for up to 80 days after the role closes. I can withdraw consent and request deletion at any time by emailing privacy@humanistiqs.com.au.'
+
 interface Props {
   roleTitle: string
   company: string
   timeLimitSeconds: number
   questionCount: number
-  onSubmit: (name: string, email: string, consent: boolean) => void
+  onSubmit: (name: string, email: string, consent: boolean, meta: { text: string; version: string }) => void
 }
 
 export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCount, onSubmit }: Props) {
@@ -26,7 +32,7 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
   function handleSubmit() {
     const e = validate()
     if (Object.keys(e).length) { setErrors(e); return }
-    onSubmit(name.trim(), email.trim(), consent)
+    onSubmit(name.trim(), email.trim(), consent, { text: CONSENT_TEXT, version: CONSENT_VERSION })
   }
 
   const mins = Math.floor(timeLimitSeconds / 60)
@@ -83,8 +89,13 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
             className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black"
           />
           <label htmlFor="consent" className="text-sm text-gray-600 leading-snug cursor-pointer">
-            I consent to my video responses being recorded and reviewed by the Humanistiqs team
-            and the relevant hiring team.
+            I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against
+            the hiring rubric (by Anthropic), securely stored (by Cloudflare Stream and Supabase) and shared
+            with the Humanistiqs team and the relevant hiring team for this role. Recordings are retained
+            for up to 80 days after the role closes. I can withdraw consent and request deletion at any
+            time by emailing <a href="mailto:privacy@humanistiqs.com.au" className="underline font-semibold text-gray-800">privacy@humanistiqs.com.au</a>.
+            Full detail in our{' '}
+            <a href="/privacy" target="_blank" rel="noreferrer" className="underline font-semibold text-gray-800">privacy policy</a>.
           </label>
         </div>
         {errors.consent && <p className="text-xs text-red-600">{errors.consent}</p>}
