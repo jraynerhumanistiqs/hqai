@@ -46,13 +46,16 @@ export default function ThemeBoundary({ app, children }: ThemeBoundaryProps) {
   return (
     <ThemeProvider
       attribute="class"
-      // Marketing surfaces stay light (per brief Part A); product chrome
-      // respects the user's system preference and can be toggled. We
-      // express that by gating enableSystem on the app type.
-      defaultTheme={app === 'marketing' ? 'light' : 'system'}
-      enableSystem={app === 'product'}
-      // forcedTheme on marketing locks dark mode out entirely.
-      forcedTheme={app === 'marketing' ? 'light' : undefined}
+      // Force light mode everywhere for now. The Option 3 dark variant
+      // is wired in globals.css under [data-app="product"].dark, but
+      // hundreds of existing components still use hardcoded bg-white /
+      // text-black literals - flipping dark on those produced dark
+      // text on a light hardcoded background. Re-enable system after
+      // the A4 chrome audit replaces those literals with bg-bg /
+      // text-ink utilities.
+      defaultTheme="light"
+      enableSystem={false}
+      forcedTheme="light"
       disableTransitionOnChange
     >
       <DataAppScope app={app} />
