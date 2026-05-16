@@ -206,7 +206,7 @@ export default function SettingsPage() {
         {/* Advisor - subscription gated */}
         <section className="bg-white shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Advisor details</h2>
-          <p className="text-xs text-muted mb-4">Your named Humanistiqs advisor - HQ will reference them in escalation recommendations</p>
+          <p className="text-xs text-muted mb-4">Two advisors looking after you: your AI Advisor (in the app) and your human Humanistiqs Advisor (real person, on call when things get complex).</p>
           {plan === 'free' && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[1.5px] rounded-2xl flex items-center justify-center z-10">
               <button onClick={openPortal}
@@ -216,11 +216,14 @@ export default function SettingsPage() {
             </div>
           )}
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Advisor name">
-                <input className={inputCls} value={form.advisor_name} onChange={e => setForm(f => ({ ...f, advisor_name: e.target.value }))} placeholder="Sarah" />
+            <div>
+              <Field label="Your AI Advisor's name (the one in HQ.ai)">
+                <input className={inputCls} value={form.advisor_name} onChange={e => setForm(f => ({ ...f, advisor_name: e.target.value }))} placeholder="Hugo, Sarah, anything you like" />
               </Field>
-              <Field label="Advisor email">
+              <p className="text-[10px] text-muted mt-1">This is the name that shows up in chat. Pick something friendly.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+              <Field label="Your human Humanistiqs Advisor's email">
                 <input className={inputCls} value={form.advisor_email} onChange={e => setForm(f => ({ ...f, advisor_email: e.target.value }))} placeholder="sarah@humanistiqs.com.au" />
               </Field>
             </div>

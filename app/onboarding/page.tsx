@@ -16,7 +16,11 @@ const STATES_BY_COUNTRY: Record<string, string[]> = {
   Singapore: ['Singapore'],
   Other: [],
 }
-const EMP_TYPES = ['Full-time only','Full-time and part-time','Full-time, part-time and casual','Primarily casual']
+// Multi-select. A business can run any mix of employment types in
+// parallel - many SMEs have a few FT employees, a couple of PT, and a
+// pool of casuals or contractors all at once. Mirror that reality at
+// onboarding so the AI prompts can target the right awards for each.
+const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
 const PLANS = [
   { id: 'free', label: 'Free Trial', price: 'Free for 14 days', desc: 'Full access, no credit card required' },
   { id: 'essentials', label: 'Essentials', price: '$99/month', desc: 'Up to 3 seats, 50 AI queries/month' },
@@ -30,7 +34,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     bizName: '', industry: '', country: 'Australia', state: '', awards: [] as string[], headcount: '',
-    empTypes: '',
+    empTypes: [] as string[],
     advisorName: 'Hugo', userName: '', plan: 'free'
   })
   const [authReady, setAuthReady] = useState(false)
@@ -65,6 +69,16 @@ export default function OnboardingPage() {
     })
   }
 
+  function toggleEmpType(t: string) {
+    setForm(f => {
+      const current = f.empTypes
+      if (current.includes(t)) {
+        return { ...f, empTypes: current.filter(x => x !== t) }
+      }
+      return { ...f, empTypes: [...current, t] }
+    })
+  }
+
   async function completeOnboarding() {
     setSaving(true)
     setError('')
@@ -87,7 +101,10 @@ export default function OnboardingPage() {
           state: form.state,
           award: form.awards.join(', '),
           headcount: form.headcount,
-          employment_types: form.empTypes,
+          // Stored as a comma-separated string for backward compatibility
+          // with existing AI prompts that interpolate "employment_types"
+          // verbatim. The settings UI also reads/writes this shape.
+          employment_types: form.empTypes.join(', '),
           advisor_name: form.advisorName || 'Hugo',
           plan: form.plan,
         })
@@ -252,20 +269,27 @@ export default function OnboardingPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-mid mb-2">Employment types in your business</label>
+                  <label className="block text-xs font-bold text-mid mb-2">Employment types in your business (select all that apply)</label>
                   <div className="space-y-2">
                     {EMP_TYPES.map(t => (
-                      <button key={t} type="button" onClick={() => update('empTypes', t)}
+                      <button key={t} type="button" onClick={() => toggleEmpType(t)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.empTypes === t ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
-                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                          ${form.empTypes === t ? 'border-black bg-black' : 'border-border'}`}>
-                          {form.empTypes === t && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                          ${form.empTypes.includes(t) ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
+                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
+                          ${form.empTypes.includes(t) ? 'border-black bg-black' : 'border-border'}`}>
+                          {form.empTypes.includes(t) && (
+                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
                         </div>
                         <span className="text-sm text-charcoal">{t}</span>
                       </button>
                     ))}
                   </div>
+                  {form.empTypes.length > 0 && (
+                    <p className="text-[10px] text-black font-bold mt-2">{form.empTypes.length} type{form.empTypes.length > 1 ? 's' : ''} selected</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -274,16 +298,17 @@ export default function OnboardingPage() {
           {/* Step 3 - Advisor */}
           {step === 3 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Your Humanistiqs advisor</h2>
-              <p className="text-sm text-mid mb-6">When HQ detects something complex, it connects you directly - same advisor every time.</p>
+              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Meet your AI Advisor</h2>
+              <p className="text-sm text-mid mb-6">Give your AI Advisor a name - it&apos;s the assistant that handles your day-to-day HR questions inside HQ.ai. When something complex comes up, your AI Advisor hands off to your real Humanistiqs human advisor automatically.</p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Your name</label>
                   <input className={inputCls} value={form.userName} onChange={e => update('userName', e.target.value)} placeholder="e.g. James" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">Your advisor&apos;s name</label>
-                  <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="e.g. Hugo" />
+                  <label className="block text-xs font-bold text-mid mb-1.5">Name your AI Advisor</label>
+                  <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="Hugo, Sarah, anything you like" />
+                  <p className="text-[10px] text-muted mt-1">Pick something friendly - this is what shows up in chat when your AI Advisor talks to you. You can change it any time in Settings.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-mid mb-2">Your HQ.ai plan</label>
