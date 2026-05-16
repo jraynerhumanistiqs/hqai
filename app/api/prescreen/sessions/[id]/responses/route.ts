@@ -70,33 +70,105 @@ export async function POST(
     let inserted: { id: string } | null = null
     let insertError: Error | null = null
 
-    // Try full row first (consent meta + visual diagnostics).
-    const tryInsert = await supabaseAdmin
-      .from('prescreen_responses')
-      .insert(fullRow)
-      .select()
-      .single()
-    if (tryInsert.error) {
-      // visual_diagnostics column missing? Drop it and retry.
-      const tryMeta = await supabaseAdmin
+    // UPSERT path: if the candidate arrived via a per-row invite link
+    // (?response=<id>), we have an existing placeholder row from the
+    // CV-import batch handoff. Update that row in place with the new
+    // video + consent metadata instead of inserting a duplicate. The
+    // response_id in the request body is the gating check.
+    if (body.response_id && typeof body.response_id === 'string') {
+      // Confirm the placeholder belongs to this session - guards against
+      // a candidate forging another session's response_id.
+      const { data: existing, error: existingErr } = await supabaseAdmin
         .from('prescreen_responses')
-        .insert(metaRow)
+        .select('id, session_id, video_ids')
+        .eq('id', body.response_id)
+        .single()
+      if (!existingErr && existing && existing.session_id === session_id) {
+        // Update the row. Progressive-degrade if optional columns
+        // aren't present.
+        const updatePayloads: Array<Record<string, unknown>> = [
+          // Full update (consent + visual diagnostics)
+          {
+            candidate_name: body.candidate_name,
+            candidate_email: body.candidate_email,
+            consent: body.consent,
+            video_ids: body.video_ids,
+            status: 'submitted',
+            consent_text: body.consent_text ?? null,
+            consent_version: body.consent_version ?? null,
+            consent_at: body.consent_at ?? new Date().toISOString(),
+            consent_ip: clientIp,
+            consent_user_agent: userAgent,
+            visual_diagnostics: body.visual_diagnostics ?? null,
+          },
+          // No visual diagnostics
+          {
+            candidate_name: body.candidate_name,
+            candidate_email: body.candidate_email,
+            consent: body.consent,
+            video_ids: body.video_ids,
+            status: 'submitted',
+            consent_text: body.consent_text ?? null,
+            consent_version: body.consent_version ?? null,
+            consent_at: body.consent_at ?? new Date().toISOString(),
+            consent_ip: clientIp,
+            consent_user_agent: userAgent,
+          },
+          // Last-resort minimum viable update
+          {
+            candidate_name: body.candidate_name,
+            candidate_email: body.candidate_email,
+            consent: body.consent,
+            video_ids: body.video_ids,
+            status: 'submitted',
+          },
+        ]
+        let updatedRow: { id: string } | null = null
+        for (const payload of updatePayloads) {
+          const { data: u, error: uErr } = await supabaseAdmin
+            .from('prescreen_responses')
+            .update(payload)
+            .eq('id', body.response_id)
+            .select('id')
+            .single()
+          if (!uErr && u) { updatedRow = u; break }
+        }
+        if (updatedRow) {
+          inserted = updatedRow
+        } else {
+          console.warn('[responses/POST] upsert update fell through, will INSERT a new row instead')
+        }
+      }
+    }
+
+    // No placeholder match - fall back to the original INSERT path with
+    // progressive-degrade.
+    if (!inserted) {
+      const tryInsert = await supabaseAdmin
+        .from('prescreen_responses')
+        .insert(fullRow)
         .select()
         .single()
-      if (tryMeta.error) {
-        // consent_meta migration also not applied - last-resort retry.
-        const fallback = await supabaseAdmin
+      if (tryInsert.error) {
+        const tryMeta = await supabaseAdmin
           .from('prescreen_responses')
-          .insert(baseRow)
+          .insert(metaRow)
           .select()
           .single()
-        if (fallback.error) insertError = new Error(fallback.error.message)
-        else inserted = fallback.data
+        if (tryMeta.error) {
+          const fallback = await supabaseAdmin
+            .from('prescreen_responses')
+            .insert(baseRow)
+            .select()
+            .single()
+          if (fallback.error) insertError = new Error(fallback.error.message)
+          else inserted = fallback.data
+        } else {
+          inserted = tryMeta.data
+        }
       } else {
-        inserted = tryMeta.data
+        inserted = tryInsert.data
       }
-    } else {
-      inserted = tryInsert.data
     }
     if (insertError) throw insertError
     const data = inserted as { id: string }

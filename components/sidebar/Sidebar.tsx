@@ -27,6 +27,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [recruitOpen, setRecruitOpen] = useState(false)
   const [docsOpen, setDocsOpen] = useState(false)
+  // Tools is now a collapsible parent containing the (mostly coming-soon)
+  // Compliance / Leadership / Business sub-sections. Keeps the sidebar
+  // tidy until those modules actually ship.
+  const [toolsOpen, setToolsOpen] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
   const [leadershipOpen, setLeadershipOpen] = useState(false)
   const [businessOpen, setBusinessOpen] = useState(false)
@@ -88,19 +92,18 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
   return (
     <aside className="w-[232px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
-      {/* Logo */}
-      <div className="relative px-4 py-3 border-b border-white/8 flex items-center justify-center">
-        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={571} className="opacity-90 w-[132px] max-w-full h-auto" priority />
-        </Link>
-        {onClose && (
-          <button onClick={onClose} className="lg:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
+      {/* Mobile close button - the brand logo used to sit here too. It
+          moved down to the footer just above the advisor support
+          callout so vertical space at the top can go to navigation. */}
+      {onClose && (
+        <div className="lg:hidden flex items-center justify-end px-3 pt-3">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Business pill */}
       <div className="px-3 pt-3 pb-1.5">
@@ -222,95 +225,122 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </div>
         )}
 
-        {/* Tools - 3 categories */}
-        <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 mt-4 font-display">Tools</p>
-
-        {/* Compliance - hidden from member role until Compliance modules are real */}
-        {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
+        {/* Tools - single collapsible parent wrapping the coming-soon
+            sub-tools (Compliance / Leadership / Business). Visible if
+            the user has any tools to see; auto-hidden for member-role
+            accounts when no feature flags are set. */}
+        {(isInternal
+          || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')
+          || flag('team_development') || flag('strategy_coach')) && (
           <>
-            <button onClick={() => setComplianceOpen(!complianceOpen)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+            <button onClick={() => setToolsOpen(!toolsOpen)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mt-4 mb-0.5 text-sm font-bold transition-all
                 ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
+                  || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
+                  || isActive('/dashboard/business')
                   ? 'bg-white/11 text-white'
                   : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-              <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
-              <span className="flex-1 text-left">Compliance</span>
-              <ChevronIcon open={complianceOpen} />
+              <ToolsIcon active={toolsOpen} />
+              <span className="flex-1 text-left flex items-center gap-1.5">
+                Tools
+                <span className="text-[9px] uppercase font-bold tracking-wider bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full">
+                  Coming soon
+                </span>
+              </span>
+              <ChevronIcon open={toolsOpen} />
             </button>
-            {complianceOpen && (
-              <div className="ml-6 space-y-0.5">
-                {(isInternal || flag('compliance_audit')) && (
-                  <Link href="/dashboard/compliance/audit"
-                    className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                      ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                    Workplace Compliance Audit
-                  </Link>
+            {toolsOpen && (
+              <div className="ml-3 mb-1 space-y-0.5">
+                {/* Compliance */}
+                {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
+                  <>
+                    <button onClick={() => setComplianceOpen(!complianceOpen)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                        ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
+                          ? 'bg-white/11 text-white'
+                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                      <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
+                      <span className="flex-1 text-left">Compliance</span>
+                      <ChevronIcon open={complianceOpen} />
+                    </button>
+                    {complianceOpen && (
+                      <div className="ml-6 space-y-0.5">
+                        {(isInternal || flag('compliance_audit')) && (
+                          <Link href="/dashboard/compliance/audit"
+                            className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                              ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            Workplace Compliance Audit
+                          </Link>
+                        )}
+                        {(isInternal || flag('awards_interpreter')) && (
+                          <Link href="/dashboard/awards"
+                            className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                              ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            Award Interpreter
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
-                {(isInternal || flag('awards_interpreter')) && (
-                  <Link href="/dashboard/awards"
-                    className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                      ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                    Award Interpreter
-                  </Link>
+
+                {/* Leadership */}
+                {(isInternal || flag('team_development')) && (
+                  <>
+                    <button onClick={() => setLeadershipOpen(!leadershipOpen)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                        ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
+                          ? 'bg-white/11 text-white'
+                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                      <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
+                      <span className="flex-1 text-left">Leadership</span>
+                      <ChevronIcon open={leadershipOpen} />
+                    </button>
+                    {leadershipOpen && (
+                      <div className="ml-6 space-y-0.5">
+                        <Link href="/dashboard/performance"
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                            ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                          Performance Management
+                        </Link>
+                        <Link href="/dashboard/leadership/development"
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                            ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                          Team Development
+                        </Link>
+                        <Link href="/dashboard/leadership/coaching"
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                            ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                          Coaching
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
-              </div>
-            )}
-          </>
-        )}
 
-        {/* Leadership - hidden from member role */}
-        {(isInternal || flag('team_development')) && (
-          <>
-            <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-                ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
-                  ? 'bg-white/11 text-white'
-                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-              <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
-              <span className="flex-1 text-left">Leadership</span>
-              <ChevronIcon open={leadershipOpen} />
-            </button>
-            {leadershipOpen && (
-              <div className="ml-6 space-y-0.5">
-                <Link href="/dashboard/performance"
-                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                    ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                  Performance Management
-                </Link>
-                <Link href="/dashboard/leadership/development"
-                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                    ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                  Team Development
-                </Link>
-                <Link href="/dashboard/leadership/coaching"
-                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                    ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                  Coaching
-                </Link>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Business - hidden from member role */}
-        {(isInternal || flag('strategy_coach')) && (
-          <>
-            <button onClick={() => setBusinessOpen(!businessOpen)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-                ${isActive('/dashboard/business')
-                  ? 'bg-white/11 text-white'
-                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-              <BusinessIcon active={isActive('/dashboard/business')} />
-              <span className="flex-1 text-left">Business</span>
-              <ChevronIcon open={businessOpen} />
-            </button>
-            {businessOpen && (
-              <div className="ml-6 space-y-0.5">
-                <Link href="/dashboard/business/strategy-coach"
-                  className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                    ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-                  Strategy Coach
-                </Link>
+                {/* Business */}
+                {(isInternal || flag('strategy_coach')) && (
+                  <>
+                    <button onClick={() => setBusinessOpen(!businessOpen)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                        ${isActive('/dashboard/business')
+                          ? 'bg-white/11 text-white'
+                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                      <BusinessIcon active={isActive('/dashboard/business')} />
+                      <span className="flex-1 text-left">Business</span>
+                      <ChevronIcon open={businessOpen} />
+                    </button>
+                    {businessOpen && (
+                      <div className="ml-6 space-y-0.5">
+                        <Link href="/dashboard/business/strategy-coach"
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                          Strategy Coach
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </>
@@ -344,6 +374,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
       {/* Footer */}
       <div className="px-2.5 pb-3 space-y-1.5 flex-shrink-0">
+        {/* Brand logo - relocated from the top of the sidebar so the
+            top space could go to nav. Sits between Settings and the
+            advisor-support callout. */}
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center pt-2 pb-1">
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={571} className="opacity-90 w-[108px] max-w-full h-auto" priority />
+        </Link>
+
         {/* Advisor handoff - small note + button that opens the contact modal */}
         <div className="px-1 pt-1">
           <p className="text-[11px] text-white/55 leading-snug mb-1.5">
@@ -514,6 +551,11 @@ function BusinessIcon({ active }: { active: boolean }) {
 function SearchIcon({ active }: { active: boolean }) {
   return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
+  </svg>
+}
+function ToolsIcon({ active }: { active: boolean }) {
+  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd"/>
   </svg>
 }
 function SettingsIcon({ active }: { active: boolean }) {

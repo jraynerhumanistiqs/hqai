@@ -1,158 +1,164 @@
-# HQ.ai Handoff - 2026-05-10
+# HQ.ai Handoff - 2026-05-15
 
-Hand-off doc to refresh the context window on a new chat. Written for the next agent (or future-me) picking this up cold.
+Written for the next agent (or future-me) picking this up cold after a long working session that closed the recruitment-tool feature set, shipped a compliance baseline, and rewrote the CV scoring UI. Replaces the prior handoff at `docs/handoff.md.bak` (the older version is preserved in git at commit `42456bc` if needed).
 
 ---
 
 ## 1. Project goal and stack
 
-**HQ.ai** is an AI-powered HR + recruitment SaaS for Australian SMEs, built under the parent brand **Humanistiqs** (Rayner Consulting Group Pty Ltd). Owner: Jimmy Rayner. The pitch: "the operating system for people, compliance, and hiring - powered by human-centred AI." The strategic positioning is **anti-Employsure** - AI handles tier-one self-service, the same human advisor handles complexity every time, no repeating yourself.
+**HQ.ai** is an AI-powered HR + recruitment SaaS for Australian SMEs, sold under the parent brand **Humanistiqs** (Rayner Consulting Group Pty Ltd). Owner: **Jimmy Rayner** (jrayner@humanistiqs.com.au).
 
-**Live URL:** https://hqai.vercel.app (custom domain `https://www.humanistiqs.ai` is the target post-cutover; not yet live).
-**GitHub:** https://github.com/jraynerhumanistiqs/hqai (private).
-**Supabase project:** `rbuxsuuvbeojxcxwxcjf`.
-**Vercel plan:** Pro ($20/month). 300s function ceiling.
-**Anthropic plan:** monthly cap $100, alert at $80 (per D13).
+Brand promise: "the operating system for people, compliance, and hiring - powered by human-centred AI." Strategic positioning is **anti-Employsure**: AI handles tier-one self-service, the same human advisor handles complexity every time, no repeating yourself. AI is decision support, not decision making; every adverse action requires a human click.
+
+**Live URL:** https://hqai.vercel.app
+**GitHub:** https://github.com/jraynerhumanistiqs/hqai (private)
+**Supabase project:** `rbuxsuuvbeojxcxwxcjf`
+**Vercel plan:** Pro ($20/month), 300s function ceiling, `maxDuration` typically set to 60-180s per route.
 
 **Tech stack:**
-- Next.js 16 App Router + TypeScript
-- Tailwind CSS v3 with custom design tokens (Uber-inspired v3, white/black, DM Sans only, pill buttons)
-- Supabase (Postgres + pgvector, RLS deferred to Phase 2)
+- Next.js 16 App Router + TypeScript (`ignoreBuildErrors: true` in `next.config.js`)
+- Tailwind CSS v3 with custom design tokens (DM Sans only, monochrome, pill buttons)
+- Supabase (Postgres + pgvector, RLS partially applied - see Section 4)
 - Anthropic Claude `claude-sonnet-4-20250514` with streaming + structured-output tool-use
-- Cloudflare Stream (candidate video upload/playback)
-- Deepgram Nova-3 (transcription)
-- Resend (transactional email - SMTP not yet wired through Supabase)
-- Stripe (portal wired; checkout incomplete)
+- OpenAI text-embedding-3-small for RAG retrieval
+- Cloudflare Stream for candidate video upload/playback
+- Deepgram Nova-3 for transcription
+- MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) - browser-side face landmarker for Tier-2 visual telemetry
+- Resend for transactional email
+- Stripe (portal wired, checkout incomplete)
+- JSZip for multi-candidate zipped DOCX reports
 
 **Product surfaces (live):**
-- **HQ People** - RAG-grounded HR advisor chat with the new TopicPicker empty state, escalation card, document generation
-- **HQ Recruit hub** at `/dashboard/recruit` with three tile-buttons leading to the funnel below
-  - **Campaign Coach** (`/dashboard/recruit/campaign-coach`) - 5-step wizard producing job ad + careers microsite
-  - **CV Screening** (`/dashboard/recruit/cv-screening`) - blind-by-default scoring, custom rubrics, scorecard with evidence, video pre-screen handoff
-  - **Shortlist Agent** (`/dashboard/recruit/shortlist`) - the renamed Video Pre-screen surface; Cloudflare Stream + Deepgram + AI scoring
-- **Document generation** (33 templates with DOCX export)
-- **Compliance Audit** placeholder (mid-migration from a separate Supabase project)
+- **HQ People** (`/dashboard/people`) - RAG-grounded HR advisor chat with TopicPicker empty state, triage card, citations
+- **HQ Recruit hub** at `/dashboard/recruit` with three tile-buttons
+  - **Campaign Coach** (`/dashboard/recruit/campaign-coach`) - 5-step job-ad wizard
+  - **CV Scoring Agent** (`/dashboard/recruit/cv-screening`) - structured CV scoring, blind by default, manual override + Comments column, "Send to Shortlist Agent" batch handoff
+  - **Shortlist Agent** (`/dashboard/recruit/shortlist`) - video AND phone pre-screen with same scoring rubric, ProcessFlowTracker per role, Tier-1 + Tier-2 reviewer signals
+- **Privacy + Terms** (`/privacy`, `/privacy/request`, `/terms`) - APP-aligned scaffolds wired from login footer
+- **Settings** (`/dashboard/settings`) - business profile + advisor block + billing + multi-select Employment Types
 
-**Roles model (just shipped):**
+**Roles model (active):**
 - `owner` - James only (full edit rights)
 - `test_admin` - Rav, Steve, Bianca, Jess (read-only across all surfaces)
-- `member` - regular client account
+- `member` - regular client accounts
 - Migration `supabase/migrations/roles_and_telemetry.sql` seeds these.
 
 ---
 
-## 2. Key technical decisions and why
+## 2. Key technical decisions made and why
 
-### Demo prep + post-Nathan-meeting decisions (D1-D14, all ratified)
-
-Source: `docs/POST-DEMO-REPORT-NATHAN.md` and `docs/DECISION-LOG.md`. These came out of an external developer review with Nathan (ex-Jumbo Interactive engineering lead) on 7 May.
+### Core AI / safety decisions
 
 | ID | Decision | Why |
 |---|---|---|
-| D1 | Magic-link auth callback handles both `?code=` and `?token_hash=` flows | Newer Supabase magic links use the OTP token-hash flow; old code only handled `?code=` so links silently failed |
-| D2 | `chat_telemetry` table with per-turn token + latency capture | Cannot trust the chat without data on what's slow or expensive |
-| D3 | Tier classifier + retrieval narrowing chat-speed fix - approved BUT engagement with Nathan rejected (do it internally) | Demo-blocker for Phase 2 if chat keeps timing out |
-| D4 | `coach_field_edits` + `cv_screening_outputs` tables capture AI vs user-edited values | Need data to detect AI drift over time and validate prompts |
-| D5 | Server-side observability sink in Phase 2 only (Vercel logs sufficient for Phase 1) | |
-| D6 | Microsoft Clarity goes live for Phase 2 only | Free, gets 90% of Full Story value |
+| D1 | Magic-link auth callback handles `?code=` and `?token_hash=` flows | Newer Supabase magic links use OTP token-hash; old code only handled `?code=` |
+| D2 | `chat_telemetry` + `chat_audit_log` capture per-turn token + latency | Cannot trust the chat without data on what's slow or expensive |
 | D7 | Feature flags hide Coming-Soon modules from `member` accounts; `owner`+`test_admin` see everything | Half-built modules should not appear to clients |
-| D8 | RLS policies written for every business-scoped table; production application is the Phase 2 entry gate | Largest unaddressed security debt per Nathan |
-| D9 | Neon migration rejected; agent-driven Critical security review instead, stay on Supabase | Supabase + RLS done well is sufficient |
-| D10 | HQ Recruit is the V1 launch wedge; HQ People stays in internal alpha until field-edit telemetry shows accuracy | Recruit is closer to ready, structured-output surfaces are the strongest validation |
-| D11 | Phase 1 starts only when D1, D2, D7 are done. Engineering signals "Internal Testing Phase Ready" | No "we'll fix it next week" launches |
-| D12 | Nathan engagement on indefinite hold | Nathan's own feedback was that paid engagement likely unnecessary |
+| D8 | RLS migrated piecewise across two files (`rls_all_tables.sql` + `rls_extend_prescreen_and_core.sql`); production application is the Phase 2 entry gate | Largest unaddressed security debt per Nathan |
 | D13 | Anthropic monthly cap $100, alert at $80 | Reflects actual usage profile of internal alpha |
-| D14 | Separate Anthropic API keys for production vs staging | Cleanest accounting |
+| D14 | Separate Anthropic API keys for prod vs staging | Cleanest accounting |
+| AI-1 | Force `tool_choice: { type: 'tool', name: 'search_knowledge' }` on iter 0 of HQ People chat | Tried `'any'` to allow request_clarification but the model picked clarification on every HR question and the chat appeared to "time out". Reverted; clarification stays registered for the future, demoted in the system prompt |
+| AI-2 | iter 1 streaming turn drops the `tools` array + `tool_choice='none'` entirely | Empirically, passing tools + tool_choice='none' + tool_result in history made the model produce zero text_delta. Removing them is the simplest path to reliable text output |
+| AI-3 | CV scoring uses two-pass blinding (name extraction first → blind name in body before sending to model) | APP 11 + Fair Work anti-discrimination - we score on substance, not signal. See `app/api/cv-screening/score/route.ts` extractRealName |
+| AI-4 | Multi-tier confidence/speech analysis - Tier 1 (pace + fillers + completion + vocab + pauses), Tier 2 (visual telemetry browser-side) | Tier 3 (emotion recognition) explicitly REJECTED per `docs/BODY-LANGUAGE-ROADMAP.md` - regulatory + scientific risk too high |
+| AI-5 | Tier-2 visual telemetry NEVER feeds the AI scorer - rendered in a separate "Reviewer Diagnostics" panel | Function-creep mitigation locked in by code-level separation (score route reads transcript only, never the new `visual_diagnostics` column) and documented in the published AIA |
 
-### Other architectural decisions worth knowing
+### Architectural
 
-- **Australian English everywhere** - organise, behaviour, recognise, optimise, minimise. Saved in `~/.claude/projects/.../memory/feedback_self_verify.md`.
-- **No em-dashes or en-dashes anywhere in UI copy** - plain hyphens only. Saved in `~/.claude/projects/.../memory/rule_no_em_dashes.md`.
-- **No permission prompts** - autonomous execution; only pause for genuine multi-option decisions. Saved in `~/.claude/projects/.../memory/feedback_autonomous_progress.md`.
-- **Self-verify before handing back** - don't return control until tested end-to-end. Saved in `~/.claude/projects/.../memory/feedback_self_verify.md`.
-- **Tool-use forced structured output** - Campaign Coach steps and CV Screening scoring use Anthropic tool-use with `tool_choice: { type: 'tool', name: '...' }` for guaranteed JSON shape under streaming.
-- **Citation contract** - tool-returned citations flow on a separate SSE channel; the model is told NOT to insert inline `[n]` markers or emit a fenced citations block. `lib/parse-citations.ts` strips both as defence-in-depth.
-- **Pre-flight triage** - `detectHardTriage` regex catches 7 categories of high-stakes input (workplace violence, sexual harassment incident, mental health crisis, active litigation, visa, discriminatory request, imminent termination) and short-circuits to a hardcoded handoff card without any LLM call.
-- **Stream resilience** - chat route wraps non-streaming Anthropic calls with `withTimeout` (60s) and `withHeartbeat` (8s SSE pulses). Streaming turn has a stall watchdog that propagates to the SDK via AbortController. Frontend has a 60s graceful-timeout button that injects an escalation card if the route never returns. **Note: chat is reportedly timing out again - see Section 6.**
+- **Australian English everywhere** - organise, behaviour, recognise, optimise, minimise
+- **No em-dashes or en-dashes in UI copy** - plain hyphens only
+- **Tool-use structured output** - Campaign Coach steps and CV scoring use Anthropic tool-use with `tool_choice: { type: 'tool', name: ... }` for guaranteed JSON shape
+- **Citations on a separate SSE channel** - model is told NOT to emit inline `[n]` markers or fenced citations blocks; `lib/parse-citations.ts` strips both as defence in depth
+- **Pre-flight triage** - `detectHardTriage` regex catches 7 categories of high-stakes input and short-circuits to a hardcoded handoff card without any LLM call
+- **Stream resilience** - withTimeout(60s), withHeartbeat(8s SSE pulses), stall watchdog with AbortController, empty-response recovery retry with flattened message history
+- **Progressive-degrade INSERTs** - across batch-handoff and prescreen responses POST, optional columns get stripped one-by-one if migrations aren't applied so the user flow always succeeds
+- **Backdrop close hook** - `components/recruit/useBackdropClose.ts` - only fires onClose when both mousedown AND mouseup land on the backdrop, so text selection drag-out doesn't close modals
+- **Two CV-import paths to Shortlist Agent**: batch creates a placeholder `prescreen_responses` row per CV with synthesised `cv-<id>@no-email.local` email; per-row "Send video interview invite" affordance updates the row with the real email, sends a per-response invite link with `?response=<id>`, and the candidate's submission UPSERTs (UPDATEs the placeholder by `response_id` instead of inserting a duplicate)
+
+### Compliance baseline shipped
+
+- `docs/AIA-TEMPLATE.md` + `docs/AIA-visual-telemetry.md` - Algorithmic Impact Assessment template and a completed assessment for Tier-2 visual telemetry
+- `docs/VENDOR-REGISTER.md` - sub-processor register (Anthropic, OpenAI, Cloudflare, Deepgram, Resend, Stripe, Supabase, Vercel) with per-vendor data flow, retention, training posture, DPA status, jurisdiction
+- `docs/AI-FAIRNESS-FAIR-WORK.md` - formal record of seven fairness mechanisms (CV blinding, prompt guardrails, FairnessChecks per row, override modal, name-probe counterfactual, removed DI dashboard, no-autonomous-adverse-action) and four open gaps
+- `docs/BODY-LANGUAGE-ROADMAP.md` - 3-tier roadmap, Tier 1 + 2 shipped, Tier 3 explicitly out of scope
+- Privacy + Terms pages at `app/privacy/page.tsx`, `app/privacy/request/page.tsx`, `app/terms/page.tsx`
+- Daily retention cron at `app/api/cron/retention-purge/route.ts` (80-day hard-delete + Cloudflare Stream cascade)
+- Security headers in `next.config.js` (HSTS + X-Frame-Options + Referrer-Policy + Permissions-Policy)
+- Consent metadata persisted on every prescreen submission (text + version + at + ip + user agent)
 
 ---
 
-## 3. Files created or modified (this session, after Phase 1 entry-gate work)
+## 3. Files created or modified (recent session)
 
-### New files
-- `app/api/campaign-coach/suggestions/route.ts` - industry-aware example generation + recent campaigns lookup
-- `app/api/telemetry/field-edit/route.ts` - capture endpoint for AI vs user-edited values
-- `app/api/telemetry/daily-digest/route.ts` - 06:00 AEST cron emails James + Rav a one-page digest
-- `app/api/cv-screening/counterfactual/route.ts` - re-scores a CV with different probe names to test name-driven bias
-- `app/api/cv-screening/handoff/route.ts` - generates targeted video questions, creates prescreen session, returns invite URL
-- `app/api/cv-screening/rubrics/route.ts` - persist custom rubrics
-- `app/api/cv-screening/score/route.ts` - score an uploaded CV against a rubric
-- `app/api/cv-screening/suggest-rubric/route.ts` - AI-suggested rubric from a JD
-- `app/api/cv-screening/report/route.ts` - branded DOCX export of one or more candidate scorecards
-- `app/dashboard/recruit/cv-screening/page.tsx` - CV Screening surface
-- `app/dashboard/recruit/shortlist/page.tsx` - the renamed Shortlist Agent surface (was `/dashboard/recruit`)
-- `components/chat/TopicPicker.tsx` - 2026-focused topic-tile empty-state for HQ People chat
-- `components/recruit/cv-screening/CvScreeningClient.tsx` + `CandidateScorecardPanel.tsx` + `NewRubricModal.tsx`
-- `lib/auth/roles.ts` + `lib/auth/feature-flags.ts` - role + flag helpers
-- `lib/cv-screening-types.ts` + `lib/cv-screening-rubrics.ts` - types and standard rubric library
-- `supabase/migrations/cv_screening.sql` + `cv_screening_custom_rubrics.sql` + `roles_and_telemetry.sql` + `rls_all_tables.sql` + `prescreen_recommendations.sql`
-- `docs/POST-DEMO-REPORT-NATHAN.md` - structured analysis of the developer walkthrough
-- `docs/PHASED-ROLLOUT-PLAN.md` - 7-week phased rollout plan
-- `docs/DECISION-LOG.md` - ratified decisions register + open-decisions workflow
-- `docs/PHASE-1-ENTRY-WORK.md` - tracked execution plan grouped A-E for Engineering and J1-J4 for James-action items
-- `docs/SUPABASE-SECURITY-REVIEW.md` - 11 expected Critical alerts + remediation + 13-item Phase 2 RLS checklist + R1-R13 risk register
-- `docs/JOB-BOARD-INTEGRATION-RESEARCH.md` - SEEK / LinkedIn / Indeed / Jora paths with v1-v3 phasing
-- `docs/CRON-SECRET-SETUP.md` - 5-min Vercel env var setup guide
-- `docs/AUTH-EMAIL-SMTP-SETUP.md` - Resend SMTP + Supabase URL config + email template rewrites
-- `docs/CV-SCREENING-RESEARCH.md` - 22-source research report on AI CV screening
-- `docs/DEV-HANDOFF.md` - briefing for Nathan
-- `docs/CHAT-ARCHITECTURE-V2.md` + `docs/CHAT-V2-IMPLEMENTATION.md` - strategic chat redesign
-- `docs/AUDIT-MIGRATION-RUNBOOK.md` + `docs/AUDIT-MIGRATION-BEGINNER.md` - humanistiqs-audits Supabase migration
+### New routes / endpoints
 
-### Modified files (recent batches)
-- `app/api/chat/route.ts` - hard timeouts, AbortController on streaming, telemetry insert, triage short-circuit
-- `app/api/prescreen/sessions/[id]/invite/route.ts` - accepts custom subject + body for templated email
-- `app/api/prescreen/responses/[id]/score/route.ts` - persists `recommendation_action` + `recommendation_rationale`
-- `app/auth/callback/route.ts` - handles both `?code=` and `?token_hash=` magic-link flows
-- `app/dashboard/layout.tsx` - threads role + flagMap to sidebar
-- `app/dashboard/recruit/page.tsx` - hub with three tiles
-- `app/login/page.tsx` - magic-link `emailRedirectTo`, sentToEmail cached separately, "Use a different email" link
-- `components/chat/ChatInterface.tsx` - TopicPicker integration, "Continue talking with the AI Advisor" copy
-- `components/chat/MessageCitations.tsx` - includes the legal-advice disclaimer in small text
-- `components/recruit/RoleDetail.tsx` - templated email modal, anonymise hides videos
-- `components/recruit/RoleDetailParts.tsx` - AI Recommendation pill + rationale in scorecard
-- `components/recruit/ResponsesKanban.tsx` - Video Interview tile in stage order
-- `components/recruit/RecruitDashboard.tsx` - heading style matched to Campaign Coach + CV Screening
-- `components/recruit/campaign-coach/Step1Brief.tsx` - smaller textarea, fetches from `/api/campaign-coach/suggestions`, Recent Campaigns section
-- `components/recruit/campaign-coach/Step2Extract.tsx` - "Remove from campaign" link on the award listing
-- `components/recruit/campaign-coach/WizardShell.tsx` - field-edit telemetry capture on Step 2 confirm
-- `components/recruit/campaign-coach/wizard-state.ts` - `role_profile_initial` snapshot
-- `components/sidebar/Sidebar.tsx` - role + flag-driven dropdown gating, read-only watermark, "AI Advisor" + "Shortlist Agent" labels
-- `components/layout/MobileShell.tsx` - role + flags propagated through
-- `lib/auth/roles.ts` + `lib/auth/feature-flags.ts` - new
-- `lib/claude-scoring.ts` - schema produces `recommendation_action` + `recommendation_rationale`, fallback derives from average score
-- `lib/email.ts` - `buildInviteEmailDefaults()` + `customSubject`/`customBody` parameters
-- `lib/parse-citations.ts` - drops fenced `citations` block, strips inline `[n]` markers
-- `lib/prompts.ts` - tightened scope + Australian English block + triage detection + naming discipline
-- `lib/recruit-types.ts` - `RecommendationAction` type, `video_interview` stage
-- `vercel.json` - cron schedule for daily-digest
+- `app/api/cv-screening/batch-handoff/route.ts` - one Shortlist role from many CVs; progressive-degrade insert with placeholder email fallback (RFC 6762 `.local`)
+- `app/api/cv-screening/screenings/[id]/route.ts` - manual override PATCH (band, next-action, comment)
+- `app/api/cv-screening/rubrics/[id]/route.ts` - PATCH/DELETE for custom rubrics
+- `app/api/cv-screening/rubrics/[id]/version/route.ts` - version-bump on criteria edit
+- `app/api/recruit/candidate-summary/route.ts` - combined CV + video summary; zip for multi
+- `app/api/recruit/[session_id]/phone-screen/route.ts` - phone-call audio submission
+- `app/api/recruit/[session_id]/phone-screen/[response_id]/score/route.ts` - transcribe + score phone audio
+- `app/api/conversations/[id]/route.ts` - PATCH (rename) / DELETE chat history
+- `app/api/privacy/request/route.ts` - APP 12/13 data-subject request intake
+- `app/api/cron/retention-purge/route.ts` - daily 80-day retention purge
+- `app/api/prescreen/responses/[id]/invite/route.ts` - **NEW**: per-row video invite for CV-imported placeholders; embeds `?response=<id>` in the email link
+
+### Modified UI / business logic
+
+- `app/api/chat/route.ts` - forced search_knowledge on iter 0, empty-response recovery, startup heartbeat, drop `tools` from streaming turn
+- `app/api/prescreen/sessions/[id]/responses/route.ts` - **MODIFIED**: now UPSERTs by `response_id` in body (CV-import flow), then falls back to INSERT
+- `app/prescreen/[id]/page.tsx` - **MODIFIED**: reads `?response=` and forwards it on submit
+- `app/dashboard/recruit/cv-screening/page.tsx` - renamed to "CV Scoring Agent"
+- `app/dashboard/recruit/shortlist/page.tsx` - Shortlist Agent uses RecruitDashboard
+- `components/sidebar/Sidebar.tsx` - **MODIFIED**: HQ.ai logo moved from top to just above the advisor-support footer; new collapsible "Tools" parent wrapping Compliance / Leadership / Business
+- `components/recruit/RecruitDashboard.tsx` - reads `?session=` on mount for auto-select
+- `components/recruit/RoleDetail.tsx` - **MODIFIED**: per-row "Send video interview invite" affordance for CV-imported placeholder rows; "Awaiting video" pill replaces status pill for those rows; mobile header restructured to stack vertically
+- `components/recruit/PhoneRecorder.tsx` - speakerphone setup tip
+- `components/recruit/ReviewerDiagnosticsPanel.tsx` - Tier-2 visual diagnostics display, blue accent, "Diagnostic only" badge
+- `components/recruit/SpeechAnalysisPanel.tsx` - Tier-1 multi-signal speech display
+- `components/recruit/useBackdropClose.ts` - shared modal backdrop hook
+- `components/recruit/cv-screening/CvScreeningClient.tsx` - two-panel layout, Saved Scoring Criteria + Starter library groups, How-the-agent-works info card replacing DI dashboard
+- `components/recruit/cv-screening/EditRubricModal.tsx` - jargon-free rewrite (no more "hard-gate" / "snake_case" / decimal weights)
+- `components/recruit/cv-screening/OverrideModal.tsx` - band + next-step + comment override
+- `components/recruit/cv-screening/NewRubricModal.tsx` - AI-generated rubric from job ad
+- `components/prescreen/CandidateGate.tsx` - consent v2 covering Deepgram + Anthropic + Cloudflare + visual diagnostics
+- `components/prescreen/RecordingFlow.tsx` - Tier-2 visual sampler integration, Tier-1 multi-signal speech, "see myself" toggle
+- `components/recruit/campaign-coach/Step1Brief.tsx` - "Common Roles" removed; Recent Campaigns card library only
+
+### New library code
+
+- `lib/visual-telemetry.ts` - MediaPipe FaceLandmarker wrapper, VisualSampler class, aggregate + rollUp helpers
+- `lib/confidence.ts` - `computeConfidence` (legacy) + `analyseSpeech` (Tier-1 multi-signal) + `analyseSpeechForQuestion`
+
+### Migrations (pending application on Supabase, in this order)
+
+1. `roles_and_telemetry.sql` - role enum + chat_audit_log + chat_telemetry
+2. `phone_screen_support.sql` - response_type + audio_path + audio_duration_sec on prescreen_responses
+3. `prescreen_responses_consent_meta.sql` - consent_text + consent_version + consent_at + consent_ip + consent_user_agent
+4. `prescreen_responses_cv_link.sql` - cv_screening_id FK on prescreen_responses
+5. `cv_screenings_link_prescreen.sql` - prescreen_session_id FK on cv_screenings
+6. `cv_screenings_manual_override.sql` - override_band + override_next_action + override_comment
+7. `cv_custom_rubrics_versioning.sql` - parent_rubric_id + version_number + label_family
+8. `visual_diagnostics_column.sql` - visual_diagnostics jsonb on prescreen_responses
+9. `privacy_requests_table.sql` - APP 12/13 request audit log
+10. `rls_all_tables.sql` - core RLS policies (originally written; some bug-fixes were merged into the next file)
+11. `rls_extend_prescreen_and_core.sql` - **RECENTLY REWRITTEN**: now uses `created_by → profiles.business_id` joins instead of a direct `business_id` lookup. The prior version failed in production with `column "business_id" does not exist`
 
 ### Recent commits (newest first)
+
 ```
-3495f7d feat(coach): industry-aware example generation + recent campaigns reuse panel
-aa5a4b3 fix(coach): stagger Step 1 coach intro messages so they don't fire simultaneously
-0f0ccfd feat: AI recommendation, templated invite email, Step 1 polish, branded URL fallback
-a5e2ebe docs(research): job board integration paths for SEEK/LinkedIn/Indeed/Jora
-c1ae19b feat: chat topic picker + login fixes + advisor naming + anonymise hides videos
-4be0502 chore: remove stray empty files from batch commit
-78db3dd fix: post-J1-J4 batch - login UI, magic link, recruit landing, sidebar, kanban, RLS fix
-2cebf0c docs: add job board integration research
-463548b chore: remove stray empty files
-afe3b39 feat: Phase 1 entry-gate work - roles, telemetry, RLS draft, magic-link fix
-84c15e4 docs(security): supabase critical-alert review and remediation guide
-e981ff3 docs: ratify all 14 Nathan-fix decisions + Phase 1 entry-gate work plan
-d676133 docs: decision log with 8 ratified entries + 14 open Nathan-fix decisions for review
-adf099b docs: add phased rollout plan and Nathan post-demo report
+bab69b1 fix(recruit): scoring criteria rename, CV transfer fix, modal selection, mobile, edit modal simplification
+f5518ca feat(visual-telemetry): Tier 2 reviewer-only visual diagnostics via MediaPipe
+09a50e0 feat(speech): Tier 1 multidimensional speech analysis
+484eafb feat(shortlist): show confidence indicator on existing video reviews
+a3e0336 fix(phone-recorder): add speakerphone setup tip in the pre-record steps
+a92d2cf feat(recruit): phone-screen workflow, interview-type selector, video UX rework
+2188191 fix(rls + onboarding): RLS migration column error + employment-types multi-select + AI Advisor naming clarity
+476c6e9 feat(compliance): privacy/terms pages, consent capture, RLS extension, retention cron, vendor register
+74cc252 fix(recruit): candidates now flow through to Shortlist on Send + rename to CV Scoring Agent
+d16cfe9 hotfix(chat): recover from empty iter-1 stream + heartbeat during streaming
+a807c56 hotfix(chat): restore HR/awards/Fair Work answers - revert tool_choice 'any'
 ```
 
 ---
@@ -160,128 +166,143 @@ adf099b docs: add phased rollout plan and Nathan post-demo report
 ## 4. Current state
 
 ### Working
-- Auth (login, signup, magic link callback handling both flows)
-- HQ People chat with TopicPicker empty state, triage card, escalation card, citations rendering, document detection - **but see "Broken" below for current timeouts**
-- HQ Recruit hub page with three tiles
-- Campaign Coach 5-step wizard end to end
-- CV Screening end to end including custom rubric creation, scorecard with evidence, counterfactual probe, video pre-screen handoff, candidate summary report DOCX export
-- Shortlist Agent (renamed from Video Pre-screen) - role creation, candidate invites with templated email modal, video responses via Cloudflare Stream, AI scoring with rubric, AI Recommendation card with rationale
-- Anonymise toggle hides videos until reviewer turns it off
-- Sidebar gates Compliance / Leadership / Business dropdowns based on role + feature flags
-- Read-only watermark renders for `test_admin` role
-- Daily telemetry digest cron at 06:00 AEST (requires `CRON_SECRET` env var on Vercel)
-- Per-turn telemetry to `chat_telemetry` table on every chat request
-- Field-edit telemetry on Campaign Coach Step 2 confirm
 
-### Broken (needs immediate attention)
-- **HQ People chat timing out on basic questions** (regression - see Section 5 for investigation steps)
-- **Chat history not saving to homepage** - the dashboard "Recent conversations" panel at `app/dashboard/page.tsx` queries the conversations table but is not showing recent chats; needs investigation of conversation_id wiring + business_id association
-- **Common roles in [industry] examples** - Step 1 Campaign Coach is still showing irrelevant roles (Site Manager / barista mix) despite the new `/api/campaign-coach/suggestions` endpoint shipping. Likely either: (a) the route is failing silently and falling back to PLACEHOLDER_EXAMPLES, (b) Trowse Constructions' business profile lacks `industry` field and the inference is also failing, or (c) the suggestions response is cached/stale
-- **Magic link email-sent confirmation may still show empty email** in some cases despite `sentToEmail` state cache - needs verification post-deploy
+- Auth (login, signup, magic link callback handling both flows)
+- HQ People chat (forced search_knowledge on iter 0, drops tools on streaming turn, recovery retry, startup heartbeat) - confirmed working on Q1 (annual leave) and post-fix on Q2/Q3 with the empty-response recovery
+- HQ Recruit hub with three tiles
+- Campaign Coach 5-step wizard end to end - Step 1 now uses Recent Campaigns only, no Common Roles
+- CV Scoring Agent: two-panel layout, criteria left, candidates right; drop-CV upload, blind-by-default scoring, per-criterion evidence quotes, manual override modal, Comments column, candidate scorecard with Run Name Probe, batch send to Shortlist, multi-candidate zipped DOCX, "+ Save to mine" on starter library rows, version-aware criteria editor
+- Shortlist Agent: ProcessFlowTracker per role, video AND phone interview tracks, per-question recording with see-yourself toggle, replay limit, transcript on right, Tier-1 + Tier-2 reviewer signals, CV-imported placeholder rows with **"Awaiting video"** pill and inline "Send video interview invite" affordance
+- Privacy + Terms pages, consent capture with evidentiary metadata
+- Daily retention cron at 03:00 UTC (Vercel)
+- Sidebar: HQ.ai logo positioned between Settings and the support footer; Tools is now a single collapsible parent
+
+### Broken / pending verification
+
+- **Migrations 8 (`visual_diagnostics_column.sql`), 11 (`rls_extend_prescreen_and_core.sql`) and several earlier ones are NOT confirmed applied on Supabase.** The progressive-degrade INSERT pattern means submission still works without them, but features dependent on those columns (visual diagnostics display, cv_screening_id linking, tenant isolation) will silently degrade until applied. **User should apply staging → smoke test → prod, in the order listed above.**
+- **CV transfer to Shortlist** - root cause was identified as `candidate_email` NOT NULL with no placeholder fallback. Fix shipped in `bab69b1` - synthesised `cv-<id>@no-email.local` placeholder + improved error logging. **Needs user verification with a fresh batch handoff.**
+- **Video upsert on submission for invited CV-imports** - just shipped this session. **NOT YET TESTED end-to-end.** Path is: per-row invite → email link with `?response=<id>` → candidate completes prescreen → POST upserts on response_id match. If the upsert fails, the route falls back to INSERT (creating a duplicate), so worst case is duplicate rows, not data loss.
 
 ### Pending James-action items (cannot be automated)
-- **J1** - Anthropic monthly cap $100 + alert at $80 (Anthropic console)
-- **J2** - Generate `hqai-staging` Anthropic API key, add to Vercel Preview env as `ANTHROPIC_API_KEY_STAGING`
-- **J3** - Resend SMTP custom config + email template rewrites in Supabase Auth (per `docs/AUTH-EMAIL-SMTP-SETUP.md`) - **deprioritised** per user note (domains technically different, will sort later)
-- **J4** - Verify Supabase Site URL + Redirect URLs allow-list, test magic link in incognito
-- **CRON_SECRET** - generate random string, add to Vercel env, redeploy (per `docs/CRON-SECRET-SETUP.md`)
-- **Custom domain** - point `humanistiqs.ai` at Vercel deployment so the new fallback URL resolves
-- **Apply migrations on Supabase**: `roles_and_telemetry.sql`, `prescreen_recommendations.sql`, `rls_all_tables.sql` (staging only - production is the Phase 2 entry gate)
+
+- **Apply migrations on Supabase staging then prod** (see the ordered list in Section 3)
+- Sign + file DPAs with Anthropic, OpenAI, Deepgram, Cloudflare, Resend, Stripe, Supabase, Vercel - checklist in `docs/VENDOR-REGISTER.md`
+- Engage a penetration tester before broad commercial launch
+- Provision a separate `hqai-staging` Supabase project + Anthropic staging key
+- Run a Supabase backup restore drill into a branch + document RTO/RPO
+- Decide on EU / US scope (GDPR, EU AI Act, Colorado / Illinois / NYC AI hiring laws)
+- Custom domain - point `humanistiqs.ai` at Vercel deployment
+- Cyber insurance review + policy uplift for AI + recruitment SaaS data
 
 ---
 
 ## 5. Next immediate steps
 
-### From the user's explicit list
-1. **Fix Common roles in [industry] showing irrelevant roles in Campaign Coach** - investigate `/api/campaign-coach/suggestions` end-to-end. Test with Trowse Constructions' actual profile. Check whether `business.industry` is set in their `businesses` row. If empty, the inference Claude call should run; verify it does and isn't timing out (8s ceiling). Consider lowering the inference timeout fallback to use a synchronous keyword-fuzzy match against business.name as a third tier so users always get something contextual even when Claude inference fails. Also confirm the frontend isn't caching the stale industry from the wizard `business` prop instead of using the API response.
-2. **Remove the Scheduling container from Settings completely** - `app/dashboard/settings/page.tsx`, find the Calendly / advisor-booking section, delete the container + any related state.
-3. **Adjust the HQ People chat guiding text** - keep it short but reword to actively guide the client toward giving the chatbot the inputs it needs to respond well (e.g. "Tell me the specific situation, who's involved, and what you've tried so far"). Currently in `components/chat/TopicPicker.tsx` (the greeting + sub-text) and `components/chat/ChatInterface.tsx` (the assistant's first response context).
-4. **Chat history rework on homepage + chat page UI**:
-   - Investigate why chat history is not saving to the homepage Recent Conversations panel
-   - Change "HQ People" heading on the chat page to "AI Advisor"
-   - Replace "HR compliance & advisory" subtitle with the client's business name
-   - Replace the current top-right client name with a "Chat History" button
-   - Build an expandable/collapsable right-hand sidebar (3/4 the width of the left sidebar) that shows the chat history
-5. **Chat timing out on basic questions** - investigate the regression. The chat was working post-Phase-1 fixes but is now timing out again. Spawn a researcher or system-architect to trace through `app/api/chat/route.ts`, `lib/chat-tools.ts`, `lib/rag.ts`, and the SSE consumer in `components/chat/ChatInterface.tsx`. Likely suspects: telemetry insert blocking the after() handler, the new `chat_telemetry` table missing causing the after() to throw silently, or the prompt-rewrite token bloat returning. Check Vercel function logs first.
+In rough priority order:
 
-### Other in-flight work to consider
-- Apply RLS dress rehearsal on staging Supabase (D8). The user already corrected the `ps.business_id` SQL error - file is good.
-- Consider whether the magic-link email shows the correct email address now (should be fixed via `sentToEmail` state cache, but worth verifying with a fresh incognito window).
-- The `/api/cv-screening/report` endpoint accepts inline screening payloads - good to know if RLS turns out to break the DB lookup path.
-- Job board integration v1 (Indeed + Jora XML feed, ~9-13 eng days) is the next big feature investment per `docs/JOB-BOARD-INTEGRATION-RESEARCH.md` - hold until Phase 1 internal testing concludes.
+1. **Smoke-test CV transfer to Shortlist Agent end-to-end** with a real batch of CV-scored candidates. Verify candidates appear in the new role with the "Awaiting video" pill. If still broken, check Vercel function logs for `[batch-handoff]` lines (full Postgres error is logged now).
+
+2. **Smoke-test the per-row video invite flow** that just shipped:
+   - Send to Shortlist Agent with 2-3 CVs that have placeholder emails
+   - On each row, click "Send video interview invite" and enter a real email (use a personal address to test)
+   - Confirm the invite email arrives with a unique link containing `?response=<id>`
+   - Open the link in incognito and complete the prescreen
+   - Confirm the candidate's video replaces the placeholder on the original row (not a new duplicate row)
+
+3. **Apply pending migrations on Supabase** (staging first, smoke-test cross-tenant isolation with two business accounts, then prod). Critical ones to land for the Shortlist Agent UX to fully work: `prescreen_responses_cv_link.sql`, `visual_diagnostics_column.sql`, `rls_extend_prescreen_and_core.sql`.
+
+4. **Decide on the Stripe checkout flow** - currently the portal is wired but no checkout endpoint exists. This is the next material commercial work.
+
+5. **Apply for the custom domain** - users see `hqai.vercel.app` everywhere; emails reference `humanistiqs.ai`. Pointing the domain ahead of broader testing is a small but visible polish.
+
+6. **Pen test engagement** - $3-8k budget, scope to application + auth + access controls + file handling (per the security checklist).
 
 ---
 
-## 6. Unresolved bugs
+## 6. Unresolved bugs / risks
 
-| # | Bug | Severity | Notes |
+| # | Bug / risk | Severity | Notes |
 |---|---|---|---|
-| 1 | HQ People chat timing out on basic questions (regression) | High | Was working post-Phase-1 fixes; broken again now. Section 5 #5 investigation. |
-| 2 | Common roles in [industry] showing irrelevant roles in Campaign Coach | High | Suggests `/api/campaign-coach/suggestions` is failing to populate or frontend isn't using it. Section 5 #1. |
-| 3 | Chat history not surfacing on homepage Recent Conversations panel | High | Conversations may not be persisting with business_id, OR the dashboard query is wrong. Section 5 #4. |
-| 4 | RLS `column ps.business_id does not exist` (already fixed by user editing the SQL file - verify by re-running on staging) | Medium-fixed | The user corrected the SQL to use the `created_by → profiles.business_id` chain. Verify on staging. |
-| 5 | Chat magic-link confirmation may render empty email in some browsers | Low | Should be fixed via `sentToEmail` state cache (commit `c1ae19b`). Verify post-deploy. |
-| 6 | Anthropic-billed transactional emails still come from Supabase noreply, not `hq.ai@humanistiqs.com.au` | Low (deprioritised) | J3 SMTP setup deprioritised per user; will revisit when domain situation resolved. |
-| 7 | Pre-existing TS errors in `supabase/functions/send-email/index.ts` (Deno imports) and one stale `@ts-expect-error` in `RoleDetail.tsx` | Cosmetic | Project ignores TS errors in build via `next.config.js`. Won't block deploy. |
-| 8 | Stray empty files keep appearing in commits (`0`, `Logs\``, `state.block_states[k]`, `'`, `({`, `SOFT_BUDGET_MS`, `b.type`, `,`, `Replace`, `Team`) | Cosmetic | Cleaned up each time. Likely an environment artefact when the shell parses heredocs or special chars. |
+| 1 | CV → Shortlist transfer needs verification | Medium | Root cause identified + fix shipped (`bab69b1`); confirm in production |
+| 2 | Per-row video invite UPSERT path is untested in production | Medium | Just shipped; the upsert path is gated by response_id match and falls back to INSERT, so worst case is duplicate rows |
+| 3 | RLS migrations not confirmed applied | High (post-prod) | The product runs with RLS off in places - documented in CLAUDE.md. Apply before any external client |
+| 4 | Empty-handler text on rare Anthropic stream pattern | Low | Mitigated by recovery retry + explicit error event; if it recurs, the stop_reason is now logged so we can target the next failure mode |
+| 5 | Pre-existing TS errors in `supabase/functions/send-email/index.ts` (Deno) and a stale `@ts-expect-error` in `RoleDetail.tsx` | Cosmetic | Build allows them via `ignoreBuildErrors: true` |
+| 6 | Stray empty files from heredoc parsing (`b.type`, `,`, `3`, etc.) keep appearing in the working tree | Cosmetic | Untracked; safe to delete |
+| 7 | `prescreen_responses` does not have columns `rubric_scores`, `overall_score`, `recommendation_action`, `recommendation_rationale` - those live on `prescreen_evaluations`. Progressive-degrade handles this but the optimal long-term move is to write evaluations to the correct table | Tech debt | Not breaking flow today |
 
 ---
 
 ## 7. Seed prompt for the new chat
 
-Paste this into the new chat to instantly catch up:
+Paste this into the new chat to catch the next session up instantly:
 
 ```
 HQ.ai handoff. I'm Jimmy Rayner, founder. Read docs/handoff.md in the
-repo first - it's a complete state-of-play. Repo is at
+repo first - it's the full state-of-play. Repo at
 C:\Users\JamesRayner\.claude\projects\C--Users-JamesRayner-hqai\hqai
 on Windows, GitHub https://github.com/jraynerhumanistiqs/hqai.
 
-Standing rules (saved in your global memory, but reinforce them):
-1. Don't ask permission for anything - just progress. Pause only for
-   genuine multi-option decisions where you can't reasonably pick.
+Standing rules:
+1. Don't ask permission - just progress. Pause only for genuine
+   multi-option decisions you can't reasonably pick.
 2. Plain hyphens only in UI copy - no em-dashes or en-dashes.
-3. Australian English everywhere (organise, behaviour, optimise, etc).
+3. Australian English everywhere (organise, behaviour, optimise).
 4. Self-verify your work end-to-end before returning control to me.
    Don't ship-and-hope.
 
 Immediate priorities (in order):
-1. HQ People chat is timing out again on basic questions - investigate
-   the regression. Likely the chat_telemetry table missing causes the
-   after() handler to throw, or prompt token bloat is back.
-2. Common roles in [industry] in Campaign Coach Step 1 still showing
-   irrelevant roles despite the new /api/campaign-coach/suggestions
-   route. Trace why - probably either business.industry is missing in
-   the DB row, the inference is timing out, or the frontend is using
-   the wizard's business prop instead of the API response.
-3. Chat history not saving to the dashboard homepage Recent
-   Conversations panel - investigate.
-4. Rework the AI Advisor chat header: change 'HQ People' to
-   'AI Advisor', replace 'HR compliance & advisory' with the client's
-   business name, replace top-right client name with a 'Chat History'
-   button that opens an expandable right-hand sidebar (3/4 width of
-   left sidebar).
-5. Tighten the HQ People chat guiding text to actively prompt the
-   user to share situation/who's involved/what they've tried.
-6. Remove the Scheduling container from Settings completely.
+1. Smoke-test the CV-to-Shortlist transfer + the new per-row video
+   invite flow. The per-row invite shipped this session but is
+   UNTESTED in production. Path: Send to Shortlist Agent ->
+   per-row "Send video interview invite" -> email link with
+   ?response=<id> -> candidate completes prescreen -> response
+   UPSERTs the placeholder by response_id (instead of inserting a
+   duplicate).
+2. Confirm which Supabase migrations are applied. The most critical
+   pending: prescreen_responses_cv_link.sql, visual_diagnostics_column.sql,
+   rls_extend_prescreen_and_core.sql (this one was rewritten to use
+   created_by joins instead of a non-existent business_id column).
+3. Next material commercial work is the Stripe checkout flow -
+   portal is wired, checkout endpoint doesn't exist yet.
 
 Tech stack: Next.js 16 App Router, TypeScript, Tailwind v3, Supabase
-(RLS deferred to Phase 2), Anthropic Claude sonnet 4, Cloudflare
-Stream, Deepgram, Resend, Stripe, Vercel Pro.
+(RLS partially applied - see handoff.md), Anthropic Claude sonnet-4,
+Cloudflare Stream, Deepgram, MediaPipe Tasks Vision, Resend, Stripe.
 
 Roles: owner = James only, test_admin = 4 directors (read-only),
 member = clients. Feature flags hide Compliance / Leadership /
-Business modules from members.
+Business modules from members. Sidebar's Tools section is now a
+single collapsible parent wrapping those three.
 
-Live URL is https://hqai.vercel.app. Branded URL fallback is
-https://www.humanistiqs.ai but custom domain still needs to be
-pointed at Vercel.
+CV Scoring Agent: structured criteria scoring with blind-by-default,
+manual override + Comments column, batch "Send to Shortlist Agent"
+that creates a Shortlist role with placeholder rows per CV. The
+placeholder rows have synthetic email cv-<id>@no-email.local and
+show an "Awaiting video" pill. Recruiters click "Send video
+interview invite" per row to email the candidate; their submission
+UPSERTs the placeholder (not inserts a duplicate).
 
-Don't replicate any of the standing decision work in the
-DECISION-LOG, PHASE-1-ENTRY-WORK, PHASED-ROLLOUT-PLAN docs - just
+Shortlist Agent: video AND phone interview tracks under the same
+scoring rubric, per-question recording with see-yourself toggle and
+replay limit, Tier-1 multi-signal speech analysis + Tier-2 reviewer
+visual telemetry (MediaPipe, browser-only, never feeds AI scorer -
+see docs/AIA-visual-telemetry.md).
+
+Compliance docs to maintain: docs/VENDOR-REGISTER.md,
+docs/AI-FAIRNESS-FAIR-WORK.md, docs/AIA-TEMPLATE.md,
+docs/BODY-LANGUAGE-ROADMAP.md. Privacy + Terms pages live at
+/privacy and /terms.
+
+Live URL https://hqai.vercel.app. Branded URL fallback
+https://www.humanistiqs.ai (custom domain still needs to be pointed
+at Vercel).
+
+Don't replicate prior decision work in docs/DECISION-LOG.md,
+docs/PHASE-1-ENTRY-WORK.md, docs/PHASED-ROLLOUT-PLAN.md - just
 execute against them.
 ```
 
 ---
 
-End of handoff. The handoff lives at `docs/handoff.md` per project convention.
+End of handoff. The seed prompt above goes in the new chat. Everything else lives in `docs/handoff.md` for context recovery.

@@ -98,6 +98,49 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [sendingInvite, setSendingInvite] = useState(false)
   const [inviteSent, setInviteSent]       = useState(false)
 
+  // Per-row invite state. Used for CV-imported candidates (video_ids
+  // empty, placeholder email like cv-*@no-email.local) - the recruiter
+  // opens an inline form on the row, supplies the candidate's real
+  // email + name, and we POST /api/prescreen/responses/[id]/invite which
+  // updates the row + emails an invite link with ?response= so the
+  // submission updates the placeholder in place.
+  const [rowInviteFor, setRowInviteFor]   = useState<string | null>(null)
+  const [rowInviteEmail, setRowInviteEmail] = useState('')
+  const [rowInviteName, setRowInviteName] = useState('')
+  const [rowInviteBusy, setRowInviteBusy] = useState(false)
+  const [rowInviteSentFor, setRowInviteSentFor] = useState<string | null>(null)
+  const [rowInviteError, setRowInviteError] = useState<string | null>(null)
+
+  async function sendRowInvite(responseId: string) {
+    const email = rowInviteEmail.trim()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRowInviteError('Please enter a valid email address.')
+      return
+    }
+    setRowInviteBusy(true)
+    setRowInviteError(null)
+    try {
+      const res = await fetch(`/api/prescreen/responses/${responseId}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidate_email: email, candidate_name: rowInviteName.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      setRowInviteSentFor(responseId)
+      setRowInviteFor(null)
+      setRowInviteEmail('')
+      setRowInviteName('')
+      // Optimistic local update so the row shows the real email and
+      // the recruiter can see invite-sent state without a reload.
+      onPatchResponse(responseId, { candidate_email: email, candidate_name: rowInviteName.trim() || undefined })
+      window.setTimeout(() => setRowInviteSentFor(null), 4000)
+    } catch (err) {
+      setRowInviteError(err instanceof Error ? err.message : 'Could not send')
+    }
+    setRowInviteBusy(false)
+  }
+
   const [editingSlug, setEditingSlug]   = useState(false)
   const [slugDraft, setSlugDraft]       = useState('')
   const [slugSaving, setSlugSaving]     = useState(false)
@@ -823,6 +866,15 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   const name = displayNameFor(r)
                   const checked = selectedIds.has(r.id)
                   const disabled = !checked && selectedIds.size >= 4
+                  // CV-imported placeholder rows have an empty video_ids
+                  // array AND a synthetic email like cv-*@no-email.local
+                  // (assigned by batch-handoff). Surface a "Send video
+                  // invite" affordance for these rows so the recruiter
+                  // can email the candidate the prescreen link.
+                  const videoCount = Array.isArray(r.video_ids) ? r.video_ids.filter(Boolean).length : 0
+                  const isCvImport = videoCount === 0 && /@no-email\.local$/i.test(r.candidate_email ?? '')
+                  const inviteOpen = rowInviteFor === r.id
+                  const inviteSentForRow = rowInviteSentFor === r.id
 
                   return (
                     <div key={r.id}>
@@ -859,15 +911,102 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             {r.rating !== null && r.rating !== undefined && (
                               <span className="text-xs font-bold text-warning">{r.rating}/5</span>
                             )}
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${pillCls}`}>
-                              {statusLabel}
-                            </span>
+                            {isCvImport && (
+                              <span className="text-[10px] font-bold uppercase tracking-wider bg-warning/15 text-warning rounded-full px-2 py-0.5 whitespace-nowrap">
+                                Awaiting video
+                              </span>
+                            )}
+                            {!isCvImport && (
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${pillCls}`}>
+                                {statusLabel}
+                              </span>
+                            )}
                             <svg className={`w-4 h-4 text-mid transition-transform ${expanded === r.id ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
                             </svg>
                           </div>
                         </button>
                       </div>
+
+                      {/* CV-imported invite affordance - inline form just
+                          under the row header. Visible only on rows
+                          where we're awaiting a video response from a
+                          candidate imported via batch-handoff. */}
+                      {isCvImport && !inviteOpen && !inviteSentForRow && (
+                        <div className="px-5 pb-3 -mt-1">
+                          <button
+                            onClick={() => {
+                              setRowInviteFor(r.id)
+                              setRowInviteEmail('')
+                              setRowInviteName(r.candidate_name ?? '')
+                              setRowInviteError(null)
+                            }}
+                            className="text-xs font-bold text-charcoal hover:text-black inline-flex items-center gap-1.5 bg-white border border-border rounded-full px-3 py-1.5 hover:bg-light transition-colors"
+                          >
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                            </svg>
+                            Send video interview invite
+                          </button>
+                        </div>
+                      )}
+                      {inviteOpen && (
+                        <div className="px-5 pb-4 -mt-1 bg-bg/40 border-t border-border">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted mt-3 mb-2">
+                            Send video interview link to {r.candidate_name || 'this candidate'}
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                            <input
+                              type="text"
+                              value={rowInviteName}
+                              onChange={e => setRowInviteName(e.target.value)}
+                              placeholder="Candidate full name"
+                              className="text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
+                            />
+                            <input
+                              type="email"
+                              autoFocus
+                              value={rowInviteEmail}
+                              onChange={e => setRowInviteEmail(e.target.value)}
+                              placeholder="candidate@example.com"
+                              className="text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
+                              onKeyDown={e => { if (e.key === 'Enter' && !rowInviteBusy) sendRowInvite(r.id) }}
+                            />
+                          </div>
+                          {rowInviteError && (
+                            <p className="text-xs text-danger mb-2">{rowInviteError}</p>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => sendRowInvite(r.id)}
+                              disabled={rowInviteBusy || !rowInviteEmail.trim()}
+                              className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
+                            >
+                              {rowInviteBusy ? 'Sending...' : 'Send invite email'}
+                            </button>
+                            <button
+                              onClick={() => { setRowInviteFor(null); setRowInviteError(null) }}
+                              className="text-xs font-bold text-mid hover:text-charcoal px-2 py-1.5"
+                            >
+                              Cancel
+                            </button>
+                            <p className="text-[10px] text-muted ml-auto leading-tight">
+                              The candidate will receive an email with a unique link. When they submit, their video replaces the placeholder on this row.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {inviteSentForRow && (
+                        <div className="px-5 pb-3 -mt-1">
+                          <p className="text-xs font-bold text-success inline-flex items-center gap-1.5">
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                            </svg>
+                            Invite sent. The candidate&apos;s video will appear here when they complete the pre-screen.
+                          </p>
+                        </div>
+                      )}
 
                       {expanded === r.id && (
                         <div className="border-t border-border bg-bg px-5 py-5 space-y-5">

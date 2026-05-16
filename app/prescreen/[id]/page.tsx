@@ -2,7 +2,7 @@
 // Public route - no authentication required.
 // Candidates record video answers to pre-screen questions in their browser.
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import type { PrescreenSession } from '@/lib/recruit-types'
 import { CandidateGate }   from '@/components/prescreen/CandidateGate'
@@ -13,6 +13,11 @@ type Stage = 'loading' | 'error' | 'gate' | 'recording' | 'done'
 
 export default function PrescreenPage() {
   const { id } = useParams<{ id: string }>()
+  // Per-row invite links include ?response=<placeholder_id> so on submit
+  // we can update the existing placeholder row (set by the CV-import
+  // batch-handoff) instead of inserting a duplicate.
+  const searchParams = useSearchParams()
+  const responseId = searchParams?.get('response') ?? null
   const [stage, setStage]     = useState<Stage>('loading')
   const [session, setSession] = useState<PrescreenSession | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
@@ -54,6 +59,9 @@ export default function PrescreenPage() {
           // Reviewer-only visual diagnostics. NEVER read by the AI
           // scoring pipeline - see docs/AIA-visual-telemetry.md.
           visual_diagnostics: extras?.visual_diagnostics ?? null,
+          // Pass the placeholder row id (when present) so the API
+          // updates the existing row instead of inserting a duplicate.
+          response_id: responseId,
         }),
       })
       if (!res.ok) {
