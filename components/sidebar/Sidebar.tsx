@@ -365,29 +365,23 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Recruitment-tools section removed - Shortlist Agent lives in HQ Recruit
             already, and Candidate Screening + Campaign Coach were moved into the
-            HQ Recruit dropdown above. Settings link is rendered outside the
-            scroll area, just above the advisor footer. */}
+            HQ Recruit dropdown above. Settings link now lives in the footer
+            stack between the HQ Advisor button and Sign out. */}
       </div>
 
-      {/* Settings - pinned just above the advisor footer */}
-      <div className="px-2 pt-2 border-t border-white/8 flex-shrink-0">
-        <Link href="/dashboard/settings"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg my-1 text-sm font-bold transition-all
-            ${isActive('/dashboard/settings')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
-          <SettingsIcon active={isActive('/dashboard/settings')} />
-          <span>Settings</span>
-        </Link>
-      </div>
-
-      {/* Footer */}
-      <div className="px-2.5 pb-3 space-y-1.5 flex-shrink-0">
-        {/* Brand logo - relocated from the top of the sidebar so the
-            top space could go to nav. Sits between Settings and the
-            advisor-support callout. */}
-        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-center pt-2 pb-1">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={571} className="opacity-90 w-[108px] max-w-full h-auto" priority />
+      {/* Footer - everything left-aligned. New order is:
+            1. Brand logo (left-aligned)
+            2. HQ Advisor support note + Contact button
+            3. Settings link
+            4. Sign out
+         */}
+      <div className="px-2.5 pb-3 pt-2 space-y-1.5 flex-shrink-0 border-t border-white/8">
+        {/* Brand logo - left-aligned per request. Uses the dark-mode
+            wordmark (light marks on the dark sidebar bg). The SVG is
+            trimmed to the wordmark bounds (1428 x 521) so w-[108px]
+            gives the same visible size we had before. */}
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1">
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={521} className="opacity-90 w-[108px] max-w-full h-auto" priority />
         </Link>
 
         {/* Advisor handoff - small note + button that opens the contact modal */}
@@ -396,15 +390,26 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             Need more HR or recruitment support?
           </p>
           <button onClick={handleContactPartner}
-            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-1.5 rounded-full transition-colors">
+            className="block w-full text-left bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors">
             Contact HQ Advisor
           </button>
         </div>
 
+        {/* Settings - sits below HQ Advisor, above Sign out, left-aligned
+            to match Sign out and the sidebar nav above. */}
+        <Link href="/dashboard/settings"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all
+            ${isActive('/dashboard/settings')
+              ? 'bg-white/11 text-white'
+              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+          <SettingsIcon active={isActive('/dashboard/settings')} />
+          <span>Settings</span>
+        </Link>
+
         {/* Sign out */}
         <button onClick={signOut}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/35 hover:text-white/60 text-sm transition-colors">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
           </svg>
           Sign out
