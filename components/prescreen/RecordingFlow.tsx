@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { computeConfidence, type ConfidenceReading } from '@/lib/confidence'
 
 interface Props {
   questions: string[]
@@ -67,7 +68,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   const [reviewBlobUrls, setReviewBlobUrls] = useState<(string | null)[]>(questions.map(() => null))
   const [transcripts, setTranscripts] = useState<string[]>(questions.map(() => ''))
   // Speech-rate-based confidence indicator (no body-language ML in MVP)
-  const [confidence, setConfidence] = useState<Array<{ label: string; detail: string } | null>>(questions.map(() => null))
+  const [confidence, setConfidence] = useState<Array<ConfidenceReading | null>>(questions.map(() => null))
 
   const videoRef  = useRef<HTMLVideoElement>(null)
   const reviewVideoRef = useRef<HTMLVideoElement>(null)
@@ -567,34 +568,6 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   )
 }
 
-// Speech-rate heuristic. Counts words in the live transcript and divides
-// by the recording duration. Maps to "Confident and clear" / "Steady" /
-// "Hesitant" bands with a short rationale. This is intentionally NOT a
-// body-language ML model - we don't have one in MVP, and we don't want
-// to make unfounded behavioural claims to a candidate looking at their
-// own data. The label is presented to the candidate as "indicator", not
-// "score".
-function computeConfidence(transcript: string, seconds: number): { label: string; detail: string } {
-  const trimmed = transcript.trim()
-  if (!trimmed || seconds < 5) {
-    return { label: 'Not enough data', detail: 'Speak for at least a few seconds to see a confidence reading.' }
-  }
-  const words = trimmed.split(/\s+/).filter(Boolean).length
-  const wpm = (words / seconds) * 60
-  // English public-speaking norms: 130-150 wpm = confident, 110-130 =
-  // steady, <100 = hesitant, >170 = rushed. Adjusted slightly for AU
-  // conversational speech which tends a touch slower than US baseline.
-  if (wpm >= 170) {
-    return { label: 'Very fast pace', detail: `Around ${Math.round(wpm)} words per minute. Try slowing down slightly for clarity.` }
-  }
-  if (wpm >= 130) {
-    return { label: 'Confident and clear', detail: `Around ${Math.round(wpm)} words per minute - a strong conversational pace.` }
-  }
-  if (wpm >= 100) {
-    return { label: 'Steady', detail: `Around ${Math.round(wpm)} words per minute - measured and easy to follow.` }
-  }
-  if (wpm >= 60) {
-    return { label: 'Thoughtful pace', detail: `Around ${Math.round(wpm)} words per minute. If you have more to add, you can re-record.` }
-  }
-  return { label: 'Quiet recording', detail: `Only ${Math.round(wpm)} words per minute detected. Check your microphone and try again if you spoke more than this.` }
-}
+// Confidence indicator is now provided by lib/confidence.ts so the
+// staff-side Shortlist Agent shows the same reading from the same
+// transcript as the candidate sees here. See that file for the rationale.
