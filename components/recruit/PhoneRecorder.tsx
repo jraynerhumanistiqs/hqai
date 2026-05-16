@@ -187,6 +187,20 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
         )}
       </div>
 
+      {/* Setup tip - only visible during the pre-record steps so it
+          doesn't get in the way once the recruiter is on the call. */}
+      {(state === 'idle' || state === 'permission' || state === 'consent') && (
+        <div className="bg-warning/10 border border-warning/20 rounded-xl px-3.5 py-2.5 mb-4 flex gap-2.5 items-start">
+          <span className="text-base flex-shrink-0">📞</span>
+          <div>
+            <p className="text-xs font-bold text-charcoal mb-0.5">Before you start: put the call on speakerphone</p>
+            <p className="text-[11px] text-mid leading-snug">
+              This recorder uses your laptop&apos;s microphone, so it can hear you clearly but not the candidate&apos;s voice through the handset. Place the phone next to the laptop on speakerphone (or use a headset with mic monitoring) so both sides of the conversation are picked up. Test it first with the candidate by asking them to say hello.
+            </p>
+          </div>
+        </div>
+      )}
+
       {(state === 'idle' || state === 'permission' || state === 'consent') && (
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
