@@ -94,7 +94,7 @@ export function PrescreenDashboard() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-[#000000]">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-surface-inverse">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
 
         <div className="mb-2">

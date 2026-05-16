@@ -1,0 +1,30 @@
+{
+  "name": "GitHub Primer",
+  "url": "https://primer.style",
+  "source": "https://primer.style/foundations/primitives/color (verified)",
+  "confidence": "HIGH",
+  "intent": "Open-source design system, 100M+ developer SaaS surface. Reference for accessible semantic-token naming patterns.",
+  "color": {
+    "fgColor": {
+      "default": "#1F2328",
+      "muted":   "#59636E",
+      "accent":  "#0969DA",
+      "danger":  "#D1242F",
+      "success": "#1A7F37"
+    },
+    "bgColor": {
+      "default":          "#FFFFFF",
+      "muted":            "#F6F8FA",
+      "emphasis":         "#25292E",
+      "dangerEmphasis":   "#CF222E",
+      "successEmphasis":  "#1F883D"
+    },
+    "borderColor": {
+      "default":         "#D1D9E0",
+      "emphasis":        "#818B98",
+      "muted":           "#D1D9E0B3",
+      "dangerEmphasis":  "#CF222E",
+      "successEmphasis": "#1A7F37"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Customer.io",
+  "url": "https://customer.io",
+  "source": "https://styles.refero.design/style/abbaa70a-5fe2-44a9-9c5f-272e68c450c3",
+  "confidence": "HIGH",
+  "intent": "Energetic spring-leaf accent on near-black. Marketing-automation B2B reference.",
+  "color": {
+    "brand": {
+      "springLeaf":   "#ABFFAE",
+      "amberPop":     "#8B3911",
+      "indigoPop":    "#0A3890",
+      "deepTeal":     "#437278",
+      "electricBlue": "#006AF2"
+    },
+    "neutral": {
+      "midnightInk":  "#00262B",
+      "oceanicDeep":  "#0B363B",
+      "slateGrille":  "#354D51",
+      "stoneWhisper": "#4F6466",
+      "ashCloud":     "#A1C2C6"
+    },
+    "surface": {
+      "canvas":       "#EBEBEB",
+      "surfaceWhite": "#FFFFFF",
+      "fogGray":      "#FAFAFA",
+      "paleMint":     "#EAFDE8",
+      "warmMist":     "#FEEFE8",
+      "skyMist":      "#E0F4FF"
+    }
+  },
+  "typography": {
+    "family": "saansFont (fallback Inter)",
+    "weight": [475, 500, 600, 700],
+    "scale": {
+      "display":   { "size": "96px" },
+      "headingLg": { "size": "48px" },
+      "heading":   { "size": "36px" },
+      "headingSm": { "size": "24px" },
+      "subheading":{ "size": "20px" },
+      "body":      { "size": "16px" },
+      "bodySm":    { "size": "14px" },
+      "caption":   { "size": "12px" }
+    }
+  },
+  "radius": { "default": "2px", "image": "6px", "button": "9999px (pill)" },
+  "spacing": { "base": "8px", "scale": ["8","16","24","32","40","48","64","80","96","128"], "sectionGap": "96px", "cardPadding": "32px" }
+}

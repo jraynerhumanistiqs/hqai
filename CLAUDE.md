@@ -102,6 +102,12 @@ NEXT_PUBLIC_BASE_URL          # e.g. https://hqai.vercel.app
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+STRIPE_PRICE_ID_ESSENTIALS    # monthly recurring Price id from Stripe for Essentials ($99)
+STRIPE_PRICE_ID_GROWTH        # monthly recurring Price id for Growth ($199)
+STRIPE_PRICE_ID_SCALE         # monthly recurring Price id for Scale ($379)
+STRIPE_PRICE_ID_LETTER_OF_OFFER  # one-off Price id for the $25 Letter of Offer experiment
+VOYAGE_API_KEY                # voyage-law-2 embeddings (optional - falls back to OpenAI)
+COHERE_API_KEY                # Cohere rerank-3 (optional)
 ```
 
 ## Current build status

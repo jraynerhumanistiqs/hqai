@@ -1,0 +1,56 @@
+{
+  "name": "ElevenLabs",
+  "url": "https://elevenlabs.io",
+  "source": "https://styles.refero.design/style/031056ff-7af1-46db-8daa-115f731c5d26",
+  "confidence": "HIGH",
+  "intent": "Warm Eggshell base + uncompromising obsidian text. Hairline-only elevation. AI brand that reads as serious but warm.",
+  "color": {
+    "neutral": {
+      "eggshell": { "value": "#FDFCFC", "role": "page bg" },
+      "powder":   "#F5F3F1",
+      "chalk":    "#E5E5E5",
+      "fog":      "#B1B0B0",
+      "gravel":   "#777169",
+      "slate":    "#A59F97",
+      "cinder":   "#575347",
+      "obsidian": { "value": "#000000", "role": "primary text, CTA fill, 20.5:1 contrast" }
+    },
+    "productOnly": {
+      "signalBlue": "#0447FF",
+      "ember":      "#FF4704"
+    }
+  },
+  "typography": {
+    "family": {
+      "display":      "Waldenburg (300)",
+      "productLabel": "WaldenburgFH (700)",
+      "body":         "Inter (400, 500)",
+      "mono":         "Geist Mono (400, 13px)"
+    },
+    "scale": {
+      "display":     { "size": "48px", "weight": 300, "lineHeight": 1.08, "letterSpacing": "-0.96px" },
+      "headingLg":   { "size": "36px", "weight": 300, "lineHeight": 1.13 },
+      "heading":     { "size": "32px", "weight": 300, "lineHeight": 1.17 },
+      "headingSm":   { "size": "20px", "weight": 400, "lineHeight": 1.35 },
+      "subheading":  { "size": "18px", "weight": 400, "lineHeight": 1.6 },
+      "bodyLg":      { "size": "16px", "weight": 400, "lineHeight": 1.5 },
+      "body":        { "size": "14px", "weight": 500, "lineHeight": 1.5 },
+      "caption":     { "size": "10px", "lineHeight": 1.2 }
+    }
+  },
+  "radius": {
+    "button": "9999px",
+    "tag":    "9999px",
+    "card":   "16px",
+    "panel":  "20px",
+    "modal":  "24px",
+    "badge":  "12px",
+    "input":  "0px"
+  },
+  "shadow": {
+    "principle": "Hairline elevation only - cards float at 1px, never deeper",
+    "subtle":    "rgba(0,0,0,0.075) 0px 0px 0px 0.5px inset",
+    "subtle2":   "rgba(0,0,0,0.06) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 1px 2px"
+  },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","28","32","36","40","48","56","64","72","96","160"] }
+}

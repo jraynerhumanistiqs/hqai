@@ -1,0 +1,93 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "name": "HQ.ai Option 3 - Ink & Amber (Mercury/Linear-influenced precision dark)",
+  "version": "v3.1-proposal",
+  "intent": "Sub-brand identity. Dark-first like Linear/Mercury, with a single warm-amber accent that signals action and encodes the Australian context (sun, ochre, FWA-safe). Best fit for SMB owners who use HQ.ai daily as an operations tool not a marketing site - dashboards, transcripts, recruitment review.",
+  "rationaleVsCurrent": "Current Option 1 has zero dark-mode story. Option 3 inverts the assumption: HQ.ai is software you spend hours in, not a homepage you visit. Mercury and Linear prove dark+single-accent is the highest-trust option for daily-driver SaaS. Amber accent (vs Mercury blue / Linear violet) avoids fintech/devtool clichés and has natural Australian resonance.",
+  "color": {
+    "brand": {
+      "amber":        { "value": "#F59E0B", "role": "primary CTA, focus ring, active nav" },
+      "amberHover":   { "value": "#D97706", "role": "CTA hover" },
+      "amberSoft":    { "value": "#FEF3C7", "role": "highlights, badge bg (used sparingly on light surfaces only)" },
+      "amberDeep":    { "value": "#78350F", "role": "active state on light surfaces" }
+    },
+    "darkSurface": {
+      "bg":           { "value": "#0A0A0B", "role": "page bg (Linear pitch-black)" },
+      "bgElevated":   { "value": "#131417", "role": "card bg" },
+      "bgInput":      { "value": "#1B1D21", "role": "input bg, sidebar nested" },
+      "border":       { "value": "#2A2D32", "role": "dividers, input border" },
+      "borderStrong": { "value": "#3D4148", "role": "focused border" }
+    },
+    "darkText": {
+      "primary":      { "value": "#F5F5F4", "role": "primary text" },
+      "secondary":    { "value": "#A8A8A3", "role": "secondary body" },
+      "tertiary":     { "value": "#6B6B66", "role": "captions, metadata" },
+      "disabled":     { "value": "#4A4A47", "role": "disabled labels" }
+    },
+    "lightSurface": {
+      "bg":           { "value": "#FFFFFF", "role": "light-mode page" },
+      "bgSoft":       { "value": "#F7F7F6", "role": "light card" },
+      "border":       { "value": "#E4E4E0", "role": "light border" },
+      "text":         { "value": "#0A0A0B", "role": "light text" },
+      "textSoft":     { "value": "#52524C", "role": "light secondary" }
+    },
+    "semantic": {
+      "danger":       { "value": "#EF4444" },
+      "warning":      { "value": "#F59E0B", "note": "shares amber to avoid confusion - reserve red strictly for destructive" },
+      "success":      { "value": "#22C55E" },
+      "info":         { "value": "#3B82F6" }
+    }
+  },
+  "typography": {
+    "family": {
+      "sans":    "Geist Variable, Inter Variable, system-ui, sans-serif",
+      "display": "Geist Variable, Inter Display, sans-serif",
+      "mono":    "Geist Mono, JetBrains Mono, ui-monospace, monospace"
+    },
+    "fontFeatureSettings": "'cv11', 'ss01', 'ss03'",
+    "weight": { "light": 300, "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "scale": {
+      "display":  { "size": "64px", "lineHeight": 1.05, "letterSpacing": "-0.03em", "weight": 600 },
+      "h1":       { "size": "44px", "lineHeight": 1.10, "letterSpacing": "-0.025em","weight": 600 },
+      "h2":       { "size": "30px", "lineHeight": 1.20, "letterSpacing": "-0.02em", "weight": 600 },
+      "h3":       { "size": "20px", "lineHeight": 1.30, "letterSpacing": "-0.01em", "weight": 500 },
+      "body":     { "size": "15px", "lineHeight": 1.55, "weight": 400 },
+      "small":    { "size": "13px", "lineHeight": 1.50, "weight": 400 },
+      "xs":       { "size": "11px", "lineHeight": 1.45, "weight": 500, "letterSpacing": "+0.01em" },
+      "mono":     { "size": "13px", "lineHeight": 1.50, "weight": 400 }
+    }
+  },
+  "radius": { "sm": "4px", "md": "6px", "lg": "10px", "xl": "14px", "panel": "16px", "pill": "9999px" },
+  "shadow": {
+    "principle": "Mercury/Anthropic discipline - shadow used ONLY for floating overlays. Cards use border + bg lift instead.",
+    "none":      "none",
+    "popover":   "0 8px 24px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.06)",
+    "modal":     "0 24px 64px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.08)",
+    "cmd":       "0 32px 80px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,255,255,0.10)"
+  },
+  "spacing": { "base": "4px", "scale": ["4","6","8","12","16","20","24","32","40","48","64","80","96","128"], "sectionGap": "64px", "cardPadding": "20px" },
+  "motion": {
+    "easing": {
+      "smooth":     "cubic-bezier(0.16, 1, 0.3, 1)",
+      "linear-out": "cubic-bezier(0, 0, 0.2, 1)",
+      "standard":   "cubic-bezier(0.4, 0, 0.2, 1)",
+      "snappy":     "cubic-bezier(0.5, 0, 0.1, 1)"
+    },
+    "duration": { "instant": "80ms", "fast": "120ms", "base": "180ms", "slow": "240ms", "page": "320ms" },
+    "gsapDefaults": { "ease": "power3.out", "duration": 0.32, "stagger": 0.04 }
+  },
+  "wcag": {
+    "primary_on_bg":   "16.5:1 - AAA",
+    "secondary_on_bg": "5.8:1 - AA",
+    "tertiary_on_bg":  "3.4:1 - AA Large only - never use for body",
+    "amber_on_bg":     "8.4:1 - AAA",
+    "bg_on_amber":     "8.4:1 - AAA"
+  },
+  "implementationNotes": [
+    "Default theme = dark, with .light opt-in (inverts the current model)",
+    "Sidebar already dark in current build - this just extends it everywhere",
+    "DOCX/PDF outputs stay light-mode regardless of UI mode (don't tint generated documents)",
+    "Amber CTA must always meet 44px min touch target with bold or semibold label",
+    "Reserve amberSoft for badges on LIGHT surfaces only - poor contrast on dark"
+  ]
+}

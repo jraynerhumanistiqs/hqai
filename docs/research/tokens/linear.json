@@ -1,0 +1,49 @@
+{
+  "name": "Linear",
+  "url": "https://linear.app",
+  "source": "https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1",
+  "confidence": "HIGH",
+  "intent": "Engineer-grade dark-first. Tight, dense, fast. The reference for AI-native developer SaaS.",
+  "color": {
+    "brand": {
+      "neonLime":    "#E4F222",
+      "aetherBlue":  "#5E6AD2",
+      "cyanSpark":   "#02B8CC",
+      "deepViolet":  "#6366F1",
+      "amethyst":    "#8B5CF6"
+    },
+    "neutralDark": {
+      "pitchBlack":   "#08090A",
+      "graphite":     "#0F1011",
+      "deepSlate":    "#161718",
+      "charcoalGrey": "#23252A",
+      "mutedAsh":     "#323334",
+      "gunmetal":     "#383B3F",
+      "fogGrey":      "#62666D",
+      "stormCloud":   "#8A8F98",
+      "lightSteel":   "#D0D6E0",
+      "alabaster":    "#E5E5E6",
+      "porcelain":    "#F7F8F8"
+    },
+    "semantic": {
+      "forestGreen": "#008D2C",
+      "emerald":     "#27A644",
+      "warningRed":  "#EB5757"
+    }
+  },
+  "typography": {
+    "family": { "sans": "Inter Variable", "mono": "Berkeley Mono" },
+    "weight": [300, 400, 510, 590],
+    "scale": {
+      "caption":   { "size": "10px" },
+      "body":      { "size": "14px" },
+      "heading":   { "size": "24px" },
+      "headingLg": { "size": "48px" },
+      "display":   { "size": "72px" }
+    },
+    "letterSpacing": "-0.22 to -0.1px (tight)"
+  },
+  "radius": { "tag": "2px", "badge": "4px", "card": "6px", "input": "6px", "button": "6px", "pill": "9999px" },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","28","32","36","40","48","56","64","80","96","128"] },
+  "shadow": "Six variants, subtle inset borders to xl elevation: rgba(8,9,10,0.6) 0px 4px 32px 0px"
+}

@@ -8,11 +8,13 @@ const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) 
 const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 
 const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number }> = {
-  free: { name: 'Free Trial', price: 'Price TBC', seats: 1 },
-  essentials: { name: 'Essentials', price: 'Price TBC', seats: 3 },
-  growth: { name: 'Growth', price: 'Price TBC', seats: 6 },
-  scale: { name: 'Scale', price: 'Price TBC', seats: 12 },
+  free: { name: 'Free Trial', price: '$0', seats: 1 },
+  essentials: { name: 'Essentials', price: '$99 / month', seats: 3 },
+  growth: { name: 'Growth', price: '$199 / month', seats: 6 },
+  scale: { name: 'Scale', price: '$379 / month', seats: 12 },
 }
+
+type PaidPlanId = 'essentials' | 'growth' | 'scale'
 
 const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
 const selectCls = inputCls + " appearance-none"
@@ -111,20 +113,50 @@ export default function SettingsPage() {
   }
 
   async function openPortal() {
+    setBillingError('')
     setBillingLoading(true)
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
-      } else if (data.error === 'No billing account') {
-        // Stripe checkout not wired yet - show a friendly "coming soon" modal instead of a red error banner
-        setUpgradeModalOpen(true)
+        return
       }
+      setBillingError(data.error || 'Could not open the billing portal. Please try again or contact support.')
     } catch {
-      setUpgradeModalOpen(true)
+      setBillingError('Could not open the billing portal. Please check your connection and try again.')
     }
     setBillingLoading(false)
+  }
+
+  const [checkoutBusyFor, setCheckoutBusyFor] = useState<PaidPlanId | null>(null)
+
+  async function startCheckout(planId: PaidPlanId) {
+    setBillingError('')
+    setCheckoutBusyFor(planId)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId }),
+      })
+      const data = await res.json().catch(() => ({} as { url?: string; error?: string }))
+      if (res.ok && data.url) {
+        window.location.href = data.url
+        return
+      }
+      if (res.status === 503) {
+        // Stripe price ids not configured yet - fall back to the
+        // existing "email us to upgrade" path so the user is never
+        // dead-ended.
+        setUpgradeModalOpen(true)
+      } else {
+        setBillingError(data.error || `Could not start checkout (HTTP ${res.status}).`)
+      }
+    } catch (err) {
+      setBillingError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+    }
+    setCheckoutBusyFor(null)
   }
 
   return (
@@ -302,12 +334,15 @@ export default function SettingsPage() {
             {hasStripe ? (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-white hover:bg-gray-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loading…' : 'Manage billing'}
+                {billingLoading ? 'Loading...' : 'Manage billing'}
               </button>
             ) : (
-              <button onClick={openPortal} disabled={billingLoading}
-                className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60">
-                {billingLoading ? 'Loading…' : 'Upgrade plan'}
+              <button
+                onClick={() => startCheckout('growth')}
+                disabled={checkoutBusyFor !== null}
+                className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60"
+              >
+                {checkoutBusyFor !== null ? 'Redirecting...' : 'Upgrade plan'}
               </button>
             )}
           </div>
@@ -316,13 +351,28 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {(['essentials', 'growth', 'scale'] as const).map(pid => {
                 const p = PLAN_DETAILS[pid]
+                const busy = checkoutBusyFor === pid
+                const disabled = checkoutBusyFor !== null && !busy
                 return (
-                  <div key={pid} className={`rounded-xl border p-4 ${plan === pid ? 'border-black bg-black/5' : 'border-border'}`}>
+                  <button
+                    type="button"
+                    key={pid}
+                    onClick={() => startCheckout(pid)}
+                    disabled={disabled}
+                    className={`text-left rounded-xl border p-4 transition-colors hover:border-black focus:border-black focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-black bg-black/5' : 'border-border'}`}
+                  >
                     <p className="text-sm font-bold text-charcoal">{p.name}</p>
                     <p className="text-lg font-bold text-charcoal mt-1">{p.price}</p>
                     <p className="text-xs text-muted mt-1">{p.seats} seats</p>
-                    {pid === 'growth' && <span className="inline-block mt-2 text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
-                  </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal">
+                        {busy ? 'Redirecting...' : `Choose ${p.name}`}
+                      </span>
+                      {pid === 'growth' && (
+                        <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>
+                      )}
+                    </div>
+                  </button>
                 )
               })}
             </div>

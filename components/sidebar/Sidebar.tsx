@@ -91,7 +91,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   }
 
   return (
-    <aside className="w-[232px] flex-shrink-0 bg-[#000000] flex flex-col overflow-hidden h-full">
+    <aside className="w-[232px] flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full">
       {/* Mobile close button - the brand logo used to sit here too. It
           moved down to the footer just above the advisor support
           callout so vertical space at the top can go to navigation. */}
@@ -150,10 +150,19 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </button>
         {peopleOpen && (
           <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/people"
+            {/* B0.2 - HQ People is split into AI Advisor (chat) and
+                AI Administrator (doc engine). Separate nav items so
+                each tool reads as a named product surface. The
+                Administrator engine ships across Weeks 3-5. */}
+            <Link href="/dashboard/people/advisor"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/people') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/people/advisor') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               AI Advisor
+            </Link>
+            <Link href="/dashboard/people/administrator"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
+                ${isActive('/dashboard/people/administrator') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+              AI Administrator
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all

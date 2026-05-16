@@ -1,0 +1,37 @@
+{
+  "name": "OpenAI",
+  "url": "https://openai.com",
+  "source": "https://styles.refero.design/style/dc541737-8bf2-4b31-b729-0352f696e82f",
+  "confidence": "HIGH",
+  "intent": "Hyper-restrained achromatic with a SINGLE custom typeface doing all the personality work. The closest peer reference for HQ.ai current direction.",
+  "color": {
+    "void":       { "value": "#000000", "role": "primary text, buttons, icons" },
+    "fogBorder":  { "value": "#E5E7EB", "role": "all dividers, borders" },
+    "chalk":      { "value": "#F1F1F1", "role": "hover states, subtle fills" },
+    "graphite":   { "value": "#666666", "role": "secondary text, icon strokes" },
+    "ash":        { "value": "#8F8F8F", "role": "tertiary, disabled" },
+    "canvas":     { "value": "#FFFFFF", "role": "page bg, surfaces" }
+  },
+  "typography": {
+    "family": { "sans": "OpenAI Sans", "fallback": "Inter, DM Sans" },
+    "weight": [400, 500, 600],
+    "scale": {
+      "display":     { "size": "48px", "weight": 500, "lineHeight": 1.16, "letterSpacing": "-0.03em" },
+      "headingLarge":{ "size": "28px", "weight": 600, "lineHeight": 1.21 },
+      "heading":     { "size": "22px", "weight": 500, "lineHeight": 1.26 },
+      "body":        { "size": "16-18px", "weight": 400, "lineHeight": "1.5-1.65" },
+      "caption":     { "size": "13px", "weight": 500, "lineHeight": 1.64, "letterSpacing": "+0.011em" }
+    }
+  },
+  "radius": {
+    "pill":      "9999px",
+    "card":      "6.08px",
+    "softButton":"40px",
+    "link":      "4px"
+  },
+  "shadow": {
+    "ctaOnly": "rgba(0,0,0,0.02) 0px 4px 6px, rgba(0,0,0,0.05) 0px 0px 2px"
+  },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","32","40","52","64","80","112","120"], "sectionGap": "64-80px", "cardPadding": "32px" },
+  "layout": { "maxWidth": "1200px" }
+}

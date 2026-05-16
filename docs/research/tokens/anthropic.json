@@ -1,0 +1,65 @@
+{
+  "name": "Anthropic",
+  "url": "https://anthropic.com",
+  "source": "https://styles.refero.design/style/d469cba4-c448-4a43-a033-883f8bfcdc42",
+  "confidence": "HIGH",
+  "intent": "Warm parchment + single terracotta accent + serif/sans pair. The reference for AI brand that feels editorial-trustworthy not techno-cold.",
+  "color": {
+    "accent": {
+      "clay":         { "value": "#D97757", "role": "primary terracotta accent" },
+      "accentEmber":  { "value": "#C6613F", "role": "hover/pressed" },
+      "olive":        "#788C5D",
+      "sky":          "#6A9BCC",
+      "fig":          "#C46686",
+      "cactus":       "#BCD1CA"
+    },
+    "neutralSlate": {
+      "slateDark":   { "value": "#141413", "role": "primary text (near-black)" },
+      "slateMedium": "#3D3D3A",
+      "slateLight":  "#5E5D59"
+    },
+    "neutralIvory": {
+      "ivoryLight":  { "value": "#FAF9F5", "role": "page bg - aged parchment" },
+      "ivoryMedium": "#F0EEE6",
+      "ivoryDark":   "#E8E6DC"
+    },
+    "neutralCloud": {
+      "cloudDark":   "#87867F",
+      "cloudMedium": "#B0AEA5",
+      "cloudLight":  "#D1CFC5",
+      "oat":         "#E3DACC"
+    }
+  },
+  "typography": {
+    "family": {
+      "sans":  "Anthropic Sans (fallback Inter, DM Sans)",
+      "serif": "Anthropic Serif (fallback Playfair Display, Lora)",
+      "mono":  "Anthropic Mono (fallback JetBrains Mono, IBM Plex Mono)"
+    },
+    "weight": [400, 500, 600, 700],
+    "scale": {
+      "display":   { "size": "91px", "weight": 400, "lineHeight": 1.10 },
+      "headingLg": { "size": "61px", "weight": 700, "lineHeight": 1.10 },
+      "heading":   { "size": "24px", "weight": 600, "lineHeight": 1.30 },
+      "bodySm":    { "size": "15px", "weight": 400, "lineHeight": 1.40 },
+      "caption":   { "size": "12px", "weight": 400, "lineHeight": 1.40 }
+    },
+    "letterSpacing": { "display": "-0.02em", "mid": "-0.005em", "body": "-0.002em" }
+  },
+  "radius": {
+    "button": "0px",
+    "badge":  "0px",
+    "card":   "8px",
+    "panel":  "16px",
+    "feature":"24px",
+    "tryClaudeCTA": "0px 0px 8px 8px (asymmetric)"
+  },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","32","76","84"], "sectionGap": "61px", "cardPadding": "31px" },
+  "shadow": "NONE - depth via colour contrast only.",
+  "constraints": [
+    "Never pure white or pure black surfaces",
+    "Underline is sole decorative emphasis for headlines",
+    "One accent per section maximum",
+    "Never add box-shadows"
+  ]
+}

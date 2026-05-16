@@ -81,7 +81,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="flex h-full bg-[#000000]">
+    <div className="flex h-full bg-surface-inverse">
       {/* Left - list */}
       <div className="w-72 flex-shrink-0 border-r border-[#222222] flex flex-col bg-[#0a0a0a]">
         <div className="p-4 border-b border-[#222222]">
@@ -167,7 +167,7 @@ export default function DocumentsPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-[#000000]">
+        <div className="flex-1 flex items-center justify-center bg-surface-inverse">
           <div className="text-center">
             <div className="text-4xl mb-4">📂</div>
             <p className="font-display text-lg font-bold text-white uppercase tracking-wider mb-2">Select a document</p>

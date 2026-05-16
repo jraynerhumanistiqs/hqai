@@ -1,0 +1,48 @@
+{
+  "name": "Stripe",
+  "url": "https://stripe.com",
+  "source": "https://styles.refero.design/style/48e5de76-05d5-4c4e-a269-c7c245b291ec",
+  "confidence": "HIGH",
+  "intent": "Editorial-density display type with confident violet brand. Best-in-class developer-first marketing site that still feels premium B2B.",
+  "color": {
+    "brand": {
+      "deepViolet":   "#533AFD",
+      "washedViolet": "#B9B9F9",
+      "softViolet":   "#8087FF"
+    },
+    "accent": {
+      "accentGreen":   "#81B81A",
+      "vibrantOrange": "#FF6118"
+    },
+    "neutral": {
+      "midnightInk":    "#061B31",
+      "slateBlue":      "#50617A",
+      "ghostGray":      "#64748D",
+      "stoneGray":      "#D8D6DF",
+      "powderBlue":     "#E5EDF5",
+      "porcelainWhite": "#F8FAFD",
+      "platinumWhite":  "#FFFFFF"
+    }
+  },
+  "typography": {
+    "family": { "sans": "sohne-var", "fallback": "system-ui, sans-serif" },
+    "weight": [300, 400],
+    "scale": {
+      "display":     { "size": "56px", "weight": 300, "lineHeight": 1.07, "letterSpacing": "-0.03em" },
+      "headingLg":   { "size": "44px", "weight": 300, "lineHeight": 1.10, "letterSpacing": "-0.025em" },
+      "heading":     { "size": "32px", "weight": 300, "lineHeight": 1.15, "letterSpacing": "-0.02em" },
+      "headingSm":   { "size": "22px", "weight": 400, "lineHeight": 1.20, "letterSpacing": "-0.01em" },
+      "subheading":  { "size": "18px", "weight": 400, "lineHeight": 1.25, "letterSpacing": "-0.009em" },
+      "body":        { "size": "14px", "weight": 400, "lineHeight": 1.40 },
+      "caption":     { "size": "11px", "weight": 400, "lineHeight": 1.45 }
+    }
+  },
+  "radius": { "tag": "4px", "input": "4px", "button": "4px", "card": "6px" },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","28","32","36","40","48","60","64","80","96"] },
+  "shadow": {
+    "xl":  "rgba(0,0,0,0.2) 0px 0px 32px 8px",
+    "xl2": "rgba(50,50,93,0.12) 0px 16px 32px 0px",
+    "xl3": "rgba(23,23,23,0.08) 0px 15px 35px 0px",
+    "sm":  "rgba(23,23,23,0.06) 0px 3px 6px 0px"
+  }
+}

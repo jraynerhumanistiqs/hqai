@@ -1,0 +1,90 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "name": "HQ.ai Option 2 - Ivory & Clay (Anthropic-influenced editorial warmth)",
+  "version": "v3.1-proposal",
+  "intent": "Sub-brand identity. Warm parchment surface + single terracotta accent + serif/sans pair. Reads as editorial-trustworthy not techno-cold. Best fit for SMB owners (publicans, tradies, retailers) who need an HR brand that feels like a person, not software.",
+  "rationaleVsCurrent": "Current Option 1 = 21:1 black-on-white feels clinical and undifferentiated from every other AI SaaS. Option 2 keeps the same achromatic discipline but swaps to warm ivory (#FAF9F5) so the page recedes and content carries weight. Single Clay accent gives a small, ownable colour signal for state and CTA without breaking the trust-by-restraint discipline.",
+  "color": {
+    "brand": {
+      "clay":         { "value": "#D97757", "role": "primary CTA, links, focused state" },
+      "clayHover":    { "value": "#C6613F", "role": "CTA hover/pressed" },
+      "clayWash":     { "value": "#F5E5DD", "role": "selection, badge bg, hover wash" }
+    },
+    "text": {
+      "ink":          { "value": "#141413", "role": "primary text (near-black, eye-comfort)" },
+      "inkSoft":      { "value": "#3D3D3A", "role": "secondary body" },
+      "inkMuted":     { "value": "#5E5D59", "role": "tertiary, captions" }
+    },
+    "surface": {
+      "ivory":        { "value": "#FAF9F5", "role": "page bg - aged parchment" },
+      "ivorySoft":    { "value": "#F0EEE6", "role": "card bg, nav bg" },
+      "ivoryDeep":    { "value": "#E8E6DC", "role": "elevated surface, sidebar light" },
+      "border":       { "value": "#D1CFC5", "role": "dividers, input border" }
+    },
+    "semantic": {
+      "danger":       { "value": "#C5483A", "role": "errors, destructive" },
+      "warning":      { "value": "#B8770F", "role": "escalation" },
+      "success":      { "value": "#3D8A5E", "role": "confirmations" },
+      "info":         { "value": "#6A9BCC", "role": "info banners (use sparingly)" }
+    },
+    "darkMode": {
+      "bg":           { "value": "#1A1917", "role": "dark page" },
+      "bgSoft":       { "value": "#23211E", "role": "dark card" },
+      "border":       { "value": "#3D3D3A", "role": "dark border" },
+      "text":         { "value": "#FAF9F5", "role": "dark text" },
+      "textSoft":     { "value": "#D1CFC5", "role": "dark secondary" },
+      "claySurface":  { "value": "#D97757", "role": "accent stays consistent across modes" }
+    }
+  },
+  "typography": {
+    "family": {
+      "sans":    "Inter Variable, DM Sans, system-ui, sans-serif",
+      "serif":   "Fraunces Variable, Playfair Display, Georgia, serif",
+      "mono":    "Geist Mono, JetBrains Mono, ui-monospace, monospace"
+    },
+    "fontFeatureSettings": "'cv11', 'ss01', 'salt'",
+    "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "scale": {
+      "display":  { "size": "56px", "lineHeight": 1.07, "letterSpacing": "-0.025em", "family": "serif", "role": "marketing hero only" },
+      "h1":       { "size": "40px", "lineHeight": 1.10, "letterSpacing": "-0.02em",  "family": "serif", "role": "page-level title" },
+      "h2":       { "size": "28px", "lineHeight": 1.20, "letterSpacing": "-0.015em", "family": "sans",  "weight": 600 },
+      "h3":       { "size": "20px", "lineHeight": 1.30, "letterSpacing": "-0.01em",  "family": "sans",  "weight": 600 },
+      "body":     { "size": "16px", "lineHeight": 1.55, "family": "sans" },
+      "small":    { "size": "14px", "lineHeight": 1.50, "family": "sans" },
+      "xs":       { "size": "12px", "lineHeight": 1.45, "family": "sans" }
+    }
+  },
+  "radius": { "sm": "4px", "md": "8px", "lg": "12px", "xl": "16px", "panel": "20px", "pill": "9999px" },
+  "shadow": {
+    "principle": "Hairline elevation (ElevenLabs/Anthropic discipline) - never deeper than 1-2 layers",
+    "hairline":  "0 0 0 1px rgba(20,20,19,0.06)",
+    "card":      "0 1px 2px rgba(20,20,19,0.04), 0 0 0 1px rgba(20,20,19,0.06)",
+    "float":     "0 4px 12px rgba(20,20,19,0.06), 0 0 0 1px rgba(20,20,19,0.06)",
+    "modal":     "0 16px 48px rgba(20,20,19,0.12), 0 0 0 1px rgba(20,20,19,0.08)"
+  },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","32","40","48","64","80","96","128"], "sectionGap": "80px", "cardPadding": "24px" },
+  "motion": {
+    "easing": {
+      "smooth":   "cubic-bezier(0.16, 1, 0.3, 1)",
+      "natural":  "cubic-bezier(0.4, 0, 0.2, 1)",
+      "decelerate":"cubic-bezier(0, 0, 0.2, 1)",
+      "spring":   "cubic-bezier(0.34, 1.56, 0.64, 1)"
+    },
+    "duration": { "instant": "100ms", "fast": "150ms", "base": "200ms", "slow": "300ms", "slower": "500ms" },
+    "gsapDefaults": { "ease": "power2.out", "duration": 0.4, "stagger": 0.06 }
+  },
+  "wcag": {
+    "ink_on_ivory":    "12.8:1 - AAA",
+    "inkSoft_on_ivory":"7.4:1 - AAA",
+    "inkMuted_on_ivory":"4.6:1 - AA",
+    "clay_on_ivory":   "3.8:1 - AA Large only; for body links thicken weight or underline",
+    "white_on_clay":   "3.5:1 - AA Large only; pair with bold weight on CTA labels"
+  },
+  "implementationNotes": [
+    "Replace tailwind.config.ts colors block with this set",
+    "Add @next/font for Inter + Fraunces Variable - drop the Google Fonts URL import in globals.css",
+    "Set CSS color-scheme: light dark; on :root for native dark form controls",
+    "Add prefers-color-scheme dark mode via .dark class with next-themes",
+    "Update CLAUDE.md design-system rules to reflect serif H1/Display, Clay accent"
+  ]
+}

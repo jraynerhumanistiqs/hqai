@@ -1,17 +1,167 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+/* HQ.ai Brand Kit v4 - dual-theme tokens.
+   Source: docs/research/2026-05-16_brand-kit-benchmark.md section 5.4-5.5
+   + the option-2-ivory-clay / option-3-ink-amber token JSON files.
+
+   The shadcn-style pattern: one stylesheet, two contexts, switched at
+   the root via data-app="marketing" (Option 2 Ivory & Clay) or
+   data-app="product" (Option 3 Ink & Amber). next-themes adds a `.dark`
+   class on the html element for the in-app light/dark toggle (product
+   only - marketing stays light per the brief). */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Default = Option 2 (Ivory & Clay, marketing) so any route without
+       an explicit data-app scope still reads as the warm marketing
+       palette. Product surfaces opt-in via data-app="product" on the
+       html element (set by ThemeBoundary in app/dashboard/layout.tsx,
+       app/prescreen/layout.tsx, app/review/layout.tsx). */
+
+    /* ── Surface (marketing default) ───────────────────────── */
+    --bg:                #FAF9F5;
+    --bg-soft:           #F0EEE6;
+    --bg-elevated:       #FFFFFF;
+    --surface-inverse:   #141413;
+
+    /* ── Text ──────────────────────────────────────────────── */
+    --ink:               #141413;
+    --ink-soft:          #3D3D3A;
+    --ink-muted:         #5E5D59;
+    --ink-on-accent:     #FFFFFF;
+
+    /* ── Accent (marketing = Clay) ─────────────────────────── */
+    --accent:            #D97757;
+    --accent-hover:      #C6613F;
+    --accent-soft:       #F5E5DD;
+
+    /* ── Border ────────────────────────────────────────────── */
+    --border:            #D1CFC5;
+    --border-strong:     #B5B2A4;
+
+    /* ── Semantic ──────────────────────────────────────────── */
+    --danger:            #C5483A;
+    --warning:           #B8770F;
+    --success:           #3D8A5E;
+    --info:              #6A9BCC;
+
+    /* ── Radii ─────────────────────────────────────────────── */
+    --radius-sm:    4px;
+    --radius-md:    8px;
+    --radius-lg:    12px;
+    --radius-xl:    16px;
+    --radius-panel: 20px;
+
+    /* ── Shadow ────────────────────────────────────────────── */
+    --shadow-hairline: 0 0 0 1px rgba(20,20,19,0.06);
+    --shadow-card:     0 1px 2px rgba(20,20,19,0.04), 0 0 0 1px rgba(20,20,19,0.06);
+    --shadow-float:    0 4px 12px rgba(20,20,19,0.06), 0 0 0 1px rgba(20,20,19,0.06);
+    --shadow-modal:    0 16px 48px rgba(20,20,19,0.12), 0 0 0 1px rgba(20,20,19,0.08);
+
+    /* ── Motion ────────────────────────────────────────────── */
+    --ease-smooth:      cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-natural:     cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
+    --ease-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-instant: 100ms;
+    --duration-fast:    150ms;
+    --duration-base:    200ms;
+    --duration-slow:    300ms;
+    --duration-slower:  500ms;
+
+    color-scheme: light;
+  }
+
+  /* ── Option 3: Ink & Amber (product) - light variant ───── */
+  [data-app="product"] {
+    --bg:               #FFFFFF;
+    --bg-soft:          #F7F7F6;
+    --bg-elevated:      #FFFFFF;
+    --surface-inverse:  #0A0A0B;
+
+    --ink:              #0A0A0B;
+    --ink-soft:         #52524C;
+    --ink-muted:        #6B6B66;
+    --ink-on-accent:    #FFFFFF;
+
+    --accent:           #F59E0B;
+    --accent-hover:     #D97706;
+    --accent-soft:      #FEF3C7;
+
+    --border:           #E4E4E0;
+    --border-strong:    #C9C9C2;
+
+    --danger:           #EF4444;
+    --warning:          #F59E0B;
+    --success:          #22C55E;
+    --info:             #3B82F6;
+
+    --radius-sm:    4px;
+    --radius-md:    6px;
+    --radius-lg:    10px;
+    --radius-xl:    14px;
+    --radius-panel: 16px;
+
+    --shadow-hairline: 0 0 0 1px rgba(0,0,0,0.06);
+    --shadow-card:     0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+    --shadow-float:    0 4px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.06);
+    --shadow-modal:    0 16px 48px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.08);
+  }
+
+  /* ── Option 3: Ink & Amber (product) - dark variant ─────── */
+  [data-app="product"].dark, .dark[data-app="product"] {
+    --bg:               #0A0A0B;
+    --bg-soft:          #131417;
+    --bg-elevated:      #1B1D21;
+    --surface-inverse:  #FFFFFF;
+
+    --ink:              #F5F5F4;
+    --ink-soft:         #A8A8A3;
+    --ink-muted:        #6B6B66;
+    --ink-on-accent:    #0A0A0B;
+
+    --accent:           #F59E0B;
+    --accent-hover:     #FBB72A;
+    --accent-soft:      rgba(245,158,11,0.16);
+
+    --border:           #2A2D32;
+    --border-strong:    #3D4148;
+
+    --shadow-hairline: 0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-card:     0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-float:    0 8px 24px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-modal:    0 24px 64px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.08);
+
+    color-scheme: dark;
+  }
+
   html { height: 100%; }
-  body { height: 100%; background: #ffffff; color: #1F1F1F; font-family: 'DM Sans', sans-serif; }
+  body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
   * { box-sizing: border-box; }
+}
+
+@layer components {
+  /* A4 - .btn-* string-soup has been replaced by the cva variants in
+     components/ui/button.tsx. The few utility classes here are kept
+     for legacy templates that emit `class="btn"` server-side. */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all;
+  }
+  .btn-primary { @apply btn bg-accent text-ink-on-accent hover:bg-accent-hover; }
+  .btn-secondary { @apply btn bg-bg-soft text-ink hover:bg-bg-elevated; }
+  .btn-ghost { @apply btn text-ink hover:bg-bg-soft; }
 }
 
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
 
@@ -21,11 +171,30 @@
   to { transform: translateX(0); }
 }
 .animate-slide-in {
-  animation: slide-in-left 0.2s ease-out;
+  animation: slide-in-left var(--duration-base) var(--ease-decelerate);
 }
 
 /* Safe area insets for notched devices */
 @supports (padding: env(safe-area-inset-bottom)) {
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   .pt-safe { padding-top: env(safe-area-inset-top); }
+}
+
+/* A0.5 - honour prefers-reduced-motion. Disables the slide-in keyframe
+   animation, neutralises GSAP via the shared duration vars, and
+   collapses every CSS transition to a no-op. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  :root {
+    --duration-instant: 0.001ms;
+    --duration-fast:    0.001ms;
+    --duration-base:    0.001ms;
+    --duration-slow:    0.001ms;
+    --duration-slower:  0.001ms;
+  }
 }

@@ -1,0 +1,44 @@
+{
+  "name": "Cursor",
+  "url": "https://cursor.com",
+  "source": "https://styles.refero.design/style/4e3b4717-84c8-4599-baaf-a343c3d619b6",
+  "confidence": "HIGH",
+  "intent": "Warm parchment surface (#F7F7F4) with single orange accent. Editorial-warm AI tool brand.",
+  "color": {
+    "accent": {
+      "onyxOutline":     "#F54E00",
+      "chartreuseAlert": "#4ADE80",
+      "goldenrod":       "#C08532",
+      "forestGreen":     "#34785C"
+    },
+    "neutral": {
+      "canvasParchment": { "value": "#F7F7F4", "role": "page bg" },
+      "pebbleGray":      "#E6E5E0",
+      "highlightBeige":  "#CDCDC9",
+      "inkwell":         "#262510",
+      "mutedStone":      "#7A7974",
+      "deepShadow":      "#141414"
+    }
+  },
+  "typography": {
+    "family": {
+      "display": "CursorGothic",
+      "body":    "Lato",
+      "mono":    "berkeleyMono"
+    },
+    "weight": [400, 500, 600],
+    "scale": {
+      "display":   { "size": "72px", "lineHeight": 1.1, "letterSpacing": "-2.16px" },
+      "headingLg": { "size": "36px", "lineHeight": 1.1, "letterSpacing": "-0.45px" },
+      "heading":   { "size": "26px", "lineHeight": 1.2, "letterSpacing": "-0.35px" },
+      "headingSm": { "size": "22px", "lineHeight": 1.3 },
+      "body":      { "size": "14px", "lineHeight": 1.5 }
+    }
+  },
+  "radius": { "default": "4px", "prominent": "8px" },
+  "spacing": { "base": "4px", "scale": ["4","5","6","8","10","12","13","16","18","20","22","28","43","67"], "sectionGap": "43px" },
+  "shadow": {
+    "xl":    "rgba(0,0,0,0.14) 0px 28px 70px 0px, rgba(0,0,0,0.1) 0px 14px 32px 0px, oklab(0.26 0 0 / 0.1) 0px 0px 0px 1px",
+    "subtle":"oklab(0.26 0 0 / 0.1) 0px 0px 0px 1px, rgba(0,0,0,0.28) 0px 18px 36px -18px"
+  }
+}

@@ -875,9 +875,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 onClick={() => sendMessage()}
                 disabled={!input.trim()}
                 title="Send"
-                className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] disabled:bg-muted disabled:cursor-not-allowed transition-all"
+                aria-label="Send message"
+                className="min-h-touch min-w-touch bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover disabled:bg-muted disabled:cursor-not-allowed transition-all"
               >
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path d="M10 3a1 1 0 01.707.293l5 5a1 1 0 01-1.414 1.414L11 6.414V16a1 1 0 11-2 0V6.414L5.707 9.707a1 1 0 01-1.414-1.414l5-5A1 1 0 0110 3z"/>
                 </svg>
               </button>

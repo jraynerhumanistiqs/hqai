@@ -1,0 +1,49 @@
+{
+  "name": "Mercury",
+  "url": "https://mercury.com",
+  "source": "https://styles.refero.design/style/3172cd4d-118a-4a16-a259-6b634d32322e",
+  "confidence": "HIGH",
+  "intent": "Cinematic premium fintech. Custom Arcadia typeface, deep dark palette with single mercury-blue accent. ZERO box-shadows - depth via colour contrast.",
+  "color": {
+    "brand": {
+      "mercuryBlue": { "value": "#5266EB", "role": "primary CTA" },
+      "ghostBlue":   { "value": "#CDDDFF", "role": "secondary button bg, hover" }
+    },
+    "neutralDark": {
+      "deepSpace":     "#171721",
+      "midnightSlate": "#1E1E2A",
+      "graphite":      "#272735",
+      "lead":          "#70707D",
+      "starlight":     "#EDEDF3",
+      "silver":        "#C3C3CC"
+    },
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "family": {
+      "display": "arcadiaDisplay",
+      "body":    "arcadia",
+      "fallback":"Inter, Manrope"
+    },
+    "weight": [360, 400, 420, 480, 530],
+    "note":   "480 weight calibrated to feel authoritative without heaviness - subtler than 500, stronger than 400",
+    "scale": {
+      "caption":    { "size": "12px", "lineHeight": 1.5 },
+      "bodySm":     { "size": "14px", "lineHeight": 1.5 },
+      "body":       { "size": "16px", "lineHeight": 1.5 },
+      "subheading": { "size": "18px", "lineHeight": 1.4 },
+      "headingSm":  { "size": "21px", "lineHeight": 1.35 },
+      "heading":    { "size": "32px", "lineHeight": 1.2 },
+      "headingLg":  { "size": "49px", "lineHeight": 1.15 },
+      "display":    { "size": "65px", "lineHeight": 1.1 }
+    }
+  },
+  "radius": {
+    "card":      "0px",
+    "container": "4px",
+    "input":     "32px",
+    "button":    "32-40px (pill)"
+  },
+  "spacing": { "base": "4px", "scale": ["4","8","12","16","20","24","32","40","56","72","80","112","128"], "sectionGap": "80-120px" },
+  "shadow": "NONE. Use colour and opacity shifts for elevation."
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Notion",
+  "url": "https://notion.com",
+  "source": "https://matthiasfrank.de/en/notion-colors/ + https://www.notion.com",
+  "confidence": "HIGH",
+  "intent": "Most-cited productivity SaaS. 10-color named palette with full light/dark parity. Brand stays achromatic; named-colours scoped to user content only.",
+  "color": {
+    "brand": { "black": "#000000", "white": "#FFFFFF", "warmBeige": "#E3E2DE" },
+    "lightMode": {
+      "default": { "text": "#373530", "bg": "#FFFFFF",  "icon": "#55534E" },
+      "gray":    { "text": "#787774", "bg": "#F1F1EF",  "icon": "#A6A299" },
+      "brown":   { "text": "#976D57", "bg": "#F3EEEE",  "icon": "#9F6B53" },
+      "orange":  { "text": "#CC782F", "bg": "#F8ECDF",  "icon": "#D87620" },
+      "yellow":  { "text": "#C29343", "bg": "#FAF3DD",  "icon": "#CB912F" },
+      "green":   { "text": "#548164", "bg": "#EEF3ED",  "icon": "#448361" },
+      "blue":    { "text": "#487CA5", "bg": "#E9F3F7",  "icon": "#337EA9" },
+      "purple":  { "text": "#8A67AB", "bg": "#F6F3F8",  "icon": "#9065B0" },
+      "pink":    { "text": "#B35488", "bg": "#F9F2F5",  "icon": "#C14C8A" },
+      "red":     { "text": "#C4554D", "bg": "#FAECEC",  "icon": "#D44C47" }
+    },
+    "darkMode": {
+      "default": { "text": "#D4D4D4", "bg": "#191919",  "icon": "#D3D3D3" },
+      "gray":    { "text": "#9B9B9B", "bg": "#252525",  "icon": "#7F7F7F" },
+      "brown":   { "text": "#A27763", "bg": "#2E2724",  "icon": "#AA755F" },
+      "orange":  { "text": "#CB7B37", "bg": "#36291F",  "icon": "#D9730D" },
+      "yellow":  { "text": "#C19138", "bg": "#372E20",  "icon": "#CA8E1B" },
+      "green":   { "text": "#4F9768", "bg": "#242B26",  "icon": "#2D9964" },
+      "blue":    { "text": "#447ACB", "bg": "#1F282D",  "icon": "#2E7CD1" },
+      "purple":  { "text": "#865DBB", "bg": "#2A2430",  "icon": "#8D5BC1" },
+      "pink":    { "text": "#BA4A78", "bg": "#2E2328",  "icon": "#C94079" },
+      "red":     { "text": "#BE524B", "bg": "#332523",  "icon": "#CD4945" }
+    }
+  },
+  "typography": { "family": "Inter (Notion Inter custom subset)", "weights": "400, 600" }
+}

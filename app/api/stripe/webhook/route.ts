@@ -34,7 +34,40 @@ export async function POST(req: NextRequest) {
             subscription_status: 'active',
             plan: plan || 'growth',
           }).eq('id', businessId)
+          // B10 - grant the recurring credit allocation for this plan.
+          // The amount is hard-coded against the tier; future changes
+          // belong in lib/stripe.ts:PLANS.
+          const allocationByPlan: Record<string, number> = {
+            essentials: 500,
+            growth:    1500,
+            scale:     5000,
+          }
+          const allocated = allocationByPlan[plan || 'growth'] ?? 1500
+          await supabase.from('credit_allocations').insert({
+            business_id:  businessId,
+            allocated,
+            period_start: new Date().toISOString(),
+            source:       'subscription',
+            stripe_invoice_id: session.invoice ?? null,
+          })
         }
+      } else if (session.metadata?.offer_id) {
+        // B10 - one-off Letter-of-Offer purchase. Records a credit
+        // ledger row keyed by the customer email so the fulfilment
+        // worker can locate it when the user follows the success
+        // URL.
+        const offerId = String(session.metadata.offer_id)
+        const credits = Number(session.metadata.credit_amount ?? '1')
+        const email = String(session.metadata.customer_email ?? session.customer_email ?? '')
+        await supabase.from('credit_ledger').insert({
+          business_id:     null,
+          user_id:         null,
+          tool:            'one_off',
+          intent:          `one_off:${offerId}`,
+          cost:            -credits, // negative = credit granted
+          stripe_event_id: event.id,
+          notes:           email ? `one-off purchase for ${email}` : null,
+        })
       }
       break
     }

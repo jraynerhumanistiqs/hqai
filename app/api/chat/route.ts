@@ -3,6 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { buildSystemPrompt, detectEscalation, detectDocumentRequest, detectHardTriage, buildTriageReply } from '@/lib/prompts'
 import { tools, runTool, ToolRunResult } from '@/lib/chat-tools'
 import { parseCitations } from '@/lib/parse-citations'
+// B3 - Anthropic prompt caching. `withPromptCache` wraps the system
+// prompt in an ephemeral-cache block so subsequent turns within the
+// 5-minute window pay 10% of the input-token rate on the system prompt
+// (which is large - thousands of tokens of Fair Work + tone guidance).
+// `withPromptCacheBlocks` is used at iter-1 call sites where we append
+// per-iteration steering instructions; we keep the stable prefix
+// cacheable and let the variable suffix ride along uncached.
+import { withPromptCache, withPromptCacheBlocks } from '@/lib/router'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -217,7 +225,8 @@ export async function POST(req: NextRequest) {
                 {
                   model: MODEL,
                   max_tokens: 1500,
-                  system: systemPrompt,
+                  // B3 - cache the system prompt across turns.
+                  system: withPromptCache(systemPrompt),
                   tools,
                   tool_choice: { type: 'auto' },
                   messages: working,
@@ -304,7 +313,8 @@ export async function POST(req: NextRequest) {
                   anthropic.messages.create({
                     model: MODEL,
                     max_tokens: 768,
-                    system: systemPrompt,
+                    // B3 - same MASTER prompt used every iter, cache it.
+                    system: withPromptCache(systemPrompt),
                     tools,
                     tool_choice: toolChoice,
                     messages: working,
@@ -439,7 +449,13 @@ export async function POST(req: NextRequest) {
               {
                 model: MODEL,
                 max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
-                system: systemPrompt + '\n\nYou now have search results above. Produce the final answer in prose with citations. Do not call tools.',
+                // B3 - keep the stable MASTER prefix cacheable; iter-1
+                // steering text rides along uncached so it doesn't bust
+                // the cache for iter-0 hits.
+                system: withPromptCacheBlocks([
+                  systemPrompt,
+                  { text: '\n\nYou now have search results above. Produce the final answer in prose with citations. Do not call tools.', cacheable: false },
+                ]),
                 messages: working,
                 stream: true,
               },
@@ -542,7 +558,11 @@ export async function POST(req: NextRequest) {
                     {
                       model: MODEL,
                       max_tokens: 1500,
-                      system: systemPrompt + '\n\nIMPORTANT: Answer the user\'s question NOW using the retrieved sources in the conversation above. Produce prose only - do not refuse, do not stall. If the topic is on the deny-list, give the brief general orientation + advisor handoff per the standard escalation format. Do not return an empty response.',
+                      // B3 - cached MASTER prefix + uncached retry steering.
+                      system: withPromptCacheBlocks([
+                        systemPrompt,
+                        { text: '\n\nIMPORTANT: Answer the user\'s question NOW using the retrieved sources in the conversation above. Produce prose only - do not refuse, do not stall. If the topic is on the deny-list, give the brief general orientation + advisor handoff per the standard escalation format. Do not return an empty response.', cacheable: false },
+                      ]),
                       messages: flatMessages as any,
                       stream: true,
                     },
@@ -830,7 +850,8 @@ async function legacyStream(opts: {
         const response = await anthropic.messages.create({
           model: MODEL,
           max_tokens: maxTokens,
-          system: systemPrompt,
+          // B3 - cache system prompt for the fallback streaming path too.
+          system: withPromptCache(systemPrompt),
           messages: claudeMessages,
           stream: true,
         })

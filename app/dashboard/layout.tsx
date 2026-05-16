@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import MobileShell from '@/components/layout/MobileShell'
+import ThemeBoundary from '@/components/theme/ThemeBoundary'
 import { flagMap } from '@/lib/auth/feature-flags'
 import type { AppRole } from '@/lib/auth/roles'
 
@@ -37,8 +38,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <MobileShell sidebarProps={sidebarProps}>
-      {children}
-    </MobileShell>
+    // A3 - product chrome runs the Option 3 (Ink & Amber) theme via the
+    // data-app="product" scope on <html>. next-themes inside the
+    // boundary handles light/dark within product.
+    <ThemeBoundary app="product">
+      <MobileShell sidebarProps={sidebarProps}>
+        {children}
+      </MobileShell>
+    </ThemeBoundary>
   )
 }

@@ -1,0 +1,43 @@
+{
+  "name": "Supabase",
+  "url": "https://supabase.com",
+  "source": "https://styles.refero.design/style/632249f1-fd78-4c77-9b34-7bae37ff3e9b",
+  "confidence": "HIGH",
+  "intent": "Dark-first developer brand. Single brand-green accent on near-black ladder. Best reference for dark-mode treatment of SaaS dashboards.",
+  "color": {
+    "brand": {
+      "supabaseGreen":     "#3ECF8E",
+      "deepSeaGreen":      "#1F4B37",
+      "forestCallToAction":"#006239",
+      "glowGreen":         "#00C573",
+      "shadowGreen":       "#002918"
+    },
+    "neutralDark": {
+      "midnightAbyss":     "#000000",
+      "ebonyCanvas":       "#121212",
+      "graphiteBase":      "#242424",
+      "steelSurface":      "#2E2E2E",
+      "carbonBorder":      "#393939",
+      "ironOutline":       "#4D4D4D",
+      "midGrayText":       "#898989",
+      "silverHighlight":   "#B4B4B4",
+      "whiteout":          "#FAFAFA"
+    }
+  },
+  "typography": {
+    "family": { "primary": "Circular (fallback Inter)", "code": "Source Code Pro (fallback Menlo)" },
+    "weight": [400, 500],
+    "scale": {
+      "display":    { "size": "72px", "lineHeight": 1.11, "letterSpacing": "-0.007em" },
+      "headingLg":  { "size": "36px", "lineHeight": 1.25 },
+      "heading":    { "size": "24px", "lineHeight": 1.33 },
+      "subheading": { "size": "18px", "lineHeight": 1.38 },
+      "body":       { "size": "16px", "lineHeight": 1.43 },
+      "bodySm":     { "size": "14px", "lineHeight": 1.50 },
+      "caption":    { "size": "12px", "lineHeight": 1.56 }
+    }
+  },
+  "radius": { "input": "6px", "button": "6px", "card": "16px", "pill": "9999px" },
+  "spacing": { "base": "8px", "scale": ["8","16","24","32","40","48","64","80","96","112","128","224"], "cardPadding": "24px" },
+  "shadow": { "sm": "rgba(0,0,0,0.1) 0px 4px 6px -1px, rgba(0,0,0,0.1) 0px 2px 4px -2px" }
+}

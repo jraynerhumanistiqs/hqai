@@ -1,0 +1,49 @@
+{
+  "name": "Airbnb",
+  "url": "https://airbnb.com",
+  "source": "https://styles.refero.design/style/c2325884-4391-4688-85cd-e143f5107517",
+  "confidence": "HIGH",
+  "intent": "High-volume self-service marketplace. Coral brand on warm-neutral ladder. Reference for trust + warmth in transactional UI.",
+  "color": {
+    "brand": {
+      "rauschCoral": { "value": "#FF385C", "role": "brand logo, active states, search button" },
+      "rauschDeep":  { "value": "#E00B41", "role": "hover darken" }
+    },
+    "neutral": {
+      "carbon": "#222222",
+      "slate":  "#6A6A6A",
+      "stone":  "#B0B0B0",
+      "silver": "#C1C1C1",
+      "pebble": "#DDDDDD",
+      "mist":   "#EBEBEB",
+      "fog":    "#F7F7F7",
+      "cloud":  "#FFFFFF"
+    }
+  },
+  "typography": {
+    "family": "Airbnb Cereal VF (fallback Inter Variable)",
+    "weight": "400-700",
+    "fontFeatureSettings": "'salt'",
+    "scale": {
+      "display":   { "size": "28px", "weight": 700, "lineHeight": 1.18, "letterSpacing": "-0.56px" },
+      "heading":   { "size": "22px", "weight": 600, "lineHeight": 1.23, "letterSpacing": "-0.2px" },
+      "headingSm": { "size": "20px", "weight": 600, "lineHeight": 1.25, "letterSpacing": "-0.18px" },
+      "body":      { "size": "14px", "weight": 400, "lineHeight": 1.43, "letterSpacing": "-0.13px" },
+      "caption":   { "size": "11px", "weight": 400, "lineHeight": 1.29, "letterSpacing": "+0.44px" }
+    }
+  },
+  "radius": {
+    "badge":  "4px",
+    "button": "8px",
+    "input":  "14px",
+    "card":   "20px",
+    "search": "20px",
+    "pill":   "32px",
+    "icon":   "50%"
+  },
+  "spacing": { "base": "4px", "scale": ["4","6","8","10","11","12","13","15","16","20","24","28","32","40","44","48"] },
+  "shadow": {
+    "subtle":  "rgba(0,0,0,0.02) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 6px 0px, rgba(0,0,0,0.1) 0px 4px 8px 0px",
+    "subtle2": "rgba(0,0,0,0.02) 0px 0px 0px 1px, rgba(0,0,0,0.16) 0px 2px 4px 0px"
+  }
+}

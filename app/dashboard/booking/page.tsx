@@ -43,7 +43,7 @@ export default function BookingPage() {
 
   if (!calendlyUrl) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#000000]">
+      <div className="flex-1 flex items-center justify-center bg-surface-inverse">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-accent" viewBox="0 0 20 20" fill="currentColor">
@@ -63,7 +63,7 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#000000]">
+    <div className="flex-1 overflow-y-auto bg-surface-inverse">
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-6">
           <h1 className="font-display text-h3 font-bold text-white uppercase tracking-wider mb-1">Book a call with your Humanistiqs advisor</h1>

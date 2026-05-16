@@ -1,0 +1,45 @@
+{
+  "name": "Partiful",
+  "url": "https://partiful.com",
+  "source": "https://styles.refero.design/style/6db1057d-3457-4173-9184-df160415f060",
+  "confidence": "HIGH",
+  "intent": "Pure black bg + warm-sand + signature gradients. Reference for playful self-service that still reads premium.",
+  "color": {
+    "neutral": {
+      "midnightInk": "#000000",
+      "pureCanvas":  "#FFFFFF",
+      "graphite":    "#333333",
+      "slate":       "#666666",
+      "ash":         "#999999",
+      "fog":         "#B3B3B3",
+      "silver":      "#CCCCCC"
+    },
+    "accent": {
+      "warmSand":     "#D9C58B",
+      "midnightBlue": "#001666"
+    },
+    "gradients": {
+      "partyPink":     "linear-gradient(rgb(248,196,255) 0%, rgb(240,182,224) 100%)",
+      "skyPeriwinkle": "linear-gradient(rgba(150,196,255,0.1) 0%, #FFFFFF 100%)",
+      "spearmint":     "linear-gradient(130deg, rgb(133,218,220) 0%, rgb(192,226,226) 100%)"
+    }
+  },
+  "typography": {
+    "family": {
+      "display": "Partiful Display Medium (400, 500)",
+      "body":    "TWK Lausanne Pan (400-825)",
+      "fallback":"Cabinet Grotesk, Inter, Neue Haas Grotesk"
+    },
+    "scale": {
+      "caption":   { "size": "11px", "lineHeight": 1.2,  "letterSpacing": "-0.22px" },
+      "body":      { "size": "14px", "lineHeight": 1.4,  "letterSpacing": "-0.28px" },
+      "headingSm": { "size": "18px", "lineHeight": 1.4,  "letterSpacing": "-0.36px" },
+      "heading":   { "size": "24px", "lineHeight": 1.2,  "letterSpacing": "-0.96px" },
+      "headingLg": { "size": "36px", "lineHeight": 1.2,  "letterSpacing": "-1.44px" },
+      "display":   { "size": "48px", "lineHeight": 1.0,  "letterSpacing": "-0.96px" }
+    }
+  },
+  "radius": { "navPill": "4px", "input": "8px", "button": "8px", "card": "12px", "modal": "16px", "badge": "960px" },
+  "spacing": ["4","6","8","10","12","16","20","24","30","40","60","80","100","120","160"],
+  "shadow": { "small": "rgba(0,0,0,0.1) 0px 0px 6px 0px", "large": "rgba(0,0,0,0.1) 0px 0px 20px 0px" }
+}

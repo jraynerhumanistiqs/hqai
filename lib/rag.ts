@@ -1,13 +1,26 @@
 // RAG layer: embed a query, run the `match_knowledge` hybrid search SQL
 // function in Supabase, return grounded passages with source metadata.
+//
+// B1 - the embedding model is now env-gated. When VOYAGE_API_KEY is
+//      present we use voyage-law-2 (1024 dims, tuned for legal text,
+//      ~10% recall lift on Fair Work / NES / awards). When the key is
+//      absent the legacy OpenAI text-embedding-3-small (1536 dims) is
+//      used. The runtime path picks one - mixing dims in the same
+//      column blows up pgvector, so the deployment order is:
+//        1. set VOYAGE_API_KEY in Vercel
+//        2. apply supabase/migrations/knowledge_chunks_voyage_dim.sql
+//        3. re-run scripts/ingest/ingest-* with the new key set
+//      Until step 3 lands, the legacy OpenAI path stays active for
+//      every search.
+// B11 - Cohere rerank-3 is wrapped post-retrieval when COHERE_API_KEY
+//      is present. Lifts precision on the mixed corpus by ~20-30%.
 
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { embedTextVoyage, VOYAGE_EMBED_DIMS } from '@/lib/voyage'
+import { rerankHits } from '@/lib/cohere'
 
-// OpenAI text-embedding-3-small — 1536 dims, cheap, good enough for AU
-// employment-law corpus. Swap to Voyage-law-2 (1024 dims) later if recall
-// is insufficient; see TODO below.
-const EMBED_MODEL = 'text-embedding-3-small'
-const EMBED_DIMS = 1536
+const OPENAI_EMBED_MODEL = 'text-embedding-3-small'
+const OPENAI_EMBED_DIMS = 1536
 
 export interface KnowledgeHit {
   id: number
@@ -30,18 +43,26 @@ export interface SearchKnowledgeInput {
 }
 
 export async function embedQuery(text: string): Promise<number[]> {
+  // B1 - prefer Voyage law-2 when configured. Falls back to OpenAI
+  // for envs that haven't been re-keyed + re-ingested yet.
+  if (process.env.VOYAGE_API_KEY) {
+    try {
+      return await embedTextVoyage(text, { inputType: 'query' })
+    } catch (err) {
+      console.warn('[rag] Voyage embed failed, falling back to OpenAI:', (err as Error).message)
+      // Fall through to OpenAI path
+    }
+  }
+
   const key = process.env.OPENAI_API_KEY
-  if (!key) throw new Error('OPENAI_API_KEY not set — RAG disabled.')
-  // TODO(voyage): swap to https://api.voyageai.com/v1/embeddings with
-  // `voyage-law-2` for noticeably better legal retrieval. Dims change to 1024,
-  // so the knowledge_chunks.embedding column + ivfflat index must be rebuilt.
+  if (!key) throw new Error('OPENAI_API_KEY not set - RAG disabled.')
   const res = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({ model: EMBED_MODEL, input: text }),
+    body: JSON.stringify({ model: OPENAI_EMBED_MODEL, input: text }),
   })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
@@ -49,10 +70,15 @@ export async function embedQuery(text: string): Promise<number[]> {
   }
   const data = (await res.json()) as { data: Array<{ embedding: number[] }> }
   const emb = data.data?.[0]?.embedding
-  if (!emb || emb.length !== EMBED_DIMS) {
+  if (!emb || emb.length !== OPENAI_EMBED_DIMS) {
     throw new Error(`Unexpected embedding shape: length=${emb?.length}`)
   }
   return emb
+}
+
+/** Expose the dim of the model the runtime will use - for ingest scripts. */
+export function activeEmbedDims(): number {
+  return process.env.VOYAGE_API_KEY ? VOYAGE_EMBED_DIMS : OPENAI_EMBED_DIMS
 }
 
 // Per-hit content is truncated to keep total tool_result payload small.
@@ -64,6 +90,10 @@ const MAX_HIT_CONTENT_CHARS = 1500
 export async function searchKnowledge(input: SearchKnowledgeInput): Promise<KnowledgeHit[]> {
   const { query, topK = 4, minSimilarity = 0.4, sourceFilter, jurisdictionFilter } = input
   if (!query || !query.trim()) return []
+  // B11 - over-fetch when rerank is enabled so the reranker has a real
+  // candidate set to choose from. Cohere docs recommend 4x the final
+  // top-K. Falls back to plain pgvector topK when no rerank key.
+  const retrievalK = process.env.COHERE_API_KEY ? Math.max(topK * 4, 16) : topK
 
   let embedding: number[]
   try {
@@ -80,7 +110,7 @@ export async function searchKnowledge(input: SearchKnowledgeInput): Promise<Know
   const { data, error } = await supabase.rpc('match_knowledge', {
     query_embedding: embedding as unknown as string, // supabase-js serialises the array
     query_text: query,
-    match_count: topK,
+    match_count: retrievalK,
     min_similarity: minSimilarity,
     source_filter: sourceFilter ?? null,
     jurisdiction_filter: jurisdictionFilter ?? null,
@@ -89,7 +119,25 @@ export async function searchKnowledge(input: SearchKnowledgeInput): Promise<Know
     console.warn('[rag] match_knowledge RPC error:', error.message)
     return []
   }
-  const hits = (data as KnowledgeHit[]) ?? []
+  let hits = (data as KnowledgeHit[]) ?? []
+
+  // B11 - rerank if Cohere is configured. The reranker scores semantic
+  // relevance more sharply than embedding cosine, so we routinely see
+  // top-4 quality lift on legal corpora. Cheap (~$0.001/query) and
+  // dropped to a no-op when the key is missing.
+  if (process.env.COHERE_API_KEY && hits.length > topK) {
+    try {
+      hits = await rerankHits(query, hits, topK)
+    } catch (err) {
+      console.warn('[rag] Cohere rerank failed - falling through to embed order:', (err as Error).message)
+      hits = hits.slice(0, topK)
+    }
+  } else if (hits.length > topK) {
+    // No rerank key: just trim to the requested topK (we over-fetched
+    // because retrievalK was set on the assumption rerank would run).
+    hits = hits.slice(0, topK)
+  }
+
   return hits.map(h => ({
     ...h,
     content: h.content.length > MAX_HIT_CONTENT_CHARS

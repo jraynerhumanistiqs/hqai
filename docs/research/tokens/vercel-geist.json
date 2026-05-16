@@ -1,0 +1,46 @@
+{
+  "name": "Vercel (Geist)",
+  "url": "https://vercel.com/geist",
+  "source": "https://styles.refero.design/style/0fd67ec5-7e9c-4ca9-b368-5d9c7388477a",
+  "confidence": "HIGH",
+  "intent": "Aggressive achromatic reduction + Geist Sans/Mono pair. Built for technical credibility at speed.",
+  "color": {
+    "neutral": {
+      "canvasWhite":  "#FFFFFF",
+      "ghostGray":    "#F2F2F2",
+      "subtleAsh":    "#E5E5E5",
+      "midtoneGray":  "#737373",
+      "richBlack":    "#0A0A0A",
+      "deepBlack":    "#000000"
+    },
+    "semantic": {
+      "calloutRed":   "#C22B10",
+      "successGreen": "#10C22B"
+    }
+  },
+  "typography": {
+    "family": {
+      "sans": "Geist (fallback Inter)",
+      "mono": "Geist Mono (fallback IBM Plex Mono)"
+    },
+    "weight": [400, 500, 600],
+    "scale": {
+      "display": { "size": "48px", "weight": 600, "lineHeight": 1.10, "letterSpacing": "-2.4px" },
+      "heading": { "size": "18px", "weight": 400, "lineHeight": 1.56, "letterSpacing": "-0.45px" },
+      "body":    { "size": "14px", "weight": 500, "lineHeight": 1.43 },
+      "caption": { "size": "12px", "weight": 500, "lineHeight": 1.33 }
+    }
+  },
+  "radius": {
+    "pill":   "9999px",
+    "badge":  "26px",
+    "card":   "14px",
+    "input":  "10px",
+    "button": "10px"
+  },
+  "shadow": {
+    "subtle":  "lab(100 0 0) 0px 0px 0px 2px",
+    "subtle2": "oklab(0.145 0 0 / 0.1) 0px 0px 0px 1px"
+  },
+  "spacing": { "base": "4px", "scale": ["4","5","6","8","10","12","16","20","24","32","40","80","83"], "sectionGap": "83px", "cardPadding": "16px" }
+}

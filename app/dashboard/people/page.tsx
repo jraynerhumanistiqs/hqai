@@ -1,31 +1,23 @@
-import { createClient } from '@/lib/supabase/server'
+// B0.2 - HQ People is being split into AI Advisor and AI Administrator.
+// /dashboard/people now redirects to the AI Advisor surface so existing
+// links (sidebar history items, in-app callbacks, marketing pages)
+// continue to work without breaking. The canonical advisor route lives
+// at /dashboard/people/advisor; the new AI Administrator surface is at
+// /dashboard/people/administrator. See docs/research/2026-05-16_ai-doc
+// -creation-teardown.md section 0 / brief Part B0 for the split.
+
 import { redirect } from 'next/navigation'
-import ChatInterface from '@/components/chat/ChatInterface'
 
-export default async function PeoplePage({ searchParams }: { searchParams: Promise<{ prompt?: string }> }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, businesses(*)')
-    .eq('id', user.id)
-    .single()
-
-  const business = profile?.businesses as any
+export default async function PeopleIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ prompt?: string }>
+}) {
   const params = await searchParams
-
-  return (
-    <ChatInterface
-      module="people"
-      userName={profile?.full_name || ''}
-      bizName={business?.name || 'My Business'}
-      advisorName={business?.advisor_name || 'Hugo'}
-      industry={business?.industry || ''}
-      state={business?.state || ''}
-      award={business?.award || ''}
-      initialPrompt={params.prompt}
-    />
-  )
+  // Preserve ?prompt= passthrough so seed prompts from elsewhere in the
+  // product still reach the AI Advisor chat.
+  const target = params.prompt
+    ? `/dashboard/people/advisor?prompt=${encodeURIComponent(params.prompt)}`
+    : '/dashboard/people/advisor'
+  redirect(target)
 }

@@ -27,7 +27,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
   }, [pathname])
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#000000]">
+    <div className="flex h-screen overflow-hidden bg-surface-inverse">
       {/* Desktop sidebar - always visible */}
       <div className="hidden lg:block flex-shrink-0">
         <Sidebar {...sidebarProps} />

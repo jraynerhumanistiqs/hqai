@@ -1,0 +1,47 @@
+{
+  "name": "Calendly",
+  "url": "https://calendly.com",
+  "source": "https://styles.refero.design/style/9946887b-ffa9-4276-af81-ae6352795afb",
+  "confidence": "HIGH",
+  "intent": "High-volume SMB self-service booking. Action-blue brand on cool grays. Reference for transactional/booking UI density.",
+  "color": {
+    "brand": {
+      "midnightIndigo": "#0B3558",
+      "actionBlue":     "#006BFF",
+      "lavenderGlow":   "#E55CFF",
+      "royalAmethyst":  "#8247F5",
+      "sunsetGold":     "#FFA600",
+      "skyboundBlue":   "#0099FF",
+      "oceanGlimmer":   "#BB32D5",
+      "glacierBlue":    "#004EBA"
+    },
+    "neutral": {
+      "snowWhite":   "#FFFFFF",
+      "cloudMist":   "#F8F9FB",
+      "paleGray":    "#E7EDF6",
+      "slateBlue":   "#476788",
+      "steelGray":   "#A6BBD1",
+      "platinum":    "#D4E0ED",
+      "outlineGray": "#E6E6E6",
+      "textBlack":   "#0A0A0A"
+    }
+  },
+  "typography": {
+    "family": "Gilroy (fallback Montserrat)",
+    "weight": [400, 500, 600, 700],
+    "scale": {
+      "body":     { "size": "14px", "lineHeight": 1.71 },
+      "bodyLg":   { "size": "16px", "lineHeight": 1.6 },
+      "subheading":{ "size": "18px", "lineHeight": 1.6 },
+      "heading":  { "size": "24px", "lineHeight": 1.4 },
+      "headingLg":{ "size": "28px", "lineHeight": 1.2 },
+      "displaySm":{ "size": "38px", "lineHeight": 1.21 },
+      "display":  { "size": "50px", "lineHeight": 1.1 },
+      "displayLg":{ "size": "68px", "lineHeight": 1.1 },
+      "displayXl":{ "size": "80px", "lineHeight": 1.0 }
+    }
+  },
+  "radius": { "sm": "4px", "md": "12px", "button": "8px", "card": "16px", "lg": "24px", "badge": "50px" },
+  "spacing": { "base": "8px", "scale": ["8","16","24","32","40","48","56","64","72","96"] },
+  "shadow": "Layered rgba(71,103,136,...) using slate-blue tint instead of pure black"
+}
