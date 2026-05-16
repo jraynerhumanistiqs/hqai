@@ -23,12 +23,12 @@ export default async function AnalyticsPage({ params }: { params: Promise<{ id: 
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-black">{session.role_title}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink">{session.role_title}</h1>
             <p className="text-sm text-mid">{session.company} &middot; Analytics</p>
           </div>
           <Link
             href="/dashboard/recruit"
-            className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-white text-black hover:bg-light transition-colors"
+            className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-bg-elevated text-ink hover:bg-light transition-colors"
           >Back to role</Link>
         </div>
 

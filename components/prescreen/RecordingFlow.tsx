@@ -396,7 +396,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   if (recState === 'self_view_prompt') {
     return (
       <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-modal border border-border p-6 sm:p-8 text-center">
+        <div className="bg-bg-elevated rounded-2xl shadow-modal border border-border p-6 sm:p-8 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-mid mb-3">Before we start</p>
           <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-3">Would you like to see yourself while recording?</h2>
           <p className="text-sm text-mid mb-6 leading-relaxed">
@@ -414,7 +414,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             </button>
             <button
               onClick={() => { setShowSelfView(false); setSelfViewPrompted(true) }}
-              className="bg-white text-charcoal font-bold rounded-full px-6 py-3 border border-border hover:bg-light text-sm transition-colors"
+              className="bg-bg-elevated text-charcoal font-bold rounded-full px-6 py-3 border border-border hover:bg-light text-sm transition-colors"
             >
               No, hide the preview
             </button>
@@ -449,7 +449,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             onClick={readQuestionAloud}
             title="Read this question out loud"
             aria-label="Read this question out loud"
-            className="mt-7 sm:mt-7 w-9 h-9 rounded-full bg-white border border-border hover:bg-light flex items-center justify-center transition-colors flex-shrink-0 group relative"
+            className="mt-7 sm:mt-7 w-9 h-9 rounded-full bg-bg-elevated border border-border hover:bg-light flex items-center justify-center transition-colors flex-shrink-0 group relative"
           >
             <svg className="w-4 h-4 text-charcoal" viewBox="0 0 20 20" fill="currentColor">
               <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.786L4.586 14H2a1 1 0 01-1-1V7a1 1 0 011-1h2.586l3.797-2.786a1 1 0 011-.138zM14 7a3 3 0 010 6V7zM15.657 4.343a8 8 0 010 11.314l-1.414-1.414a6 6 0 000-8.486l1.414-1.414z"/>
@@ -528,7 +528,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             {recState === 'recording' && (
               <button onClick={stopRecording}
                 className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
-                <span className="w-3 h-3 bg-white" />
+                <span className="w-3 h-3 bg-bg-elevated" />
                 Stop
               </button>
             )}
@@ -540,7 +540,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
                 </button>
                 {videoIds[currentQ] == null && streamRef.current && (
                   <button onClick={() => { setRecState('idle'); setErrorMsg('') }}
-                    className="bg-white hover:bg-light text-charcoal font-bold px-6 py-3 rounded-full border border-border transition-colors text-sm">
+                    className="bg-bg-elevated hover:bg-light text-charcoal font-bold px-6 py-3 rounded-full border border-border transition-colors text-sm">
                     Cancel
                   </button>
                 )}
@@ -571,7 +571,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             )}
           </div>
 
-          <div className="bg-white border border-border rounded-2xl p-4 flex flex-col">
+          <div className="bg-bg-elevated border border-border rounded-2xl p-4 flex flex-col">
             <p className="text-[11px] font-bold uppercase tracking-widest text-mid mb-2">Your answer</p>
             <div className="flex-1 overflow-y-auto text-sm text-charcoal leading-relaxed mb-3 max-h-64">
               {transcripts[currentQ] || '(transcript not available)'}
@@ -597,13 +597,13 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
           <button
             onClick={playReplay}
             disabled={replayRemaining === 0}
-            className="bg-white text-charcoal font-bold px-5 py-2.5 rounded-full border border-border hover:bg-light text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="bg-bg-elevated text-charcoal font-bold px-5 py-2.5 rounded-full border border-border hover:bg-light text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             ▶ Watch back ({replayRemaining} left)
           </button>
           <button
             onClick={redoRecording}
-            className="bg-white text-charcoal font-bold px-5 py-2.5 rounded-full border border-border hover:bg-light text-sm transition-colors"
+            className="bg-bg-elevated text-charcoal font-bold px-5 py-2.5 rounded-full border border-border hover:bg-light text-sm transition-colors"
           >
             Re-record
           </button>

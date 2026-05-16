@@ -45,7 +45,7 @@ export default function ReviewPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
+      <header className="bg-bg-elevated border-b border-border px-6 py-4 flex items-center justify-between">
         <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-14 h-auto" />
         {data?.expires_at && !error && (
           <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-light text-mid border border-border">
@@ -62,7 +62,7 @@ export default function ReviewPage() {
 
       {!loading && error && (
         <div className="max-w-md mx-auto px-6 py-20 text-center">
-          <h2 className="text-lg font-bold text-black mb-2">This review link is no longer active.</h2>
+          <h2 className="text-lg font-bold text-ink mb-2">This review link is no longer active.</h2>
           <p className="text-sm text-mid">Please contact the sender.</p>
         </div>
       )}
@@ -70,10 +70,10 @@ export default function ReviewPage() {
       {!loading && data && (
         <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
           <div className="mb-6">
-            <p className="text-xs font-bold text-black uppercase tracking-widest mb-2">Candidate review</p>
-            <h1 className="font-serif text-3xl font-bold text-black mb-1">{data.candidateName}</h1>
+            <p className="text-xs font-bold text-ink uppercase tracking-widest mb-2">Candidate review</p>
+            <h1 className="font-serif text-3xl font-bold text-ink mb-1">{data.candidateName}</h1>
             <p className="text-sm text-mid">
-              Applying for <strong className="text-black">{data.role}</strong> at <strong className="text-black">{data.company}</strong>
+              Applying for <strong className="text-ink">{data.role}</strong> at <strong className="text-ink">{data.company}</strong>
             </p>
           </div>
 
@@ -83,10 +83,10 @@ export default function ReviewPage() {
 
           <div className="space-y-6">
             {data.questions.map((q, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+              <div key={i} className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
                 <div className="px-5 py-4 border-b border-border">
                   <div className="flex items-start gap-3">
-                    <span className="text-xs font-bold text-black bg-light px-2 py-0.5 rounded-full flex-shrink-0">
+                    <span className="text-xs font-bold text-ink bg-light px-2 py-0.5 rounded-full flex-shrink-0">
                       Q{i + 1}
                     </span>
                     <p className="text-sm font-bold text-charcoal">{q}</p>
@@ -112,9 +112,9 @@ export default function ReviewPage() {
           </div>
 
           {data.evaluation && (
-            <section className="mt-8 bg-white rounded-2xl border border-border shadow-card">
+            <section className="mt-8 bg-bg-elevated rounded-2xl border border-border shadow-card">
               <div className="px-5 py-4 border-b border-border">
-                <p className="text-xs font-bold text-black uppercase tracking-widest">AI assessment</p>
+                <p className="text-xs font-bold text-ink uppercase tracking-widest">AI assessment</p>
               </div>
               {data.evaluation.overall_summary && (
                 <div className="px-5 py-4 border-b border-border">
@@ -125,8 +125,8 @@ export default function ReviewPage() {
                 {data.evaluation.rubric.map((d, i) => (
                   <div key={i}>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-black capitalize">{d.name.replace(/_/g, ' ')}</p>
-                      <p className="text-xs font-bold text-black">{d.score}/5</p>
+                      <p className="text-sm font-bold text-ink capitalize">{d.name.replace(/_/g, ' ')}</p>
+                      <p className="text-xs font-bold text-ink">{d.score}/5</p>
                     </div>
                     <div className="w-full h-1.5 bg-light rounded-full overflow-hidden mt-1">
                       <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
@@ -141,16 +141,16 @@ export default function ReviewPage() {
           )}
 
           {data.staffRating !== null && (
-            <section className="mt-6 bg-white rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
-              <p className="text-xs font-bold text-black uppercase tracking-widest">Staff rating</p>
+            <section className="mt-6 bg-bg-elevated rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">Staff rating</p>
               <p className="text-sm font-bold text-warning">{data.staffRating}/5</p>
             </section>
           )}
 
           {data.notes.length > 0 && (
-            <section className="mt-6 bg-white rounded-2xl border border-border shadow-card">
+            <section className="mt-6 bg-bg-elevated rounded-2xl border border-border shadow-card">
               <div className="px-5 py-4 border-b border-border">
-                <p className="text-xs font-bold text-black uppercase tracking-widest">Team notes</p>
+                <p className="text-xs font-bold text-ink uppercase tracking-widest">Team notes</p>
               </div>
               <div className="divide-y divide-border">
                 {data.notes.map((n, i) => (
@@ -167,7 +167,7 @@ export default function ReviewPage() {
 
           <footer className="mt-10 pt-6 border-t border-border text-center">
             <p className="text-sm text-mid">
-              Prepared by <strong className="text-black">Humanistiqs</strong> - humanistiqs.com.au
+              Prepared by <strong className="text-ink">Humanistiqs</strong> - humanistiqs.com.au
             </p>
             <p className="text-[11px] text-muted mt-1">
               This review is confidential and intended only for the named recipient.

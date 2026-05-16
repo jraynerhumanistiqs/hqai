@@ -49,7 +49,7 @@ export default async function Page() {
         {tables.length === 1 ? '' : 's'} visible under the audit schema.
       </p>
 
-      <div className="bg-white shadow-card rounded-2xl p-6">
+      <div className="bg-bg-elevated shadow-card rounded-2xl p-6">
         <h2 className="text-h3 font-semibold text-charcoal mb-3">
           Connected tables
         </h2>

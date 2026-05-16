@@ -82,7 +82,7 @@ export default async function DocPreviewPage({ params }: { params: Promise<{ id:
         <iframe
           title={row.title}
           srcDoc={html}
-          className="w-full bg-white"
+          className="w-full bg-bg-elevated"
           style={{ height: 'calc(100vh - 64px)', border: 0 }}
         />
       </div>

@@ -80,7 +80,7 @@ export default function PrescreenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-bg-elevated">
       {/* Nav */}
       <nav className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={571} className="w-14 h-auto" />

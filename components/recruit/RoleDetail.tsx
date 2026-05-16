@@ -524,32 +524,32 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b border-border bg-white px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
+      <div className="border-b border-border bg-bg-elevated px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
         {/* On mobile this stacks: title on its own row, action buttons
             wrap to a second row underneath. On sm+ the original
             single-row layout returns. Fixes the overlap reported in
             mobile screenshots. */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-black leading-tight">{session.role_title}</h2>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink leading-tight">{session.role_title}</h2>
             <p className="text-sm text-mid mt-1">{session.company}</p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:mt-1">
             <Link
               href={`/dashboard/recruit/${session.id}/analytics`}
-              className="text-xs font-bold px-3 py-1 rounded-full border border-border bg-white text-mid hover:text-black transition-colors"
+              className="text-xs font-bold px-3 py-1 rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors"
             >Analytics</Link>
             <div className="flex items-center gap-1 bg-bg border border-border rounded-full p-0.5">
               <button
                 onClick={() => setViewMode('list')}
                 className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
-                  viewMode === 'list' ? 'bg-black text-white' : 'text-mid hover:text-black'
+                  viewMode === 'list' ? 'bg-black text-white' : 'text-mid hover:text-ink'
                 }`}
               >List</button>
               <button
                 onClick={() => setViewMode('kanban')}
                 className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
-                  viewMode === 'kanban' ? 'bg-black text-white' : 'text-mid hover:text-black'
+                  viewMode === 'kanban' ? 'bg-black text-white' : 'text-mid hover:text-ink'
                 }`}
               >Kanban</button>
             </div>
@@ -558,7 +558,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${
                 anonymise
                   ? 'bg-black text-white border-black'
-                  : 'bg-white text-mid border-border hover:text-black'
+                  : 'bg-bg-elevated text-mid border-border hover:text-ink'
               }`}
               title="Hide candidate names + emails. Quotes from transcript are not anonymised."
             >
@@ -566,7 +566,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             </button>
             <button
               onClick={() => setLegendOpen(true)}
-              className="hidden sm:inline-flex text-xs font-bold px-3 py-1 rounded-full border border-border bg-white text-mid hover:text-black transition-colors items-center"
+              className="hidden sm:inline-flex text-xs font-bold px-3 py-1 rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors items-center"
               title="Keyboard shortcuts (?)"
             >?</button>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
@@ -608,13 +608,13 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             />
           )}
 
-          <div className="bg-white rounded-2xl border border-border shadow-card p-5">
+          <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-black uppercase tracking-widest">Candidate Invite Link</p>
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">Candidate Invite Link</p>
               {(session.interview_types?.includes('phone') ?? false) && !phoneRecorderOpen && (
                 <button
                   onClick={() => setPhoneRecorderOpen(true)}
-                  className="text-xs font-bold text-black hover:underline"
+                  className="text-xs font-bold text-ink hover:underline"
                   title="Record a phone screen instead of sending the video invite link"
                 >
                   + Record phone screen
@@ -628,7 +628,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 </code>
                 <input
                   autoFocus
-                  className="flex-1 min-w-[140px] border border-border rounded-lg px-3 py-2 text-xs font-mono text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white"
+                  className="flex-1 min-w-[140px] border border-border rounded-lg px-3 py-2 text-xs font-mono text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated"
                   value={slugDraft}
                   onChange={e => setSlugDraft(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') saveSlug(); if (e.key === 'Escape') { setEditingSlug(false); setSlugError('') } }}
@@ -638,7 +638,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 <button onClick={saveSlug} disabled={slugSaving} className="text-xs font-bold px-3 py-2 rounded-full bg-accent hover:bg-accent2 text-white transition-colors disabled:opacity-50">
                   {slugSaving ? 'Saving...' : 'Save'}
                 </button>
-                <button onClick={() => { setEditingSlug(false); setSlugError('') }} className="text-xs font-bold px-3 py-2 rounded-full text-mid hover:text-black transition-colors">
+                <button onClick={() => { setEditingSlug(false); setSlugError('') }} className="text-xs font-bold px-3 py-2 rounded-full text-mid hover:text-ink transition-colors">
                   Cancel
                 </button>
               </div>
@@ -649,7 +649,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 </code>
                 <button
                   onClick={() => { setSlugDraft(session.slug || ''); setEditingSlug(true); setSlugError('') }}
-                  className="text-mid hover:text-black transition-colors flex-shrink-0 p-2 rounded-lg hover:bg-light"
+                  className="text-mid hover:text-ink transition-colors flex-shrink-0 p-2 rounded-lg hover:bg-light"
                   title="Customise the link"
                   aria-label="Edit invite link"
                 >
@@ -685,12 +685,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               <div className="mt-3 pt-3 border-t border-border space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-bold text-black mb-1">Candidate name</label>
-                    <input className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
+                    <label className="block text-xs font-bold text-ink mb-1">Candidate name</label>
+                    <input className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-black mb-1">Email address</label>
-                    <input type="email" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+                    <label className="block text-xs font-bold text-ink mb-1">Email address</label>
+                    <input type="email" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
                   </div>
                 </div>
 
@@ -713,7 +713,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                       <input
                         value={emailSubject}
                         onChange={e => setEmailSubject(e.target.value)}
-                        className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal"
+                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -722,7 +722,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         value={emailBody}
                         onChange={e => setEmailBody(e.target.value)}
                         rows={9}
-                        className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal leading-relaxed font-mono"
+                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal leading-relaxed font-mono"
                       />
                       <p className="text-[10px] text-muted mt-1">
                         The candidate's video link will appear in the email automatically.
@@ -762,12 +762,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+          <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
             <button
               className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-bg/50 transition-colors"
               onClick={() => setQuestionsOpen(!questionsOpen)}
             >
-              <p className="text-xs font-bold text-black uppercase tracking-widest">
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">
                 Pre-Screen Questions
                 <span className="ml-2 text-mid normal-case font-normal">{session.questions.length}</span>
               </p>
@@ -780,16 +780,16 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 {session.questions.map((q, i) => (
                   <div key={i} className="flex items-start gap-3 px-5 py-3">
                     <span className="text-xs font-bold text-accent mt-0.5 w-6 flex-shrink-0">Q{i + 1}</span>
-                    <p className="text-sm text-black">{q}</p>
+                    <p className="text-sm text-ink">{q}</p>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+          <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border gap-3 flex-wrap">
-              <p className="text-xs font-bold text-black uppercase tracking-widest">
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">
                 Candidates
                 {mergedResponses.length > 0 && (
                   <span className="ml-2 text-mid normal-case font-normal">{mergedResponses.length}</span>
@@ -804,7 +804,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`text-xs px-2.5 py-1 rounded-full font-bold capitalize transition-colors ${
-                          filter === f ? 'bg-accent text-white' : 'text-mid hover:text-black'
+                          filter === f ? 'bg-accent text-white' : 'text-mid hover:text-ink'
                         }`}
                       >
                         {f === 'staff_reviewed' ? 'reviewed' : f}
@@ -897,12 +897,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           onClick={() => setExpanded(expanded === r.id ? null : r.id)}
                         >
                           {!anonymise && (
-                            <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-xs font-bold text-black flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-xs font-bold text-ink flex-shrink-0">
                               {initials(name)}
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-black truncate">{name}</p>
+                            <p className="text-sm font-bold text-ink truncate">{name}</p>
                             <p className="text-xs text-mid truncate">
                               {anonymise ? '' : `${r.candidate_email} - `}{new Date(r.submitted_at).toLocaleDateString('en-AU')}
                             </p>
@@ -941,7 +941,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               setRowInviteName(r.candidate_name ?? '')
                               setRowInviteError(null)
                             }}
-                            className="text-xs font-bold text-charcoal hover:text-black inline-flex items-center gap-1.5 bg-white border border-border rounded-full px-3 py-1.5 hover:bg-light transition-colors"
+                            className="text-xs font-bold text-charcoal hover:text-ink inline-flex items-center gap-1.5 bg-bg-elevated border border-border rounded-full px-3 py-1.5 hover:bg-light transition-colors"
                           >
                             <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
@@ -962,7 +962,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               value={rowInviteName}
                               onChange={e => setRowInviteName(e.target.value)}
                               placeholder="Candidate full name"
-                              className="text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
+                              className="text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
                             />
                             <input
                               type="email"
@@ -970,7 +970,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               value={rowInviteEmail}
                               onChange={e => setRowInviteEmail(e.target.value)}
                               placeholder="candidate@example.com"
-                              className="text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
+                              className="text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
                               onKeyDown={e => { if (e.key === 'Enter' && !rowInviteBusy) sendRowInvite(r.id) }}
                             />
                           </div>
@@ -1015,7 +1015,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               href={bookingsByResponse[r.id].calendly_event_uri}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 bg-white border border-border rounded-full px-3 py-1.5 text-xs font-bold text-black hover:bg-light transition-colors"
+                              className="inline-flex items-center gap-2 bg-bg-elevated border border-border rounded-full px-3 py-1.5 text-xs font-bold text-ink hover:bg-light transition-colors"
                             >
                               <span>&#128197;</span>
                               <span>Interview booked &mdash; {new Date(bookingsByResponse[r.id].event_start).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' })}</span>
@@ -1024,12 +1024,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => setShareDialogFor(r.id)}
-                              className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-white text-black hover:bg-bg transition-colors"
+                              className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-bg-elevated text-ink hover:bg-bg transition-colors"
                             >Share with hiring manager</button>
                           </div>
                           <div data-candidate-videos={r.id} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {session.questions.map((q, i) => (
-                              <div key={i} className="bg-white rounded-2xl border border-border overflow-hidden shadow-card">
+                              <div key={i} className="bg-bg-elevated rounded-2xl border border-border overflow-hidden shadow-card">
                                 <div className="px-3 py-2 border-b border-border">
                                   <p className="text-xs text-mid font-bold truncate">
                                     <span className="text-accent mr-1.5">Q{i + 1}</span>
@@ -1122,7 +1122,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               onQuoteClick={(sec) => setVideoSeekByResponse(prev => ({ ...prev, [r.id]: sec }))}
                             />
                           ) : ((r.status as string) === 'transcribing' || (r.status as string) === 'evaluating') ? (
-                            <div className="bg-white rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
+                            <div className="bg-bg-elevated rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
                               <span className="w-4 h-4 border-2 border-border border-t-black rounded-full animate-spin" />
                               <p className="text-sm text-mid">
                                 {(r.status as string) === 'transcribing' ? 'Transcribing video...' : 'Generating AI suggestion...'}
@@ -1171,7 +1171,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           <NotesPanel responseId={r.id} />
 
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-black">Rate candidate:</span>
+                            <span className="text-xs font-bold text-ink">Rate candidate:</span>
                             <div className="flex items-center gap-1">
                               {[1, 2, 3, 4, 5].map(n => (
                                 <button
@@ -1194,17 +1194,17 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             </button>
                             <button
                               onClick={() => onPatchResponse(r.id, { status: 'staff_reviewed' as any })}
-                              className="bg-white hover:bg-bg text-black text-xs font-bold px-4 py-2 rounded-full border border-border transition-colors"
+                              className="bg-bg-elevated hover:bg-bg text-ink text-xs font-bold px-4 py-2 rounded-full border border-border transition-colors"
                             >
                               Mark Reviewed
                             </button>
                           </div>
 
                           {shareUrls[r.id] && (
-                            <div className="flex items-center gap-2 bg-white border border-border rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 bg-bg-elevated border border-border rounded-lg px-3 py-2">
                               <span className="text-xs text-mid flex-shrink-0 font-bold">Client link:</span>
                               <code className="flex-1 text-xs text-accent2 truncate font-mono">{shareUrls[r.id]}</code>
-                              <button onClick={() => copyShareUrl(r.id)} className="text-xs text-mid hover:text-black font-bold flex-shrink-0 transition-colors">
+                              <button onClick={() => copyShareUrl(r.id)} className="text-xs text-mid hover:text-ink font-bold flex-shrink-0 transition-colors">
                                 {copying === r.id ? 'Copied' : 'Copy'}
                               </button>
                             </div>
@@ -1254,18 +1254,18 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           onClick={() => setLegendOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-card max-w-md w-full mx-4 p-5"
+            className="bg-bg-elevated rounded-2xl shadow-card max-w-md w-full mx-4 p-5"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-black uppercase tracking-widest">Keyboard Shortcuts</p>
-              <button onClick={() => setLegendOpen(false)} className="text-mid hover:text-black text-lg leading-none">&times;</button>
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">Keyboard Shortcuts</p>
+              <button onClick={() => setLegendOpen(false)} className="text-mid hover:text-ink text-lg leading-none">&times;</button>
             </div>
             <div className="divide-y divide-border">
               {RECRUIT_SHORTCUTS.map(s => (
                 <div key={s.key} className="flex items-center justify-between py-2">
                   <span className="text-sm text-charcoal">{s.label}</span>
-                  <kbd className="text-[10px] font-mono font-bold px-2 py-1 rounded-lg bg-light border border-border text-black">{s.key}</kbd>
+                  <kbd className="text-[10px] font-mono font-bold px-2 py-1 rounded-lg bg-light border border-border text-ink">{s.key}</kbd>
                 </div>
               ))}
             </div>

@@ -10,7 +10,7 @@ interface Props {
 
 type Step = 'setup' | 'questions'
 
-const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated transition-colors'
 const selectCls = `${inputCls} cursor-pointer`
 
 const TIP_THRESHOLD = 300
@@ -224,12 +224,12 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
+        className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-xl font-bold text-black">
+            <h2 className="font-serif text-xl font-bold text-ink">
               {step === 'setup' ? 'New Recruitment Role' : 'Review Questions'}
             </h2>
             <p className="text-sm text-mid mt-0.5">
@@ -240,7 +240,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-black"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-ink"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
@@ -253,17 +253,17 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-black mb-1.5">Company</label>
+                  <label className="block text-sm font-bold text-ink mb-1.5">Company</label>
                   <input className={inputCls} value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Acme Corp" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-black mb-1.5">Role Title</label>
+                  <label className="block text-sm font-bold text-ink mb-1.5">Role Title</label>
                   <input className={inputCls} value={roleTitle} onChange={e => setRoleTitle(e.target.value)} placeholder="e.g. Senior Accountant" onKeyDown={e => e.key === 'Enter' && handleGenerate()} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-black mb-1.5">
+                <label className="block text-sm font-bold text-ink mb-1.5">
                   Role Description
                   <span className="text-mid font-normal ml-1">(help HQ.ai write better questions for you)</span>
                 </label>
@@ -279,7 +279,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-black mb-1.5">
+                <label className="block text-sm font-bold text-ink mb-1.5">
                   Interview type
                   <span className="text-mid font-normal ml-1">(pick one or both)</span>
                 </label>
@@ -324,7 +324,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-black mb-1.5">
+                  <label className="block text-sm font-bold text-ink mb-1.5">
                     Time per Answer
                     <span className="text-mid font-normal ml-1">({timeLimit < 60 ? `${timeLimit}s` : `${Math.floor(timeLimit / 60)}m${timeLimit % 60 ? ` ${timeLimit % 60}s` : ''}`})</span>
                   </label>
@@ -354,7 +354,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-black mb-1.5">Questions</label>
+                  <label className="block text-sm font-bold text-ink mb-1.5">Questions</label>
                   <select className={selectCls} value={qCount} onChange={e => setQCount(Number(e.target.value))}>
                     <option value={3}>3 questions</option>
                     <option value={4}>4 questions</option>
@@ -377,19 +377,19 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               </div>
 
               <div className="pt-2 border-t border-border">
-                <label className="block text-sm font-bold text-black mb-2">Scoring criteria</label>
+                <label className="block text-sm font-bold text-ink mb-2">Scoring criteria</label>
                 <div className="space-y-2">
                   <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
                     <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'standard'} onChange={() => setRubricMode('standard')} />
                     <div>
-                      <p className="text-sm font-bold text-black">Use HQ.ai default scoring criteria <span className="text-mid font-normal">(recommended)</span></p>
+                      <p className="text-sm font-bold text-ink">Use HQ.ai default scoring criteria <span className="text-mid font-normal">(recommended)</span></p>
                       <p className="text-xs text-mid mt-0.5">Clarity, relevance, specificity, structure, role fit - each scored 1-5.</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
                     <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'custom'} onChange={() => setRubricMode('custom')} />
                     <div>
-                      <p className="text-sm font-bold text-black">Define custom scoring criteria for this role</p>
+                      <p className="text-sm font-bold text-ink">Define custom scoring criteria for this role</p>
                       <p className="text-xs text-mid mt-0.5">3-6 dimensions, each scored 1-5.</p>
                     </div>
                   </label>
@@ -425,7 +425,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   className="w-full flex items-center justify-between text-left"
                 >
                   <div>
-                    <p className="text-sm font-bold text-black">Candidate outcome emails</p>
+                    <p className="text-sm font-bold text-ink">Candidate outcome emails</p>
                     <p className="text-xs text-mid mt-0.5">Send a message when candidates are shortlisted or rejected.</p>
                   </div>
                   <svg className={`w-4 h-4 text-mid transition-transform ${outcomeOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
@@ -438,7 +438,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     <label className="flex items-start gap-2.5 cursor-pointer">
                       <input type="checkbox" className="mt-0.5" checked={autoSend} onChange={e => setAutoSend(e.target.checked)} />
                       <div>
-                        <p className="text-sm font-bold text-black">Auto-send when candidates are shortlisted or rejected <span className="text-mid font-normal">(default off)</span></p>
+                        <p className="text-sm font-bold text-ink">Auto-send when candidates are shortlisted or rejected <span className="text-mid font-normal">(default off)</span></p>
                         <p className="text-xs text-mid mt-0.5">When off, the email is queued and you can trigger it manually from the candidate view.</p>
                       </div>
                     </label>
@@ -446,12 +446,12 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     <p className="text-[10px] text-mid">Variables: <code className="font-mono">{'{candidate_first_name}'}</code>, <code className="font-mono">{'{candidate_name}'}</code>, <code className="font-mono">{'{role_title}'}</code>, <code className="font-mono">{'{company}'}</code>, <code className="font-mono">{'{calendly_block}'}</code> (shortlisted only).</p>
 
                     <div className="space-y-1.5">
-                      <p className="text-xs font-bold text-black">Shortlisted email</p>
+                      <p className="text-xs font-bold text-ink">Shortlisted email</p>
                       <input className={inputCls} value={slSubject} onChange={e => setSlSubject(e.target.value)} placeholder="Subject" />
                       <textarea className={`${inputCls} min-h-[140px]`} value={slBody} onChange={e => setSlBody(e.target.value)} placeholder="Body" />
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-xs font-bold text-black">Rejected email</p>
+                      <p className="text-xs font-bold text-ink">Rejected email</p>
                       <input className={inputCls} value={rjSubject} onChange={e => setRjSubject(e.target.value)} placeholder="Subject" />
                       <textarea className={`${inputCls} min-h-[140px]`} value={rjBody} onChange={e => setRjBody(e.target.value)} placeholder="Body" />
                       <p className="text-[10px] text-mid">Rejection emails contain no scores or AI output by default - keep it warm and brief.</p>
@@ -479,7 +479,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                 </button>
                 <button
                   onClick={addManualQuestion}
-                  className="text-sm text-mid hover:text-black font-bold transition-colors px-3 py-2 whitespace-nowrap self-start sm:self-auto"
+                  className="text-sm text-mid hover:text-ink font-bold transition-colors px-3 py-2 whitespace-nowrap self-start sm:self-auto"
                 >
                   + Write manually
                 </button>
@@ -524,19 +524,19 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
         <div className="px-7 py-5 border-t border-border flex items-center justify-between bg-bg/50">
           <div>
             {step === 'questions' && (
-              <button onClick={() => setStep('setup')} className="text-sm text-mid hover:text-black font-bold transition-colors">
+              <button onClick={() => setStep('setup')} className="text-sm text-mid hover:text-ink font-bold transition-colors">
                 Back
               </button>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onClose} className="text-sm text-mid hover:text-black font-bold transition-colors">
+            <button onClick={onClose} className="text-sm text-mid hover:text-ink font-bold transition-colors">
               Cancel
             </button>
             <button
               onClick={handleSaveDraft}
               disabled={savingDraft || creating || !company.trim() || !roleTitle.trim()}
-              className="text-sm font-bold text-black border border-border hover:bg-light disabled:opacity-40 px-4 py-2.5 rounded-full transition-colors"
+              className="text-sm font-bold text-ink border border-border hover:bg-light disabled:opacity-40 px-4 py-2.5 rounded-full transition-colors"
               title="Save current progress as a draft - you can finish questions later"
             >
               {savingDraft ? 'Saving…' : 'Save as draft'}
@@ -573,14 +573,14 @@ function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal max-w-md w-full p-6"
+        className="bg-bg-elevated rounded-2xl shadow-modal max-w-md w-full p-6"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-1">
           <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider">Best-Practice Tip</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 -mt-1 -mr-1 flex items-center justify-center rounded-lg hover:bg-light transition-colors text-mid hover:text-black"
+            className="w-8 h-8 -mt-1 -mr-1 flex items-center justify-center rounded-lg hover:bg-light transition-colors text-mid hover:text-ink"
             aria-label="Close"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">

@@ -128,7 +128,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" {...backdrop}>
-      <div className="bg-white rounded-3xl shadow-modal w-full max-w-3xl max-h-[90vh] flex flex-col">
+      <div className="bg-bg-elevated rounded-3xl shadow-modal w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="flex items-start justify-between px-6 py-5 border-b border-border">
           <div>
             <h2 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
@@ -155,7 +155,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
             <input
               value={role}
               onChange={e => setRole(e.target.value)}
-              className="w-full text-sm text-charcoal bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
+              className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
               maxLength={80}
             />
           </div>
@@ -196,7 +196,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                           id: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || c.id,
                         })}
                         placeholder="e.g. Customer service skills"
-                        className="w-full text-sm text-charcoal bg-white border border-border rounded-lg px-2 py-1.5 outline-none focus:border-black"
+                        className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-2 py-1.5 outline-none focus:border-ink"
                       />
                     </div>
                     <div className="sm:col-span-3">
@@ -209,7 +209,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                           max="100"
                           value={Math.round((Number(c.weight) || 0) * 100)}
                           onChange={e => updateCriterion(c._key, { weight: Math.max(0, Math.min(100, Number(e.target.value))) / 100 })}
-                          className="w-full text-sm text-charcoal bg-white border border-border rounded-lg px-2 py-1.5 outline-none focus:border-black"
+                          className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-2 py-1.5 outline-none focus:border-ink"
                         />
                         <span className="text-xs text-muted">%</span>
                       </div>
@@ -232,7 +232,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                     <select
                       value={c.type}
                       onChange={e => updateCriterion(c._key, { type: e.target.value as 'ordinal_5' | 'binary' })}
-                      className="w-full text-sm text-charcoal bg-white border border-border rounded-lg px-2 py-1.5 outline-none focus:border-black"
+                      className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-2 py-1.5 outline-none focus:border-ink"
                     >
                       <option value="ordinal_5">Score from 1 (weakest) to 5 (strongest)</option>
                       <option value="binary">Yes / No only</option>
@@ -278,7 +278,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                               value={c.anchors?.[level] ?? ''}
                               onChange={e => updateAnchor(c._key, level, e.target.value)}
                               placeholder={placeholderMap[level]}
-                              className="w-full text-xs text-charcoal bg-white border border-border rounded-lg px-2 py-1.5 outline-none focus:border-black"
+                              className="w-full text-xs text-charcoal bg-bg-elevated border border-border rounded-lg px-2 py-1.5 outline-none focus:border-ink"
                             />
                           </div>
                         )

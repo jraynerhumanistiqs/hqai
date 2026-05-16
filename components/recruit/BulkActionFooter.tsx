@@ -96,7 +96,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
         <button
           onClick={onCompare}
           disabled={selectedCount < 2 || selectedCount > 4}
-          className="text-xs font-bold px-3 py-1 rounded-full bg-white text-black hover:bg-bg disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-xs font-bold px-3 py-1 rounded-full bg-bg-elevated text-ink hover:bg-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >Compare ({selectedCount})</button>
 
         <div ref={stageRef} className="relative">
@@ -106,7 +106,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
             className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40"
           >Move to stage &#9662;</button>
           {stageOpen && (
-            <div className="absolute bottom-full mb-2 right-0 bg-white text-black rounded-xl shadow-card border border-border overflow-hidden min-w-[160px]">
+            <div className="absolute bottom-full mb-2 right-0 bg-bg-elevated text-ink rounded-xl shadow-card border border-border overflow-hidden min-w-[160px]">
               {STAGE_OPTIONS.map(o => (
                 <button
                   key={o.value}
@@ -125,7 +125,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
             className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40"
           >Share all &#9662;</button>
           {shareOpen && (
-            <div className="absolute bottom-full mb-2 right-0 bg-white text-black rounded-xl shadow-card border border-border overflow-hidden min-w-[180px]">
+            <div className="absolute bottom-full mb-2 right-0 bg-bg-elevated text-ink rounded-xl shadow-card border border-border overflow-hidden min-w-[180px]">
               {[7, 14, 30].map(d => (
                 <button
                   key={d}

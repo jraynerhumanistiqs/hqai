@@ -115,10 +115,10 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
       onClick={() => !busy && onClose()}
     >
       <div
-        className="bg-white w-full max-w-2xl rounded-3xl shadow-card max-h-[90vh] overflow-y-auto"
+        className="bg-bg-elevated w-full max-w-2xl rounded-3xl shadow-card max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-bg-elevated z-10">
           <h3 className="font-display text-h3 font-bold text-charcoal">
             {stage === 'input' ? 'New rubric' : 'Review and adjust'}
           </h3>
@@ -141,7 +141,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                   value={label}
                   onChange={e => setLabel(e.target.value)}
                   placeholder="e.g. Senior Project Manager (Construction, Brisbane)"
-                  className="w-full bg-light text-sm text-charcoal rounded-full px-4 py-2 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal"
+                  className="w-full bg-light text-sm text-charcoal rounded-full px-4 py-2 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal"
                 />
               </div>
 
@@ -154,7 +154,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                   onChange={e => setJd(e.target.value)}
                   placeholder="Paste the job ad, position description, or your passive-search brief. The AI will pull out the criteria that matter most and weight them for you."
                   rows={10}
-                  className="w-full bg-light text-sm text-charcoal rounded-2xl px-4 py-3 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal resize-none leading-relaxed"
+                  className="w-full bg-light text-sm text-charcoal rounded-2xl px-4 py-3 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal resize-none leading-relaxed"
                 />
               </div>
 
@@ -166,7 +166,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                 <button
                   onClick={onClose}
                   disabled={busy}
-                  className="flex-1 bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
+                  className="flex-1 bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -241,7 +241,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                 </ul>
                 <button
                   onClick={addCriterion}
-                  className="mt-3 w-full bg-white border border-dashed border-border text-charcoal text-sm font-bold rounded-2xl px-4 py-3 hover:bg-light hover:border-charcoal"
+                  className="mt-3 w-full bg-bg-elevated border border-dashed border-border text-charcoal text-sm font-bold rounded-2xl px-4 py-3 hover:bg-light hover:border-charcoal"
                 >
                   + Add criterion
                 </button>
@@ -260,7 +260,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
                 <button
                   onClick={() => setStage('input')}
                   disabled={busy}
-                  className="bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
+                  className="bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
                 >
                   Back
                 </button>

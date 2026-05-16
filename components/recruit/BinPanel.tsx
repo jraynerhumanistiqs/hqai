@@ -77,7 +77,7 @@ export function BinPanel({ onRestored }: Props) {
     <div className="mt-auto border-t border-border bg-bg/40 flex-shrink-0">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-mid hover:text-black transition-colors"
+        className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-mid hover:text-ink transition-colors"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2 uppercase tracking-widest">
@@ -126,7 +126,7 @@ export function BinPanel({ onRestored }: Props) {
                   <button
                     onClick={() => handlePurge(s.id)}
                     disabled={busyId === s.id}
-                    className="text-[11px] font-bold text-danger hover:text-black transition-colors disabled:opacity-50"
+                    className="text-[11px] font-bold text-danger hover:text-ink transition-colors disabled:opacity-50"
                     title="Delete permanently"
                   >
                     ✕

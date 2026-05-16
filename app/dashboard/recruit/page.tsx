@@ -48,7 +48,7 @@ export default async function RecruitLanding() {
             <Link
               key={t.href}
               href={t.href}
-              className="bg-white shadow-card rounded-3xl p-6 hover:shadow-modal transition-shadow flex flex-col"
+              className="bg-bg-elevated shadow-card rounded-3xl p-6 hover:shadow-modal transition-shadow flex flex-col"
             >
               <div className="bg-light rounded-2xl w-14 h-14 flex items-center justify-center text-3xl mb-4">
                 {t.emoji}

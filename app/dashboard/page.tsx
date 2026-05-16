@@ -56,7 +56,7 @@ export default async function DashboardHome() {
     (s || '').replace(/[\u2014\u2013]/g, '-')
 
   return (
-    <div className="flex-1 overflow-y-auto bg-white">
+    <div className="flex-1 overflow-y-auto bg-bg-elevated">
       <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col gap-8 sm:gap-10">
 
         {/* Welcome */}
@@ -93,7 +93,7 @@ export default async function DashboardHome() {
           {/* Recent Conversations */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent conversations</h2>
-            <div className="bg-white border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
+            <div className="bg-bg-elevated border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
                   {recentConvos.map((c: any) => (
@@ -128,7 +128,7 @@ export default async function DashboardHome() {
           {/* Recent Documents */}
           <div className="flex flex-col">
             <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent documents</h2>
-            <div className="bg-white border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
+            <div className="bg-bg-elevated border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
                   {recentDocs.map((d: any) => (
@@ -189,7 +189,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
   return (
     <div className="relative group">
       <Link href={href}
-        className="block bg-white border border-black rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)]">
+        className="block bg-bg-elevated border border-black rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)]">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-black/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
             {icon}
@@ -209,7 +209,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
 
 function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div className="bg-white border border-black rounded-2xl overflow-hidden transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)] group">
+    <div className="bg-bg-elevated border border-black rounded-2xl overflow-hidden transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)] group">
       <div className="h-36 bg-light flex items-center justify-center overflow-hidden">
         <svg className="w-10 h-10 text-muted" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>
@@ -240,22 +240,22 @@ function formatDate(iso: string) {
 
 // Icons
 function PeopleIcon() {
-  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
   </svg>
 }
 function RecruitIcon() {
-  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
     <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
   </svg>
 }
 function DocsIcon() {
-  return <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
   </svg>
 }
 function SettingsIcon() {
-  return <svg className="w-5 h-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
   </svg>
 }

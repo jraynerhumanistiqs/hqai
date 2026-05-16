@@ -145,7 +145,7 @@ export function RecruitDashboard() {
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
 
       {/* -- Left panel: role list -- */}
-      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-white flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
+      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${selected ? 'hidden lg:flex' : 'flex'}`}>
 
         {/* Header - matches Campaign Coach + CV Screening header style */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -234,10 +234,10 @@ export function RecruitDashboard() {
         {selected ? (
           <>
             {/* Mobile back bar */}
-            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-white flex-shrink-0">
+            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
               <button
                 onClick={() => setSelected(null)}
-                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-black transition-colors"
+                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
                 aria-label="Back to roles"
               >
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -266,7 +266,7 @@ export function RecruitDashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                 </svg>
               </div>
-              <h2 className="font-serif text-xl font-bold text-black mb-1">Select a role</h2>
+              <h2 className="font-serif text-xl font-bold text-ink mb-1">Select a role</h2>
               <p className="text-sm text-mid mb-5">
                 Choose a role from the left panel, or create a new one to start receiving video pre-screens.
               </p>
@@ -356,7 +356,7 @@ function SessionRow({
       }`}
     >
       <button onClick={onSelect} className="w-full text-left px-4 py-3 pr-10">
-        <p className={`text-sm font-bold truncate leading-snug ${selected ? 'text-accent2' : 'text-black'}`}>
+        <p className={`text-sm font-bold truncate leading-snug ${selected ? 'text-accent2' : 'text-ink'}`}>
           {s.role_title}
         </p>
         <p className="text-xs text-mid truncate mt-0.5">{s.company}</p>
@@ -377,7 +377,7 @@ function SessionRow({
       {menuOpen && (
         <div
           ref={menuRef}
-          className="absolute top-9 right-2 z-20 bg-white shadow-modal rounded-xl border border-border py-1 w-36"
+          className="absolute top-9 right-2 z-20 bg-bg-elevated shadow-modal rounded-xl border border-border py-1 w-36"
           onClick={e => e.stopPropagation()}
         >
           <button

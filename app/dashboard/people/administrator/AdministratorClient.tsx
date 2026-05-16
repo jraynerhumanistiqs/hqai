@@ -105,7 +105,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
         <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
           HQ People - AI Administrator
         </p>
-        <h1 className="font-display text-h1 font-bold text-ink mb-2">
+        <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
           Every HR document, cited to Fair Work, in under 3 minutes.
         </h1>
         <p className="text-body text-ink-soft mb-6 max-w-2xl">
@@ -228,7 +228,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
                 <iframe
                   title="Document preview"
                   src={`/api/administrator/documents/${previewId}/render?format=html`}
-                  className="flex-1 bg-white rounded-md mt-2"
+                  className="flex-1 bg-bg-elevated rounded-md mt-2"
                   style={{ border: 0, minHeight: '460px' }}
                 />
               ) : (

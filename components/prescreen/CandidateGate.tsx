@@ -44,7 +44,7 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
   return (
     <div className="max-w-lg mx-auto px-6 py-10">
       <div className="mb-8 text-center">
-        <p className="text-sm font-semibold text-black uppercase tracking-widest mb-2">You&apos;re applying for</p>
+        <p className="text-sm font-semibold text-ink uppercase tracking-widest mb-2">You&apos;re applying for</p>
         <h1 className="text-3xl font-bold text-gray-900 mb-1">{roleTitle}</h1>
         <p className="text-gray-500 text-lg">{company}</p>
       </div>
@@ -63,7 +63,7 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Your full name"
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-ink"
           />
           {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
         </div>
@@ -75,7 +75,7 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-ink"
           />
           {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
         </div>

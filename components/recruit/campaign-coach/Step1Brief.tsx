@@ -89,7 +89,7 @@ export default function Step1Brief() {
         </p>
       </div>
 
-      <div className="bg-white shadow-card rounded-2xl p-4 sm:p-5 relative">
+      <div className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-5 relative">
         <textarea
           value={state.briefText}
           onChange={e => dispatch({ type: 'SET_BRIEF_TEXT', text: e.target.value })}
@@ -129,7 +129,7 @@ export default function Step1Brief() {
         </div>
 
         {!loadingSuggestions && recentCampaigns.length === 0 ? (
-          <div className="bg-white shadow-card rounded-2xl px-5 py-5 border border-dashed border-border">
+          <div className="bg-bg-elevated shadow-card rounded-2xl px-5 py-5 border border-dashed border-border">
             <p className="text-sm font-bold text-charcoal mb-1">No recent campaigns yet</p>
             <p className="text-xs text-mid leading-relaxed">
               Once you publish your first role through Campaign Coach it will appear here. From then on you can pre-fill new briefs from any of your five most recent campaigns and edit from there.
@@ -140,7 +140,7 @@ export default function Step1Brief() {
             {(loadingSuggestions ? Array.from({ length: 3 }) : recentCampaigns).slice(0, 5).map((c, i) => {
               if (loadingSuggestions || !c) {
                 return (
-                  <div key={`skeleton-${i}`} className="bg-white shadow-card rounded-2xl px-4 py-3 animate-pulse">
+                  <div key={`skeleton-${i}`} className="bg-bg-elevated shadow-card rounded-2xl px-4 py-3 animate-pulse">
                     <div className="h-3 w-32 bg-light rounded-full mb-2" />
                     <div className="h-2 w-full bg-light rounded-full mb-1.5" />
                     <div className="h-2 w-3/4 bg-light rounded-full" />
@@ -152,7 +152,7 @@ export default function Step1Brief() {
                 <button
                   key={campaign.id}
                   onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: campaign.brief })}
-                  className="bg-white shadow-card hover:shadow-modal hover:-translate-y-0.5 rounded-2xl px-4 py-3 text-left transition-all border border-transparent hover:border-charcoal/15 group"
+                  className="bg-bg-elevated shadow-card hover:shadow-modal hover:-translate-y-0.5 rounded-2xl px-4 py-3 text-left transition-all border border-transparent hover:border-charcoal/15 group"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold text-charcoal leading-tight flex-1 truncate">{campaign.title}</p>

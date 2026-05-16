@@ -566,11 +566,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const greeting = getGreeting()
 
   return (
-    <div className="flex h-full bg-white">
+    <div className="flex h-full bg-bg-elevated">
       {/* Main chat column */}
       <div className={`flex flex-col flex-1 min-w-0 ${historyOpen ? 'hidden sm:flex' : ''}`}>
       {/* Topbar */}
-      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-white flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
         <div className="min-w-0">
           <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
           <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
@@ -727,7 +727,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
                   {/* Clarify card - clickable disambiguation chips */}
                   {msg.clarify && !msg.clarifyAnswered && (
-                    <div className="mt-3 bg-white border border-border rounded-xl p-3.5">
+                    <div className="mt-3 bg-bg-elevated border border-border rounded-xl p-3.5">
                       <p className="text-xs font-bold text-charcoal mb-2.5">Pick the option that fits:</p>
                       <div className="flex flex-wrap gap-2">
                         {msg.clarify.options.map((opt, oi) => (
@@ -778,7 +778,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                                   idx === i ? { ...m, escalate: false } : m
                                 ))
                               }}
-                              className="bg-white text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
+                              className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
                               Continue talking with the AI Advisor
                             </button>
                           </div>
@@ -798,7 +798,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                               onChange={e => setExtraContext(e.target.value)}
                               placeholder="Add additional context about your situation..."
                               rows={3}
-                              className="w-full px-3 py-2 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-black transition-colors"
+                              className="w-full px-3 py-2 bg-bg-elevated border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-ink transition-colors"
                             />
                             <button onClick={handleSendContext}
                               disabled={!extraContext.trim()}
@@ -823,7 +823,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                       <div className="flex gap-2 ml-6">
                         <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} docId={msg.docId || null} />
                         {savedDocId && (
-                          <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
+                          <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-bg-elevated transition-colors">
                             View in library →
                           </a>
                         )}
@@ -847,9 +847,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-white pb-safe">
+      <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-2 bg-white border border-border rounded-3xl px-4 py-2.5 focus-within:border-black transition-colors shadow-sm">
+          <div className="flex items-end gap-2 bg-bg-elevated border border-border rounded-3xl px-4 py-2.5 focus-within:border-black transition-colors shadow-sm">
             <textarea
               ref={inputRef}
               value={input}
@@ -868,7 +868,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 title="Stop generating"
                 className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] transition-all"
               >
-                <span className="w-3 h-3 bg-white rounded-sm" />
+                <span className="w-3 h-3 bg-bg-elevated rounded-sm" />
               </button>
             ) : (
               <button
@@ -897,7 +897,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       {/* Chat History sidebar */}
       {historyOpen && (
-        <div className="w-full sm:w-[280px] md:w-[320px] border-l border-border bg-white flex flex-col flex-shrink-0 h-full">
+        <div className="w-full sm:w-[280px] md:w-[320px] border-l border-border bg-bg-elevated flex flex-col flex-shrink-0 h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <h2 className="font-display text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
             <button
@@ -935,7 +935,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                               if (e.key === 'Escape') setRenamingId(null)
                             }}
                             onBlur={() => commitRename(c.id)}
-                            className="w-full text-sm font-medium text-charcoal bg-white border border-black rounded-md px-2 py-1 outline-none"
+                            className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-black rounded-md px-2 py-1 outline-none"
                             maxLength={120}
                           />
                         ) : (
@@ -1001,7 +1001,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {/* Advisor modal */}
       {showAdvisorModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
-          <div className="bg-white rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
+          <div className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
             <p className="text-sm text-mid mb-4 leading-relaxed">
               HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
@@ -1017,7 +1017,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             </div>
             <div className="flex gap-3">
               <button onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-white hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
+                className="flex-1 py-2.5 bg-bg-elevated hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
                 Close
               </button>
               <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
@@ -1182,7 +1182,7 @@ function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onS
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleSend() }}
         placeholder="Type your answer..."
-        className="flex-1 text-xs px-3 py-2 bg-white border border-border rounded-full outline-none focus:border-black"
+        className="flex-1 text-xs px-3 py-2 bg-bg-elevated border border-border rounded-full outline-none focus:border-ink"
       />
       <button
         onClick={handleSend}
@@ -1244,15 +1244,15 @@ function DocumentFormCard({
     onSubmit(docType, formData)
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-ink transition-colors"
 
   return (
-    <div className="bg-white shadow-card rounded-2xl overflow-hidden">
+    <div className="bg-bg-elevated shadow-card rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="bg-light border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-black/10 rounded-xl flex items-center justify-center">
-            <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
             </svg>
           </div>
@@ -1325,7 +1325,7 @@ function DocumentFormCard({
           <button
             type="button"
             onClick={onSkip}
-            className="bg-white hover:bg-light text-mid font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
+            className="bg-bg-elevated hover:bg-light text-mid font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
           >
             Skip form
           </button>

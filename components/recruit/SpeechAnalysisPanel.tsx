@@ -38,7 +38,7 @@ export function SpeechAnalysisPanel({ analysis, density = 'roomy', title = 'Spee
   if (measured.length === 0) return null
 
   return (
-    <div className={density === 'tight' ? 'px-3 py-2 border-t border-border bg-light/40' : 'bg-white rounded-2xl border border-border shadow-card px-4 py-3'}>
+    <div className={density === 'tight' ? 'px-3 py-2 border-t border-border bg-light/40' : 'bg-bg-elevated rounded-2xl border border-border shadow-card px-4 py-3'}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
         <p className={density === 'tight' ? 'text-[10px] font-bold uppercase tracking-widest text-muted' : 'text-[10px] font-bold uppercase tracking-widest text-muted'}>
           {title}

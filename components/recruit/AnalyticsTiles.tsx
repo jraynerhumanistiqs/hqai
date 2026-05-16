@@ -63,10 +63,10 @@ export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
           onClick={() => setDrawerOpen(false)}
         >
-          <div className="bg-white rounded-2xl shadow-modal max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-bg-elevated rounded-2xl shadow-modal max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-serif text-lg font-bold text-black">Claude system-prompt guardrail</h3>
-              <button onClick={() => setDrawerOpen(false)} className="text-mid hover:text-black text-lg leading-none" aria-label="Close">&times;</button>
+              <h3 className="font-serif text-lg font-bold text-ink">Claude system-prompt guardrail</h3>
+              <button onClick={() => setDrawerOpen(false)} className="text-mid hover:text-ink text-lg leading-none" aria-label="Close">&times;</button>
             </div>
             <p className="text-xs text-mid mb-3">Verbatim guardrail paragraph used for every scoring request:</p>
             <pre className="text-xs text-charcoal bg-bg border border-border rounded-lg p-3 whitespace-pre-wrap font-mono">{GUARDRAIL_PARAGRAPH}</pre>
@@ -98,7 +98,7 @@ function FunnelTile({ funnel }: { funnel: FunnelData }) {
               <div className="flex-1 h-4 bg-light rounded-full overflow-hidden">
                 <div className="h-full bg-black rounded-full" style={{ width: `${pct}%` }} />
               </div>
-              <span className="text-xs font-bold text-black w-8 text-right">{r.value}</span>
+              <span className="text-xs font-bold text-ink w-8 text-right">{r.value}</span>
             </div>
           )
         })}
@@ -117,7 +117,7 @@ function TimeToScoreTile({ seconds }: { seconds: number | null }) {
   return (
     <Tile title="Avg time to score">
       <div className="flex items-baseline gap-2">
-        <span className="text-5xl font-bold text-black leading-none">{num}</span>
+        <span className="text-5xl font-bold text-ink leading-none">{num}</span>
         <span className="text-sm text-mid">{unit}</span>
       </div>
       <p className="text-xs text-mid mt-2">From submission to first AI evaluation.</p>
@@ -154,7 +154,7 @@ function DimensionRow({ stat }: { stat: DimStat }) {
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-bold text-charcoal truncate">{prettyDimName(stat.name)}</span>
         <span className="flex-shrink-0 text-xs text-mid">
-          <span className="text-base font-bold text-black tabular-nums">{stat.mean.toFixed(2)}</span>
+          <span className="text-base font-bold text-ink tabular-nums">{stat.mean.toFixed(2)}</span>
           <span className="ml-1">avg</span>
           <span className="ml-2 text-mid">n={stat.n}</span>
         </span>
@@ -222,7 +222,7 @@ function AgreementTile({ agreement }: { agreement: Agreement }) {
                 <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
                 <span className="text-charcoal">{s.label}</span>
               </div>
-              <span className="font-bold text-black">{s.value}</span>
+              <span className="font-bold text-ink">{s.value}</span>
             </div>
           ))}
         </div>
@@ -244,11 +244,11 @@ function BiasTile({ audit, onOpenEvidence }: { audit: BiasAudit; onOpenEvidence:
         </li>
         <li className="flex items-start gap-2">
           <span className="text-warning mt-0.5">&#9888;</span>
-          <span className="text-charcoal">Low-confidence dimensions flagged: <span className="font-bold text-black">{audit.low_confidence_count}</span></span>
+          <span className="text-charcoal">Low-confidence dimensions flagged: <span className="font-bold text-ink">{audit.low_confidence_count}</span></span>
         </li>
         <li className="flex items-start gap-2">
           <span className="text-warning mt-0.5">&#9888;</span>
-          <span className="text-charcoal">Insufficient-evidence dimensions: <span className="font-bold text-black">{audit.insufficient_evidence_count}</span></span>
+          <span className="text-charcoal">Insufficient-evidence dimensions: <span className="font-bold text-ink">{audit.insufficient_evidence_count}</span></span>
         </li>
       </ul>
     </Tile>
@@ -257,8 +257,8 @@ function BiasTile({ audit, onOpenEvidence }: { audit: BiasAudit; onOpenEvidence:
 
 function Tile({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl shadow-card p-5">
-      <p className="text-xs font-bold text-black uppercase tracking-widest mb-3">{title}</p>
+    <div className="bg-bg-elevated rounded-2xl shadow-card p-5">
+      <p className="text-xs font-bold text-ink uppercase tracking-widest mb-3">{title}</p>
       {children}
     </div>
   )

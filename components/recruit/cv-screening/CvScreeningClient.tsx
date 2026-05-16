@@ -294,7 +294,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
 
       {/* -- Left panel: rubric list -- */}
-      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-white flex-col ${showListPanel ? 'flex' : 'hidden lg:flex'}`}>
+      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${showListPanel ? 'flex' : 'hidden lg:flex'}`}>
 
         {/* Header - mirrors Shortlist Agent header style */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -327,7 +327,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             <div key={fam.familyId}>
               {/* Family header - only render if there are 2+ versions */}
               {fam.versions.length > 1 && (
-                <div className="px-4 pt-2 pb-1 bg-white">
+                <div className="px-4 pt-2 pb-1 bg-bg-elevated">
                   <p className="text-[10px] font-bold text-muted uppercase tracking-wider truncate">{fam.familyLabel}</p>
                 </div>
               )}
@@ -384,10 +384,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         {activeRubricKind ? (
           <>
             {/* Mobile back bar */}
-            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-white flex-shrink-0">
+            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
               <button
                 onClick={() => setMobileShowList(true)}
-                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-black transition-colors"
+                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
                 aria-label="Back to scoring criteria"
               >
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -418,7 +418,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     {activeCustom && (
                       <button
                         onClick={() => setEditingRubric(activeCustom)}
-                        className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light inline-flex items-center gap-1.5"
+                        className="bg-bg-elevated border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light inline-flex items-center gap-1.5"
                         title="Edit criteria (creates a new version, keeps existing scores under v{activeCustom.version_number})"
                       >
                         <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
@@ -429,7 +429,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     )}
                     <a
                       href="/dashboard/recruit/shortlist"
-                      className="bg-white border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
+                      className="bg-bg-elevated border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
                     >
                       Move to Shortlist Agent →
                     </a>
@@ -438,7 +438,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
 
                 {/* Version switcher - only when this rubric has 2+ versions */}
                 {activeCustom && activeFamily.length > 1 && (
-                  <div className="bg-white shadow-card rounded-3xl px-5 py-3 flex items-center gap-2 flex-wrap">
+                  <div className="bg-bg-elevated shadow-card rounded-3xl px-5 py-3 flex items-center gap-2 flex-wrap">
                     <p className="text-[11px] font-bold text-muted uppercase tracking-wider mr-2">Versions</p>
                     {activeFamily.map(v => {
                       const cohort = screenings.filter(s => s.rubric_id === v.id).length
@@ -466,7 +466,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 )}
 
                 {/* Upload area */}
-                <section className="bg-white shadow-card rounded-3xl p-6 space-y-5">
+                <section className="bg-bg-elevated shadow-card rounded-3xl p-6 space-y-5">
                   <label
                     onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                     onDragLeave={() => setDragOver(false)}
@@ -512,7 +512,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 </section>
 
                 {/* Candidates */}
-                <section className="bg-white shadow-card rounded-3xl">
+                <section className="bg-bg-elevated shadow-card rounded-3xl">
                   <div className="px-6 py-4 border-b border-border flex flex-wrap items-center gap-2">
                     <FilterChip label={`All (${counts.all})`} active />
                     <FilterChip label={`Strong (${counts.strong})`} />
@@ -632,7 +632,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     sections: HOW (explains what's happening behind the
                     scenes) and WHAT TO DO (concrete next steps the
                     user should take). */}
-                <section className="bg-white shadow-card rounded-3xl p-6 sm:p-8">
+                <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-black" />
                     <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
@@ -771,7 +771,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             <button
               onClick={generateReport}
               disabled={reportBusy}
-              className="bg-white text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50 flex-shrink-0"
+              className="bg-bg-elevated text-charcoal text-sm font-bold rounded-full px-4 py-1.5 hover:bg-light disabled:opacity-50 flex-shrink-0"
             >
               {reportBusy ? 'Generating...' : 'Download CV report'}
             </button>
@@ -860,7 +860,7 @@ function RubricRow({
           }}
           onBlur={onCommitRename}
           onClick={e => e.stopPropagation()}
-          className="w-full text-sm font-medium text-charcoal bg-white border border-black rounded-md px-2 py-1 outline-none"
+          className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-black rounded-md px-2 py-1 outline-none"
           maxLength={80}
         />
       ) : (
@@ -887,7 +887,7 @@ function RubricRow({
             onClick={e => { e.stopPropagation(); if (!savingToLibrary) onSaveToLibrary() }}
             disabled={savingToLibrary}
             title="Save into your scoring criteria so you can edit it and reuse it for future roles"
-            className="text-[10px] font-bold uppercase tracking-wider bg-white border border-border hover:bg-light text-charcoal rounded-full px-2 py-1 disabled:opacity-50"
+            className="text-[10px] font-bold uppercase tracking-wider bg-bg-elevated border border-border hover:bg-light text-charcoal rounded-full px-2 py-1 disabled:opacity-50"
           >
             {savingToLibrary ? 'Saving...' : '+ Save to mine'}
           </button>
@@ -1001,7 +1001,7 @@ function _UNUSED_DisparateImpactCardImpl({ screenings }: { screenings: Candidate
   const monitored = [...byRubric.values()].filter(rows => rows.length >= 5).length
 
   return (
-    <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
+    <div className="bg-bg-elevated shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
       <div className="flex items-center justify-between mb-2">
         <p className="font-bold text-charcoal text-sm">Disparate impact dashboard</p>
         <span className="text-[10px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-2 py-0.5">

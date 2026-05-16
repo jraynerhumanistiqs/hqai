@@ -176,7 +176,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
   }
 
   return (
-    <div className="bg-white border border-border rounded-2xl shadow-card p-5">
+    <div className="bg-bg-elevated border border-border rounded-2xl shadow-card p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-display text-base font-bold text-charcoal uppercase tracking-wider">Phone screen recorder</p>
@@ -206,11 +206,11 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Candidate name</label>
-              <input className="w-full text-sm px-3 py-2 bg-white border border-border rounded-lg outline-none focus:border-black" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
+              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Candidate email (optional)</label>
-              <input className="w-full text-sm px-3 py-2 bg-white border border-border rounded-lg outline-none focus:border-black" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" />
+              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" />
             </div>
           </div>
 
@@ -264,7 +264,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
             </button>
             <button
               onClick={() => { setAudioBlob(null); setPlaybackUrl(null); setState('consent') }}
-              className="bg-white border border-border text-charcoal text-sm font-bold rounded-full px-5 py-2.5 hover:bg-light"
+              className="bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-5 py-2.5 hover:bg-light"
             >
               Re-record
             </button>

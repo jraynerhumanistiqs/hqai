@@ -57,7 +57,7 @@ export default function RecruitBinPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-white">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-bg-elevated">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
         <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide mb-1">Bin</h1>
         <p className="text-xs sm:text-sm text-mid mb-6 sm:mb-8">
@@ -69,7 +69,7 @@ export default function RecruitBinPage() {
             <div className="w-6 h-6 border-2 border-border border-t-accent rounded-full animate-spin" />
           </div>
         ) : sessions.length === 0 ? (
-          <div className="bg-white shadow-card rounded-2xl p-10 text-center">
+          <div className="bg-bg-elevated shadow-card rounded-2xl p-10 text-center">
             <div className="w-14 h-14 bg-light rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-mid" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
@@ -81,7 +81,7 @@ export default function RecruitBinPage() {
         ) : (
           <div className="space-y-3">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white shadow-card rounded-2xl p-4 sm:p-5 flex items-center gap-4">
+              <div key={s.id} className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-5 flex items-center gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-charcoal truncate">{s.role_title}</p>
                   <p className="text-xs text-mid truncate">{s.company}</p>
@@ -100,7 +100,7 @@ export default function RecruitBinPage() {
                   <button
                     onClick={() => handlePurge(s.id)}
                     disabled={busyId === s.id}
-                    className="bg-white hover:bg-light border border-border text-danger text-xs font-bold px-3 py-2 rounded-full transition-colors disabled:opacity-50"
+                    className="bg-bg-elevated hover:bg-light border border-border text-danger text-xs font-bold px-3 py-2 rounded-full transition-colors disabled:opacity-50"
                   >
                     Delete permanently
                   </button>
