@@ -180,7 +180,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-display text-base font-bold text-charcoal uppercase tracking-wider">Phone screen recorder</p>
-          <p className="text-xs text-mid mt-0.5">Capture the call audio from this device. We&apos;ll transcribe and score against the rubric automatically.</p>
+          <p className="text-xs text-mid mt-0.5">Capture the call audio from this device. We&apos;ll transcribe and score against the role&apos;s scoring criteria automatically.</p>
         </div>
         {onCancel && state !== 'recording' && state !== 'uploading' && state !== 'submitting' && (
           <button onClick={() => { cleanup(); onCancel() }} className="text-xs font-bold text-mid hover:text-charcoal">Close</button>

@@ -377,19 +377,19 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               </div>
 
               <div className="pt-2 border-t border-border">
-                <label className="block text-sm font-bold text-black mb-2">Scoring rubric</label>
+                <label className="block text-sm font-bold text-black mb-2">Scoring criteria</label>
                 <div className="space-y-2">
                   <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
                     <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'standard'} onChange={() => setRubricMode('standard')} />
                     <div>
-                      <p className="text-sm font-bold text-black">Use HQ.ai standard rubric <span className="text-mid font-normal">(recommended)</span></p>
+                      <p className="text-sm font-bold text-black">Use HQ.ai default scoring criteria <span className="text-mid font-normal">(recommended)</span></p>
                       <p className="text-xs text-mid mt-0.5">Clarity, relevance, specificity, structure, role fit - each scored 1-5.</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
                     <input type="radio" name="rubricMode" className="mt-0.5" checked={rubricMode === 'custom'} onChange={() => setRubricMode('custom')} />
                     <div>
-                      <p className="text-sm font-bold text-black">Define a custom rubric for this role</p>
+                      <p className="text-sm font-bold text-black">Define custom scoring criteria for this role</p>
                       <p className="text-xs text-mid mt-0.5">3-6 dimensions, each scored 1-5.</p>
                     </div>
                   </label>
@@ -462,24 +462,24 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 
               {error && <p className="text-xs text-danger">{error}</p>}
 
-              <div className="flex items-center gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-1">
                 <button
                   onClick={handleGenerate}
                   disabled={generating || !roleTitle.trim()}
-                  className="flex-1 bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-black hover:bg-charcoal disabled:bg-light disabled:text-mid disabled:cursor-not-allowed text-white text-sm font-bold py-2.5 rounded-full transition-colors inline-flex items-center justify-center gap-2"
                 >
                   {generating ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Generating...
                     </>
                   ) : (
-                    <>Generate Questions with AI</>
+                    <>Generate questions with AI</>
                   )}
                 </button>
                 <button
                   onClick={addManualQuestion}
-                  className="text-sm text-mid hover:text-black font-bold transition-colors px-3 py-2.5 whitespace-nowrap"
+                  className="text-sm text-mid hover:text-black font-bold transition-colors px-3 py-2 whitespace-nowrap self-start sm:self-auto"
                 >
                   + Write manually
                 </button>

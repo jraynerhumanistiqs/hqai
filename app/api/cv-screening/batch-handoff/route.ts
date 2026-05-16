@@ -133,10 +133,21 @@ export async function POST(req: NextRequest) {
           evidence_timestamp_sec: 0,
           insufficient_evidence: false,
         }))
+      // candidate_email has a NOT NULL constraint on prescreen_responses
+      // (since it was originally built for candidate-submitted videos
+      // which always have an email). CV-imported candidates often have
+      // no email captured, so we synthesise a placeholder using the
+      // CV screening id - that keeps the column populated, makes the
+      // origin obvious in the Shortlist UI, and stops the previous
+      // silent insert failure. The placeholder pattern uses .local
+      // which is reserved by RFC 6762 so it can never collide with a
+      // real candidate address.
+      const placeholderEmail = `cv-${s.id}@no-email.local`
+      const realEmail = (s as unknown as { candidate_email?: string | null }).candidate_email
       const all: Record<string, unknown> = {
         session_id: session.id,
         candidate_name: s.candidate_label || 'Candidate',
-        candidate_email: (s as unknown as { candidate_email?: string | null }).candidate_email ?? null,
+        candidate_email: (realEmail && realEmail.trim()) || placeholderEmail,
         consent: true,
         video_ids: [],
         status: 'submitted',
@@ -170,16 +181,29 @@ export async function POST(req: NextRequest) {
         attached = inserted?.length ?? 0
         break
       }
-      lastInsertError = respErr.message ?? 'unknown insert error'
-      // Find the offending column from the error message and drop it.
-      const dropped = OPTIONAL_ORDER.find(col => active.has(col) && respErr.message?.toLowerCase().includes(col.toLowerCase()))
+      // Log the FULL Postgres error so production traces show the
+      // exact column / constraint causing the failure. Previously we
+      // only kept .message, which can elide useful context like the
+      // constraint name or column hint.
+      const fullErr = [
+        respErr.message,
+        (respErr as { details?: string }).details ? `details: ${(respErr as { details?: string }).details}` : null,
+        (respErr as { hint?: string }).hint ? `hint: ${(respErr as { hint?: string }).hint}` : null,
+        (respErr as { code?: string }).code ? `code: ${(respErr as { code?: string }).code}` : null,
+      ].filter(Boolean).join(' | ')
+      lastInsertError = fullErr || 'unknown insert error'
+      // Find the offending column from the error message (incl. hint
+      // / details) and drop it. Hint/details often name the column
+      // when the top-level message is generic.
+      const haystack = `${respErr.message ?? ''} ${(respErr as { details?: string }).details ?? ''} ${(respErr as { hint?: string }).hint ?? ''}`.toLowerCase()
+      const dropped = OPTIONAL_ORDER.find(col => active.has(col) && haystack.includes(col.toLowerCase()))
       if (dropped) {
-        console.warn(`[batch-handoff] insert failed on column ${dropped}, retrying without it. (${respErr.message})`)
+        console.warn(`[batch-handoff] insert failed on column ${dropped}, retrying without it. (${fullErr})`)
         active.delete(dropped)
         continue
       }
       // Error doesn't mention an optional column - bail and surface it.
-      console.error('[batch-handoff] non-recoverable insert error:', respErr)
+      console.error('[batch-handoff] non-recoverable insert error:', fullErr)
       break
     }
 

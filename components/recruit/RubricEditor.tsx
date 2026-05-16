@@ -35,7 +35,7 @@ export function RubricEditor({
 
   return (
     <div>
-      <label className="block text-sm font-bold text-black mb-2">Scoring rubric</label>
+      <label className="block text-sm font-bold text-black mb-2">Scoring criteria</label>
       <div className="space-y-2">
         <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
           <input
@@ -47,7 +47,7 @@ export function RubricEditor({
           />
           <div>
             <p className="text-sm font-bold text-black">
-              Use HQ.ai standard rubric{' '}
+              Use HQ.ai default scoring criteria{' '}
               <span className="text-mid font-normal">(recommended)</span>
             </p>
             <p className="text-xs text-mid mt-0.5">
@@ -64,7 +64,7 @@ export function RubricEditor({
             onChange={() => onModeChange('custom')}
           />
           <div>
-            <p className="text-sm font-bold text-black">Define a custom rubric for this role</p>
+            <p className="text-sm font-bold text-black">Define custom scoring criteria for this role</p>
             <p className="text-xs text-mid mt-0.5">3-6 dimensions, each scored 1-5.</p>
           </div>
         </label>

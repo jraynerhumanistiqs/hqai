@@ -481,18 +481,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b border-border bg-white px-6 py-5 flex-shrink-0">
-        <div className="flex items-start justify-between gap-4">
+      <div className="border-b border-border bg-white px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
+        {/* On mobile this stacks: title on its own row, action buttons
+            wrap to a second row underneath. On sm+ the original
+            single-row layout returns. Fixes the overlap reported in
+            mobile screenshots. */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <h2 className="font-serif text-2xl font-bold text-black leading-tight">{session.role_title}</h2>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-black leading-tight">{session.role_title}</h2>
             <p className="text-sm text-mid mt-1">{session.company}</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:mt-1">
             <Link
               href={`/dashboard/recruit/${session.id}/analytics`}
               className="text-xs font-bold px-3 py-1 rounded-full border border-border bg-white text-mid hover:text-black transition-colors"
             >Analytics</Link>
-            <div className="flex items-center gap-1 bg-bg border border-border rounded-full p-0.5">              <button
+            <div className="flex items-center gap-1 bg-bg border border-border rounded-full p-0.5">
+              <button
                 onClick={() => setViewMode('list')}
                 className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
                   viewMode === 'list' ? 'bg-black text-white' : 'text-mid hover:text-black'
@@ -518,7 +523,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             </button>
             <button
               onClick={() => setLegendOpen(true)}
-              className="text-xs font-bold px-3 py-1 rounded-full border border-border bg-white text-mid hover:text-black transition-colors"
+              className="hidden sm:inline-flex text-xs font-bold px-3 py-1 rounded-full border border-border bg-white text-mid hover:text-black transition-colors items-center"
               title="Keyboard shortcuts (?)"
             >?</button>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${

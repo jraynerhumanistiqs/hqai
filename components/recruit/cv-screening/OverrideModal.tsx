@@ -14,6 +14,7 @@ import {
   effectiveBand,
   effectiveNextAction,
 } from '@/lib/cv-screening-types'
+import { useBackdropClose } from '@/components/recruit/useBackdropClose'
 
 interface Props {
   screening: CandidateScreening
@@ -46,6 +47,7 @@ const ACTION_TO_API: Record<NextAction, string> = {
 }
 
 export default function OverrideModal({ screening, onClose, onSaved }: Props) {
+  const backdrop = useBackdropClose(onClose)
   const currentBand = effectiveBand(screening)
   const currentAction = effectiveNextAction(screening)
   const [band, setBand] = useState<CandidateBand>(currentBand)
@@ -105,8 +107,8 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl shadow-modal w-full max-w-lg" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" {...backdrop}>
+      <div className="bg-white rounded-3xl shadow-modal w-full max-w-lg">
         <div className="flex items-start justify-between px-6 py-5 border-b border-border">
           <div>
             <h2 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">

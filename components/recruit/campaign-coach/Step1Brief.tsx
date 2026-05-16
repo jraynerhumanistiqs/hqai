@@ -16,11 +16,9 @@ interface SuggestionsResponse {
   recent_campaigns: RecentCampaign[]
 }
 
-const PLACEHOLDER_EXAMPLES = [
-  'Office Manager / EA in Melbourne CBD, full-time, $80-90k + super.',
-  'Bookkeeper, Adelaide CBD - 2 days a week, must know Xero and BAS.',
-  'Customer Service Lead, Brisbane - hybrid, $75k + super.',
-]
+// PLACEHOLDER_EXAMPLES (the old "Common roles in [industry]" chips)
+// was removed - the suggestion surface is now exclusively the user's
+// own recent campaigns rather than a generic AU role library.
 
 export default function Step1Brief() {
   const { state, dispatch, business } = useWizard()
@@ -44,7 +42,7 @@ export default function Step1Brief() {
           setSuggestions({
             industry: null,
             industry_source: 'fallback',
-            examples: PLACEHOLDER_EXAMPLES,
+            examples: [],
             recent_campaigns: [],
           })
         }
@@ -77,9 +75,7 @@ export default function Step1Brief() {
     })
   }, [dispatch, state.coach_messages.length])
 
-  const examples = suggestions?.examples ?? PLACEHOLDER_EXAMPLES
   const recentCampaigns = suggestions?.recent_campaigns ?? []
-  const industryLabel = suggestions?.industry?.toLowerCase() ?? business?.industry?.toLowerCase()
 
   return (
     <div className="space-y-5">
@@ -117,58 +113,63 @@ export default function Step1Brief() {
         </div>
       </div>
 
+      {/* Recent campaigns - up to 5 of the user's most recent role
+          briefs. Replaces the old "Common roles in [industry]" chip row.
+          When there are zero campaigns yet, show a single helper
+          card explaining what will populate here later, rather than a
+          gap in the page. */}
       <div>
-        <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-          {loadingSuggestions
-            ? 'Tailoring examples to your business...'
-            : industryLabel
-              ? `Common roles in ${industryLabel}`
-              : 'Or try an example'}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {examples.map((p, i) => (
-            <button
-              key={`ex-${i}`}
-              onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: p })}
-              disabled={loadingSuggestions}
-              className="bg-light hover:bg-border text-charcoal text-xs sm:text-sm font-medium px-4 py-2 rounded-full transition-colors text-left max-w-full disabled:opacity-50"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        {suggestions?.industry_source === 'inferred' && (
-          <p className="text-[11px] text-muted mt-2 italic">
-            Industry detected from your business profile. If this looks wrong, set it correctly in Settings.
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <p className="text-[11px] font-bold text-muted uppercase tracking-wider">
+            {loadingSuggestions ? 'Loading your recent campaigns...' : 'Reuse a recent campaign'}
           </p>
+          {!loadingSuggestions && recentCampaigns.length > 0 && (
+            <p className="text-[10px] text-muted">Click to pre-fill - edit anything you want</p>
+          )}
+        </div>
+
+        {!loadingSuggestions && recentCampaigns.length === 0 ? (
+          <div className="bg-white shadow-card rounded-2xl px-5 py-5 border border-dashed border-border">
+            <p className="text-sm font-bold text-charcoal mb-1">No recent campaigns yet</p>
+            <p className="text-xs text-mid leading-relaxed">
+              Once you publish your first role through Campaign Coach it will appear here. From then on you can pre-fill new briefs from any of your five most recent campaigns and edit from there.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {(loadingSuggestions ? Array.from({ length: 3 }) : recentCampaigns).slice(0, 5).map((c, i) => {
+              if (loadingSuggestions || !c) {
+                return (
+                  <div key={`skeleton-${i}`} className="bg-white shadow-card rounded-2xl px-4 py-3 animate-pulse">
+                    <div className="h-3 w-32 bg-light rounded-full mb-2" />
+                    <div className="h-2 w-full bg-light rounded-full mb-1.5" />
+                    <div className="h-2 w-3/4 bg-light rounded-full" />
+                  </div>
+                )
+              }
+              const campaign = c as RecentCampaign
+              return (
+                <button
+                  key={campaign.id}
+                  onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: campaign.brief })}
+                  className="bg-white shadow-card hover:shadow-modal hover:-translate-y-0.5 rounded-2xl px-4 py-3 text-left transition-all border border-transparent hover:border-charcoal/15 group"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-charcoal leading-tight flex-1 truncate">{campaign.title}</p>
+                    <span className="text-[10px] text-muted whitespace-nowrap pt-0.5">
+                      {new Date(campaign.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-mid leading-relaxed line-clamp-2 mt-1">{campaign.brief}</p>
+                  <p className="text-[11px] font-bold text-charcoal mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Use as starting point &rarr;
+                  </p>
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
-
-      {recentCampaigns.length > 0 && (
-        <div>
-          <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-            Recent campaigns - reuse a brief
-          </p>
-          <div className="space-y-2">
-            {recentCampaigns.map(c => (
-              <button
-                key={c.id}
-                onClick={() => dispatch({ type: 'SET_BRIEF_TEXT', text: c.brief })}
-                className="w-full bg-white shadow-card hover:shadow-modal rounded-2xl px-4 py-3 text-left transition-shadow"
-              >
-                <p className="text-sm font-bold text-charcoal mb-0.5">{c.title}</p>
-                <p className="text-xs text-mid leading-relaxed line-clamp-2">{c.brief}</p>
-                <p className="text-[10px] text-muted mt-1">
-                  {new Date(c.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </p>
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted mt-1.5">
-            Click any campaign to pre-fill the notes above. You can edit before submitting.
-          </p>
-        </div>
-      )}
     </div>
   )
 }

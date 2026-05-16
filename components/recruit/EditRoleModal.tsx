@@ -78,7 +78,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
         .map(d => ({ name: d.name.trim(), description: d.description.trim() }))
         .filter(d => d.name && d.description)
       if (cleaned.length < 3 || cleaned.length > 6) {
-        setError('Custom rubric needs 3-6 dimensions, each with a name and description.')
+        setError('Custom scoring criteria needs 3-6 dimensions, each with a name and description.')
         return
       }
       customRubricPayload = cleaned
@@ -109,7 +109,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
       if (willRescore) {
         setSaving(false)
         setRescoring(true)
-        setStatusMsg('Saving - re-scoring candidates with the new rubric…')
+        setStatusMsg('Saving - re-scoring candidates with the new criteria…')
         try {
           const rsRes = await fetch(`/api/prescreen/sessions/${session.id}/rescore`, {
             method: 'POST',
@@ -156,7 +156,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
         <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="font-serif text-xl font-bold text-black">Edit Role</h2>
-            <p className="text-sm text-mid mt-0.5">Update role details, questions, rubric, or time limit</p>
+            <p className="text-sm text-mid mt-0.5">Update role details, questions, scoring criteria, or time limit</p>
           </div>
           <button
             onClick={onClose}

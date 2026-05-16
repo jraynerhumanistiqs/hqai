@@ -56,6 +56,37 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [confirmDeleteRubricId, setConfirmDeleteRubricId] = useState<string | null>(null)
   const [batchHandoffBusy, setBatchHandoffBusy] = useState(false)
   const [batchHandoffResult, setBatchHandoffResult] = useState<string | null>(null)
+  const [savingStarterId, setSavingStarterId] = useState<string | null>(null)
+
+  // Save a starter-library rubric into the user's "Saved scoring criteria"
+  // list so they can reuse it for future roles - including editing it
+  // (which the starter library can't be). Hits the same POST endpoint
+  // that the New rubric modal uses, just supplying the starter's rubric
+  // payload directly so no AI generation is needed.
+  async function saveStarterToLibrary(r: { rubric_id: string; role: string } & Record<string, unknown>) {
+    setSavingStarterId(r.rubric_id)
+    try {
+      const res = await fetch('/api/cv-screening/rubrics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: r.role,
+          rubric: r,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      const saved = data.rubric as CustomRubricRow
+      setCustomRubrics(prev => [saved, ...prev])
+      // Auto-select the freshly saved copy so the user lands on it ready
+      // to edit, since that's the typical reason for saving.
+      setRubricId(saved.id)
+      setCustomOpen(true)
+    } catch (err) {
+      console.warn('[cv-screening] save starter failed', err)
+    }
+    setSavingStarterId(null)
+  }
 
   async function renameCustomRubric(id: string) {
     const label = rubricRenameDraft.trim()
@@ -282,15 +313,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             onClick={() => setShowNewRubric(true)}
             className="bg-black hover:bg-charcoal text-white text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
           >
-            + New rubric
+            + New scoring criteria
           </button>
         </div>
 
         {/* Rubric list (scrollable) */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <RubricGroupHeader label="Your custom rubrics" count={customCount} open={customOpen} onToggle={() => setCustomOpen(v => !v)} tone="active" />
+          <RubricGroupHeader label="Saved scoring criteria" count={customCount} open={customOpen} onToggle={() => setCustomOpen(v => !v)} tone="active" />
           {customOpen && customCount === 0 && (
-            <p className="text-xs text-mid px-4 py-3">No custom rubrics yet. Create one from a job ad or description.</p>
+            <p className="text-xs text-mid px-4 py-3">No saved scoring criteria yet. Create one from a job ad or description and save it to reuse for future roles.</p>
           )}
           {customOpen && customFamilies.map(fam => (
             <div key={fam.familyId}>
@@ -332,7 +363,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             </div>
           ))}
 
-          <RubricGroupHeader label="Standard rubrics" count={standardCount} open={standardOpen} onToggle={() => setStandardOpen(v => !v)} tone="draft" />
+          <RubricGroupHeader label="HQ.ai starter library" count={standardCount} open={standardOpen} onToggle={() => setStandardOpen(v => !v)} tone="draft" />
           {standardOpen && ALL_RUBRICS.map(r => (
             <RubricRow
               key={r.rubric_id}
@@ -341,6 +372,8 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               selected={rubricId === r.rubric_id}
               onSelect={() => { setRubricId(r.rubric_id); setMobileShowList(false) }}
               readOnly
+              savingToLibrary={savingStarterId === r.rubric_id}
+              onSaveToLibrary={() => saveStarterToLibrary(r)}
             />
           ))}
         </div>
@@ -355,7 +388,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               <button
                 onClick={() => setMobileShowList(true)}
                 className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-black transition-colors"
-                aria-label="Back to rubrics"
+                aria-label="Back to scoring criteria"
               >
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
@@ -593,19 +626,44 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   )}
                 </section>
 
-                {/* Footer info cards */}
-                <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="bg-white shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
-                    <p className="font-bold text-charcoal mb-2 text-sm">How scoring works</p>
-                    <p>
-                      CVs are scored against a structured rubric with 6-8 weighted criteria. Names, photos, addresses, dates of birth and graduation years are masked from the model so it scores on substance, not signal. Every score points to a verbatim CV span as evidence. No candidate is auto-rejected - the system recommends a next step but a human always clicks through.
-                    </p>
-                    <p className="mt-2">
-                      For each candidate, click into the scorecard and use the <strong className="text-charcoal">Run name probe</strong> button under Fairness checks to test whether the score moves when the name is swapped to a different cultural background.
-                    </p>
+                {/* How the agent works - full-width info card.
+                    Replaces the old two-up grid that paired with the
+                    Disparate Impact Dashboard. Reframed into two clear
+                    sections: HOW (explains what's happening behind the
+                    scenes) and WHAT TO DO (concrete next steps the
+                    user should take). */}
+                <section className="bg-white shadow-card rounded-3xl p-6 sm:p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-black" />
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
                   </div>
 
-                  <DisparateImpactCard screenings={screenings} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                      <p className="text-sm font-bold text-charcoal mb-2">What the agent does</p>
+                      <ul className="space-y-2 text-xs text-mid leading-relaxed list-disc pl-4">
+                        <li>Scores each CV against the criteria on the left, weighted by importance.</li>
+                        <li>Masks names, photos, addresses, dates of birth and graduation years before scoring - the model judges substance, not signal.</li>
+                        <li>Backs every score with a verbatim line from the CV so you can see exactly why.</li>
+                        <li>Recommends a next step (Schedule panel, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-charcoal mb-2">What to do from here</p>
+                      <ol className="space-y-2 text-xs text-mid leading-relaxed list-decimal pl-4">
+                        <li><strong className="text-charcoal">Open a candidate.</strong> Click a row to read their scorecard with the evidence quoted from their CV.</li>
+                        <li><strong className="text-charcoal">Override the AI if you disagree.</strong> Click the score band or next-step on any row to change it and add a short comment explaining why.</li>
+                        <li><strong className="text-charcoal">Run a fairness check.</strong> In any scorecard, use <em>Run name probe</em> under Fairness checks to test if the score moves when the candidate&apos;s name is swapped to a different cultural background.</li>
+                        <li><strong className="text-charcoal">Send your shortlist forward.</strong> Tick the candidates you want and use <em>Send to Shortlist Agent</em> to bundle them as one campaign with their CV scoring carried through.</li>
+                        <li><strong className="text-charcoal">Save criteria you&apos;ll reuse.</strong> If you hired for the same role last quarter, save the scoring criteria from the left panel so you don&apos;t rebuild it from scratch next time.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted italic mt-5 leading-relaxed border-t border-border pt-4">
+                    HQ.ai does not make hiring decisions. It supports yours. Every recommendation here is reviewable, overridable, and auditable. You always click the button.
+                  </p>
                 </section>
 
               </div>
@@ -619,7 +677,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
-              <h2 className="font-display text-xl font-bold text-charcoal mb-1 uppercase tracking-wider">Select a rubric</h2>
+              <h2 className="font-display text-xl font-bold text-charcoal mb-1 uppercase tracking-wider">Select scoring criteria</h2>
               <p className="text-sm text-mid mb-5">
                 Pick a rubric from the left panel, or create a new one from a job ad.
               </p>
@@ -627,7 +685,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 onClick={() => setShowNewRubric(true)}
                 className="bg-black hover:bg-charcoal text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
               >
-                + New rubric
+                + New scoring criteria
               </button>
             </div>
           </div>
@@ -758,6 +816,7 @@ function RubricRow({
   renaming, renameDraft, onRenameDraft, onCommitRename, onCancelRename, onStartRename,
   onStartEditCriteria,
   confirmDelete, onConfirmDelete, onAskDelete, onCancelDelete,
+  onSaveToLibrary, savingToLibrary,
 }: {
   label: string
   sub?: string
@@ -776,6 +835,11 @@ function RubricRow({
   onConfirmDelete?: () => void
   onAskDelete?: () => void
   onCancelDelete?: () => void
+  // Starter-library rows can offer a "Save to my criteria" action that
+  // copies the starter rubric into the user's saved list so they can
+  // edit + reuse it. Only the starter readOnly rows pass this.
+  onSaveToLibrary?: () => void
+  savingToLibrary?: boolean
 }) {
   return (
     <div
@@ -811,6 +875,23 @@ function RubricRow({
           </div>
           {sub && <p className="text-[10px] text-muted mt-0.5 truncate pr-16">{sub}</p>}
         </>
+      )}
+
+      {/* Starter-library row action: save into the user's saved scoring
+          criteria. Visible only on starter rows (readOnly), and on
+          hover. Once saved, the new copy auto-selects so the user lands
+          ready to edit. */}
+      {readOnly && onSaveToLibrary && !renaming && !confirmDelete && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={e => { e.stopPropagation(); if (!savingToLibrary) onSaveToLibrary() }}
+            disabled={savingToLibrary}
+            title="Save into your scoring criteria so you can edit it and reuse it for future roles"
+            className="text-[10px] font-bold uppercase tracking-wider bg-white border border-border hover:bg-light text-charcoal rounded-full px-2 py-1 disabled:opacity-50"
+          >
+            {savingToLibrary ? 'Saving...' : '+ Save to mine'}
+          </button>
+        </div>
       )}
 
       {!readOnly && !renaming && !confirmDelete && (
@@ -849,7 +930,7 @@ function RubricRow({
 
       {confirmDelete && (
         <div className="mt-2 flex items-center gap-2 text-[11px]" onClick={e => e.stopPropagation()}>
-          <span className="text-mid">Delete this rubric?</span>
+          <span className="text-mid">Delete these scoring criteria?</span>
           <button onClick={onConfirmDelete} className="font-bold text-danger hover:underline">Delete</button>
           <button onClick={onCancelDelete} className="font-bold text-mid hover:underline">Cancel</button>
         </div>
@@ -869,14 +950,18 @@ function statusLabel(status: PendingUpload['status']): string {
   }
 }
 
-// V2.5 Disparate Impact Dashboard - population-level four-fifths rule
-// monitor. Aggregates name-probe runs across all CV screenings to flag any
-// rubric where the selection rate of any probed cohort drops below 80% of
-// the top cohort, per the EEOC four-fifths rule (Australian Human Rights
-// Commission references this same threshold for adverse-impact testing).
-// Until per-candidate opt-in demographic data is collected we use the
-// name_probe_outcomes side-channel as the proxy cohort signal.
-function DisparateImpactCard({ screenings }: { screenings: CandidateScreening[] }) {
+// Disparate Impact Dashboard removed in May 2026 - the surface
+// confused clients more than it helped, and the population data we'd
+// need to make it meaningful (opt-in demographic capture) doesn't
+// exist yet. Adverse impact monitoring is now an internal operational
+// task per docs/AI-FAIRNESS-FAIR-WORK.md Section 7. If we revisit this
+// later, the implementation lives in git history at commit 476c6e9.
+
+function _archivedDisparateImpactCard_unused({ screenings: _ }: { screenings: CandidateScreening[] }) {
+  return null
+}
+// Below: original implementation kept commented for reference.
+function _UNUSED_DisparateImpactCardImpl({ screenings }: { screenings: CandidateScreening[] }) {
   // Group screenings by rubric and compute selection rates per detected
   // cohort. A screening is "selected" if band is yes or strong_yes.
   const byRubric = new Map<string, CandidateScreening[]>()

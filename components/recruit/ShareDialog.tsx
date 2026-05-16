@@ -1,6 +1,7 @@
 ﻿'use client'
 import { useEffect, useState } from 'react'
 import type { PrescreenShareLink } from '@/lib/recruit-types'
+import { useBackdropClose } from '@/components/recruit/useBackdropClose'
 
 interface Props {
   responseId: string
@@ -13,6 +14,7 @@ interface Props {
 type HydratedLink = PrescreenShareLink & { url: string; view_count: number }
 
 export function ShareDialog({ responseId, candidateName, roleTitle, company, onClose }: Props) {
+  const backdrop = useBackdropClose(onClose)
   const [label, setLabel]       = useState('')
   const [days, setDays]         = useState(14)
   const [creating, setCreating] = useState(false)
@@ -100,11 +102,8 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl shadow-card max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" {...backdrop}>
+      <div className="bg-white rounded-2xl shadow-card max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <p className="text-xs font-bold text-black uppercase tracking-widest">Share with hiring manager</p>
           <button onClick={onClose} className="text-mid hover:text-black text-lg leading-none">&times;</button>
