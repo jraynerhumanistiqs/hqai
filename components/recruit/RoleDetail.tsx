@@ -22,6 +22,8 @@ import { NotesPanel } from './NotesPanel'
 import { ShareDialog } from './ShareDialog'
 import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
+import { ProcessFlowTracker } from './ProcessFlowTracker'
+import { PhoneRecorder } from './PhoneRecorder'
 import Link from 'next/link'
 
 interface Booking {
@@ -78,6 +80,7 @@ function initials(name: string) {
 
 export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse, onSessionUpdated }: Props) {
   const [copied, setCopied]               = useState(false)
+  const [phoneRecorderOpen, setPhoneRecorderOpen] = useState(false)
   const [filter, setFilter]               = useState<Filter>('all')
   const [expanded, setExpanded]           = useState<string | null>(null)
   const [shareUrls, setShareUrls]         = useState<Record<string, string>>({})
@@ -525,8 +528,34 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
       <div className="flex-1 overflow-y-auto bg-bg">
         <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
 
+          {/* Process flow tracker - visible state of the role's funnel */}
+          <ProcessFlowTracker session={session} responses={mergedResponses} />
+
+          {/* Phone screen recorder - shown when session permits phone OR
+              if no interview_types are set (legacy session, default
+              behaviour). The button to open is below the candidate
+              invite card. */}
+          {(session.interview_types?.includes('phone') ?? false) && phoneRecorderOpen && (
+            <PhoneRecorder
+              sessionId={session.id}
+              onSubmitted={() => { setPhoneRecorderOpen(false) }}
+              onCancel={() => setPhoneRecorderOpen(false)}
+            />
+          )}
+
           <div className="bg-white rounded-2xl border border-border shadow-card p-5">
-            <p className="text-xs font-bold text-black uppercase tracking-widest mb-3">Candidate Invite Link</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-black uppercase tracking-widest">Candidate Invite Link</p>
+              {(session.interview_types?.includes('phone') ?? false) && !phoneRecorderOpen && (
+                <button
+                  onClick={() => setPhoneRecorderOpen(true)}
+                  className="text-xs font-bold text-black hover:underline"
+                  title="Record a phone screen instead of sending the video invite link"
+                >
+                  + Record phone screen
+                </button>
+              )}
+            </div>
             {editingSlug ? (
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <code className="text-xs text-mid bg-bg border border-border rounded-lg px-3 py-2 font-mono whitespace-nowrap">

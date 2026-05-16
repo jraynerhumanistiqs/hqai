@@ -91,24 +91,62 @@ export async function POST(req: NextRequest) {
 
     const status: 'active' | 'draft' = body.status === 'draft' ? 'draft' : 'active'
 
-    const { data, error } = await supabaseAdmin
-      .from('prescreen_sessions')
-      .insert({
-        company: body.company,
-        role_title: body.role_title,
-        questions,
-        time_limit_seconds: body.time_limit_seconds ?? 90,
-        status,
-        created_by: user.id,
-        rubric_mode,
-        custom_rubric,
-        auto_send_outcomes,
-        outcome_email_shortlisted,
-        outcome_email_rejected,
-        calendly_url_override,
-      })
-      .select()
-      .single()
+    // Phone-screen support. Accept and persist interview_types if present.
+    // If the migration adding the column hasn't been run on this env we
+    // retry without it so the create flow still works.
+    const interviewTypes: string[] = Array.isArray(body.interview_types) && body.interview_types.length > 0
+      ? body.interview_types.filter((t: string) => t === 'video' || t === 'phone')
+      : ['video']
+
+    let data: any = null
+    let error: any = null
+    {
+      const full = await supabaseAdmin
+        .from('prescreen_sessions')
+        .insert({
+          company: body.company,
+          role_title: body.role_title,
+          questions,
+          time_limit_seconds: body.time_limit_seconds ?? 90,
+          status,
+          created_by: user.id,
+          rubric_mode,
+          custom_rubric,
+          interview_types: interviewTypes,
+          auto_send_outcomes,
+          outcome_email_shortlisted,
+          outcome_email_rejected,
+          calendly_url_override,
+        })
+        .select()
+        .single()
+      if (full.error && full.error.message?.includes('interview_types')) {
+        // Migration not yet applied - retry without the column
+        const legacy = await supabaseAdmin
+          .from('prescreen_sessions')
+          .insert({
+            company: body.company,
+            role_title: body.role_title,
+            questions,
+            time_limit_seconds: body.time_limit_seconds ?? 90,
+            status,
+            created_by: user.id,
+            rubric_mode,
+            custom_rubric,
+            auto_send_outcomes,
+            outcome_email_shortlisted,
+            outcome_email_rejected,
+            calendly_url_override,
+          })
+          .select()
+          .single()
+        data = legacy.data
+        error = legacy.error
+      } else {
+        data = full.data
+        error = full.error
+      }
+    }
 
     if (error) throw error
 

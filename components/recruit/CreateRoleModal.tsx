@@ -17,6 +17,11 @@ const TIP_THRESHOLD = 300
 
 export function CreateRoleModal({ onClose, onCreated }: Props) {
   const [step, setStep]               = useState<Step>('setup')
+  // Interview types - default to video for backward compatibility.
+  // Either one or both can be selected. Phone-only roles skip the
+  // candidate-self-serve recording flow and rely on the recruiter's
+  // PhoneRecorder in the role detail.
+  const [interviewTypes, setInterviewTypes] = useState<Array<'video' | 'phone'>>(['video'])
   const [company, setCompany]         = useState('')
   const [roleTitle, setRoleTitle]     = useState('')
   const [description, setDescription] = useState('')
@@ -136,6 +141,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           questions: questions.filter(q => q.trim()),
           time_limit_seconds: timeLimit,
           rubric_mode: rubricMode,
+          interview_types: interviewTypes,
           status: 'draft',
         }),
       })
@@ -188,6 +194,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
           time_limit_seconds: timeLimit,
           rubric_mode: rubricMode,
           custom_rubric: customRubricPayload,
+          interview_types: interviewTypes,
           auto_send_outcomes: autoSend,
           outcome_email_shortlisted: slTpl,
           outcome_email_rejected: rjTpl,
@@ -269,6 +276,50 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                   onInput={e => autoGrow(e.currentTarget as HTMLTextAreaElement)}
                   placeholder="Paste key responsibilities, must-haves and seniority level..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-black mb-1.5">
+                  Interview type
+                  <span className="text-mid font-normal ml-1">(pick one or both)</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { id: 'video', title: 'Video pre-screen', desc: 'Candidate records video answers in their browser.' },
+                    { id: 'phone', title: 'Phone screen', desc: 'Recruiter records the call. Audio is transcribed and scored against the same rubric.' },
+                  ] as const).map(opt => {
+                    const checked = interviewTypes.includes(opt.id)
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setInterviewTypes(prev => {
+                            if (prev.includes(opt.id)) {
+                              // Don't allow unchecking the last one
+                              if (prev.length === 1) return prev
+                              return prev.filter(t => t !== opt.id)
+                            }
+                            return [...prev, opt.id]
+                          })
+                        }}
+                        className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}
+                      >
+                        <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-black bg-black' : 'border-border'}`}>
+                          {checked && (
+                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-charcoal">{opt.title}</p>
+                          <p className="text-[11px] text-mid mt-0.5 leading-snug">{opt.desc}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

@@ -76,13 +76,18 @@ async function resolveMp4Url(uid: string): Promise<string> {
 }
 
 /**
- * Transcribe a Cloudflare Stream video via Deepgram Nova-3 REST API.
+ * Transcribe an audio file stored in Supabase Storage via Deepgram Nova-3.
+ * Uses a signed URL so Deepgram can fetch it without the bucket being
+ * public.
  */
-export async function transcribeCloudflareVideo(cloudflareUid: string): Promise<TranscriptResult> {
+export async function transcribeSupabaseAudio(
+  signedAudioUrl: string,
+): Promise<TranscriptResult> {
   if (!DG_KEY) throw new Error('DEEPGRAM_API_KEY is not set')
+  return dgTranscribeUrl(signedAudioUrl)
+}
 
-  const mp4Url = await resolveMp4Url(cloudflareUid)
-
+async function dgTranscribeUrl(url: string): Promise<TranscriptResult> {
   const qs = new URLSearchParams({
     model: 'nova-3-general',
     language: 'en-AU',
@@ -98,7 +103,7 @@ export async function transcribeCloudflareVideo(cloudflareUid: string): Promise<
       Authorization: `Token ${DG_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ url: mp4Url }),
+    body: JSON.stringify({ url }),
   })
   if (!res.ok) {
     const txt = await res.text().catch(() => '')
@@ -117,4 +122,14 @@ export async function transcribeCloudflareVideo(cloudflareUid: string): Promise<
   }))
 
   return { text, utterances, raw }
+}
+
+/**
+ * Transcribe a Cloudflare Stream video via Deepgram Nova-3 REST API.
+ */
+export async function transcribeCloudflareVideo(cloudflareUid: string): Promise<TranscriptResult> {
+  if (!DG_KEY) throw new Error('DEEPGRAM_API_KEY is not set')
+
+  const mp4Url = await resolveMp4Url(cloudflareUid)
+  return dgTranscribeUrl(mp4Url)
 }

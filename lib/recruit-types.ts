@@ -44,6 +44,8 @@ export interface PrescreenEvaluation {
   created_at: string
 }
 
+export type InterviewType = 'video' | 'phone'
+
 export interface PrescreenSession {
   id: string
   company: string
@@ -57,6 +59,11 @@ export interface PrescreenSession {
   slug?: string | null
   rubric_mode?: RubricMode
   custom_rubric?: RubricDimension[] | null
+  // Phone-screen support. Default ['video'] preserves the legacy
+  // candidate-side experience. ['phone'] swaps the public flow to a
+  // notice page; ['video','phone'] keeps video as primary but unlocks
+  // the recruiter-driven phone recorder in the role detail panel.
+  interview_types?: InterviewType[]
   // -- Phase 4 outcome automation
   auto_send_outcomes?: boolean
   outcome_email_shortlisted?: string | null
@@ -78,6 +85,14 @@ export interface CandidateResponse {
   share_token: string | null
   share_expires_at: string | null
   stage?: 'new' | 'in_review' | 'video_interview' | 'shortlisted' | 'rejected'
+  // Phone-screen support. response_type defaults to 'video' so legacy
+  // rows continue to render through the Cloudflare Stream player.
+  // When response_type is 'phone', audio_path points at a private
+  // object inside the 'prescreen-audio' Supabase Storage bucket.
+  response_type?: InterviewType
+  audio_path?: string | null
+  audio_duration_sec?: number | null
+  recorded_at?: string | null
 }
 
 // -- Phase 3 ----------------------------------------------------------------
