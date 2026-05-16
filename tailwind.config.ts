@@ -72,11 +72,13 @@ const config: Config = {
 
       fontFamily: {
         sans:    ['var(--font-inter)', 'Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        // A2 - Fraunces is the marketing display face (Option 2).
-        // Product chrome still inherits sans via the body rule in
-        // globals.css; this is the explicit hook for h1/display.
+        // Fraunces is kept available via `font-serif` for any heading
+        // that explicitly wants the editorial serif look. The default
+        // `font-display` token now resolves to Inter (per founder
+        // request) so the whole product surface reads consistently in
+        // Inter rather than a serif/sans mix.
         serif:   ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
-        display: ['var(--font-display, var(--font-fraunces))', 'Fraunces', 'Inter', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
         mono:    ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
 
