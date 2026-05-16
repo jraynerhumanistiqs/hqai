@@ -112,6 +112,34 @@ auto-reject. There is no auto-send-of-rejection-email. The "Reject"
 band on a CV scoring still requires the business user to take action
 in the UI.
 
+### 2.8 Speech-only behavioural signal (Tier 1)
+
+`lib/confidence.ts` `analyseSpeech()` computes five speech-only signals
+from the Deepgram transcript: pace (wpm), filler-word rate, sentence
+completion, vocabulary richness (type-token ratio), and pause density.
+Rendered by `components/recruit/SpeechAnalysisPanel.tsx` on both the
+candidate-facing review screen and the staff-facing response detail.
+
+Boundaries documented in `docs/BODY-LANGUAGE-ROADMAP.md`:
+
+- **No facial expression analysis.** We do not run face / emotion /
+  micro-expression models. EU AI Act Article 5 prohibits emotion
+  recognition in employment, the AHRC is on record against it, and
+  the science is documented as unreliable across populations.
+- **No visual telemetry yet.** Tier 2 (gaze direction, framing,
+  lighting quality) requires an Algorithmic Impact Assessment before
+  it ships and is currently deferred.
+- **Signal-not-score framing.** The analysis is shown as descriptive
+  evidence under each video, with a permanent disclaimer reminding
+  reviewers it captures what was said and how, not who the candidate
+  is. It is never fed into `lib/claude-scoring.ts`.
+- **Known false-positive list.** Filler-word matching for "like",
+  "actually", "literally" includes natural-speech false positives;
+  vocabulary richness is sensitive to topic and answer length and is
+  suppressed under 40 words; pause counts can reflect audio drop-outs
+  rather than candidate behaviour. The UI band labels are written so
+  they remain accurate under these failure modes.
+
 ## 3. What is NOT yet covered (open gaps)
 
 - **Video pre-screen blinding.** The video pre-screen scoring path does

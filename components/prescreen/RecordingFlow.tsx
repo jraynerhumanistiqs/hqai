@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { computeConfidence, type ConfidenceReading } from '@/lib/confidence'
+import { analyseSpeech, type SpeechAnalysis } from '@/lib/confidence'
+import { SpeechAnalysisPanel } from '@/components/recruit/SpeechAnalysisPanel'
 
 interface Props {
   questions: string[]
@@ -67,8 +68,9 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   const [replayCounts, setReplayCounts] = useState<number[]>(questions.map(() => 0))
   const [reviewBlobUrls, setReviewBlobUrls] = useState<(string | null)[]>(questions.map(() => null))
   const [transcripts, setTranscripts] = useState<string[]>(questions.map(() => ''))
-  // Speech-rate-based confidence indicator (no body-language ML in MVP)
-  const [confidence, setConfidence] = useState<Array<ConfidenceReading | null>>(questions.map(() => null))
+  // Multidimensional speech analysis per question - pace, fillers,
+  // completion, vocab, pauses. See lib/confidence.ts for the methodology.
+  const [speech, setSpeech] = useState<Array<SpeechAnalysis | null>>(questions.map(() => null))
 
   const videoRef  = useRef<HTMLVideoElement>(null)
   const reviewVideoRef = useRef<HTMLVideoElement>(null)
@@ -242,7 +244,12 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       // playable after upload). We revoke when moving to next question.
       const localUrl = URL.createObjectURL(blob)
       const transcriptText = liveTranscriptRef.current.trim() || '(Transcript not captured in this browser. The full transcript will be generated server-side after submission.)'
-      const conf = computeConfidence(transcriptText, elapsed)
+      // Tier-1 multidimensional analysis. The candidate-side live
+      // transcript doesn't carry timestamped utterances so the pause
+      // and per-utterance completion signals will show "Not enough
+      // data" here - that's intentional, the staff side has the full
+      // Deepgram output and will compute the complete set.
+      const analysis = analyseSpeech({ transcript: transcriptText, seconds: elapsed })
 
       setVideoIds(prev => { const n = [...prev]; n[currentQ] = videoId; return n })
       setReviewBlobUrls(prev => {
@@ -254,7 +261,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
         return n
       })
       setTranscripts(prev => { const n = [...prev]; n[currentQ] = transcriptText; return n })
-      setConfidence(prev => { const n = [...prev]; n[currentQ] = conf; return n })
+      setSpeech(prev => { const n = [...prev]; n[currentQ] = analysis; return n })
       // Reset replay counter when a fresh recording lands.
       setReplayCounts(prev => { const n = [...prev]; n[currentQ] = 0; return n })
       setRecState('review')
@@ -512,17 +519,17 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             <div className="flex-1 overflow-y-auto text-sm text-charcoal leading-relaxed mb-3 max-h-64">
               {transcripts[currentQ] || '(transcript not available)'}
             </div>
-            {confidence[currentQ] && (
-              <div className="bg-light rounded-xl px-3 py-2 mb-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-mid mb-0.5">Confidence indicator</p>
-                <p className="text-sm font-bold text-charcoal">{confidence[currentQ]?.label}</p>
-                <p className="text-[11px] text-mid leading-snug mt-0.5">{confidence[currentQ]?.detail}</p>
-              </div>
+            {speech[currentQ] && (
+              <SpeechAnalysisPanel
+                analysis={speech[currentQ]!}
+                density="tight"
+                title="Speech analysis"
+              />
             )}
-            <p className="text-[10px] text-mid italic leading-snug">
+            <p className="text-[10px] text-mid italic leading-snug mt-2">
               Transcript is captured live in your browser - the hiring team
-              also receives a full server-side transcript. Confidence is a
-              rough speech-rate signal, not a personality assessment.
+              also receives a full server-side transcript with more accurate
+              pause + completion readings.
             </p>
           </div>
         </div>

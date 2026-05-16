@@ -24,7 +24,8 @@ import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
 import { ProcessFlowTracker } from './ProcessFlowTracker'
 import { PhoneRecorder } from './PhoneRecorder'
-import { confidenceForQuestion, computeConfidence } from '@/lib/confidence'
+import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
+import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
 import Link from 'next/link'
 
 interface Booking {
@@ -916,57 +917,42 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                     <p className="text-xs text-mid">No response recorded</p>
                                   </div>
                                 )}
-                                {/* Per-question confidence indicator -
-                                    speech-rate signal computed from the
-                                    Deepgram transcript. Renders only
-                                    when there are utterances for this
-                                    question so we don't show "Not enough
-                                    data" everywhere before transcripts
-                                    arrive. */}
+                                {/* Per-question speech analysis - the
+                                    Tier-1 multidimensional reading
+                                    (pace, fillers, completion, vocab,
+                                    pauses) computed from the Deepgram
+                                    transcript filtered to this question.
+                                    Hidden until at least one signal
+                                    measures. */}
                                 {(() => {
-                                  const reading = confidenceForQuestion(transcriptByResponse[r.id] as any, i)
-                                  if (reading.score === null) return null
-                                  return (
-                                    <div className="px-3 py-2 border-t border-border bg-light/50" title={reading.detail}>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Confidence</p>
-                                      <p className="text-xs font-bold text-charcoal truncate">{reading.label}</p>
-                                      <p className="text-[10px] text-mid truncate">{reading.detail}</p>
-                                    </div>
-                                  )
+                                  const analysis = analyseSpeechForQuestion(transcriptByResponse[r.id] as any, i)
+                                  return <SpeechAnalysisPanel analysis={analysis} density="tight" title={`Q${i + 1} speech analysis`} />
                                 })()}
                               </div>
                             ))}
                           </div>
 
-                          {/* Overall confidence indicator for this response -
-                              computed once across the full transcript. Useful
-                              for phone screens (single audio file, no per-Q
-                              breakdown) and as a quick at-a-glance summary
-                              alongside the AI suggestion. */}
+                          {/* Overall speech analysis for this response -
+                              computed across the full transcript. Useful
+                              for phone screens (single audio file) and
+                              as a summary view alongside the AI
+                              suggestion. */}
                           {(() => {
                             const fullText = transcriptTextByResponse[r.id] ?? ''
-                            const utterances = transcriptByResponse[r.id] ?? []
-                            const totalSec = (utterances as any[]).reduce(
+                            const utterances = (transcriptByResponse[r.id] ?? []) as any[]
+                            const totalSec = utterances.reduce(
                               (acc: number, u: any) => acc + Math.max(0, (u.end ?? 0) - (u.start ?? 0)),
                               0,
                             )
                             if (!fullText || totalSec < 5) return null
-                            const reading = computeConfidence(fullText, totalSec)
-                            if (reading.score === null) return null
+                            const analysis = analyseSpeech({ transcript: fullText, seconds: totalSec, utterances })
                             return (
-                              <div className="bg-white rounded-2xl border border-border shadow-card px-4 py-3 flex items-start gap-3">
-                                <div className="w-7 h-7 rounded-full bg-light flex items-center justify-center flex-shrink-0">
-                                  <svg className="w-3.5 h-3.5 text-charcoal" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.786L4.586 14H2a1 1 0 01-1-1V7a1 1 0 011-1h2.586l3.797-2.786a1 1 0 011-.138z"/>
-                                  </svg>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Overall confidence (speech-rate)</p>
-                                  <p className="text-sm font-bold text-charcoal">{reading.label}</p>
-                                  <p className="text-[11px] text-mid leading-snug mt-0.5">{reading.detail}</p>
-                                  <p className="text-[10px] text-muted italic mt-1">Speech-pace signal only - watch the video before drawing conclusions.</p>
-                                </div>
-                              </div>
+                              <SpeechAnalysisPanel
+                                analysis={analysis}
+                                density="roomy"
+                                title="Overall speech analysis"
+                                caption="Speech-only signals from the full transcript. Use as supporting evidence, not as a hiring score."
+                              />
                             )
                           })()}
 
