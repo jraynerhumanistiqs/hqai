@@ -1,9 +1,9 @@
 # Body Language / Behavioural Signal Roadmap
 
-Decision recorded: 15 May 2026
+Decision recorded: 15 May 2026 (updated 15 May 2026 to mark Tier 2 shipped)
 Decision owner: Jimmy Rayner
-Status: Tier 1 in production. Tier 2 deferred pending the Algorithmic
-Impact Assessment template. Tier 3 explicitly out of scope.
+Status: Tier 1 in production. Tier 2 in production with the AIA gate
+satisfied. Tier 3 explicitly out of scope.
 
 This document records HQ.ai's strategic position on visual /
 behavioural analysis of candidate pre-screen videos. It is referenced
@@ -76,31 +76,46 @@ it.
 
 ---
 
-## Tier 2 - Visual telemetry (DEFERRED)
+## Tier 2 - Visual telemetry (SHIPPED 15 May 2026)
 
-Status: deferred until the prerequisite in the Decision-needed
-section below is met.
+Implementation:
 
-Scope if implemented:
-- `gaze_at_camera_pct` - rough head-pose direction via
-  MediaPipe FaceMesh, computed client-side during recording
-- `in_frame_pct` - is the face actually visible
-- `face_brightness_mean` - lighting quality proxy
-- Stored alongside the video upload as a small JSON
-- Rendered as a "Reviewer diagnostics" panel that is **never** fed
-  back into the AI scoring prompt
+- `lib/visual-telemetry.ts` lazy-loads `@mediapipe/tasks-vision` in the
+  candidate's browser when recording starts, samples each video frame
+  at ~2 fps, and returns three per-question aggregate numbers:
+  `in_frame_pct`, `at_camera_pct`, `face_brightness`.
+- Sampler runs alongside `MediaRecorder` in `components/prescreen/RecordingFlow.tsx`.
+  Per-question aggregates are persisted on the response row via the
+  new `prescreen_responses.visual_diagnostics jsonb` column (migration
+  `visual_diagnostics_column.sql`).
+- Staff side renders `components/recruit/ReviewerDiagnosticsPanel.tsx`
+  inside the per-response detail. Visually distinct (blue accent +
+  "Diagnostic only" badge) so it's clearly not a scoring surface.
 
-Hard constraints if/when we ship Tier 2:
+AIA gate satisfied:
+
+1. **Algorithmic Impact Assessment template published** at
+   `docs/AIA-TEMPLATE.md`. Completed for this feature at
+   `docs/AIA-visual-telemetry.md`.
+2. **Visual telemetry never feeds the AI scorer.** Verified by code
+   path: `app/api/prescreen/responses/[id]/score/route.ts` reads from
+   `prescreen_transcripts.text` only. The `visual_diagnostics` column
+   is read only by `components/recruit/ReviewerDiagnosticsPanel.tsx`.
+
+Hard constraints maintained:
+
 1. Metrics live in a separate panel labelled "Reviewer diagnostics".
-2. Metrics are **never** an input to `lib/claude-scoring.ts` or any
-   AI scoring path.
-3. Per-candidate metrics are visible to the candidate on request
-   (APP 12 access right) - we don't produce information about a
-   person we won't share with them.
-4. We publish a short Algorithmic Impact Assessment for Tier 2 on
-   `/docs` before launch, listing the disability-discrimination risks
-   and the compensating control (human review required, no auto-
-   reject).
+2. Metrics are never an input to `lib/claude-scoring.ts` or any AI
+   scoring path.
+3. Per-candidate metrics are visible to the candidate on request via
+   the privacy data-request endpoint.
+4. AIA published before launch with the disability-discrimination
+   risks and the compensating controls.
+
+Kill switch:
+
+Set `NEXT_PUBLIC_VISUAL_TELEMETRY_ENABLED=false` in Vercel env. The
+sampler short-circuits and no new diagnostics are captured.
 
 ---
 
@@ -133,23 +148,20 @@ us).
 
 ---
 
-## Decision needed before Tier 2 ships
+## Tier 2 prerequisites (SATISFIED)
 
-These two questions need a yes from the founder before Tier 2 work
-starts:
+Both prereqs satisfied on 15 May 2026:
 
-1. Authority to publish a 1-page Algorithmic Impact Assessment
-   template in `/docs` and require it for any reviewer-visible
-   visual telemetry before launch.
-2. Acceptance that visual telemetry stays in a separate
-   "Reviewer diagnostics" panel and is never fed into the AI
-   scorer.
-
-The Tier 1 build does not need either prerequisite and is in
-production.
+1. Algorithmic Impact Assessment template at `docs/AIA-TEMPLATE.md`
+   plus completed assessment at `docs/AIA-visual-telemetry.md`.
+2. Telemetry never feeds the AI scorer. Enforced in code by the
+   scoring route reading transcripts only and the
+   `visual_diagnostics` jsonb being read only by the reviewer panel.
 
 ---
 
 ## Change log
 
-- 2026-05-15: Tier 1 shipped, Tier 2 deferred, Tier 3 ruled out.
+- 2026-05-15: Tier 1 shipped.
+- 2026-05-15: Tier 2 shipped after AIA gate satisfied. Tier 3 ruled
+  out unchanged.

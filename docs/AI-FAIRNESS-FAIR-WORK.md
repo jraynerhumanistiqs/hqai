@@ -112,6 +112,22 @@ auto-reject. There is no auto-send-of-rejection-email. The "Reject"
 band on a CV scoring still requires the business user to take action
 in the UI.
 
+### 2.9 Reviewer visual telemetry (Tier 2)
+
+Browser-side MediaPipe FaceLandmarker samples the candidate's video
+during recording and persists three aggregate numbers per question on
+`prescreen_responses.visual_diagnostics`: in-frame %, head-roughly-at-
+camera %, and face brightness. These are rendered for staff in
+`components/recruit/ReviewerDiagnosticsPanel.tsx` and DO NOT feed the
+AI scoring pipeline. The full Algorithmic Impact Assessment lives at
+`docs/AIA-visual-telemetry.md`. Kill switch:
+`NEXT_PUBLIC_VISUAL_TELEMETRY_ENABLED=false` in Vercel env.
+
+Disability + cultural caveats baked into the UI: the panel carries a
+permanent disclaimer reminding reviewers that disability, cultural
+eye-contact norms, low light, and slow connections all push these
+numbers around, and these signals are supporting context only.
+
 ### 2.8 Speech-only behavioural signal (Tier 1)
 
 `lib/confidence.ts` `analyseSpeech()` computes five speech-only signals

@@ -37,7 +37,7 @@ export default function PrescreenPage() {
     setStage('recording')
   }
 
-  async function handleRecordingComplete(videoIds: string[]) {
+  async function handleRecordingComplete(videoIds: string[], extras?: { visual_diagnostics?: unknown }) {
     if (!session || !candidateMeta) return
     try {
       const res = await fetch(`/api/prescreen/sessions/${session.id}/responses`, {
@@ -51,6 +51,9 @@ export default function PrescreenPage() {
           consent_version: candidateMeta.consent_version,
           consent_at: new Date().toISOString(),
           video_ids: videoIds,
+          // Reviewer-only visual diagnostics. NEVER read by the AI
+          // scoring pipeline - see docs/AIA-visual-telemetry.md.
+          visual_diagnostics: extras?.visual_diagnostics ?? null,
         }),
       })
       if (!res.ok) {

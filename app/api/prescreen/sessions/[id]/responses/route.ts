@@ -59,23 +59,42 @@ export async function POST(
       consent_ip: clientIp,
       consent_user_agent: userAgent,
     }
+    // Tier-2 reviewer visual telemetry. Stored in a separate column so
+    // the AI scoring pipeline (which reads transcripts only) literally
+    // cannot pick it up. See docs/AIA-visual-telemetry.md for the
+    // formal data-flow commitment.
+    const fullRow = {
+      ...metaRow,
+      visual_diagnostics: body.visual_diagnostics ?? null,
+    }
     let inserted: { id: string } | null = null
     let insertError: Error | null = null
+
+    // Try full row first (consent meta + visual diagnostics).
     const tryInsert = await supabaseAdmin
       .from('prescreen_responses')
-      .insert(metaRow)
+      .insert(fullRow)
       .select()
       .single()
     if (tryInsert.error) {
-      // Column missing - retry without metadata so the flow still works
-      // until the migration is applied.
-      const fallback = await supabaseAdmin
+      // visual_diagnostics column missing? Drop it and retry.
+      const tryMeta = await supabaseAdmin
         .from('prescreen_responses')
-        .insert(baseRow)
+        .insert(metaRow)
         .select()
         .single()
-      if (fallback.error) insertError = new Error(fallback.error.message)
-      else inserted = fallback.data
+      if (tryMeta.error) {
+        // consent_meta migration also not applied - last-resort retry.
+        const fallback = await supabaseAdmin
+          .from('prescreen_responses')
+          .insert(baseRow)
+          .select()
+          .single()
+        if (fallback.error) insertError = new Error(fallback.error.message)
+        else inserted = fallback.data
+      } else {
+        inserted = tryMeta.data
+      }
     } else {
       inserted = tryInsert.data
     }

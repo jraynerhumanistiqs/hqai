@@ -93,6 +93,13 @@ export interface CandidateResponse {
   audio_path?: string | null
   audio_duration_sec?: number | null
   recorded_at?: string | null
+  // Tier-2 Reviewer Visual Telemetry. Aggregate visual diagnostics
+  // captured client-side via MediaPipe during recording. Reviewer-only
+  // display - never read by the AI scoring pipeline. See
+  // docs/AIA-visual-telemetry.md.
+  visual_diagnostics?: {
+    per_question?: Array<{ q: number; in_frame_pct: number; at_camera_pct: number; face_brightness: number; frames_sampled: number }>
+  } | null
 }
 
 // -- Phase 3 ----------------------------------------------------------------

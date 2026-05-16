@@ -2,11 +2,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { analyseSpeech, type SpeechAnalysis } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from '@/components/recruit/SpeechAnalysisPanel'
+import { VisualSampler, aggregate as aggregateVisual, type PerQuestionVisualDiagnostic } from '@/lib/visual-telemetry'
+
+// Kill switch documented in docs/AIA-visual-telemetry.md section 9.
+const VISUAL_TELEMETRY_ENABLED = process.env.NEXT_PUBLIC_VISUAL_TELEMETRY_ENABLED !== 'false'
 
 interface Props {
   questions: string[]
   timeLimitSeconds: number
-  onComplete: (videoIds: string[]) => Promise<void>
+  onComplete: (videoIds: string[], extras?: { visual_diagnostics?: PerQuestionVisualDiagnostic[] }) => Promise<void>
 }
 
 type RecorderState =
@@ -71,6 +75,11 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
   // Multidimensional speech analysis per question - pace, fillers,
   // completion, vocab, pauses. See lib/confidence.ts for the methodology.
   const [speech, setSpeech] = useState<Array<SpeechAnalysis | null>>(questions.map(() => null))
+  // Reviewer-only visual diagnostics (in-frame %, at-camera %,
+  // brightness). NEVER fed into AI scoring - see
+  // docs/AIA-visual-telemetry.md for the formal commitment.
+  const [visualDiagnostics, setVisualDiagnostics] = useState<PerQuestionVisualDiagnostic[]>([])
+  const visualSamplerRef = useRef<VisualSampler | null>(null)
 
   const videoRef  = useRef<HTMLVideoElement>(null)
   const reviewVideoRef = useRef<HTMLVideoElement>(null)
@@ -191,6 +200,21 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       setRecState('recording')
       setElapsed(0)
       startLiveTranscript()
+      // Tier-2 visual telemetry. Lazy-init the sampler. If MediaPipe
+      // fails to load (older browsers, slow connection), the sampler
+      // silently degrades to zero samples and the reviewer-side panel
+      // shows "diagnostics unavailable" rather than blocking the
+      // recording. Skipped entirely when the feature flag is off.
+      if (VISUAL_TELEMETRY_ENABLED && videoRef.current) {
+        try {
+          if (!visualSamplerRef.current) {
+            visualSamplerRef.current = new VisualSampler(videoRef.current)
+          }
+          void visualSamplerRef.current.start()
+        } catch (vsErr) {
+          console.warn('[visual-telemetry] start failed', vsErr)
+        }
+      }
       timerRef.current = setInterval(() => {
         setElapsed(prev => {
           if (prev + 1 >= timeLimitSeconds) stopRecording()
@@ -208,6 +232,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
     if (timerRef.current) clearInterval(timerRef.current)
     try { mediaRef.current?.stop() } catch {}
     stopLiveTranscript()
+    try { visualSamplerRef.current?.stop() } catch {}
     setRecState('uploading')
   }
 
@@ -250,6 +275,29 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       // data" here - that's intentional, the staff side has the full
       // Deepgram output and will compute the complete set.
       const analysis = analyseSpeech({ transcript: transcriptText, seconds: elapsed })
+
+      // Tier-2 visual telemetry - pull what the sampler collected
+      // during this question and aggregate. Sampler stops here so we
+      // don't keep MediaPipe warm between questions.
+      if (visualSamplerRef.current) {
+        visualSamplerRef.current.stop()
+        const samples = visualSamplerRef.current.takeSamples()
+        if (samples.length > 0) {
+          const agg = aggregateVisual(samples)
+          const entry: PerQuestionVisualDiagnostic = {
+            q: currentQ + 1,
+            in_frame_pct: agg.in_frame_pct,
+            at_camera_pct: agg.at_camera_pct,
+            face_brightness: agg.face_brightness,
+            frames_sampled: agg.frames_sampled,
+          }
+          setVisualDiagnostics(prev => {
+            const next = prev.filter(d => d.q !== entry.q)
+            next.push(entry)
+            return next
+          })
+        }
+      }
 
       setVideoIds(prev => { const n = [...prev]; n[currentQ] = videoId; return n })
       setReviewBlobUrls(prev => {
@@ -308,7 +356,16 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       setSubmitting(true)
       // Revoke all local blob URLs before submit
       reviewBlobUrls.forEach(u => { if (u) try { URL.revokeObjectURL(u) } catch {} })
-      await onComplete(videoIds.map(v => v ?? ''))
+      // Stop any final sampling and pass the diagnostics through so
+      // they can be persisted on the response row. See
+      // docs/AIA-visual-telemetry.md for the data shape commitment.
+      try { visualSamplerRef.current?.stop() } catch {}
+      await onComplete(
+        videoIds.map(v => v ?? ''),
+        VISUAL_TELEMETRY_ENABLED && visualDiagnostics.length > 0
+          ? { visual_diagnostics: visualDiagnostics }
+          : undefined,
+      )
     }
   }
 

@@ -57,6 +57,7 @@ export default function PrivacyPage() {
             'Account information for business users - name, email, role, business name, ABN, address, phone, billing details.',
             'Candidate information you upload to the platform - resumes, work history, contact details, references, and any other data contained in candidate documents you provide.',
             'Candidate-submitted information at the video pre-screen stage - name, email, video recordings of answers to your interview questions, the transcripts we generate from those videos, and an AI scoring summary against the rubric you configure.',
+            'Video pre-screen visual diagnostics - if you complete a video pre-screen, your browser computes three aggregate signals from your video frames (whether your face is in frame, whether your head is roughly facing the camera, approximate lighting) and sends only those three numbers to us. Your video frames and any underlying facial landmarks never leave your device. These numbers are shown to the reviewer as supporting context only and are never fed into the AI scoring.',
             'Usage information - login times, browser, IP address, the pages you visit, and the actions you take inside the product.',
             'Communications - any messages, support tickets, or chat content you exchange with us or with our AI advisor.',
           ]} />

@@ -26,6 +26,7 @@ import { ProcessFlowTracker } from './ProcessFlowTracker'
 import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
+import { ReviewerDiagnosticsPanel } from './ReviewerDiagnosticsPanel'
 import Link from 'next/link'
 
 interface Booking {
@@ -955,6 +956,17 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               />
                             )
                           })()}
+
+                          {/* Tier-2 Reviewer Visual Telemetry. Renders
+                              only when the candidate's browser
+                              produced diagnostics. Never read by AI
+                              scoring - see docs/AIA-visual-telemetry.md. */}
+                          {r.visual_diagnostics?.per_question && r.visual_diagnostics.per_question.length > 0 && (
+                            <ReviewerDiagnosticsPanel
+                              perQuestion={r.visual_diagnostics.per_question}
+                              density="roomy"
+                            />
+                          )}
 
                           {evaluation ? (
                             <AiSuggestionCard

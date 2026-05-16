@@ -4,8 +4,8 @@ import { useState } from 'react'
 // Bump this version string whenever the consent label text below changes.
 // We persist the version on the candidate's response row so we have an
 // evidentiary record of which consent text they accepted.
-export const CONSENT_VERSION = '2026-05-15.v1'
-export const CONSENT_TEXT = 'I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against the hiring rubric (by Anthropic), securely stored (by Cloudflare Stream and Supabase) and shared with the Humanistiqs team and the relevant hiring team for this role. Recordings are retained for up to 80 days after the role closes. I can withdraw consent and request deletion at any time by emailing privacy@humanistiqs.com.au.'
+export const CONSENT_VERSION = '2026-05-15.v2'
+export const CONSENT_TEXT = 'I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against the hiring rubric (by Anthropic), and securely stored (by Cloudflare Stream and Supabase). I understand that my browser will also compute three aggregate visual signals from my video (whether my face is in frame, whether my head is roughly facing the camera, and approximate lighting) which are shown to the reviewer as supporting context only - my video frames and any underlying facial landmarks never leave my device. These signals are NOT fed into the AI scoring. I can withdraw consent and request deletion at any time by emailing privacy@humanistiqs.com.au.'
 
 interface Props {
   roleTitle: string
@@ -90,10 +90,13 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
           />
           <label htmlFor="consent" className="text-sm text-gray-600 leading-snug cursor-pointer">
             I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against
-            the hiring rubric (by Anthropic), securely stored (by Cloudflare Stream and Supabase) and shared
-            with the Humanistiqs team and the relevant hiring team for this role. Recordings are retained
-            for up to 80 days after the role closes. I can withdraw consent and request deletion at any
-            time by emailing <a href="mailto:privacy@humanistiqs.com.au" className="underline font-semibold text-gray-800">privacy@humanistiqs.com.au</a>.
+            the hiring rubric (by Anthropic), and securely stored (by Cloudflare Stream and Supabase).
+            My browser will also compute three aggregate visual signals (in-frame %, head roughly
+            facing the camera %, approximate lighting) which the reviewer sees as supporting context
+            only - my video frames never leave my device for that step, and these signals are <strong className="font-semibold text-gray-800">not</strong> fed
+            into the AI scoring. Recordings are retained for up to 80 days after the role closes.
+            I can withdraw consent and request deletion at any time by emailing{' '}
+            <a href="mailto:privacy@humanistiqs.com.au" className="underline font-semibold text-gray-800">privacy@humanistiqs.com.au</a>.
             Full detail in our{' '}
             <a href="/privacy" target="_blank" rel="noreferrer" className="underline font-semibold text-gray-800">privacy policy</a>.
           </label>
