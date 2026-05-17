@@ -214,14 +214,17 @@ export async function POST(req: NextRequest) {
   // (covered by supabase/migrations/documents_structured_payload.sql)
   // to round-trip the structured shape so renderers can be re-run on
   // demand without re-calling the LLM.
-  // documents.user_id is NOT NULL on the live schema. Pass the
-  // signed-in user as the owner. (There is no created_by column.)
+  // documents.user_id + documents.type are NOT NULL on the live
+  // schema. type stores a kebab-case slug for the document kind so
+  // the existing /dashboard/documents list groups them sensibly.
+  const docType = body.template_id || 'admin-generated'
   const { data: row, error: insertErr } = await supabaseAdmin
     .from('documents')
     .insert({
       business_id: profile.business_id,
       user_id:     user.id,
       title:       doc.title,
+      type:        docType,
       // The legacy column is `content` (text). Keep it populated with
       // a plain-text dump of the document so any existing consumer
       // (chat, downloads) still works while the renderers roll out.

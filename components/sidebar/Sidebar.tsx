@@ -526,13 +526,20 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Advisor handoff - small note + button that opens the
             contact modal. Hidden entirely in collapsed mode (the
             Contact HQ Advisor flow needs the full label + paragraph
-            to make sense). */}
+            to make sense). The button is centred inside a full-width
+            pill so the label sits visually in the middle of the
+            container regardless of sidebar width (was text-left which
+            made the pill look stretched). Upsell line tightened to
+            one line of text at the default sidebar width. */}
         <div className="px-1 pt-1 sidebar-collapsible-hide">
           <p className="text-[11px] text-white/55 leading-snug mb-1.5">
-            Need more HR or recruitment support?
+            Need more support?
           </p>
-          <button onClick={handleContactPartner}
-            className="block w-full text-left bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors">
+          <button
+            type="button"
+            onClick={handleContactPartner}
+            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
+          >
             Contact HQ Advisor
           </button>
         </div>

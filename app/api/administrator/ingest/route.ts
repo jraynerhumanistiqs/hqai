@@ -31,12 +31,15 @@ async function extractText(file: File): Promise<string> {
   const name = (file.name || '').toLowerCase()
   const buf = Buffer.from(await file.arrayBuffer())
   if (name.endsWith('.pdf') || file.type === 'application/pdf') {
-    // pdf-parse@1 - stable Node-only API. Default export is a function
-    // that takes a Buffer and returns { text, info, metadata, numpages }.
-    // Battle-tested on Vercel serverless; pdf-parse@2 spawns a worker
-    // that doesn't reliably resolve under serverless bundling.
+    // pdf-parse@1 - stable Node-only API. Important: import from the
+    // internal lib path, NOT the package root. The root index.js
+    // runs a debug block (`isDebugMode = !module.parent`) that tries
+    // to read a hard-coded test PDF off disk. On Vercel that file is
+    // not bundled and the import itself throws ENOENT, so the route
+    // surfaces "Could not extract text" before any user PDF is even
+    // parsed. Importing the lib bypasses the debug block entirely.
     type PdfParseFn = (buf: Buffer) => Promise<{ text?: string }>
-    const mod = (await import('pdf-parse')) as unknown as { default?: PdfParseFn } & PdfParseFn
+    const mod = (await import('pdf-parse/lib/pdf-parse.js')) as unknown as { default?: PdfParseFn } & PdfParseFn
     const pdf: PdfParseFn = typeof mod === 'function' ? (mod as PdfParseFn) : (mod.default as PdfParseFn)
     const data = await pdf(buf)
     return (data?.text ?? '').trim()
@@ -235,6 +238,7 @@ Output via the emit_humanistiqs_cv tool exactly once.`
           business_id: profile.business_id,
           user_id:     user.id,
           title:       `${safe.title}`,
+          type:        'cv',
           content:     safe.sections.map(s => (s.title ? `## ${s.title}\n` : '') + s.blocks.map(b => 'text' in b ? b.text : '').filter(Boolean).join('\n\n')).join('\n\n'),
           structured_payload: safe,
           template_id: 'humanistiqs_cv',
