@@ -21,15 +21,18 @@ const TOPICS: Topic[] = [
     ],
   },
   {
-    id: 'hiring_interview',
+    id: 'recruitment_talent',
     emoji: '👋',
-    title: 'Hiring & Interview Questions',
+    title: 'Recruitment & Talent Questions',
     questions: [
-      "What's a strong way to answer 'Tell me about yourself'?",
-      "How should I assess 'Why do you want to work here?'",
-      'How do I handle salary expectations conversations?',
-      "How do I respond to 'Why are you leaving your current role?'",
-      'How do I evaluate behavioural interview answers?',
+      // Owner-facing recruitment challenges grounded in AU statute.
+      // Sourced from the researcher pass against Fair Work / Migration
+      // Act / Anti-Discrimination / Privacy Act for AU SMEs.
+      'What pay rate do I have to offer a new hire under the award?',
+      "How do I check someone's right to work in Australia before I hire?",
+      "What should I put in a job ad so it's not accidentally discriminatory?",
+      'What interview questions am I allowed to ask, and which ones land me in trouble?',
+      'Do I need a written contract before their first day, and what has to be in it?',
     ],
   },
   {
