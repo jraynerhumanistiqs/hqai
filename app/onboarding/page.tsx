@@ -161,7 +161,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={521} className="w-[140px] h-auto mx-auto block" />
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={521} className="w-[112px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl border border-border p-8">
@@ -171,7 +171,7 @@ export default function OnboardingPage() {
             {steps.map((s, i) => (
               <div key={i} className="flex items-center gap-2 flex-1">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 transition-colors
-                  ${step > i + 1 ? 'bg-black text-white' : step === i + 1 ? 'bg-black text-white' : 'bg-light text-muted border border-border'}`}>
+                  ${step > i + 1 ? 'bg-accent text-ink-on-accent' : step === i + 1 ? 'bg-accent text-ink-on-accent' : 'bg-light text-muted border border-border'}`}>
                   {step > i + 1 ? '✓' : i + 1}
                 </div>
                 <span className={`text-xs font-bold ${step === i + 1 ? 'text-charcoal' : 'text-muted'}`}>{s.label}</span>
@@ -251,7 +251,7 @@ export default function OnboardingPage() {
                     {AWARDS.map(a => (
                       <button key={a} type="button" onClick={() => toggleAward(a)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.awards.includes(a) ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
+                          ${form.awards.includes(a) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
                           ${form.awards.includes(a) ? 'border-black bg-black' : 'border-border'}`}>
                           {form.awards.includes(a) && (
@@ -265,7 +265,7 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                   {form.awards.length > 0 && (
-                    <p className="text-[10px] text-black font-bold mt-2">{form.awards.length} award{form.awards.length > 1 ? 's' : ''} selected</p>
+                    <p className="text-[10px] text-ink font-bold mt-2">{form.awards.length} award{form.awards.length > 1 ? 's' : ''} selected</p>
                   )}
                 </div>
                 <div>
@@ -274,7 +274,7 @@ export default function OnboardingPage() {
                     {EMP_TYPES.map(t => (
                       <button key={t} type="button" onClick={() => toggleEmpType(t)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.empTypes.includes(t) ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
+                          ${form.empTypes.includes(t) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
                           ${form.empTypes.includes(t) ? 'border-black bg-black' : 'border-border'}`}>
                           {form.empTypes.includes(t) && (
@@ -288,7 +288,7 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                   {form.empTypes.length > 0 && (
-                    <p className="text-[10px] text-black font-bold mt-2">{form.empTypes.length} type{form.empTypes.length > 1 ? 's' : ''} selected</p>
+                    <p className="text-[10px] text-ink font-bold mt-2">{form.empTypes.length} type{form.empTypes.length > 1 ? 's' : ''} selected</p>
                   )}
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
                     {PLANS.map(p => (
                       <button key={p.id} type="button" onClick={() => update('plan', p.id)}
                         className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.plan === p.id ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}>
+                          ${form.plan === p.id ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
                           ${form.plan === p.id ? 'border-black bg-black' : 'border-border'}`}>
                           {form.plan === p.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
@@ -354,12 +354,12 @@ export default function OnboardingPage() {
             ) : <div />}
             {step < 3 ? (
               <button type="button" onClick={() => setStep(s => s + 1)}
-                className="px-6 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold transition-colors">
+                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold transition-colors">
                 Continue →
               </button>
             ) : (
               <button type="button" onClick={completeOnboarding} disabled={saving}
-                className="px-6 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold transition-colors disabled:opacity-60">
+                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold transition-colors disabled:opacity-60">
                 {saving ? 'Setting up…' : 'Launch HQ.ai →'}
               </button>
             )}

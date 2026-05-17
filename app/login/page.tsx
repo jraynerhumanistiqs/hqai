@@ -108,7 +108,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={521} className="w-[140px] h-auto mx-auto block" />
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1428} height={521} className="w-[112px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl p-8">
@@ -181,7 +181,7 @@ export default function LoginPage() {
 
               <button
                 type="submit" disabled={loading}
-                className="w-full bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60"
+                className="w-full bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60"
               >
                 {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
               </button>
@@ -208,7 +208,7 @@ export default function LoginPage() {
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
-              className="text-black font-bold hover:underline"
+              className="text-ink font-bold hover:underline"
             >
               {mode === 'login' ? 'Sign up free' : 'Sign in'}
             </button>
