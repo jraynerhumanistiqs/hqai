@@ -160,10 +160,19 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-bg-elevated">
-      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide mb-1">Settings</h1>
-        <p className="text-xs sm:text-sm text-mid mb-6 sm:mb-8">Update your business profile and advisor details</p>
+    <div className="h-full overflow-y-auto scrollbar-thin bg-bg">
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-8">
+        {/* Matches the AI Administrator page header pattern - small
+            eyebrow label + sans h1 + ink-soft body line. */}
+        <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+          Settings
+        </p>
+        <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
+          Your HQ.ai workspace.
+        </h1>
+        <p className="text-body text-ink-soft mb-6 max-w-2xl">
+          Update your business profile, advisor handoff details and billing plan.
+        </p>
 
         {/* Company Logo */}
         <section className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">

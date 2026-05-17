@@ -35,13 +35,19 @@ export default async function RecruitLanding() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-bg">
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <header className="mb-8">
-          <h1 className="font-display text-h1 font-bold text-charcoal">HQ Recruit</h1>
-          <p className="text-sm text-mid mt-2 max-w-2xl">
-            Three tools, one funnel. Brief the role, screen the CVs, run the video pre-screen. Each one feeds the next.
-          </p>
-        </header>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+        {/* AI Administrator-style page header. */}
+        <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+          HQ Recruit
+        </p>
+        <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
+          Three tools, one funnel.
+        </h1>
+        <p className="text-body text-ink-soft mb-6 max-w-2xl">
+          Brief the role, score the CVs, run the video pre-screen. Each
+          step hands off into the next so you do not re-key the same
+          inputs twice.
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {TILES.map(t => (

@@ -84,14 +84,18 @@ export default function AdministratorClient({ templates, categories, initialTemp
     }
   }
 
+  // Category pills now spread evenly above the search bar. Using
+  // grid-cols-N to lock the row at a consistent width so the chips
+  // align cleanly. Falls back to wrapping on narrow viewports.
+  const categoryButtons = ['All', ...categories]
   const filterRow = (
-    <div className="flex flex-wrap gap-2">
-      {['All', ...categories].map(c => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+      {categoryButtons.map(c => (
         <button
           key={c}
           onClick={() => setFilter(c)}
-          className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1.5 transition-colors
-            ${filter === c ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink hover:bg-bg-elevated'}`}
+          className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-2 transition-colors text-center truncate
+            ${filter === c ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink hover:bg-bg-elevated border border-border'}`}
         >
           {c}
         </button>
@@ -106,44 +110,48 @@ export default function AdministratorClient({ templates, categories, initialTemp
           HQ People - AI Administrator
         </p>
         <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
-          Every HR document, cited to Fair Work, in under 3 minutes.
+          Every HR document you need, in under 3 minutes.
         </h1>
         <p className="text-body text-ink-soft mb-3 max-w-2xl">
-          Pick a template, fill the form, generate. Download as DOCX, PDF
-          or PPTX, or send a shareable web link. Each document grounds
-          its claims in the relevant Fair Work clauses and lists them as
-          footnote citations.
+          Pick a template, fill the form, generate. Download as DOCX,
+          PDF or PPTX, or send a shareable web link.
         </p>
         <p className="text-small text-ink-soft mb-6">
           Have an existing CV or contract?{' '}
           <Link href="/dashboard/people/administrator/ingest" className="text-accent underline-offset-4 hover:underline font-bold">
-            Drop it in and I&apos;ll read it
+            Drop it in and I&apos;ll handle it
           </Link>{' '}
-          - resume to candidate profile, or contract to a Fair Work review.
+          - CV Formatter rewrites it to the Humanistiqs format, or run a contract review.
         </p>
 
         {!active && (
           <>
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* Category buttons - row 1, spread evenly above search. */}
+            <div className="mb-3">{filterRow}</div>
+            {/* Search - row 2, full width under the categories. */}
+            <div className="mb-6">
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search templates"
                 aria-label="Search templates"
-                className="bg-bg-elevated border border-border rounded-full px-4 py-2 text-small text-ink placeholder-ink-muted focus:outline-none focus:border-ink w-full sm:max-w-sm"
+                className="w-full bg-bg-elevated border border-border rounded-full px-4 py-2.5 text-small text-ink placeholder-ink-muted focus:outline-none focus:border-ink"
               />
-              {filterRow}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Cards - uniform height, clearer hierarchy. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filtered.map(t => (
                 <button
                   key={t.id}
                   onClick={() => setActiveTemplate(t.id)}
-                  className="text-left bg-bg-elevated border border-border rounded-2xl p-5 hover:border-ink transition-colors"
+                  className="group text-left bg-bg-elevated border border-border rounded-2xl p-4 hover:border-ink hover:shadow-card transition-all h-full flex flex-col"
                 >
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">{t.category}</p>
-                  <p className="text-small font-bold text-ink mb-1.5">{t.title}</p>
-                  <p className="text-xs text-ink-soft line-clamp-3">{t.description}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-2">{t.category}</p>
+                  <p className="text-small font-bold text-ink mb-1.5 leading-snug">{t.title}</p>
+                  <p className="text-xs text-ink-soft line-clamp-2 flex-1">{t.description}</p>
+                  <p className="text-[11px] font-bold text-accent mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Open template -&gt;
+                  </p>
                 </button>
               ))}
               {filtered.length === 0 && (

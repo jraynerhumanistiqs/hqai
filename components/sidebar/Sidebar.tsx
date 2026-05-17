@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -19,6 +19,11 @@ interface SidebarProps {
 }
 
 const COLLAPSE_STORAGE_KEY = 'hqai:sidebar-collapsed'
+const WIDTH_STORAGE_KEY    = 'hqai:sidebar-width'
+const DEFAULT_WIDTH = 232
+const MIN_WIDTH = 200
+const MAX_WIDTH = 360
+const COLLAPSED_WIDTH = 68
 
 export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, role, flags, onClose }: SidebarProps) {
   const flag = (k: string) => flags?.[k] ?? false
@@ -26,6 +31,43 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  // User-resizable width when expanded - so long role titles in the
+  // recruit sub-list aren't truncated. Persisted to localStorage and
+  // clamped to a sane range.
+  const [width, setWidth] = useState<number>(DEFAULT_WIDTH)
+  useEffect(() => {
+    try {
+      const v = window.localStorage.getItem(WIDTH_STORAGE_KEY)
+      const n = v ? parseInt(v, 10) : NaN
+      if (Number.isFinite(n) && n >= MIN_WIDTH && n <= MAX_WIDTH) setWidth(n)
+    } catch { /* no-op */ }
+  }, [])
+  // Drag-resize handle. Pointer-based for trackpad + mouse.
+  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
+  function onResizeStart(e: React.PointerEvent) {
+    e.preventDefault()
+    dragRef.current = { startX: e.clientX, startWidth: width }
+    const onMove = (ev: PointerEvent) => {
+      if (!dragRef.current) return
+      const next = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, dragRef.current.startWidth + (ev.clientX - dragRef.current.startX)))
+      setWidth(next)
+    }
+    const onUp = () => {
+      try {
+        if (dragRef.current) window.localStorage.setItem(WIDTH_STORAGE_KEY, String(width))
+      } catch { /* no-op */ }
+      dragRef.current = null
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+  // Persist after each settle.
+  useEffect(() => {
+    try { window.localStorage.setItem(WIDTH_STORAGE_KEY, String(width)) } catch { /* no-op */ }
+  }, [width])
 
   // Collapsible sidebar - hydration-safe (always starts expanded on
   // first render so SSR + first paint match). The persisted value is
@@ -71,6 +113,20 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       setBusinessOpen(false)
     }
   }, [collapsed])
+
+  // Helper used by the parent dropdown buttons. Clicking a parent in
+  // collapsed mode SHOULD expand the sidebar back out AND open that
+  // submenu so the user sees something useful instead of an empty
+  // dropdown hidden behind the icon-rail width.
+  function toggleSubmenu(currentOpen: boolean, setOpen: (b: boolean) => void) {
+    if (collapsed) {
+      setCollapsed(false)
+      try { window.localStorage.setItem(COLLAPSE_STORAGE_KEY, '0') } catch { /* no-op */ }
+      setOpen(true)
+      return
+    }
+    setOpen(!currentOpen)
+  }
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
   const [supportType, setSupportType] = useState<'hr' | 'recruitment' | null>(null)
   const [supportSummary, setSupportSummary] = useState('')
@@ -130,13 +186,28 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   // When collapsed (desktop only), child labels are hidden via this
   // data attribute -- driven through CSS for a single re-paint. Mobile
   // never collapses (the drawer pattern needs the labels).
-  const widthCls = collapsed ? 'lg:w-[68px] w-[232px]' : 'w-[232px]'
+  // Width: user-resizable when expanded (200-360px), locked to 68px
+  // when collapsed. Set inline so the value can come from React state.
+  const widthPx = collapsed ? COLLAPSED_WIDTH : width
 
   return (
     <aside
       data-collapsed={collapsed ? 'true' : 'false'}
-      className={`${widthCls} flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full transition-[width] duration-200 ease-decelerate group/sidebar`}
+      className="relative flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full group/sidebar"
+      style={{ width: widthPx }}
     >
+      {/* Drag handle - the 4px strip on the right edge. Only visible
+          and active at >=lg AND when the sidebar is expanded (no
+          point resizing the 68px icon rail). Cursor changes to
+          col-resize on hover so users notice it. */}
+      {!collapsed && (
+        <button
+          onPointerDown={onResizeStart}
+          aria-label="Resize sidebar"
+          title="Drag to resize"
+          className="hidden lg:block absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent hover:bg-white/15 active:bg-white/25 transition-colors"
+        />
+      )}
       {/* Top bar - mobile close + desktop collapse toggle.
           The collapse button stays visible at >=lg and gives the user
           control over whether the sidebar shows labels or just icons. */}
@@ -194,7 +265,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display sidebar-collapsible-hide">Modules</p>
 
         {/* Home */}
-        <Link href="/dashboard"
+        <Link href="/dashboard" title="Home" aria-label="Home"
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all group
             ${isActive('/dashboard', true)
               ? 'bg-white/11 text-white'
@@ -204,7 +275,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </Link>
 
         {/* HQ People dropdown */}
-        <button onClick={() => setPeopleOpen(!peopleOpen)}
+        <button onClick={() => toggleSubmenu(peopleOpen, setPeopleOpen)} title="HQ People" aria-label="HQ People"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
               ? 'bg-white/11 text-white'
@@ -238,7 +309,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         )}
 
         {/* HQ Recruit dropdown */}
-        <button onClick={() => setRecruitOpen(!recruitOpen)}
+        <button onClick={() => toggleSubmenu(recruitOpen, setRecruitOpen)} title="HQ Recruit" aria-label="HQ Recruit"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/recruit')
               ? 'bg-white/11 text-white'
@@ -273,7 +344,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         )}
 
         {/* Documents dropdown */}
-        <button onClick={() => setDocsOpen(!docsOpen)}
+        <button onClick={() => toggleSubmenu(docsOpen, setDocsOpen)} title="Documents" aria-label="Documents"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/documents')
               ? 'bg-white/11 text-white'
@@ -307,7 +378,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')
           || flag('team_development') || flag('strategy_coach')) && (
           <>
-            <button onClick={() => setToolsOpen(!toolsOpen)}
+            <button onClick={() => toggleSubmenu(toolsOpen, setToolsOpen)} title="Tools" aria-label="Tools"
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mt-4 mb-0.5 text-sm font-bold transition-all
                 ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
                   || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
@@ -467,7 +538,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Settings - sits below HQ Advisor, above Sign out, left-aligned
             to match Sign out and the sidebar nav above. */}
-        <Link href="/dashboard/settings"
+        <Link href="/dashboard/settings" title="Settings" aria-label="Settings"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all
             ${isActive('/dashboard/settings')
               ? 'bg-white/11 text-white'
@@ -476,13 +547,15 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           <span>Settings</span>
         </Link>
 
-        {/* Sign out */}
-        <button onClick={signOut}
+        {/* Sign out - label is hidden via the .sidebar-collapsible-hide
+            CSS rule when collapsed; the icon stays clickable, and the
+            hover tooltip surfaces the label. */}
+        <button onClick={signOut} title="Sign out" aria-label="Sign out"
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/35 hover:text-white/60 text-sm transition-colors">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
           </svg>
-          Sign out
+          <span>Sign out</span>
         </button>
       </div>
 
@@ -608,8 +681,18 @@ function PeopleIcon({ active }: { active: boolean }) {
   </svg>
 }
 function RecruitIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+  // Briefcase-with-magnifier pattern - reads universally as "search
+  // for hires" / recruitment. Distinct from the multi-person PeopleIcon
+  // used by HQ People so the two sidebar entries do not blur together.
+  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {/* Briefcase body */}
+    <rect x="2.5" y="7.5" width="14" height="11" rx="1.5"/>
+    {/* Handle */}
+    <path d="M7 7.5V5.5a1.5 1.5 0 0 1 1.5 -1.5h2A1.5 1.5 0 0 1 12 5.5V7.5"/>
+    {/* Magnifier circle */}
+    <circle cx="17" cy="14" r="3.2"/>
+    {/* Magnifier handle */}
+    <line x1="19.3" y1="16.3" x2="21.5" y2="18.5"/>
   </svg>
 }
 function DocsIcon({ active }: { active: boolean }) {
