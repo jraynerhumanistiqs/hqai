@@ -59,7 +59,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
             </svg>
           </button>
           <Link href="/dashboard" aria-label="Go to dashboard home">
-            <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={521} className="opacity-90 h-[26px] w-auto" />
+            <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="opacity-90 h-[26px] w-auto" />
           </Link>
           <div className="ml-auto flex items-center">
             {sidebarProps.bizLogoUrl ? (

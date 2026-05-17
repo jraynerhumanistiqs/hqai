@@ -86,9 +86,13 @@
     --ink-muted:        #6B6B66;
     --ink-on-accent:    #FFFFFF;
 
-    --accent:           #F59E0B;
-    --accent-hover:     #D97706;
-    --accent-soft:      #FEF3C7;
+    /* Founder request - unify accent to the marketing/onboarding
+       Clay so every CTA across the app reads with the same brand
+       colour. Was Amber (#F59E0B / #D97706 / #FEF3C7); now matches
+       :root (Ivory & Clay) for product surfaces too. */
+    --accent:           #D97757;
+    --accent-hover:     #C6613F;
+    --accent-soft:      #F5E5DD;
 
     --border:           #E4E4E0;
     --border-strong:    #C9C9C2;
@@ -120,11 +124,13 @@
     --ink:              #F5F5F4;
     --ink-soft:         #A8A8A3;
     --ink-muted:        #6B6B66;
-    --ink-on-accent:    #0A0A0B;
+    --ink-on-accent:    #FFFFFF;
 
-    --accent:           #F59E0B;
-    --accent-hover:     #FBB72A;
-    --accent-soft:      rgba(245,158,11,0.16);
+    /* Dark variant of product also uses the unified Clay accent so
+       CTAs stay consistent if/when dark mode is enabled. */
+    --accent:           #D97757;
+    --accent-hover:     #C6613F;
+    --accent-soft:      rgba(217,119,87,0.18);
 
     --border:           #2A2D32;
     --border-strong:    #3D4148;

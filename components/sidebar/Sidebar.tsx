@@ -520,7 +520,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             gives the same visible size we had before. Hidden in
             collapsed mode so the rail stays compact. */}
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1 sidebar-collapsible-hide">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={521} className="opacity-90 w-[86px] max-w-full h-auto" priority />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="opacity-90 w-[86px] max-w-full h-auto" priority />
         </Link>
 
         {/* Advisor handoff - small note + button that opens the
