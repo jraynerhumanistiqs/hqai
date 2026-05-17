@@ -298,7 +298,7 @@ export default function SettingsPage() {
         </section>
 
         <button onClick={save} disabled={saving}
-          className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors disabled:opacity-60">
+          className="bg-accent hover:bg-accent-hover text-ink-on-accent font-bold px-6 py-2.5 rounded-full text-sm transition-colors disabled:opacity-60">
           {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
 
@@ -340,7 +340,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => startCheckout('growth')}
                 disabled={checkoutBusyFor !== null}
-                className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60"
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60"
               >
                 {checkoutBusyFor !== null ? 'Redirecting...' : 'Upgrade plan'}
               </button>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
                     key={pid}
                     onClick={() => startCheckout(pid)}
                     disabled={disabled}
-                    className={`text-left rounded-xl border p-4 transition-colors hover:border-black focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-black bg-black/5' : 'border-border'}`}
+                    className={`text-left rounded-xl border p-4 transition-colors hover:border-black focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-ink bg-ink/5' : 'border-border'}`}
                   >
                     <p className="text-sm font-bold text-charcoal">{p.name}</p>
                     <p className="text-lg font-bold text-charcoal mt-1">{p.price}</p>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
 
       {upgradeModalOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setUpgradeModalOpen(false)}
         >
           <div
@@ -396,7 +396,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <a
                 href="mailto:support@humanistiqs.com.au?subject=Upgrade%20my%20HQ.ai%20plan"
-                className="flex-1 text-center bg-black hover:bg-[#1a1a1a] text-white font-bold px-5 py-2.5 rounded-full transition-colors text-sm"
+                className="flex-1 text-center bg-accent hover:bg-accent-hover text-ink-on-accent font-bold px-5 py-2.5 rounded-full transition-colors text-sm"
               >
                 Email support
               </a>

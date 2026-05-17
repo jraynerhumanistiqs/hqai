@@ -111,7 +111,7 @@ export default function NewRubricModal({ onClose, onCreated }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4"
       onClick={() => !busy && onClose()}
     >
       <div

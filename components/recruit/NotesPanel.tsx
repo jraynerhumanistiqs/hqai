@@ -185,7 +185,7 @@ export function NotesPanel({ responseId }: Props) {
     <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-black uppercase tracking-widest">
+          <p className="text-xs font-bold text-ink uppercase tracking-widest">
             Internal notes
             <span className="ml-2 text-mid normal-case font-normal">{notes.length}</span>
           </p>
@@ -206,12 +206,12 @@ export function NotesPanel({ responseId }: Props) {
           const parts = renderBody(n.body, memberById, Array.isArray(n.mentions) ? n.mentions : [])
           return (
             <div key={n.id} className="px-5 py-3 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-[11px] font-bold text-black flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-[11px] font-bold text-ink flex-shrink-0">
                 {initials(authorName)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-black truncate">{authorName}</p>
+                  <p className="text-sm font-bold text-ink truncate">{authorName}</p>
                   <span className="text-[11px] text-mid">
                     {new Date(n.created_at).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     {n.edited_at ? ' - edited' : ''}
@@ -220,24 +220,24 @@ export function NotesPanel({ responseId }: Props) {
                 {editingId === n.id ? (
                   <div className="mt-1 flex items-end gap-2">
                     <textarea
-                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-black bg-white"
+                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-black bg-white"
                       rows={2}
                       value={editDraft}
                       onChange={e => setEditDraft(e.target.value)}
                     />
                     <button
                       onClick={() => saveEdit(n.id)}
-                      className="text-xs font-bold px-3 py-2 rounded-full bg-black text-white"
+                      className="text-xs font-bold px-3 py-2 rounded-full bg-accent text-ink-on-accent"
                     >Save</button>
                     <button
                       onClick={() => { setEditingId(null); setEditDraft('') }}
-                      className="text-xs font-bold px-3 py-2 rounded-full text-mid hover:text-black"
+                      className="text-xs font-bold px-3 py-2 rounded-full text-mid hover:text-ink"
                     >Cancel</button>
                   </div>
                 ) : (
                   <p className="text-sm text-charcoal mt-0.5 whitespace-pre-wrap break-words">
                     {parts.map((p, i) => p.chip ? (
-                      <span key={i} className="bg-light px-1 rounded text-black font-bold">{p.text}</span>
+                      <span key={i} className="bg-light px-1 rounded text-ink font-bold">{p.text}</span>
                     ) : (
                       <span key={i}>{p.text}</span>
                     ))}
@@ -248,7 +248,7 @@ export function NotesPanel({ responseId }: Props) {
                 <div className="flex-shrink-0 flex items-center gap-2 text-[11px]">
                   <button
                     onClick={() => { setEditingId(n.id); setEditDraft(n.body) }}
-                    className="text-mid hover:text-black font-bold"
+                    className="text-mid hover:text-ink font-bold"
                   >Edit</button>
                   <button
                     onClick={() => remove(n.id)}
@@ -264,7 +264,7 @@ export function NotesPanel({ responseId }: Props) {
       <div className="border-t border-border p-4 relative">
         <textarea
           ref={textareaRef}
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-black bg-white"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-black bg-white"
           rows={2}
           placeholder="Add a note. Type @ to tag a teammate."
           value={text}
@@ -281,11 +281,11 @@ export function NotesPanel({ responseId }: Props) {
                   i === acIndex ? 'bg-light' : 'hover:bg-light'
                 }`}
               >
-                <div className="w-6 h-6 rounded-full bg-light flex items-center justify-center text-[10px] font-bold text-black flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-light flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
                   {initials(m.name)}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-black truncate">{m.name}</p>
+                  <p className="text-sm font-bold text-ink truncate">{m.name}</p>
                   <p className="text-[11px] text-mid truncate">{m.email}</p>
                 </div>
               </button>

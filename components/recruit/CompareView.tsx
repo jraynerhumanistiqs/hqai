@@ -98,7 +98,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
 
       <header className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0 no-print">
         <div>
-          <p className="text-xs font-bold text-black uppercase tracking-widest">Compare candidates</p>
+          <p className="text-xs font-bold text-ink uppercase tracking-widest">Compare candidates</p>
           <p className="text-xs text-mid mt-0.5">
             {candidates.length} side-by-side - {anonymise ? 'Anonymised' : 'Named'}
           </p>
@@ -106,12 +106,12 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => window.print()}
-            className="text-xs font-bold px-4 py-2 rounded-full border border-border text-black bg-white hover:bg-bg"
+            className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-white hover:bg-bg"
           >Print / Export PDF</button>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-mid hover:text-black text-xl leading-none px-2"
+            className="text-mid hover:text-ink text-xl leading-none px-2"
           >&times;</button>
         </div>
       </header>
@@ -134,7 +134,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                 </th>
                 {candidates.map(c => (
                   <th key={c.id} className="compare-col text-left px-3 py-2 border-b border-border align-top min-w-[260px]">
-                    <p className="font-serif text-lg font-bold text-black">{displayName(c)}</p>
+                    <p className="font-serif text-lg font-bold text-ink">{displayName(c)}</p>
                     <p className="text-xs text-mid">{c.role_title} - {c.company}</p>
                   </th>
                 ))}
@@ -199,7 +199,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                         {d ? (
                           <div>
                             <div className="flex items-center gap-2">
-                              <div className="text-xs font-bold text-black flex-shrink-0">{d.score}/5</div>
+                              <div className="text-xs font-bold text-ink flex-shrink-0">{d.score}/5</div>
                               <div className="flex-1 h-1.5 bg-light rounded-full overflow-hidden">
                                 <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
                               </div>

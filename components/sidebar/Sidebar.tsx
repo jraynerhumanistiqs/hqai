@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -18,12 +18,34 @@ interface SidebarProps {
   onClose?: () => void
 }
 
+const COLLAPSE_STORAGE_KEY = 'hqai:sidebar-collapsed'
+
 export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, role, flags, onClose }: SidebarProps) {
   const flag = (k: string) => flags?.[k] ?? false
   const isInternal = role === 'owner' || role === 'test_admin'
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  // Collapsible sidebar - hydration-safe (always starts expanded on
+  // first render so SSR + first paint match). The persisted value is
+  // applied client-side on mount. Mobile is always expanded; the
+  // collapse only applies at >=lg.
+  const [collapsed, setCollapsed] = useState(false)
+  useEffect(() => {
+    try {
+      const v = window.localStorage.getItem(COLLAPSE_STORAGE_KEY)
+      if (v === '1') setCollapsed(true)
+    } catch { /* no-op */ }
+  }, [])
+  function toggleCollapsed() {
+    setCollapsed(c => {
+      const next = !c
+      try { window.localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? '1' : '0') } catch { /* no-op */ }
+      return next
+    })
+  }
+
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [recruitOpen, setRecruitOpen] = useState(false)
   const [docsOpen, setDocsOpen] = useState(false)
@@ -34,6 +56,21 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   const [complianceOpen, setComplianceOpen] = useState(false)
   const [leadershipOpen, setLeadershipOpen] = useState(false)
   const [businessOpen, setBusinessOpen] = useState(false)
+
+  // When the sidebar collapses to icons-only, force every submenu
+  // closed so the vertical stack stays compact and clicks on a parent
+  // icon don't open an invisible dropdown.
+  useEffect(() => {
+    if (collapsed) {
+      setPeopleOpen(false)
+      setRecruitOpen(false)
+      setDocsOpen(false)
+      setToolsOpen(false)
+      setComplianceOpen(false)
+      setLeadershipOpen(false)
+      setBusinessOpen(false)
+    }
+  }, [collapsed])
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
   const [supportType, setSupportType] = useState<'hr' | 'recruitment' | null>(null)
   const [supportSummary, setSupportSummary] = useState('')
@@ -90,23 +127,51 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
     setSupportSending(false)
   }
 
+  // When collapsed (desktop only), child labels are hidden via this
+  // data attribute -- driven through CSS for a single re-paint. Mobile
+  // never collapses (the drawer pattern needs the labels).
+  const widthCls = collapsed ? 'lg:w-[68px] w-[232px]' : 'w-[232px]'
+
   return (
-    <aside className="w-[232px] flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full">
-      {/* Mobile close button - the brand logo used to sit here too. It
-          moved down to the footer just above the advisor support
-          callout so vertical space at the top can go to navigation. */}
-      {onClose && (
-        <div className="lg:hidden flex items-center justify-end px-3 pt-3">
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50">
+    <aside
+      data-collapsed={collapsed ? 'true' : 'false'}
+      className={`${widthCls} flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full transition-[width] duration-200 ease-decelerate group/sidebar`}
+    >
+      {/* Top bar - mobile close + desktop collapse toggle.
+          The collapse button stays visible at >=lg and gives the user
+          control over whether the sidebar shows labels or just icons. */}
+      <div className="flex items-center justify-between px-2.5 pt-3">
+        {/* Desktop collapse toggle */}
+        <button
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-pressed={collapsed}
+          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/55 hover:text-white/80"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            {collapsed ? (
+              <path fillRule="evenodd" d="M7.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            ) : (
+              <path fillRule="evenodd" d="M12.707 4.293a1 1 0 010 1.414L8.414 10l4.293 4.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clipRule="evenodd"/>
+            )}
+          </svg>
+        </button>
+        {/* Mobile close - the brand logo used to sit here too; moved
+            to the footer above the advisor support callout. */}
+        {onClose ? (
+          <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50" aria-hidden="true">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
           </button>
-        </div>
-      )}
+        ) : <span aria-hidden className="lg:hidden w-8 h-8" />}
+      </div>
 
-      {/* Business pill */}
-      <div className="px-3 pt-3 pb-1.5">
+      {/* Business pill - hidden in collapsed mode to keep the rail
+          tight. The brand logo at the footer carries enough identity
+          for the collapsed state. */}
+      <div className="px-3 pt-3 pb-1.5 sidebar-collapsible-hide">
         <div className="bg-white/6 rounded-lg px-2.5 py-2 flex items-center gap-2 min-h-[40px]">
           {bizLogoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -126,7 +191,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       {/* Scrollable nav area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2">
         {/* Modules */}
-        <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display">Modules</p>
+        <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display sidebar-collapsible-hide">Modules</p>
 
         {/* Home */}
         <Link href="/dashboard"
@@ -355,9 +420,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </>
         )}
 
-        {/* Read-only watermark for test_admin */}
+        {/* Read-only watermark for test_admin - text-heavy, hidden in
+            the collapsed icon-rail view. */}
         {role === 'test_admin' && (
-          <div className="mt-3 mx-2 px-3 py-2 rounded-lg bg-white/5 text-white/60 text-[11px] leading-snug">
+          <div className="mt-3 mx-2 px-3 py-2 rounded-lg bg-white/5 text-white/60 text-[11px] leading-snug sidebar-collapsible-hide">
             <p className="font-bold uppercase tracking-wider mb-0.5">Read-only access</p>
             <p>You can view every surface. Owner approval is required for any save, edit, or send action.</p>
           </div>
@@ -379,13 +445,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Brand logo - left-aligned per request. Uses the dark-mode
             wordmark (light marks on the dark sidebar bg). The SVG is
             trimmed to the wordmark bounds (1428 x 521) so w-[108px]
-            gives the same visible size we had before. */}
-        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1">
+            gives the same visible size we had before. Hidden in
+            collapsed mode so the rail stays compact. */}
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1 sidebar-collapsible-hide">
           <Image src="/logo-white.svg" alt="HQ.ai" width={1428} height={521} className="opacity-90 w-[108px] max-w-full h-auto" priority />
         </Link>
 
-        {/* Advisor handoff - small note + button that opens the contact modal */}
-        <div className="px-1 pt-1">
+        {/* Advisor handoff - small note + button that opens the
+            contact modal. Hidden entirely in collapsed mode (the
+            Contact HQ Advisor flow needs the full label + paragraph
+            to make sense). */}
+        <div className="px-1 pt-1 sidebar-collapsible-hide">
           <p className="text-[11px] text-white/55 leading-snug mb-1.5">
             Need more HR or recruitment support?
           </p>
@@ -418,7 +488,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
       {/* Contact HQ Advisor - HR / Recruitment decision-tree modal */}
       {showPartnerPopup && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => !supportSending && setShowPartnerPopup(false)}>
+        <div className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4" onClick={() => !supportSending && setShowPartnerPopup(false)}>
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-h3 font-bold text-charcoal mb-1">Contact HQ Advisor</h3>
             <p className="text-sm text-mid mb-5">
@@ -520,7 +590,7 @@ function InfoTooltip({ text }: { text: string }) {
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+    <svg className={`w-4 h-4 transition-transform sidebar-collapsible-hide ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
     </svg>
   )

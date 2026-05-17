@@ -115,7 +115,7 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

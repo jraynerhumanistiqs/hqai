@@ -105,7 +105,7 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
 
         <button
           onClick={handleSubmit}
-          className="w-full mt-2 bg-black hover:bg-[#1a1a1a] text-white font-bold py-3 rounded-full transition-colors text-sm"
+          className="w-full mt-2 bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-3 rounded-full transition-colors text-sm"
         >
           Start Pre-Screen →
         </button>

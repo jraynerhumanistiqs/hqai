@@ -63,7 +63,7 @@ export function ProcessFlowTracker({ session, responses, className }: Props) {
 }
 
 function stateClass(s: StepState): string {
-  if (s === 'done') return 'bg-black text-white'
+  if (s === 'done') return 'bg-accent text-ink-on-accent'
   if (s === 'active') return 'bg-light text-charcoal ring-1 ring-black'
   return 'bg-light text-muted'
 }

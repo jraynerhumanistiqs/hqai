@@ -220,7 +220,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
@@ -303,7 +303,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                             return [...prev, opt.id]
                           })
                         }}
-                        className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-black bg-black/5' : 'border-border hover:border-mid'}`}
+                        className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
                       >
                         <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-black bg-black' : 'border-border'}`}>
                           {checked && (
@@ -335,7 +335,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                         type="button"
                         onClick={() => applyPreset(val)}
                         className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
-                          timeLimit === val ? 'bg-black text-white' : 'bg-light text-mid hover:bg-border'
+                          timeLimit === val ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid hover:bg-border'
                         }`}
                       >
                         {val < 60 ? `${val}s` : val % 60 === 0 ? `${val / 60}m` : `${Math.floor(val / 60)}m ${val % 60}s`}
@@ -569,7 +569,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
 function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+      className="fixed inset-0 bg-ink/50 flex items-center justify-center z-[60] p-4"
       onClick={onClose}
     >
       <div
@@ -598,7 +598,7 @@ function BestPracticeTipModal({ onClose }: { onClose: () => void }) {
 
         <button
           onClick={onClose}
-          className="w-full bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm mt-5 transition-colors"
+          className="w-full bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm mt-5 transition-colors"
         >
           Got it
         </button>

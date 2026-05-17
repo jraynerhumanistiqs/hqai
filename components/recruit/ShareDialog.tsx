@@ -102,18 +102,18 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" {...backdrop}>
+    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4" {...backdrop}>
       <div className="bg-white rounded-2xl shadow-card max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <p className="text-xs font-bold text-black uppercase tracking-widest">Share with hiring manager</p>
-          <button onClick={onClose} className="text-mid hover:text-black text-lg leading-none">&times;</button>
+          <p className="text-xs font-bold text-ink uppercase tracking-widest">Share with hiring manager</p>
+          <button onClick={onClose} className="text-mid hover:text-ink text-lg leading-none">&times;</button>
         </div>
 
         <div className="px-5 py-4 border-b border-border space-y-3">
           <div>
-            <label className="block text-xs font-bold text-black mb-1">Label (optional)</label>
+            <label className="block text-xs font-bold text-ink mb-1">Label (optional)</label>
             <input
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-black bg-white"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-black bg-white"
               placeholder="e.g. Sarah - Hiring Manager"
               value={label}
               onChange={e => setLabel(e.target.value)}
@@ -121,14 +121,14 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-black mb-1">Expiry</label>
+            <label className="block text-xs font-bold text-ink mb-1">Expiry</label>
             <div className="flex items-center gap-1">
               {[7, 14, 30].map(d => (
                 <button
                   key={d}
                   onClick={() => setDays(d)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
-                    days === d ? 'bg-black text-white border-black' : 'bg-white text-mid border-border hover:text-black'
+                    days === d ? 'bg-black text-white border-black' : 'bg-white text-mid border-border hover:text-ink'
                   }`}
                 >{d} days</button>
               ))}
@@ -144,10 +144,10 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
 
           {justCreated && (
             <div className="mt-2 flex items-center gap-2 bg-bg border border-border rounded-lg px-3 py-2">
-              <code className="flex-1 text-xs text-black truncate font-mono">{justCreated.url}</code>
+              <code className="flex-1 text-xs text-ink truncate font-mono">{justCreated.url}</code>
               <button
                 onClick={() => copyUrl(justCreated.url, justCreated.id)}
-                className="text-xs text-mid hover:text-black font-bold flex-shrink-0"
+                className="text-xs text-mid hover:text-ink font-bold flex-shrink-0"
               >{copiedId === justCreated.id ? 'Copied' : 'Copy'}</button>
             </div>
           )}
@@ -155,7 +155,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
 
         <div className="flex-1 overflow-y-auto">
           <div className="px-5 py-3 border-b border-border">
-            <p className="text-xs font-bold text-black uppercase tracking-widest">Active links</p>
+            <p className="text-xs font-bold text-ink uppercase tracking-widest">Active links</p>
           </div>
           {loading && <div className="px-5 py-4 text-xs text-mid">Loading...</div>}
           {!loading && links.length === 0 && (
@@ -168,7 +168,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                 <div key={l.id} className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-black truncate">{l.label ?? 'Untitled link'}</p>
+                      <p className="text-sm font-bold text-ink truncate">{l.label ?? 'Untitled link'}</p>
                       <p className="text-[11px] text-mid">
                         {st === 'active' ? `Expires ${new Date(l.expires_at!).toLocaleDateString('en-AU')}` : st}
                         {' - '}{l.view_count} view{l.view_count === 1 ? '' : 's'}
@@ -184,13 +184,13 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                     <code className="flex-1 text-[11px] text-mid bg-bg border border-border rounded-lg px-2 py-1 truncate font-mono">{l.url}</code>
                     <button
                       onClick={() => copyUrl(l.url, l.id)}
-                      className="text-[11px] font-bold text-mid hover:text-black flex-shrink-0"
+                      className="text-[11px] font-bold text-mid hover:text-ink flex-shrink-0"
                     >{copiedId === l.id ? 'Copied' : 'Copy'}</button>
                     {st === 'active' && (
                       <>
                         <button
                           onClick={() => { setEmailOpen(emailOpen === l.id ? null : l.id); setEmailTo(''); setEmailSent(false) }}
-                          className="text-[11px] font-bold text-mid hover:text-black flex-shrink-0"
+                          className="text-[11px] font-bold text-mid hover:text-ink flex-shrink-0"
                         >Email</button>
                         <button
                           onClick={() => revoke(l.id)}
@@ -204,7 +204,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                       <input
                         type="email"
                         placeholder="recipient@company.com"
-                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-black focus:outline-none focus:border-black bg-white"
+                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-black bg-white"
                         value={emailTo}
                         onChange={e => setEmailTo(e.target.value)}
                       />

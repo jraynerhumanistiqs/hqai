@@ -482,7 +482,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             )}
 
             {recState === 'init' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-ink/60">
                 <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-3" />
                 <p className="text-white text-sm font-medium">Starting camera…</p>
               </div>
@@ -499,13 +499,13 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
               </>
             )}
             {recState === 'uploading' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-ink/60">
                 <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-3" />
                 <p className="text-white text-sm font-medium">Uploading…</p>
               </div>
             )}
             {recState === 'error' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-6">
+              <div className="absolute inset-0 flex items-center justify-center bg-ink/70 p-6">
                 <p className="text-white text-sm text-center max-w-sm">{errorMsg}</p>
               </div>
             )}
@@ -527,7 +527,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             )}
             {recState === 'recording' && (
               <button onClick={stopRecording}
-                className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent font-bold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
                 <span className="w-3 h-3 bg-bg-elevated" />
                 Stop
               </button>
@@ -535,7 +535,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
             {recState === 'error' && (
               <div className="flex items-center gap-3">
                 <button onClick={initCamera}
-                  className="bg-black hover:bg-[#1a1a1a] text-white font-bold px-6 py-3 rounded-full transition-colors text-sm">
+                  className="bg-accent hover:bg-accent-hover text-ink-on-accent font-bold px-6 py-3 rounded-full transition-colors text-sm">
                   Try again
                 </button>
                 {videoIds[currentQ] == null && streamRef.current && (
@@ -562,7 +562,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
               playsInline
             />
             {replayRemaining === 0 && (
-              <div className="absolute inset-0 bg-black/70 flex items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 bg-ink/70 flex items-center justify-center pointer-events-none">
                 <p className="text-white text-xs text-center px-4 leading-relaxed">
                   You&apos;ve used all 3 replays for this answer.<br />
                   Re-record below if you want to try again.
@@ -622,7 +622,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
           <button
             disabled={recState !== 'review' || submitting}
             onClick={nextQuestion}
-            className="bg-black hover:bg-[#1a1a1a] disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
+            className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
           >
             {submitting ? 'Submitting…' : isLast ? 'Submit →' : 'Next →'}
           </button>

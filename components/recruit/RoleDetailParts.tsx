@@ -17,7 +17,7 @@ export function BiasDisclaimer({ onDismiss }: { onDismiss: () => void }) {
       <button
         onClick={onDismiss}
         aria-label="Dismiss bias disclaimer"
-        className="text-mid hover:text-black text-sm leading-none flex-shrink-0 mt-0.5"
+        className="text-mid hover:text-ink text-sm leading-none flex-shrink-0 mt-0.5"
       >&times;</button>
     </div>
   )
@@ -53,7 +53,7 @@ export function AiSuggestionCard({
     <div className="bg-white rounded-2xl border border-border shadow-card">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-black">AI Suggestion</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-ink">AI Suggestion</span>
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-light text-mid border border-border">
             suggestion only
           </span>
@@ -70,7 +70,7 @@ export function AiSuggestionCard({
           <div key={i} className="space-y-1">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <p className="text-sm font-bold text-black capitalize truncate">{d.name.replace(/_/g, ' ')}</p>
+                <p className="text-sm font-bold text-ink capitalize truncate">{d.name.replace(/_/g, ' ')}</p>
                 {d.confidence < 0.6 && (
                   <span
                     title="Low confidence - review manually"
@@ -80,14 +80,14 @@ export function AiSuggestionCard({
                   </span>
                 )}
               </div>
-              <div className="text-xs font-bold text-black flex-shrink-0">{d.score}/5</div>
+              <div className="text-xs font-bold text-ink flex-shrink-0">{d.score}/5</div>
             </div>
             <div className="w-full h-1.5 bg-light rounded-full overflow-hidden">
               <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
             </div>
             {d.evidence_quote && (
               <p
-                className="text-xs text-mid italic cursor-pointer hover:text-black transition-colors"
+                className="text-xs text-mid italic cursor-pointer hover:text-ink transition-colors"
                 title={anonymise ? 'Quotes from transcript may include identifying information' : undefined}
                 onClick={() => onQuoteClick?.(d.evidence_timestamp_sec)}
               >
@@ -140,14 +140,14 @@ export function AiSuggestionCard({
         <button
           onClick={() => onDecision(evaluation.id, 'reject')}
           disabled={busy === evaluation.id}
-          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-mid hover:text-black hover:bg-white transition-colors disabled:opacity-50"
+          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-mid hover:text-ink hover:bg-white transition-colors disabled:opacity-50"
         >
           Reject
         </button>
         <button
           onClick={() => onDecision(evaluation.id, 'adjust')}
           disabled={busy === evaluation.id}
-          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-black bg-white hover:bg-bg transition-colors disabled:opacity-50"
+          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-white hover:bg-bg transition-colors disabled:opacity-50"
         >
           Adjust
         </button>

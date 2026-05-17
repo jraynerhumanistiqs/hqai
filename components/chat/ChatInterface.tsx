@@ -1000,7 +1000,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       {/* Advisor modal */}
       {showAdvisorModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
+        <div className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
           <div className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
             <p className="text-sm text-mid mb-4 leading-relaxed">
@@ -1021,7 +1021,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 Close
               </button>
               <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-black hover:bg-[#1a1a1a] text-white rounded-full text-sm font-bold text-center transition-colors">
+                className="flex-1 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold text-center transition-colors">
                 Book a call with an HQ Advisor
               </Link>
             </div>
@@ -1251,7 +1251,7 @@ function DocumentFormCard({
       {/* Header */}
       <div className="bg-light border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-black/10 rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 bg-ink/10 rounded-xl flex items-center justify-center">
             <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
             </svg>
@@ -1318,7 +1318,7 @@ function DocumentFormCard({
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            className="flex-1 bg-black hover:bg-[#1a1a1a] text-white font-bold py-2.5 rounded-full text-sm transition-colors"
+            className="flex-1 bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors"
           >
             Generate {formDef.title}
           </button>

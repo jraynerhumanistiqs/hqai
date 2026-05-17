@@ -167,8 +167,30 @@ html, body {
 .doc-citations h2 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--doc-muted); margin: 0 0 8px; }
 .doc-citations ol { padding-left: 22px; margin: 0; }
 .doc-citations li { margin-bottom: 4px; }
+/* Logo footer - the uploaded business logo is rendered at the bottom
+   of the document. object-fit: contain keeps the aspect ratio so any
+   shape of logo fits the slot without distortion. Max height caps the
+   visual footprint so big logos do not dominate the footer. */
+.doc-footer-logo {
+  margin: 48px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--doc-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.doc-footer-logo img {
+  max-height: 48px;
+  max-width: 220px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
 @media print {
   .doc-page { max-width: none; padding: 24mm 22mm 24mm; }
+  .doc-footer-logo {
+    position: running(footer);
+  }
 }
 `
 
@@ -223,6 +245,18 @@ export function renderHtml(doc: StructuredDocument): string {
        </footer>`
     : ''
 
+  // Best-practice formatting: when the issuing business has uploaded a
+  // logo (stored on profiles.businesses.logo_url, forwarded by the
+  // generate route via doc.metadata.issuer_logo_url) we fit it into a
+  // discreet footer slot. object-fit:contain in the CSS prevents
+  // distortion for any logo aspect ratio.
+  const logoUrl = (doc.metadata?.issuer_logo_url ?? '') as string
+  const logoFooter = logoUrl
+    ? `<footer class="doc-footer-logo">
+         <img src="${escapeHtml(String(logoUrl))}" alt="${escapeHtml(doc.issuer?.business_name ?? 'Issuer logo')}" />
+       </footer>`
+    : ''
+
   return `<!DOCTYPE html>
 <html lang="en-AU">
 <head>
@@ -243,6 +277,7 @@ export function renderHtml(doc: StructuredDocument): string {
   ${recipient}
   ${sectionsHtml}
   ${citationsPanel}
+  ${logoFooter}
 </main>
 </body>
 </html>`

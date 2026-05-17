@@ -162,7 +162,7 @@ export function RecruitDashboard() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-black hover:bg-charcoal text-white text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
+            className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
           >
             + New role
           </button>

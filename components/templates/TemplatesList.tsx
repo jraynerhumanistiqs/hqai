@@ -113,8 +113,8 @@ export function TemplatesList({
                     <div key={tmpl.id}
                       className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-light transition-colors ${idx > 0 ? 'border-t border-border' : ''}`}>
                       <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="w-8 h-8 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex">
-                          <svg className="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="w-8 h-8 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex">
+                          <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
                           </svg>
                         </div>
@@ -138,7 +138,7 @@ export function TemplatesList({
                           <div className="relative group">
                             <button
                               onClick={() => handleCustomise(tmpl)}
-                              className="bg-black hover:bg-[#1a1a1a] text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
+                              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
                             >
                               Customise
                             </button>

@@ -57,7 +57,10 @@ export default async function DashboardHome() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-bg-elevated">
-      <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col gap-8 sm:gap-10">
+      {/* Tightened vertical rhythm - previous gap-8/10 left the
+          greeting feeling stranded above the first card row. Half the
+          gap and smaller top padding pulls everything together. */}
+      <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 sm:pt-6 pb-8 sm:pb-10 flex flex-col gap-5 sm:gap-6">
 
         {/* Welcome */}
         <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
@@ -117,7 +120,7 @@ export default async function DashboardHome() {
                 <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10">
                   <p className="text-sm text-muted mb-4">No conversations yet</p>
                   <Link href="/dashboard/people"
-                    className="inline-block bg-black hover:bg-[#1a1a1a] text-white text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
+                    className="inline-block bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
                     Start your first chat
                   </Link>
                 </div>
@@ -135,7 +138,7 @@ export default async function DashboardHome() {
                     <li key={d.id}>
                       <Link href="/dashboard/documents" className="block px-5 py-4 hover:bg-light transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-black/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div className="w-9 h-9 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0">
                             <DocsIcon />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -191,7 +194,7 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
       <Link href={href}
         className="block bg-bg-elevated border border-black rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)]">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-black/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-black/15 transition-colors">
+          <div className="w-12 h-12 bg-ink/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-ink/15 transition-colors">
             {icon}
           </div>
           <p className="font-display text-lg font-bold text-charcoal uppercase tracking-wider">{title}</p>

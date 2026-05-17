@@ -111,7 +111,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-40 flex justify-end"
+      className="fixed inset-0 bg-ink/40 z-40 flex justify-end"
       onClick={onClose}
     >
       <div
@@ -249,7 +249,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
 
         {handoffOpen && (
           <div
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4"
             onClick={() => !handoffLoading && setHandoffOpen(false)}
           >
             <div

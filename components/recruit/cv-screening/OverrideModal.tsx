@@ -107,7 +107,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" {...backdrop}>
+    <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4" {...backdrop}>
       <div className="bg-bg-elevated rounded-3xl shadow-modal w-full max-w-lg">
         <div className="flex items-start justify-between px-6 py-5 border-b border-border">
           <div>
@@ -138,7 +138,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
                   key={b}
                   onClick={() => setBand(b)}
                   className={`text-xs font-bold rounded-full px-3 py-1.5 transition-colors ${
-                    band === b ? 'bg-black text-white' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
+                    band === b ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
                   }`}
                 >
                   {BAND_LABELS[b]}
@@ -210,7 +210,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
             <button
               onClick={save}
               disabled={saving || !dirty}
-              className="bg-black hover:bg-charcoal text-white text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
+              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save change'}
             </button>

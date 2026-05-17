@@ -17,11 +17,11 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
   }, [])
 
   return (
-    <div className="mb-6 sm:mb-10">
+    <div className="mb-1">
       <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide">
         {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
       </h1>
-      <p className="text-sm sm:text-body text-mid">
+      <p className="text-sm sm:text-body text-mid mt-1">
         Welcome to your HQ.ai dashboard, jump back in below!
       </p>
     </div>

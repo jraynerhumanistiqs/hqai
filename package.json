@@ -13,6 +13,7 @@
     "ingest:act": "tsx scripts/ingest/ingest-act.ts",
     "eval": "tsx tests/eval/run-eval.ts",
     "smoke:chat": "node scripts/smoke-chat.mjs",
+    "smoke:doc": "node scripts/smoke-doc-engine.mjs",
     "axe": "node scripts/axe-scan.mjs",
     "axe:strict": "node scripts/axe-scan.mjs --strict"
   },

@@ -180,6 +180,44 @@
   .pt-safe { padding-top: env(safe-area-inset-top); }
 }
 
+/* Sidebar collapsed mode (desktop only).
+   When the user toggles the sidebar to icons-only, this hides every
+   label / chevron / sub-menu inside so only the icons remain.
+   Marked >=lg so the mobile drawer always shows labels. The aside
+   element has `data-collapsed="true"` set by Sidebar.tsx.
+
+   Rule of thumb: anything inside the sidebar that should disappear in
+   icons-only mode gets `data-sidebar-label` (one-off opt-in) OR
+   relies on the generic `span:not([data-sidebar-keep])` selector. We
+   use both so existing markup keeps working without per-node edits. */
+@media (min-width: 1024px) {
+  aside[data-collapsed="true"] [data-sidebar-label],
+  aside[data-collapsed="true"] .sidebar-label {
+    display: none !important;
+  }
+  /* Hide the inline text labels inside nav buttons / links - any
+     direct <span> inside a sidebar Link/button that isn't marked as
+     keep-when-collapsed. Caption-level <p> elements (eg the section
+     headings "Modules") collapse via the same selector. */
+  aside[data-collapsed="true"] nav span:not([data-sidebar-keep]),
+  aside[data-collapsed="true"] a > span:not([data-sidebar-keep]),
+  aside[data-collapsed="true"] button > span:not([data-sidebar-keep]) {
+    display: none !important;
+  }
+  /* Sub-menus + headings + the advisor support card hide entirely
+     when collapsed. Each is opt-in via the .sidebar-collapsible-hide
+     hook on the wrapper. */
+  aside[data-collapsed="true"] .sidebar-collapsible-hide {
+    display: none !important;
+  }
+  /* Tighten paddings + centre icon-only buttons when collapsed. */
+  aside[data-collapsed="true"] .sidebar-row {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
 /* A0.5 - honour prefers-reduced-motion. Disables the slide-in keyframe
    animation, neutralises GSAP via the shared duration vars, and
    collapses every CSS transition to a no-op. */

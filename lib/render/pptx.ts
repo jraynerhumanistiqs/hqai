@@ -125,6 +125,10 @@ export async function renderPptx(doc: StructuredDocument): Promise<Buffer> {
   pptx.author = 'HQ.ai AI Administrator'
   pptx.title  = doc.title
 
+  // Fetch the issuer logo once (if present) so the title slide can use
+  // it. Fails gracefully when the URL is missing or unreachable.
+  const logoData = await loadLogoData((doc.metadata?.issuer_logo_url ?? '') as string)
+
   // Title slide
   const titleSlide = pptx.addSlide()
   titleSlide.background = { color: 'FFFFFF' }
@@ -134,6 +138,11 @@ export async function renderPptx(doc: StructuredDocument): Promise<Buffer> {
   }
   if (doc.issuer?.business_name) {
     titleSlide.addText(doc.issuer.business_name, { x: 0.7, y: 6.6, w: 12, h: 0.4, fontSize: 13, color: '6B6B66' })
+  }
+  if (logoData) {
+    // Bottom-right corner of the title slide. Sized small so any logo
+    // aspect ratio fits visually.
+    titleSlide.addImage({ data: logoData, x: 11.5, y: 6.3, w: 1.4, h: 0.7, sizing: { type: 'contain', w: 1.4, h: 0.7 } })
   }
 
   for (const section of doc.sections) {
@@ -157,4 +166,22 @@ export async function renderPptx(doc: StructuredDocument): Promise<Buffer> {
   // depending on options. Force a node Buffer for the API route.
   const raw = await pptx.write({ outputType: 'nodebuffer' })
   return raw as Buffer
+}
+
+/**
+ * Loads a logo URL into a base64 data URI suitable for pptxgenjs's
+ * `data:` image API. Returns null if the URL is missing or the fetch
+ * fails - the renderer just skips the logo rather than failing.
+ */
+async function loadLogoData(url: string): Promise<string | null> {
+  if (!url) return null
+  try {
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) return null
+    const buf = Buffer.from(await res.arrayBuffer())
+    const ct = (res.headers.get('content-type') ?? 'image/png').toLowerCase().split(';')[0].trim()
+    return `data:${ct};base64,${buf.toString('base64')}`
+  } catch {
+    return null
+  }
 }

@@ -93,7 +93,7 @@ export default function RecruitBinPage() {
                   <button
                     onClick={() => handleRestore(s.id)}
                     disabled={busyId === s.id}
-                    className="bg-black hover:bg-[#1a1a1a] text-white text-xs font-bold px-3 py-2 rounded-full transition-colors disabled:opacity-50"
+                    className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold px-3 py-2 rounded-full transition-colors disabled:opacity-50"
                   >
                     {busyId === s.id ? '…' : 'Restore'}
                   </button>

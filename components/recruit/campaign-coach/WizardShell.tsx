@@ -298,7 +298,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         </div>
 
         {coachOpenMobile && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setCoachOpenMobile(false)}>
+          <div className="lg:hidden fixed inset-0 z-40 bg-ink/40" onClick={() => setCoachOpenMobile(false)}>
             <div
               className="absolute right-0 top-0 bottom-0 w-[88%] max-w-sm bg-white shadow-card"
               onClick={e => e.stopPropagation()}
@@ -313,7 +313,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
             onClick={() => setCoachOpenMobile(true)}
             className="lg:hidden fixed bottom-20 right-4 z-30 bg-black text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-card flex items-center gap-2"
           >
-            <span className="w-5 h-5 rounded-full bg-white text-black font-display flex items-center justify-center text-[10px]">
+            <span className="w-5 h-5 rounded-full bg-white text-ink font-display flex items-center justify-center text-[10px]">
               C
             </span>
             Coach
@@ -355,7 +355,7 @@ function StepProgress({
         const isActive = n === step
         const isCompleted = n < step
         const cls = isActive
-          ? 'bg-black text-white'
+          ? 'bg-accent text-ink-on-accent'
           : isCompleted
           ? 'bg-charcoal text-white'
           : 'bg-light text-mid'

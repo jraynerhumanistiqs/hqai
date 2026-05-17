@@ -142,7 +142,7 @@ export function VideoPlayer({ cloudflareUid, chapters = [], onTimeUpdate, seekTo
                   title={`${c.label} - jump`}
                 >
                   <span className="w-[2px] h-4 bg-black group-hover:bg-accent transition-colors" />
-                  <span className="text-[10px] font-bold text-mid group-hover:text-black transition-colors whitespace-nowrap">
+                  <span className="text-[10px] font-bold text-mid group-hover:text-ink transition-colors whitespace-nowrap">
                     {c.label}
                   </span>
                 </button>

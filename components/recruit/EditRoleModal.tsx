@@ -9,7 +9,7 @@ interface Props {
   onSaved: (updated: PrescreenSession) => void
 }
 
-const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
 
 function initialRubric(session: PrescreenSession): RubricDimension[] {
   const cur = Array.isArray(session.custom_rubric) ? session.custom_rubric : []
@@ -145,7 +145,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={busy ? undefined : onClose}
     >
       <div
@@ -155,13 +155,13 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
         {/* Header */}
         <div className="px-7 py-5 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-xl font-bold text-black">Edit Role</h2>
+            <h2 className="font-serif text-xl font-bold text-ink">Edit Role</h2>
             <p className="text-sm text-mid mt-0.5">Update role details, questions, scoring criteria, or time limit</p>
           </div>
           <button
             onClick={onClose}
             disabled={busy}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-black disabled:opacity-40"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg transition-colors text-mid hover:text-ink disabled:opacity-40"
             aria-label="Close"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -174,17 +174,17 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
         <div className="px-7 py-6 max-h-[65vh] overflow-y-auto space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-bold text-black mb-1.5">Company</label>
+              <label className="block text-sm font-bold text-ink mb-1.5">Company</label>
               <input className={inputCls} value={company} onChange={e => setCompany(e.target.value)} />
             </div>
             <div>
-              <label className="block text-sm font-bold text-black mb-1.5">Role Title</label>
+              <label className="block text-sm font-bold text-ink mb-1.5">Role Title</label>
               <input className={inputCls} value={roleTitle} onChange={e => setRoleTitle(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-black mb-1.5">
+            <label className="block text-sm font-bold text-ink mb-1.5">
               Time per Answer
               <span className="text-mid font-normal ml-1">
                 ({timeLimit < 60 ? `${timeLimit}s` : `${Math.floor(timeLimit / 60)}m${timeLimit % 60 ? ` ${timeLimit % 60}s` : ''}`})
@@ -219,7 +219,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-black mb-1.5">Questions</label>
+            <label className="block text-sm font-bold text-ink mb-1.5">Questions</label>
             <div className="space-y-2.5">
               {questions.map((q, i) => (
                 <div key={i} className="flex items-center gap-2.5 group">
@@ -272,7 +272,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
           <button
             onClick={onClose}
             disabled={busy}
-            className="text-sm text-mid hover:text-black font-bold transition-colors disabled:opacity-40"
+            className="text-sm text-mid hover:text-ink font-bold transition-colors disabled:opacity-40"
           >
             Cancel
           </button>

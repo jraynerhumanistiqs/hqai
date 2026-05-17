@@ -10,7 +10,7 @@ interface Props {
 }
 
 const DEFAULT_INPUT_CLS =
-  'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-black placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+  'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
 
 export function RubricEditor({
   mode,
@@ -35,7 +35,7 @@ export function RubricEditor({
 
   return (
     <div>
-      <label className="block text-sm font-bold text-black mb-2">Scoring criteria</label>
+      <label className="block text-sm font-bold text-ink mb-2">Scoring criteria</label>
       <div className="space-y-2">
         <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-bg/60 transition-colors">
           <input
@@ -46,7 +46,7 @@ export function RubricEditor({
             onChange={() => onModeChange('standard')}
           />
           <div>
-            <p className="text-sm font-bold text-black">
+            <p className="text-sm font-bold text-ink">
               Use HQ.ai default scoring criteria{' '}
               <span className="text-mid font-normal">(recommended)</span>
             </p>
@@ -64,7 +64,7 @@ export function RubricEditor({
             onChange={() => onModeChange('custom')}
           />
           <div>
-            <p className="text-sm font-bold text-black">Define custom scoring criteria for this role</p>
+            <p className="text-sm font-bold text-ink">Define custom scoring criteria for this role</p>
             <p className="text-xs text-mid mt-0.5">3-6 dimensions, each scored 1-5.</p>
           </div>
         </label>

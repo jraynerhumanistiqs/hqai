@@ -276,7 +276,7 @@ export default function Step2Extract() {
 
       {showAwardDrawer && profile.award && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 flex justify-end"
+          className="fixed inset-0 bg-ink/40 z-40 flex justify-end"
           onClick={() => setShowAwardDrawer(false)}
         >
           <div

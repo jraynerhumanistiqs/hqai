@@ -311,7 +311,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           </p>
           <button
             onClick={() => setShowNewRubric(true)}
-            className="bg-black hover:bg-charcoal text-white text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
+            className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
           >
             + New scoring criteria
           </button>
@@ -448,7 +448,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                           key={v.id}
                           onClick={() => setRubricId(v.id)}
                           className={`text-xs font-bold rounded-full px-3 py-1.5 transition-colors ${
-                            isActive ? 'bg-black text-white' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
+                            isActive ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
                           }`}
                           title={`v${v.version_number ?? 1} - ${cohort} candidate${cohort === 1 ? '' : 's'} scored`}
                         >
@@ -683,7 +683,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               </p>
               <button
                 onClick={() => setShowNewRubric(true)}
-                className="bg-black hover:bg-charcoal text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
               >
                 + New scoring criteria
               </button>
@@ -1048,7 +1048,7 @@ function FilterChip({ label, active }: { label: string; active?: boolean }) {
   return (
     <span
       className={`text-xs font-bold rounded-full px-3 py-1.5 ${
-        active ? 'bg-black text-white' : 'bg-light text-mid'
+        active ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid'
       }`}
     >
       {label}

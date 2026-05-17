@@ -54,6 +54,45 @@ interface GenerateBody {
     | 'administrator-complex-contract'
 }
 
+// Best-practice formatting envelope applied to EVERY template.
+// Keeps generated documents in a consistent, recognisably-HQ.ai shape
+// regardless of which of the 33 IP templates the user picked.
+const BEST_PRACTICE_FORMATTING = `Formatting rules - apply to every document you emit:
+
+STRUCTURE
+- Open with a clear title (heading level 1) and an optional subtitle
+  with the document date in DD/MM/YYYY format.
+- Recipient block at top (name, role, address where supplied).
+- Issuer block on the same header line (business name, ABN if known).
+- Body sections each have a short H2 title and 1-3 paragraphs.
+- For employment-doc templates always include sections in this
+  order when applicable: Position, Commencement, Hours and Pattern,
+  Remuneration, Award and NES, Leave, Probation, Confidentiality
+  and IP, Termination and Notice, General Provisions.
+- Signature blocks at the end - one per party (employer, employee,
+  witness where appropriate).
+
+CITATIONS
+- Reference every legal claim. Citations[] must list:
+    Fair Work Act 2009 (Cth) sections used (with section number),
+    the relevant Modern Award (with clause if specific),
+    NES entitlements you refer to, and any state legislation cited.
+- Use locator strings like "s 117(1)" or "cl 12.3".
+- Include short verbatim quote where the wording is contested.
+
+LANGUAGE
+- Australian English throughout (organise, behaviour, optimise).
+- Plain hyphens only - never em-dashes or en-dashes.
+- Year-9 reading level. If a sentence needs a comma to survive,
+  rewrite it. Specific over generic.
+- "You" not "the employer"; "they" not "the employee".
+
+BRANDING
+- Leave issuer.signatory_name and issuer.signatory_role blank if not
+  provided in inputs - the recruiter will fill these in.
+- Do NOT mention or render the business logo; the renderer will fit
+  it into the document footer automatically.`
+
 function buildPrompt(body: GenerateBody): string {
   if (body.prompt && body.prompt.trim()) return body.prompt.trim()
   const tpl = body.template_id ? getTemplateById(body.template_id) : null
@@ -61,9 +100,18 @@ function buildPrompt(body: GenerateBody): string {
     ? '\n\nInputs:\n' + Object.entries(body.inputs).map(([k, v]) => `- ${k}: ${v}`).join('\n')
     : ''
   if (tpl) {
-    return `Generate the document "${tpl.title}" for an Australian SME. Follow Australian English conventions (organise, behaviour, optimise) and plain hyphens only (no em-dashes or en-dashes). Ground every claim in Fair Work / NES / Modern Awards where relevant and include citations in the citations[] array.${inputsBlock}\n\nTemplate description: ${tpl.description}`
+    const tplInstr = (tpl as { promptInstructions?: string }).promptInstructions
+    const tplLine = tplInstr ? `\n\nTemplate guidance: ${tplInstr}` : ''
+    return `Generate the document "${tpl.title}" for an Australian SME.
+
+${BEST_PRACTICE_FORMATTING}
+
+Template description: ${tpl.description}${tplLine}${inputsBlock}`
   }
-  return `Generate a structured HR document for an Australian SME. Australian English, plain hyphens only.${inputsBlock}`
+  return `Generate a structured HR document for an Australian SME.
+
+${BEST_PRACTICE_FORMATTING}
+${inputsBlock}`
 }
 
 export async function POST(req: NextRequest) {
@@ -71,13 +119,32 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
+  // Fetch profile + business in two steps so a missing column on
+  // businesses can't fail the whole embedded select (previously the
+  // route 400'd with "No business profile" if anything in the
+  // businesses(...) embed didn't exist on the table). We only select
+  // columns we know exist; everything else is optional.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('business_id, businesses(name, abn, address, advisor_name)')
+    .select('business_id, full_name')
     .eq('id', user.id)
     .single()
   if (!profile?.business_id) return NextResponse.json({ error: 'No business profile' }, { status: 400 })
-  const business = profile.businesses as unknown as { name: string; abn?: string; address?: string }
+  const { data: businessRow } = await supabase
+    .from('businesses')
+    .select('name, advisor_name, logo_url, industry, state, award')
+    .eq('id', profile.business_id)
+    .single()
+  // Cast to a permissive shape - all fields optional so the route
+  // never blows up just because the business profile is sparse.
+  const business = (businessRow ?? {}) as {
+    name?: string
+    advisor_name?: string
+    logo_url?: string
+    industry?: string
+    state?: string
+    award?: string
+  }
 
   let body: GenerateBody
   try {
@@ -123,12 +190,23 @@ export async function POST(req: NextRequest) {
 
   // Merge any issuer fields the business already has on file so the
   // model doesn't have to hallucinate them - cheap reliability win.
+  // ABN + address are not in the live `businesses` schema, so they
+  // come from either the form inputs (when the template asks) or
+  // the model's own output - never auto-filled here.
   doc.issuer = {
-    business_name:  doc.issuer?.business_name  || business?.name || 'Your business',
-    abn:            doc.issuer?.abn            || business?.abn  || undefined,
-    address:        doc.issuer?.address        || business?.address || undefined,
+    business_name:  doc.issuer?.business_name  || business.name || 'Your business',
+    abn:            doc.issuer?.abn            || undefined,
+    address:        doc.issuer?.address        || undefined,
     signatory_name: doc.issuer?.signatory_name,
     signatory_role: doc.issuer?.signatory_role,
+    // logo_url is part of the issuer block so renderers can fit the
+    // uploaded business logo into the document footer / letterhead.
+    // Not yet in the StructuredDocument schema; we add it as a side
+    // channel via metadata so renderers can pick it up. See
+    // lib/doc-model.ts metadata field.
+  }
+  if (business.logo_url) {
+    doc.metadata = { ...(doc.metadata ?? {}), issuer_logo_url: business.logo_url }
   }
 
   // Persist. The `documents` table stores the rendered string today

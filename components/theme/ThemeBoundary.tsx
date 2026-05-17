@@ -46,16 +46,13 @@ export default function ThemeBoundary({ app, children }: ThemeBoundaryProps) {
   return (
     <ThemeProvider
       attribute="class"
-      // Force light mode everywhere for now. The Option 3 dark variant
-      // is wired in globals.css under [data-app="product"].dark, but
-      // hundreds of existing components still use hardcoded bg-white /
-      // text-black literals - flipping dark on those produced dark
-      // text on a light hardcoded background. Re-enable system after
-      // the A4 chrome audit replaces those literals with bg-bg /
-      // text-ink utilities.
-      defaultTheme="light"
-      enableSystem={false}
-      forcedTheme="light"
+      // Marketing routes stay light (per brand-kit Option 2). Product
+      // surfaces follow the user's system preference now that the A4
+      // chrome audit has migrated the bg-white / text-black literals
+      // onto theme-aware tokens; dark mode renders correctly there.
+      defaultTheme={app === 'marketing' ? 'light' : 'system'}
+      enableSystem={app === 'product'}
+      forcedTheme={app === 'marketing' ? 'light' : undefined}
       disableTransitionOnChange
     >
       <DataAppScope app={app} />

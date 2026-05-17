@@ -127,7 +127,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" {...backdrop}>
+    <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4" {...backdrop}>
       <div className="bg-bg-elevated rounded-3xl shadow-modal w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="flex items-start justify-between px-6 py-5 border-b border-border">
           <div>
@@ -316,7 +316,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
             <button
               onClick={save}
               disabled={saving}
-              className="bg-black hover:bg-charcoal text-white text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
+              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
             >
               {saving ? 'Saving...' : `Save as version ${(rubric.version_number ?? 1) + 1}`}
             </button>

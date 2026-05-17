@@ -37,7 +37,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0 bg-ink/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           {/* Drawer */}
           <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] animate-slide-in">
             <Sidebar {...sidebarProps} onClose={() => setSidebarOpen(false)} />

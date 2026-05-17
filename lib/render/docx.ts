@@ -20,6 +20,8 @@ import {
   WidthType,
   BorderStyle,
   PageBreak,
+  Footer,
+  ImageRun,
 } from 'docx'
 import type {
   StructuredDocument,
@@ -242,6 +244,12 @@ export async function renderDocx(doc: StructuredDocument): Promise<Buffer> {
   const sectionsEls = doc.sections.flatMap(sectionParagraphs)
   const citationsEls = citationsBlock(doc.citations)
 
+  // Best-practice formatting - if the issuing business has a logo on
+  // file (forwarded by the generate route via doc.metadata.issuer_logo_url
+  // or set explicitly by templates), fit it into the page footer so the
+  // exported Word doc looks like properly letterheaded output.
+  const logoFooter = await buildLogoFooter(doc)
+
   const document = new Document({
     creator: 'HQ.ai AI Administrator',
     title:   doc.title,
@@ -260,6 +268,8 @@ export async function renderDocx(doc: StructuredDocument): Promise<Buffer> {
     },
     sections: [{
       properties: {},
+      headers: {},
+      footers: logoFooter ? { default: logoFooter } : undefined,
       children: [
         ...titleEls,
         ...issuerEls,
@@ -270,4 +280,52 @@ export async function renderDocx(doc: StructuredDocument): Promise<Buffer> {
     }],
   })
   return await Packer.toBuffer(document)
+}
+
+/**
+ * Fetches the issuer logo (if present in doc.metadata.issuer_logo_url)
+ * and wraps it in a docx Footer. Fails gracefully - if the fetch errors
+ * or the URL is missing, the document just renders without a logo
+ * footer rather than failing the whole download.
+ *
+ * The image is constrained to a 36 EMU box that keeps even tall logos
+ * proportional in the footer slot.
+ */
+async function buildLogoFooter(doc: StructuredDocument): Promise<Footer | null> {
+  const url = (doc.metadata?.issuer_logo_url ?? '') as string
+  if (!url) return null
+  try {
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) {
+      console.warn(`[render/docx] logo fetch failed (${res.status}) for ${url}`)
+      return null
+    }
+    const buf = Buffer.from(await res.arrayBuffer())
+    const ct = (res.headers.get('content-type') ?? '').toLowerCase()
+    const type: 'png' | 'jpg' | 'gif' | 'bmp' =
+        ct.includes('png')  ? 'png'
+      : ct.includes('jpeg') ? 'jpg'
+      : ct.includes('jpg')  ? 'jpg'
+      : ct.includes('gif')  ? 'gif'
+      : ct.includes('bmp')  ? 'bmp'
+      : 'png' // fall back to png - the docx package will reject the
+              // file if it can't decode it.
+    return new Footer({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          children: [
+            new ImageRun({
+              data: buf,
+              transformation: { width: 110, height: 36 },
+              type,
+            } as ConstructorParameters<typeof ImageRun>[0]),
+          ],
+        }),
+      ],
+    })
+  } catch (err) {
+    console.warn('[render/docx] logo embed failed:', (err as Error).message)
+    return null
+  }
 }

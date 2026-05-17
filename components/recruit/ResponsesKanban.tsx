@@ -145,12 +145,12 @@ export function ResponsesKanban({
                     )}
                     <div className="flex items-center gap-2 pr-6">
                       {!anonymise && (
-                        <div className="w-7 h-7 rounded-full bg-light flex items-center justify-center text-[10px] font-bold text-black flex-shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-light flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
                           {displayNameFor(r).split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-black truncate">{displayNameFor(r)}</p>
+                        <p className="text-sm font-bold text-ink truncate">{displayNameFor(r)}</p>
                         {!anonymise && (
                           <p className="text-[11px] text-mid truncate">{r.candidate_email}</p>
                         )}

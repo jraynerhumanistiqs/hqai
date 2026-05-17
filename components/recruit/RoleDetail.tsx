@@ -543,13 +543,13 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               <button
                 onClick={() => setViewMode('list')}
                 className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
-                  viewMode === 'list' ? 'bg-black text-white' : 'text-mid hover:text-ink'
+                  viewMode === 'list' ? 'bg-accent text-ink-on-accent' : 'text-mid hover:text-ink'
                 }`}
               >List</button>
               <button
                 onClick={() => setViewMode('kanban')}
                 className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
-                  viewMode === 'kanban' ? 'bg-black text-white' : 'text-mid hover:text-ink'
+                  viewMode === 'kanban' ? 'bg-accent text-ink-on-accent' : 'text-mid hover:text-ink'
                 }`}
               >Kanban</button>
             </div>
@@ -1250,7 +1250,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
       {legendOpen && (
         <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50"
           onClick={() => setLegendOpen(false)}
         >
           <div

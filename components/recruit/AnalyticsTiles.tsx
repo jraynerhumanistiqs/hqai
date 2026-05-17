@@ -60,7 +60,7 @@ export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
 
       {drawerOpen && (
         <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4"
           onClick={() => setDrawerOpen(false)}
         >
           <div className="bg-bg-elevated rounded-2xl shadow-modal max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
