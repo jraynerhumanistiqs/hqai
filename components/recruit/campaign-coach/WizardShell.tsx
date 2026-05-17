@@ -235,17 +235,17 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
     <WizardContext.Provider value={{ state, dispatch, business, callDraft, callLaunch }}>
       <div className="flex h-full bg-bg">
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-white flex-shrink-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
-                Campaign Coach
-              </h1>
-              <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
-                New
-              </span>
-            </div>
-            <p className="text-xs text-muted mb-3">
-              {business.name ? `For ${business.name}` : 'AI-coached recruitment campaign'}
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-bg-elevated flex-shrink-0">
+            {/* AI Administrator-style page header. */}
+            <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+              HQ Recruit - Campaign Coach
+            </p>
+            <h1 className="font-sans text-h2 sm:text-h1 font-bold text-ink tracking-tight mb-1">
+              Brief the role, draft the ad.
+            </h1>
+            <p className="text-sm text-ink-soft mb-3">
+              {business.name ? `For ${business.name}.` : 'AI-coached recruitment campaign.'}{' '}
+              Five steps - brief, extract, draft, distribute, launch.
             </p>
             <StepProgress
               step={state.step}

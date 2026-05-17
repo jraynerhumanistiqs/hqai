@@ -31,26 +31,15 @@ async function extractText(file: File): Promise<string> {
   const name = (file.name || '').toLowerCase()
   const buf = Buffer.from(await file.arrayBuffer())
   if (name.endsWith('.pdf') || file.type === 'application/pdf') {
-    // pdf-parse@2 ships a class instead of the legacy default
-    // function. Wrap the file bytes in a Uint8Array, getText(),
-    // dispose. The data option must be a typed array - if we pass
-    // a node Buffer directly pdf.js complains about an invalid
-    // input shape.
-    const { PDFParse } = await import('pdf-parse')
-    const parser = new PDFParse({ data: new Uint8Array(buf) })
-    try {
-      const out = await parser.getText()
-      // getText returns either { text } directly or per-page strings
-      // joined with form feeds depending on the build. Coerce.
-      const text = typeof (out as { text?: unknown }).text === 'string'
-        ? (out as { text: string }).text
-        : Array.isArray((out as { pages?: { text?: string }[] }).pages)
-          ? ((out as { pages: { text?: string }[] }).pages).map(p => p.text ?? '').join('\n\n')
-          : String(out ?? '')
-      return text.trim()
-    } finally {
-      try { await parser.destroy() } catch { /* no-op */ }
-    }
+    // pdf-parse@1 - stable Node-only API. Default export is a function
+    // that takes a Buffer and returns { text, info, metadata, numpages }.
+    // Battle-tested on Vercel serverless; pdf-parse@2 spawns a worker
+    // that doesn't reliably resolve under serverless bundling.
+    type PdfParseFn = (buf: Buffer) => Promise<{ text?: string }>
+    const mod = (await import('pdf-parse')) as unknown as { default?: PdfParseFn } & PdfParseFn
+    const pdf: PdfParseFn = typeof mod === 'function' ? (mod as PdfParseFn) : (mod.default as PdfParseFn)
+    const data = await pdf(buf)
+    return (data?.text ?? '').trim()
   }
   if (name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     const mammoth = await import('mammoth')
@@ -237,10 +226,14 @@ Output via the emit_humanistiqs_cv tool exactly once.`
     const doc = buildHumanistiqsCvDocument(block.input as HumanistiqsCvPayload)
     try {
       const safe = assertStructuredDocument(doc)
-      const { data: docRow } = await supabaseAdmin
+      // documents.user_id is NOT NULL on the live schema; we pass the
+      // signed-in user as the owner. Earlier 'created_by' was a guess
+      // that doesn't exist - the real required column is user_id.
+      const { data: docRow, error: docErr } = await supabaseAdmin
         .from('documents')
         .insert({
           business_id: profile.business_id,
+          user_id:     user.id,
           title:       `${safe.title}`,
           content:     safe.sections.map(s => (s.title ? `## ${s.title}\n` : '') + s.blocks.map(b => 'text' in b ? b.text : '').filter(Boolean).join('\n\n')).join('\n\n'),
           structured_payload: safe,
@@ -248,6 +241,9 @@ Output via the emit_humanistiqs_cv tool exactly once.`
         })
         .select('id')
         .single()
+      if (docErr) {
+        console.warn('[ingest] cv_formatter doc insert error:', docErr.message)
+      }
       document_id = docRow?.id ?? null
     } catch (err) {
       console.warn('[ingest] cv_formatter doc persist failed:', (err as Error).message)

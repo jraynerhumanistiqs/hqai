@@ -73,10 +73,14 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
   return (
     <div className="max-w-3xl mx-auto px-2 pt-2 pb-2">
       <div className="text-center mb-5">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
+        {/* AI Administrator-style header (eyebrow + sans h1 + body). */}
+        <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+          HQ People - AI Advisor
+        </p>
+        <h2 className="font-sans text-2xl sm:text-3xl font-bold text-ink tracking-tight mb-2">
           {userName ? `${greeting}, ${userName}` : greeting}
         </h2>
-        <p className="text-sm text-mid max-w-lg mx-auto leading-relaxed">
+        <p className="text-sm text-ink-soft max-w-lg mx-auto leading-relaxed">
           {selected
             ? 'Pick the question that fits, or describe your situation below.'
             : 'I work best when you share the specific situation, who is involved, and what you have tried so far.'}

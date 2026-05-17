@@ -193,8 +193,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   return (
     <aside
       data-collapsed={collapsed ? 'true' : 'false'}
-      className="relative flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full group/sidebar"
-      style={{ width: widthPx }}
+      className="relative flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out"
+      style={{ width: `${widthPx}px` }}
     >
       {/* Drag handle - the 4px strip on the right edge. Only visible
           and active at >=lg AND when the sidebar is expanded (no
@@ -214,10 +214,11 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       <div className="flex items-center justify-between px-2.5 pt-3">
         {/* Desktop collapse toggle */}
         <button
+          type="button"
           onClick={toggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-pressed={collapsed}
-          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/55 hover:text-white/80"
+          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/55 hover:text-white/80 relative z-30"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

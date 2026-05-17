@@ -84,17 +84,18 @@ export default function AdministratorClient({ templates, categories, initialTemp
     }
   }
 
-  // Category pills now spread evenly above the search bar. Using
-  // grid-cols-N to lock the row at a consistent width so the chips
-  // align cleanly. Falls back to wrapping on narrow viewports.
+  // Category pills - two rows of four (8 buttons total: All + 7
+  // template categories). Each pill is uppercase and given enough
+  // padding for the longest label ('Termination & Separation') to fit
+  // on one line at the default font size.
   const categoryButtons = ['All', ...categories]
   const filterRow = (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {categoryButtons.map(c => (
         <button
           key={c}
           onClick={() => setFilter(c)}
-          className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-2 transition-colors text-center truncate
+          className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-2 transition-colors text-center
             ${filter === c ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink hover:bg-bg-elevated border border-border'}`}
         >
           {c}

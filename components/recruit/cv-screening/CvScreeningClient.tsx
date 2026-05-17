@@ -296,18 +296,16 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* -- Left panel: rubric list -- */}
       <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${showListPanel ? 'flex' : 'hidden lg:flex'}`}>
 
-        {/* Header - mirrors Shortlist Agent header style */}
+        {/* Header - AI Administrator pattern (eyebrow + sans h1 + body). */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
-              CV Scoring Agent
-            </h1>
-            <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
-              New
-            </span>
-          </div>
-          <p className="text-xs text-muted mb-2">
-            {customCount} custom · {standardCount} standard
+          <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+            HQ Recruit
+          </p>
+          <h1 className="font-sans text-lg font-bold text-ink tracking-tight mb-1">
+            CV Scoring Agent
+          </h1>
+          <p className="text-xs text-ink-soft mb-2">
+            {customCount} saved criteria. Score CVs against your rubric, then send the shortlist to video pre-screen.
           </p>
           <button
             onClick={() => setShowNewRubric(true)}
