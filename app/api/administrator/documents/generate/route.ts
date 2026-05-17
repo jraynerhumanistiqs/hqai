@@ -214,11 +214,13 @@ export async function POST(req: NextRequest) {
   // (covered by supabase/migrations/documents_structured_payload.sql)
   // to round-trip the structured shape so renderers can be re-run on
   // demand without re-calling the LLM.
+  // The documents table doesn't have a created_by column - the
+  // earlier schema scoped by business_id only. Don't insert it or the
+  // request 500s with "Could not find the 'created_by' column".
   const { data: row, error: insertErr } = await supabaseAdmin
     .from('documents')
     .insert({
       business_id: profile.business_id,
-      created_by:  user.id,
       title:       doc.title,
       // The legacy column is `content` (text). Keep it populated with
       // a plain-text dump of the document so any existing consumer

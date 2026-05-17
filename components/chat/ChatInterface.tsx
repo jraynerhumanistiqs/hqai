@@ -595,7 +595,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-10">
+      <div className={`flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 ${messages.length === 0 ? 'py-4 sm:py-6 flex flex-col justify-center' : 'py-6 sm:py-10'}`}>
         {messages.length === 0 && (
           module === 'people' && !skipTopicPicker ? (
             <TopicPicker
@@ -849,7 +849,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {/* Input */}
       <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-2 bg-bg-elevated border border-border rounded-3xl px-4 py-2.5 focus-within:border-black transition-colors shadow-sm">
+          <div className="flex items-center gap-2 bg-bg-elevated border border-border rounded-3xl px-4 py-2 focus-within:border-ink transition-colors shadow-sm">
             <textarea
               ref={inputRef}
               value={input}
@@ -860,7 +860,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 : 'Describe the situation - who is involved and what you have tried so far...'
               }
               rows={1}
-              className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1.5"
+              className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1"
             />
             {isLoading ? (
               <button

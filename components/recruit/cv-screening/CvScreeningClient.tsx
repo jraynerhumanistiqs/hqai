@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
 import {
   type CandidateScreening,
@@ -324,58 +324,27 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             <p className="text-xs text-mid px-4 py-3">No saved scoring criteria yet. Create one from a job ad or description and save it to reuse for future roles.</p>
           )}
           {customOpen && customFamilies.map(fam => (
-            <div key={fam.familyId}>
-              {/* Family header - only render if there are 2+ versions */}
-              {fam.versions.length > 1 && (
-                <div className="px-4 pt-2 pb-1 bg-bg-elevated">
-                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider truncate">{fam.familyLabel}</p>
-                </div>
-              )}
-              {fam.versions.map((cr) => {
-                const cohort = screenings.filter(s => s.rubric_id === cr.id).length
-                const subParts = [
-                  `v${cr.version_number ?? 1}`,
-                  cohort > 0 ? `${cohort} scored` : 'no candidates yet',
-                  fam.versions.length === 1 ? new Date(cr.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : null,
-                ].filter(Boolean) as string[]
-                return (
-                  <RubricRow
-                    key={cr.id}
-                    label={fam.versions.length === 1 ? cr.label : `${cr.label_family ?? cr.label} (v${cr.version_number ?? 1})`}
-                    sub={subParts.join(' - ')}
-                    selected={rubricId === cr.id}
-                    onSelect={() => { setRubricId(cr.id); setMobileShowList(false) }}
-                    renaming={renamingRubricId === cr.id}
-                    renameDraft={rubricRenameDraft}
-                    onRenameDraft={setRubricRenameDraft}
-                    onCommitRename={() => renameCustomRubric(cr.id)}
-                    onCancelRename={() => setRenamingRubricId(null)}
-                    onStartRename={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
-                    onStartEditCriteria={() => setEditingRubric(cr)}
-                    confirmDelete={confirmDeleteRubricId === cr.id}
-                    onConfirmDelete={() => deleteCustomRubric(cr.id)}
-                    onAskDelete={() => setConfirmDeleteRubricId(cr.id)}
-                    onCancelDelete={() => setConfirmDeleteRubricId(null)}
-                    versionBadge={fam.versions.length > 1 ? `v${cr.version_number ?? 1}` : undefined}
-                  />
-                )
-              })}
-            </div>
-          ))}
-
-          <RubricGroupHeader label="HQ.ai starter library" count={standardCount} open={standardOpen} onToggle={() => setStandardOpen(v => !v)} tone="draft" />
-          {standardOpen && ALL_RUBRICS.map(r => (
-            <RubricRow
-              key={r.rubric_id}
-              label={r.role}
-              sub="AU-tuned, blind by default"
-              selected={rubricId === r.rubric_id}
-              onSelect={() => { setRubricId(r.rubric_id); setMobileShowList(false) }}
-              readOnly
-              savingToLibrary={savingStarterId === r.rubric_id}
-              onSaveToLibrary={() => saveStarterToLibrary(r)}
+            <RubricFamily
+              key={fam.familyId}
+              family={fam}
+              screenings={screenings}
+              rubricId={rubricId}
+              setRubricId={(id) => { setRubricId(id); setMobileShowList(false) }}
+              renamingRubricId={renamingRubricId}
+              rubricRenameDraft={rubricRenameDraft}
+              setRubricRenameDraft={setRubricRenameDraft}
+              renameCustomRubric={renameCustomRubric}
+              setRenamingRubricId={setRenamingRubricId}
+              setEditingRubric={setEditingRubric}
+              confirmDeleteRubricId={confirmDeleteRubricId}
+              deleteCustomRubric={deleteCustomRubric}
+              setConfirmDeleteRubricId={setConfirmDeleteRubricId}
             />
           ))}
+
+          {/* HQ.ai starter library removed per founder request - users
+              create their own criteria from the job ad via the
+              "+ New scoring criteria" affordance above. */}
         </div>
       </div>
 
@@ -811,6 +780,129 @@ function RubricGroupHeader({
 // hover, with inline rename and a confirm step on delete. The pencil icon
 // opens the criteria editor (creates a new version); the inline rename
 // path is reserved for label-only changes.
+// A "family" of rubrics is one role with one-or-many versions. Each
+// family renders as its own collapsible dropdown inside the Saved
+// Criteria list, expanding to show every version of that role. The
+// family auto-opens when the active rubricId belongs to one of its
+// versions, so the user always sees their current selection in context.
+function RubricFamily({
+  family,
+  screenings,
+  rubricId,
+  setRubricId,
+  renamingRubricId,
+  rubricRenameDraft,
+  setRubricRenameDraft,
+  renameCustomRubric,
+  setRenamingRubricId,
+  setEditingRubric,
+  confirmDeleteRubricId,
+  deleteCustomRubric,
+  setConfirmDeleteRubricId,
+}: {
+  family: { familyId: string; familyLabel: string; versions: CustomRubricRow[] }
+  screenings: CandidateScreening[]
+  rubricId: string
+  setRubricId: (id: string) => void
+  renamingRubricId: string | null
+  rubricRenameDraft: string
+  setRubricRenameDraft: (s: string) => void
+  renameCustomRubric: (id: string) => void
+  setRenamingRubricId: (s: string | null) => void
+  setEditingRubric: (r: CustomRubricRow | null) => void
+  confirmDeleteRubricId: string | null
+  deleteCustomRubric: (id: string) => void
+  setConfirmDeleteRubricId: (s: string | null) => void
+}) {
+  const single = family.versions.length === 1
+  const familyContainsActive = family.versions.some(v => v.id === rubricId)
+  const [open, setOpen] = useState(single || familyContainsActive)
+  // Keep open in sync when the active rubric changes to a member of this family.
+  useEffect(() => {
+    if (familyContainsActive) setOpen(true)
+  }, [familyContainsActive])
+
+  // Single-version families don't need a wrapping dropdown - render the
+  // row directly so the sidebar doesn't have an extra layer of UI for
+  // roles the user has only iterated on once.
+  if (single) {
+    const cr = family.versions[0]
+    const cohort = screenings.filter(s => s.rubric_id === cr.id).length
+    const sub = [
+      `v${cr.version_number ?? 1}`,
+      cohort > 0 ? `${cohort} scored` : 'no candidates yet',
+      new Date(cr.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }),
+    ].join(' - ')
+    return (
+      <RubricRow
+        label={cr.label}
+        sub={sub}
+        selected={rubricId === cr.id}
+        onSelect={() => setRubricId(cr.id)}
+        renaming={renamingRubricId === cr.id}
+        renameDraft={rubricRenameDraft}
+        onRenameDraft={setRubricRenameDraft}
+        onCommitRename={() => renameCustomRubric(cr.id)}
+        onCancelRename={() => setRenamingRubricId(null)}
+        onStartRename={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
+        onStartEditCriteria={() => setEditingRubric(cr)}
+        confirmDelete={confirmDeleteRubricId === cr.id}
+        onConfirmDelete={() => deleteCustomRubric(cr.id)}
+        onAskDelete={() => setConfirmDeleteRubricId(cr.id)}
+        onCancelDelete={() => setConfirmDeleteRubricId(null)}
+      />
+    )
+  }
+
+  // Multi-version family - render a clickable header that toggles open
+  // to reveal each version of the role. Picking a version sets the
+  // active rubric (and switching versions happens here, in the sidebar,
+  // never in the main page).
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center gap-2 px-4 py-2.5 border-b border-border text-left transition-colors ${familyContainsActive ? 'bg-light/40' : 'hover:bg-light/60'}`}
+        aria-expanded={open}
+      >
+        <span className="flex-1 text-sm font-bold text-charcoal truncate">{family.familyLabel}</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
+          {family.versions.length} version{family.versions.length === 1 ? '' : 's'}
+        </span>
+        <svg className={`w-4 h-4 text-mid transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+        </svg>
+      </button>
+      {open && family.versions.map(cr => {
+        const cohort = screenings.filter(s => s.rubric_id === cr.id).length
+        const sub = [`v${cr.version_number ?? 1}`, cohort > 0 ? `${cohort} scored` : 'no candidates yet'].join(' - ')
+        return (
+          <div key={cr.id} className="pl-4 bg-bg-elevated">
+            <RubricRow
+              label={`v${cr.version_number ?? 1}`}
+              sub={sub}
+              selected={rubricId === cr.id}
+              onSelect={() => setRubricId(cr.id)}
+              renaming={renamingRubricId === cr.id}
+              renameDraft={rubricRenameDraft}
+              onRenameDraft={setRubricRenameDraft}
+              onCommitRename={() => renameCustomRubric(cr.id)}
+              onCancelRename={() => setRenamingRubricId(null)}
+              onStartRename={() => { setRenamingRubricId(cr.id); setRubricRenameDraft(cr.label) }}
+              onStartEditCriteria={() => setEditingRubric(cr)}
+              confirmDelete={confirmDeleteRubricId === cr.id}
+              onConfirmDelete={() => deleteCustomRubric(cr.id)}
+              onAskDelete={() => setConfirmDeleteRubricId(cr.id)}
+              onCancelDelete={() => setConfirmDeleteRubricId(null)}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function RubricRow({
   label, sub, selected, onSelect, readOnly, versionBadge,
   renaming, renameDraft, onRenameDraft, onCommitRename, onCancelRename, onStartRename,

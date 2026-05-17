@@ -531,7 +531,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             mobile screenshots. */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink leading-tight">{session.role_title}</h2>
+            <h2 className="font-sans text-xl sm:text-2xl font-bold text-ink leading-tight tracking-tight">{session.role_title}</h2>
             <p className="text-sm text-mid mt-1">{session.company}</p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:mt-1">

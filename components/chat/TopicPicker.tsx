@@ -12,7 +12,7 @@ const TOPICS: Topic[] = [
   {
     id: 'employment_law_2026',
     emoji: '⚖️',
-    title: 'Employment Law & Entitlements (2026)',
+    title: 'Employment Law & Entitlements',
     questions: [
       'When does Payday Super start?',
       'What is the Right to Disconnect?',
@@ -68,8 +68,8 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
   const [selected, setSelected] = useState<Topic | null>(null)
 
   return (
-    <div className="max-w-3xl mx-auto px-2 pt-6 pb-4">
-      <div className="text-center mb-8">
+    <div className="max-w-3xl mx-auto px-2 pt-2 pb-2">
+      <div className="text-center mb-5">
         <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
           {userName ? `${greeting}, ${userName}` : greeting}
         </h2>

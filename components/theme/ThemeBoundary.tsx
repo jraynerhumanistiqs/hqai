@@ -46,13 +46,16 @@ export default function ThemeBoundary({ app, children }: ThemeBoundaryProps) {
   return (
     <ThemeProvider
       attribute="class"
-      // Marketing routes stay light (per brand-kit Option 2). Product
-      // surfaces follow the user's system preference now that the A4
-      // chrome audit has migrated the bg-white / text-black literals
-      // onto theme-aware tokens; dark mode renders correctly there.
-      defaultTheme={app === 'marketing' ? 'light' : 'system'}
-      enableSystem={app === 'product'}
-      forcedTheme={app === 'marketing' ? 'light' : undefined}
+      // Light forced everywhere again. The Option 3 dark variant is
+      // defined in globals.css but Campaign Coach, Shortlist process
+      // flow, and other product surfaces still have hardcoded dark
+      // panels that flip wrong under `.dark`. The dark variant will
+      // re-enable once every product surface has been individually
+      // audited (Campaign Coach + Shortlist + Recruit dashboards are
+      // the remaining offenders).
+      defaultTheme="light"
+      enableSystem={false}
+      forcedTheme="light"
       disableTransitionOnChange
     >
       <DataAppScope app={app} />

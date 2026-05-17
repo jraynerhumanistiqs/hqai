@@ -150,11 +150,12 @@ export async function POST(req: NextRequest) {
   }
 
   // 4. Persist
+  // documents.created_by column doesn't exist (legacy schema). Don't
+  // insert it.
   const { data: row, error: insertErr } = await supabaseAdmin
     .from('documents')
     .insert({
       business_id: null,
-      created_by:  null,
       title:       doc.title,
       content:     doc.sections.map(s => (s.title ? `## ${s.title}\n` : '') + s.blocks.map(b => 'text' in b ? b.text : '').filter(Boolean).join('\n\n')).join('\n\n'),
       structured_payload: doc,
