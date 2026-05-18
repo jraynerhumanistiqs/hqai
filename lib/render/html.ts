@@ -19,12 +19,18 @@ import type {
   CitationRef,
 } from '@/lib/doc-model'
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, '&amp;')
-   .replace(/</g, '&lt;')
-   .replace(/>/g, '&gt;')
-   .replace(/"/g, '&quot;')
-   .replace(/'/g, '&#39;')
+// Defensive escapeHtml - the Claude tool-use output sometimes leaves
+// a block's text field undefined. Without the coercion below we
+// crashed with "Cannot read properties of undefined (reading 'replace')"
+// on the very first PDF / HTML render.
+const escapeHtml = (s: unknown): string => {
+  const str = (s === null || s === undefined) ? '' : String(s)
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+}
 
 function citationFootnoteHtml(c: CitationRef): string {
   const parts: string[] = []
@@ -34,7 +40,8 @@ function citationFootnoteHtml(c: CitationRef): string {
   return parts.join(' &middot; ')
 }
 
-function blockHtml(block: DocumentBlock, citationsMap: Map<string, number>): string {
+function blockHtml(block: DocumentBlock | undefined | null, citationsMap: Map<string, number>): string {
+  if (!block || typeof block !== 'object') return ''
   // Translate a citations[] array of citation ids on a block into the
   // superscript-numbered refs that appear at the end of the prose.
   const refSpan = (ids?: string[]) => {

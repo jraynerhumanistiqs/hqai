@@ -96,9 +96,25 @@ BRANDING
 function buildPrompt(body: GenerateBody): string {
   if (body.prompt && body.prompt.trim()) return body.prompt.trim()
   const tpl = body.template_id ? getTemplateById(body.template_id) : null
-  const inputsBlock = body.inputs && Object.keys(body.inputs).length
-    ? '\n\nInputs:\n' + Object.entries(body.inputs).map(([k, v]) => `- ${k}: ${v}`).join('\n')
-    : ''
+
+  // The previous prompt listed inputs as bullet points only. Claude
+  // routinely produced a document that read like a generic template
+  // (headings + boilerplate paragraphs) without actually using the
+  // recruiter-supplied values - hence "no information is flowing
+  // through from form to document - just headings".
+  //
+  // We now hand the inputs over as a hard-coded data table AND repeat
+  // each one as a directive so the model can't miss them. Empty
+  // values are dropped entirely so blank fields don't end up in the
+  // doc as literal "TBD" / "{{candidate_name}}" placeholders.
+  const inputs = (body.inputs ?? {})
+  const filled = Object.entries(inputs).filter(([, v]) => typeof v === 'string' && v.trim().length > 0)
+  const inputsBlock = filled.length
+    ? `\n\nUSE THESE EXACT VALUES IN THE DOCUMENT. Do not paraphrase, do not invent placeholders, do not skip them. Each value MUST appear in the rendered output:\n` +
+      filled.map(([k, v]) => `- ${k}: "${v}"`).join('\n') +
+      `\n\nWhere a value is a name, place it on the recipient block AND inside the body prose so the document reads naturally. Where a value is a date, format it DD/MM/YYYY. Where a value is a money amount, format it as AUD (eg "$85,000 per annum, plus superannuation").`
+    : '\n\n(No inputs provided - generate generic example wording the recruiter can replace.)'
+
   if (tpl) {
     const tplInstr = (tpl as { promptInstructions?: string }).promptInstructions
     const tplLine = tplInstr ? `\n\nTemplate guidance: ${tplInstr}` : ''
@@ -106,12 +122,22 @@ function buildPrompt(body: GenerateBody): string {
 
 ${BEST_PRACTICE_FORMATTING}
 
-Template description: ${tpl.description}${tplLine}${inputsBlock}`
+Template description: ${tpl.description}${tplLine}${inputsBlock}
+
+REQUIRED OUTPUT SHAPE - emit a StructuredDocument with:
+- title (use the template title above, optionally suffixed with the candidate / role / employee name from the inputs if one was supplied).
+- recipient block populated from the candidate / employee / addressee inputs.
+- issuer block populated from the business profile (business_name from the system context, plus signatory_name / signatory_role if supplied).
+- sections[] with at least one paragraph block per major heading - never emit a heading-only section. Each paragraph MUST contain real prose that incorporates the inputs above, not "[insert details here]" placeholders.
+- citations[] referencing the Fair Work Act / NES / Modern Award clauses you relied on.`
   }
+
   return `Generate a structured HR document for an Australian SME.
 
 ${BEST_PRACTICE_FORMATTING}
-${inputsBlock}`
+${inputsBlock}
+
+REQUIRED OUTPUT SHAPE - emit a StructuredDocument where every section has real paragraph text that incorporates the inputs above. Headings without prose are not acceptable.`
 }
 
 export async function POST(req: NextRequest) {
@@ -158,7 +184,28 @@ export async function POST(req: NextRequest) {
   const intent = body.intent ?? 'administrator-template-fill'
   const model = resolveModel({ tool: 'administrator', intent })
 
-  const systemText = `You are an Australian HR document generator. You write professional, plain-English HR documents grounded in the Fair Work Act 2009 (Cth), the NES, and the relevant Modern Award. Australian English: organise, behaviour, optimise. Plain hyphens only - never em-dashes or en-dashes. Use the emit_document tool exactly once with the full structured document.`
+  // Pass the live business profile to the model so it doesn't make up
+  // an issuer block. The model has been seen to invent business names,
+  // ABNs and addresses when these weren't present in the prompt, even
+  // though the inputs blob was right there. Stating them in the system
+  // prompt (cached) closes that gap.
+  const issuerContext = [
+    business.name ? `Business name: ${business.name}` : null,
+    business.industry ? `Industry: ${business.industry}` : null,
+    business.state ? `State: ${business.state}` : null,
+    business.award ? `Modern Award: ${business.award}` : null,
+  ].filter(Boolean).join('\n')
+
+  const systemText = `You are an Australian HR document generator. You write professional, plain-English HR documents grounded in the Fair Work Act 2009 (Cth), the NES, and the relevant Modern Award. Australian English: organise, behaviour, optimise. Plain hyphens only - never em-dashes or en-dashes. Use the emit_document tool exactly once with the full structured document.
+
+NON-NEGOTIABLE BEHAVIOUR:
+1. Use the recruiter-supplied input values EXACTLY as provided. Never substitute placeholders like "[Candidate Name]" or "TBD". Never paraphrase a name. Never invent a date / salary / role title the recruiter did not supply.
+2. Every section MUST contain at least one paragraph block with real prose. Heading-only sections are rejected.
+3. Names and dates from the inputs must appear inside the body text, not only in the recipient/issuer header.
+4. Use the issuer business profile below for the issuer block - do not invent business names.
+
+ISSUER BUSINESS PROFILE (use verbatim):
+${issuerContext || '(no business profile on file - use a generic placeholder)'}`
 
   let res: Anthropic.Messages.Message
   try {

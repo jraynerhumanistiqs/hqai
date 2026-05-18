@@ -12,7 +12,7 @@
 // + multi-format export as the first surface; richer block-level
 // editing lands as a follow-up.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { TemplateFormField } from '@/lib/template-ip'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,10 @@ export default function AdministratorClient({ templates, categories, initialTemp
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const [previewHtml, setPreviewHtml] = useState<string>('')
+  const [previewTitle, setPreviewTitle] = useState<string>('')
+  const [downloading, setDownloading] = useState(false)
+  const editableRef = useRef<HTMLDivElement | null>(null)
 
   const active = useMemo(() => templates.find(t => t.id === activeId) ?? null, [templates, activeId])
   const filtered = useMemo(() => {
@@ -54,7 +58,67 @@ export default function AdministratorClient({ templates, categories, initialTemp
     setActiveId(id)
     setInputs({})
     setPreviewId(null)
+    setPreviewHtml('')
+    setPreviewTitle('')
     setError(null)
+  }
+
+  // Strip <html>/<head>/<style>/etc from the rendered HTML so we can
+  // mount just the document body inside the editable pane. We keep
+  // <main class="doc-page"> as the wrapper.
+  function extractDocBody(html: string): string {
+    const main = html.match(/<main[^>]*class="doc-page"[^>]*>([\s\S]*?)<\/main>/i)
+    if (main && main[1]) return main[1]
+    // Fallback: strip <head> and the outer html tags so the body content survives.
+    const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
+    return body?.[1] ?? html
+  }
+
+  async function loadPreview(id: string) {
+    try {
+      const res = await fetch(`/api/administrator/documents/${id}/render?format=html`, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`Preview HTTP ${res.status}`)
+      const full = await res.text()
+      setPreviewHtml(extractDocBody(full))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load preview')
+    }
+  }
+
+  useEffect(() => {
+    if (previewId) void loadPreview(previewId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewId])
+
+  async function downloadPdf() {
+    if (!previewId || !editableRef.current) return
+    setDownloading(true)
+    setError(null)
+    try {
+      const html = editableRef.current.innerHTML
+      const res = await fetch(`/api/administrator/documents/${previewId}/render-html`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html, title: previewTitle || active?.title || 'document' }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({} as { detail?: string }))
+        throw new Error(data?.detail || `HTTP ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${(previewTitle || active?.title || 'document').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'PDF download failed')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   async function generate() {
@@ -77,6 +141,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
         throw new Error(data?.error || data?.detail || `HTTP ${res.status}`)
       }
       setPreviewId(data.id)
+      setPreviewTitle(data?.document?.title ?? active.title)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed')
     } finally {
@@ -114,8 +179,8 @@ export default function AdministratorClient({ templates, categories, initialTemp
           Every HR document you need, in under 3 minutes.
         </h1>
         <p className="text-body text-ink-soft mb-3 max-w-2xl">
-          Pick a template, fill the form, generate. Download as DOCX,
-          PDF or PPTX, or send a shareable web link.
+          Pick a template, fill the form, generate. Edit the draft inline
+          and download a final PDF when you&apos;re happy.
         </p>
         <p className="text-small text-ink-soft mb-6">
           Have an existing CV or contract?{' '}
@@ -186,8 +251,8 @@ export default function AdministratorClient({ templates, categories, initialTemp
                     <li><strong className="text-ink">Pick a template</strong> from the gallery above. Search and filters narrow the 33-doc library quickly.</li>
                     <li><strong className="text-ink">Fill the form on the right.</strong> Anything unusual goes in the notes field; the model will fold it into the body.</li>
                     <li><strong className="text-ink">Generate</strong> and inspect the live preview that appears next to the form. Read the footnoted citations - they tell you which clauses the document leaned on.</li>
-                    <li><strong className="text-ink">Download or share.</strong> DOCX for editing, PDF for sending, PPTX for board reports, or a web link the recipient can open without a login.</li>
-                    <li><strong className="text-ink">Iterate.</strong> If a section is off, edit it in Word or come back, tweak the inputs and regenerate. Each run costs 1 credit (2 for complex contracts).</li>
+                    <li><strong className="text-ink">Edit inline.</strong> The preview is a live editor - click any sentence to refine the wording before you export.</li>
+                    <li><strong className="text-ink">Download PDF.</strong> Your edits and the uploaded logo flow straight into the export. Each generate costs 1 credit (2 for complex contracts).</li>
                   </ol>
                 </div>
               </div>
@@ -239,10 +304,10 @@ export default function AdministratorClient({ templates, categories, initialTemp
               <section className="bg-bg-soft rounded-2xl p-5">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">What to check before you send</p>
                 <ol className="space-y-2 text-xs text-ink-soft leading-relaxed list-decimal pl-4">
-                  <li>Open the live preview and skim the citations panel - does each section have a citation that makes sense?</li>
+                  <li>Skim the citations panel - does each section have a citation that makes sense?</li>
                   <li>Compare the remuneration figures and dates against your offer/role record. The model uses what you typed; it does not double-check.</li>
                   <li>Verify the candidate name + role title spelling.</li>
-                  <li>Read the document end-to-end before downloading. Edit in Word for fine wording changes.</li>
+                  <li>Edit any wording directly in the preview, then click Download PDF.</li>
                 </ol>
                 <p className="text-[11px] text-ink-muted italic mt-3 leading-relaxed">
                   HQ.ai does not give legal advice. Treat each draft as a strong starting point; your signature is what makes it real.
@@ -283,45 +348,40 @@ export default function AdministratorClient({ templates, categories, initialTemp
 
               <section className="bg-bg-elevated border border-border rounded-2xl p-3 min-h-[480px] flex flex-col">
                 <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live preview</p>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live editor</p>
+                    {previewId && (
+                      <p className="text-[10px] text-ink-muted mt-0.5">Click anywhere in the document to edit. Your edits are included in the PDF.</p>
+                    )}
+                  </div>
                   {previewId && (
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/doc/${previewId}`}
-                        target="_blank"
-                        className="text-xs font-bold text-ink hover:text-accent"
-                      >
-                        Open shareable link
-                      </Link>
-                      <span aria-hidden className="text-ink-muted">·</span>
-                      <a
-                        href={`/api/administrator/documents/${previewId}/render?format=pdf`}
-                        className="text-xs font-bold text-ink hover:text-accent"
-                      >
-                        PDF
-                      </a>
-                      <a
-                        href={`/api/administrator/documents/${previewId}/render?format=docx`}
-                        className="text-xs font-bold text-ink hover:text-accent"
-                      >
-                        DOCX
-                      </a>
-                      <a
-                        href={`/api/administrator/documents/${previewId}/render?format=pptx`}
-                        className="text-xs font-bold text-ink hover:text-accent"
-                      >
-                        PPTX
-                      </a>
-                    </div>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={downloadPdf}
+                      disabled={downloading || !previewHtml}
+                    >
+                      {downloading ? 'Preparing PDF...' : 'Download PDF'}
+                    </Button>
                   )}
                 </div>
                 {previewId ? (
-                  <iframe
-                    title="Document preview"
-                    src={`/api/administrator/documents/${previewId}/render?format=html`}
-                    className="flex-1 bg-bg-elevated rounded-md mt-2"
-                    style={{ border: 0, minHeight: '460px' }}
-                  />
+                  previewHtml ? (
+                    <div
+                      ref={editableRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      role="textbox"
+                      aria-label="Document body - editable"
+                      spellCheck
+                      className="flex-1 mt-2 bg-white rounded-md p-6 sm:p-8 overflow-y-auto scrollbar-thin text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                      style={{ minHeight: '460px', maxHeight: '70vh' }}
+                      dangerouslySetInnerHTML={{ __html: previewHtml }}
+                    />
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-xs text-ink-muted">Loading preview...</div>
+                  )
                 ) : (
                   <div className="flex-1 flex items-center justify-center text-xs text-ink-muted">
                     {busy ? 'Generating...' : 'Fill the form and click Generate to see the document here.'}
