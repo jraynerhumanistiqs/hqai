@@ -40,16 +40,12 @@ function citationFootnoteHtml(c: CitationRef): string {
   return parts.join(' &middot; ')
 }
 
-function blockHtml(block: DocumentBlock | undefined | null, citationsMap: Map<string, number>): string {
+function blockHtml(block: DocumentBlock | undefined | null, _citationsMap: Map<string, number>): string {
   if (!block || typeof block !== 'object') return ''
-  // Translate a citations[] array of citation ids on a block into the
-  // superscript-numbered refs that appear at the end of the prose.
-  const refSpan = (ids?: string[]) => {
-    if (!ids?.length) return ''
-    const nums = ids.map(id => citationsMap.get(id)).filter((n): n is number => typeof n === 'number')
-    if (!nums.length) return ''
-    return ' <sup class="cite-ref">[' + nums.join(',') + ']</sup>'
-  }
+  // Citations are stripped server-side now. refSpan returns '' so any
+  // citations[] still attached to a block (defensive: in case the
+  // strip pass misses something) becomes a no-op.
+  const refSpan = (_ids?: string[]) => ''
 
   switch (block.type) {
     case 'heading': {
@@ -241,16 +237,9 @@ export function renderHtml(doc: StructuredDocument): string {
     return `<section class="doc-section">${title}${blocks}</section>`
   }).join('\n')
 
-  // Footnote-style citations panel - only emitted if there are any.
-  const citationsPanel = citationOrder.length
-    ? `<footer class="doc-citations">
-         <h2>Citations</h2>
-         <ol>${citationOrder.map(id => {
-           const c = doc.citations?.find(cc => cc.id === id)
-           return c ? `<li>${citationFootnoteHtml(c)}</li>` : ''
-         }).join('')}</ol>
-       </footer>`
-    : ''
+  // Citations panel deliberately omitted - founder requirement to
+  // never surface citations in client-facing generated documents.
+  const citationsPanel = ''
 
   // Best-practice formatting: when the issuing business has uploaded a
   // logo (stored on profiles.businesses.logo_url, forwarded by the

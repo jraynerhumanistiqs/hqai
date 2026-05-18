@@ -65,7 +65,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  let body: { html?: string; title?: string }
+  interface Settings {
+    size?: 'A4' | 'Letter'
+    marginTopMm?: number
+    marginRightMm?: number
+    marginBottomMm?: number
+    marginLeftMm?: number
+    headerHtml?: string
+    footerHtml?: string
+  }
+  let body: { html?: string; title?: string; settings?: Settings }
   try {
     body = await req.json()
   } catch {
@@ -74,6 +83,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!body.html || typeof body.html !== 'string') {
     return NextResponse.json({ error: 'html required' }, { status: 400 })
   }
+  const s = body.settings ?? {}
+  const pageSize = s.size === 'Letter' ? 'Letter' : 'A4'
+  const mt = typeof s.marginTopMm    === 'number' ? s.marginTopMm    : 24
+  const mr = typeof s.marginRightMm  === 'number' ? s.marginRightMm  : 22
+  const mb = typeof s.marginBottomMm === 'number' ? s.marginBottomMm : 24
+  const ml = typeof s.marginLeftMm   === 'number' ? s.marginLeftMm   : 22
 
   // Look up the document to confirm the caller actually owns it - the
   // edited HTML is a side-channel input, not a persisted state, so we
@@ -87,7 +102,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const title = (body.title || row.title || 'document').toString()
 
-  const fullHtml = `<!DOCTYPE html><html lang="en-AU"><head><meta charset="utf-8" /><title>${title}</title><style>${PRINT_CSS}</style></head><body><main class="doc-page">${body.html}</main></body></html>`
+  // Inline header/footer using Puppeteer's headerTemplate/footerTemplate
+  // so they appear inside the page margins on every page. The body html
+  // is the editor content, headed by the optional in-doc header band.
+  const headerHtml = s.headerHtml ?? ''
+  const footerHtml = s.footerHtml ?? ''
+  const pageCss = `@page { size: ${pageSize}; margin: ${mt}mm ${mr}mm ${mb}mm ${ml}mm; }`
+  const fullHtml = `<!DOCTYPE html><html lang="en-AU"><head><meta charset="utf-8" /><title>${title}</title><style>${PRINT_CSS}\n${pageCss}</style></head><body><main class="doc-page">${body.html}</main></body></html>`
+
+  // Header/footer templates Puppeteer accepts. They render at the very
+  // top/bottom of every page in a 12mm strip. We wrap the html the
+  // caller supplied in a small base style so font + size match.
+  const headerTpl = headerHtml
+    ? `<div style="font-size:9px;color:#52524C;width:100%;padding:0 ${mr}mm 0 ${ml}mm;font-family:'Inter',system-ui,sans-serif;">${headerHtml}</div>`
+    : '<div></div>'
+  const footerTpl = footerHtml
+    ? `<div style="font-size:9px;color:#52524C;width:100%;padding:0 ${mr}mm 0 ${ml}mm;font-family:'Inter',system-ui,sans-serif;display:flex;justify-content:space-between;"><span>${footerHtml}</span><span class="pageNumber"></span></div>`
+    : '<div></div>'
 
   try {
     const puppeteer = await import('puppeteer-core')
@@ -103,10 +134,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const page = await browser.newPage()
       await page.setContent(fullHtml, { waitUntil: 'networkidle0' })
       const pdf = await page.pdf({
-        format: 'A4',
+        format: pageSize,
         printBackground: true,
         preferCSSPageSize: true,
-        margin: { top: '24mm', right: '22mm', bottom: '24mm', left: '22mm' },
+        margin: { top: `${mt}mm`, right: `${mr}mm`, bottom: `${mb}mm`, left: `${ml}mm` },
+        displayHeaderFooter: !!(headerHtml || footerHtml),
+        headerTemplate: headerTpl,
+        footerTemplate: footerTpl,
       })
       return new Response(Buffer.from(pdf) as unknown as BodyInit, {
         headers: {

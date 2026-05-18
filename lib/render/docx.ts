@@ -242,7 +242,8 @@ export async function renderDocx(doc: StructuredDocument): Promise<Buffer> {
   }
 
   const sectionsEls = doc.sections.flatMap(sectionParagraphs)
-  const citationsEls = citationsBlock(doc.citations)
+  // Citations deliberately omitted - founder requirement.
+  const citationsEls: Array<Paragraph | Table> = []
 
   // Best-practice formatting - if the issuing business has a logo on
   // file (forwarded by the generate route via doc.metadata.issuer_logo_url

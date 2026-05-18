@@ -75,12 +75,9 @@ STRUCTURE
   witness where appropriate).
 
 CITATIONS
-- Reference every legal claim. Citations[] must list:
-    Fair Work Act 2009 (Cth) sections used (with section number),
-    the relevant Modern Award (with clause if specific),
-    NES entitlements you refer to, and any state legislation cited.
-- Use locator strings like "s 117(1)" or "cl 12.3".
-- Include short verbatim quote where the wording is contested.
+- Do NOT emit a citations[] array. Do NOT add a citations panel,
+  footnotes, references or "Sources" list to the generated document.
+  This is a recruiter-facing letter, not a legal opinion.
 
 LANGUAGE
 - Australian English throughout (organise, behaviour, optimise).
@@ -131,7 +128,7 @@ REQUIRED OUTPUT SHAPE - emit a StructuredDocument with:
 - recipient block populated from the candidate / employee / addressee inputs.
 - issuer block populated from the business profile (business_name from the system context, plus signatory_name / signatory_role if supplied).
 - sections[] with at least one paragraph block per major heading - never emit a heading-only section. Each paragraph MUST contain real prose that incorporates the inputs above, not "[insert details here]" placeholders.
-- citations[] referencing the Fair Work Act / NES / Modern Award clauses you relied on.`
+- DO NOT include any citations[] array or references panel.`
   }
 
   return `Generate a structured HR document for an Australian SME.
@@ -235,6 +232,15 @@ ${issuerContext || '(no business profile on file - use a generic placeholder)'}`
     doc = assertStructuredDocument(toolBlock.input)
   } catch (err) {
     return NextResponse.json({ error: 'Invalid structured document', detail: (err as Error).message }, { status: 422 })
+  }
+  // Founder request: never include a citations panel in generated
+  // documents. The model still occasionally emits one even after the
+  // prompt forbids it, so we strip it server-side as a backstop.
+  doc.citations = []
+  for (const section of doc.sections) {
+    for (const block of section.blocks) {
+      if ('citations' in block) delete (block as { citations?: unknown }).citations
+    }
   }
 
   // Heading-only retry. If the model emitted sections with titles but

@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { TemplateFormField } from '@/lib/template-ip'
 import { Button } from '@/components/ui/button'
+import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/administrator/DocEditor'
 
 interface TemplateLite {
   id: string
@@ -42,7 +43,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
   const [previewHtml, setPreviewHtml] = useState<string>('')
   const [previewTitle, setPreviewTitle] = useState<string>('')
   const [downloading, setDownloading] = useState(false)
-  const editableRef = useRef<HTMLDivElement | null>(null)
+  const editorRef = useRef<DocEditorHandle | null>(null)
 
   const active = useMemo(() => templates.find(t => t.id === activeId) ?? null, [templates, activeId])
   const filtered = useMemo(() => {
@@ -91,15 +92,20 @@ export default function AdministratorClient({ templates, categories, initialTemp
   }, [previewId])
 
   async function downloadPdf() {
-    if (!previewId || !editableRef.current) return
+    if (!previewId || !editorRef.current) return
     setDownloading(true)
     setError(null)
     try {
-      const html = editableRef.current.innerHTML
+      const html = editorRef.current.getHTML()
+      const settings: PageSettings = editorRef.current.getPageSettings()
       const res = await fetch(`/api/administrator/documents/${previewId}/render-html`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html, title: previewTitle || active?.title || 'document' }),
+        body: JSON.stringify({
+          html,
+          title: previewTitle || active?.title || 'document',
+          settings,
+        }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({} as { detail?: string }))
@@ -240,8 +246,8 @@ export default function AdministratorClient({ templates, categories, initialTemp
                   <p className="text-sm font-bold text-ink mb-2">What the engine does</p>
                   <ul className="space-y-2 text-xs text-ink-soft leading-relaxed list-disc pl-4">
                     <li>Maps the template you choose to a Fair Work + NES grounded prompt and runs it through Claude with the structured document tool.</li>
-                    <li>Returns one block tree (headings, paragraphs, lists, tables, signatures, citations) that renders identically to DOCX, PDF, PPTX and the shareable web link.</li>
-                    <li>Cites every legal claim back to the Act, the relevant Modern Award or NES section so you can spot-check the source.</li>
+                    <li>Returns a clean, recruiter-facing document with headings, paragraphs, lists, tables and signature blocks - no citations panel.</li>
+                    <li>Grounds wording in the Fair Work Act, NES and the relevant Modern Award without surfacing references on the page.</li>
                     <li>Drops your uploaded business logo into the footer of every export automatically.</li>
                   </ul>
                 </div>
@@ -295,7 +301,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
                   <li>The form on the right collects the minimum fields the document needs. Anything you leave blank, the model will phrase generically.</li>
                   <li>Use the <strong className="text-ink">notes</strong> field for clauses unique to this hire or situation. The model folds them in verbatim.</li>
                   <li>Australian English + plain hyphens are forced. Em-dashes will not appear in the output.</li>
-                  <li>The draft cites every legal claim back to the Fair Work Act, NES or the relevant Modern Award. The citations panel at the end of the document lists them.</li>
+                  <li>The draft is grounded in the Fair Work Act, NES and the relevant Modern Award but is written as a recruiter-facing letter - no citations panel clutters the page.</li>
                   <li>Your uploaded business logo is fitted into the footer of every export automatically. You do not need to upload it again.</li>
                 </ul>
               </section>
@@ -303,10 +309,9 @@ export default function AdministratorClient({ templates, categories, initialTemp
               <section className="bg-bg-soft rounded-2xl p-5">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">What to check before you send</p>
                 <ol className="space-y-2 text-xs text-ink-soft leading-relaxed list-decimal pl-4">
-                  <li>Skim the citations panel - does each section have a citation that makes sense?</li>
                   <li>Compare the remuneration figures and dates against your offer/role record. The model uses what you typed; it does not double-check.</li>
                   <li>Verify the candidate name + role title spelling.</li>
-                  <li>Edit any wording directly in the preview, then click Download PDF.</li>
+                  <li>Edit any wording directly in the preview, format with the toolbar, then click Download PDF.</li>
                 </ol>
                 <p className="text-[11px] text-ink-muted italic mt-3 leading-relaxed">
                   HQ.ai does not give legal advice. Treat each draft as a strong starting point; your signature is what makes it real.
@@ -397,31 +402,11 @@ export default function AdministratorClient({ templates, categories, initialTemp
             {error && (
               <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
             )}
-            <div className="flex-1 overflow-y-auto bg-bg-soft p-4 sm:p-6 flex items-start justify-center scrollbar-thin">
-              {/* A4 page sized at 210mm x 297mm. We scale on small
-                  viewports via max-width so the inner page stays a
-                  reasonable size on a phone, but the proportions stay
-                  A4 because the print stylesheet enforces them in the
-                  exported PDF anyway. */}
+            <div className="flex-1 overflow-hidden">
               {previewHtml ? (
-                <div
-                  ref={editableRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  role="textbox"
-                  aria-label="Document body - editable"
-                  spellCheck
-                  className="bg-white shadow-card rounded-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
-                  style={{
-                    width: '210mm',
-                    minHeight: '297mm',
-                    maxWidth: '100%',
-                    padding: '24mm 22mm',
-                  }}
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
-                />
+                <DocEditor ref={editorRef} initialHtml={previewHtml} />
               ) : (
-                <div className="text-xs text-ink-muted py-12">Loading preview...</div>
+                <div className="flex items-center justify-center h-full text-xs text-ink-muted">Loading editor...</div>
               )}
             </div>
           </div>
