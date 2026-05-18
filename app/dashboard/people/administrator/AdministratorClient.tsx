@@ -402,7 +402,13 @@ export default function AdministratorClient({ templates, categories, initialTemp
             {error && (
               <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
             )}
-            <div className="flex-1 overflow-hidden">
+            {/* min-h-0 is critical here. Without it the flex child
+                resolves min-height: auto and the wrapper grows to fit
+                the A4 page inside DocEditor, which means the inner
+                overflow-y-auto pane never gets a constrained height
+                and cannot scroll. min-h-0 lets flex-1 actually
+                constrain the wrapper to the remaining modal space. */}
+            <div className="flex-1 min-h-0 overflow-hidden">
               {previewHtml ? (
                 <DocEditor ref={editorRef} initialHtml={previewHtml} />
               ) : (

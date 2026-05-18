@@ -150,6 +150,71 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
 
   return (
     <div className="flex flex-col h-full">
+      {/* Tailwind's preflight strips list-style + padding from <ul>
+          and <ol>, which made the bullet / numbered list buttons in
+          the toolbar look like no-ops (the editor inserted real list
+          DOM but the markers + indentation were hidden). Re-apply
+          inside the editor page only so the rest of the marketing
+          chrome isn't affected. Same fix for blockquote, headings,
+          tables and resizable images. */}
+      <style>{`
+        .doc-editor-page .ProseMirror { outline: none; }
+        .doc-editor-page .ProseMirror p { margin: 0 0 8px; }
+        .doc-editor-page .ProseMirror ul {
+          list-style: disc;
+          padding-left: 1.5rem;
+          margin: 0 0 12px;
+        }
+        .doc-editor-page .ProseMirror ol {
+          list-style: decimal;
+          padding-left: 1.5rem;
+          margin: 0 0 12px;
+        }
+        .doc-editor-page .ProseMirror ul ul { list-style: circle; }
+        .doc-editor-page .ProseMirror ul ul ul { list-style: square; }
+        .doc-editor-page .ProseMirror li { margin: 0 0 4px; }
+        .doc-editor-page .ProseMirror li > p { margin: 0; }
+        .doc-editor-page .ProseMirror h1 { font-size: 22px; font-weight: 700; margin: 18px 0 10px; }
+        .doc-editor-page .ProseMirror h2 { font-size: 18px; font-weight: 700; margin: 16px 0 8px; }
+        .doc-editor-page .ProseMirror h3 { font-size: 16px; font-weight: 700; margin: 14px 0 6px; }
+        .doc-editor-page .ProseMirror h4 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; }
+        .doc-editor-page .ProseMirror blockquote {
+          border-left: 3px solid #d1cfc5;
+          padding-left: 12px;
+          color: #5e5d59;
+          margin: 0 0 12px;
+        }
+        .doc-editor-page .ProseMirror hr {
+          border: 0;
+          border-top: 1px solid #d1cfc5;
+          margin: 16px 0;
+        }
+        .doc-editor-page .ProseMirror table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 0 0 12px;
+        }
+        .doc-editor-page .ProseMirror table td,
+        .doc-editor-page .ProseMirror table th {
+          border: 1px solid #d1cfc5;
+          padding: 6px 10px;
+          vertical-align: top;
+        }
+        .doc-editor-page .ProseMirror table th { background: #f0eee6; font-weight: 700; }
+        .doc-editor-page .ProseMirror img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 8px 0;
+        }
+        .doc-editor-page .ProseMirror .is-editor-empty:first-child::before {
+          color: #5e5d59;
+          content: attr(data-placeholder);
+          float: left;
+          height: 0;
+          pointer-events: none;
+        }
+      `}</style>
       <Toolbar
         editor={editor}
         onInsertImage={() => fileInputRef.current?.click()}
@@ -193,10 +258,15 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
       {/* The page canvas - A4 width + dynamic margins. The header/
           footer bands are pinned above/below the editor body so the
           recruiter can see them while editing, even though in the PDF
-          they sit inside the page margins. */}
-      <div className="flex-1 overflow-y-auto bg-bg-soft p-4 sm:p-6 scrollbar-thin flex justify-center">
+          they sit inside the page margins.
+
+          min-h-0 + items-start is critical: without min-h-0 the flex
+          child grows to fit the 297mm A4 page and the overflow-y-auto
+          never engages. items-start keeps the page top-aligned so the
+          scroll starts at the top of the document, not the centre. */}
+      <div className="flex-1 min-h-0 overflow-y-auto bg-bg-soft p-4 sm:p-6 scrollbar-thin flex justify-center items-start">
         <div
-          className="bg-white shadow-card rounded-sm"
+          className="bg-white shadow-card rounded-sm doc-editor-page"
           style={{
             width:    settings.size === 'A4' ? '210mm' : '216mm',
             minHeight: settings.size === 'A4' ? '297mm' : '279mm',
