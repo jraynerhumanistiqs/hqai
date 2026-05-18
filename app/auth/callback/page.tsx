@@ -1,6 +1,6 @@
 'use client'
 import { Suspense, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 // Magic link / OAuth callback. Handles three flows in one place:
@@ -11,7 +11,6 @@ import { createClient } from '@/lib/supabase/client'
 // this client-side rather than via a route handler.
 
 function CallbackInner() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [detail, setDetail] = useState<string>('')
   const [failed, setFailed] = useState(false)
@@ -37,7 +36,15 @@ function CallbackInner() {
             })
             if (error) throw new Error(error.message)
             window.history.replaceState(null, '', window.location.pathname + window.location.search)
-            router.replace(next)
+            // HARD navigation - critical. router.replace() does a soft
+            // nav so the dashboard RSC fetch can fire before the new
+            // sb-* auth cookies have settled in the browser, which
+            // makes the server-side getUser() in app/dashboard/layout.tsx
+            // come back null and the layout redirect us back to /login.
+            // A full page load forces the browser to send the fresh
+            // cookies on the request. See community thread
+            // github.com/supabase/auth-helpers/issues/588.
+            window.location.assign(next)
             return
           }
         }
@@ -47,7 +54,7 @@ function CallbackInner() {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) throw new Error(error.message)
-          router.replace(next)
+          window.location.assign(next)
           return
         }
 
@@ -61,14 +68,14 @@ function CallbackInner() {
             type: otpType,
           })
           if (error) throw new Error(error.message)
-          router.replace(next)
+          window.location.assign(next)
           return
         }
 
         // 4. Already signed in (link clicked twice / refreshed page)
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
-          router.replace(next)
+          window.location.assign(next)
           return
         }
 
@@ -81,7 +88,7 @@ function CallbackInner() {
     }
 
     run()
-  }, [router, searchParams])
+  }, [searchParams])
 
   if (!failed) {
     return (
