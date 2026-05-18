@@ -165,10 +165,23 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const claudeMessages: AnthropicMessage[] = messages.slice(-10).map((m: any) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    }))
+    // Filter empty / status-pulse-only messages before forwarding to
+    // Anthropic. Without this, follow-up turns whose previous assistant
+    // message rendered as '' (eg a doc-form placeholder bubble, or a
+    // failed stream that never produced text) cause the API to reject
+    // the whole request with "text content blocks must contain non-empty
+    // text content", manifesting as "AI Advisor fails if you follow up
+    // after submitting initial query".
+    const claudeMessages: AnthropicMessage[] = messages
+      .slice(-10)
+      .map((m: any) => {
+        let content = typeof m.content === 'string' ? m.content : ''
+        // Strip the __STATUS__ sentinel the client uses to render in-flight
+        // status pulses - it has no semantic value for the model.
+        if (content.startsWith('__STATUS__')) content = content.slice('__STATUS__'.length)
+        return { role: m.role as 'user' | 'assistant', content: content.trim() }
+      })
+      .filter((m: AnthropicMessage) => typeof m.content === 'string' && m.content.length > 0)
 
     // --- Non-'people' modules: keep legacy streaming path (no tools) ------
     if (mod !== 'people') {

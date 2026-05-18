@@ -12,6 +12,7 @@ import {
 } from '@/lib/cv-screening-types'
 import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
+import { detectBiasSignals } from '@/lib/bias-detect'
 
 export const runtime = 'nodejs'
 export const maxDuration = 120
@@ -71,6 +72,15 @@ export async function POST(req: NextRequest) {
       tenure_gap_explained: scoreResult.tenure_note ?? undefined,
     }
 
+    // Bias-trigger rule: if the candidate record contains subconscious-
+    // bias signals (ethnic name pattern, photo, DOB, etc.) we flag the
+    // screening so the UI can flip the role into anonymise-all-candidates
+    // mode automatically. See lib/bias-detect.ts for the heuristic.
+    const biasReport = detectBiasSignals({
+      candidate_name: realName || scoreResult.candidate_label,
+      cv_text: cvText,
+    })
+
     let savedId = `local-${Math.random().toString(36).slice(2, 10)}`
     let createdAt = new Date().toISOString()
 
@@ -94,6 +104,7 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
           rationale_short: scoreResult.rationale_short,
           criteria_scores: scoreResult.criteria_scores,
           fairness_checks: fairness,
+          bias_signals: biasReport.signals.length > 0 ? biasReport.signals : null,
           status: 'scored',
         })
         .select('id, created_at')
@@ -101,6 +112,21 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
       if (!error && inserted) {
         savedId = inserted.id
         createdAt = inserted.created_at
+      }
+
+      // If the bias detector tripped on this candidate AND the business
+      // hasn't yet opted out of auto-anonymise, flip the global default
+      // on. This is a "ratchet" - once any candidate trips the rule for
+      // a business, anonymise stays on until a recruiter manually
+      // turns it off. Cheap, defensible default.
+      if (biasReport.has_signal && businessId) {
+        await supabaseAdmin
+          .from('businesses')
+          .update({ auto_anonymise_candidates: true })
+          .eq('id', businessId)
+          .then(({ error: e }) => {
+            if (e) console.warn('[cv-screening/score] auto-anonymise flip failed:', e.message)
+          })
       }
     }
 

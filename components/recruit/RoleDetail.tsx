@@ -603,6 +603,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           {(session.interview_types?.includes('phone') ?? false) && phoneRecorderOpen && (
             <PhoneRecorder
               sessionId={session.id}
+              // Seed the Phone Screen Questions form from the session's
+              // existing question set so phone + video ask the same
+              // questions and feed the same scoring rubric. Falls back
+              // to a recruiter-editable default seed when the session
+              // has no questions yet.
+              initialQuestions={Array.isArray((session as any).questions) ? ((session as any).questions as unknown[]).map((q: any) => typeof q === 'string' ? q : (q?.text ?? q?.question ?? '')).filter((q: string) => q && q.trim()) : undefined}
               onSubmitted={() => { setPhoneRecorderOpen(false) }}
               onCancel={() => setPhoneRecorderOpen(false)}
             />

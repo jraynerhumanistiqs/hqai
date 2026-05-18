@@ -25,16 +25,33 @@ interface Props {
   responseId?: string | null
   candidateName?: string
   candidateEmail?: string | null
+  /** Pre-populates the Phone Screen Questions form. If the session already
+   *  has questions on file (eg the same set used for the video invite),
+   *  pass them in - the recruiter can still edit before the call starts. */
+  initialQuestions?: string[]
   onSubmitted?: (responseId: string) => void
   onCancel?: () => void
 }
 
-type RecorderState = 'idle' | 'permission' | 'consent' | 'recording' | 'uploading' | 'submitting' | 'done' | 'error'
+type RecorderState = 'idle' | 'permission' | 'questions' | 'consent' | 'recording' | 'preview' | 'uploading' | 'submitting' | 'done' | 'error'
+
+// Default phone-screen question seed.
+// Sourced from the AU video-interview researcher pass (Fair Work-compliant,
+// non-discriminatory, behaviour-based). Recruiters can edit, remove, or
+// re-order before the call. These are mirrored from the video screen so the
+// same scoring rubric applies regardless of channel.
+const DEFAULT_PHONE_QUESTIONS: string[] = [
+  'Walk me through your most recent role and what your day-to-day looked like.',
+  'Why are you looking to leave, and what does your ideal next role look like?',
+  'Tell me about a time you had to deliver under pressure. What did you do and what was the outcome?',
+  'What are your salary expectations, and what notice period would you need to give?',
+  'Do you have full work rights in Australia and the ability to start when we need you?',
+]
 
 const MIN_DURATION_SEC = 5
 const MAX_DURATION_SEC = 60 * 60 // 60 min hard cap
 
-export function PhoneRecorder({ sessionId, responseId, candidateName, candidateEmail, onSubmitted, onCancel }: Props) {
+export function PhoneRecorder({ sessionId, responseId, candidateName, candidateEmail, initialQuestions, onSubmitted, onCancel }: Props) {
   const [state, setState] = useState<RecorderState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [consent, setConsent] = useState(false)
@@ -43,6 +60,10 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
   const [name, setName] = useState(candidateName ?? '')
   const [email, setEmail] = useState(candidateEmail ?? '')
+  const [questions, setQuestions] = useState<string[]>(() => {
+    const seed = (initialQuestions && initialQuestions.length > 0) ? initialQuestions : DEFAULT_PHONE_QUESTIONS
+    return [...seed]
+  })
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -69,7 +90,10 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
-      setState('consent')
+      // After mic permission, surface the Phone Screen Questions form
+      // so the recruiter can review/edit the question list before the
+      // call starts. They then click "Start recording" to begin.
+      setState('questions')
     } catch (err) {
       setError(`Could not access microphone: ${err instanceof Error ? err.message : 'unknown'}`)
       setState('error')
@@ -97,6 +121,11 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
       setPlaybackUrl(URL.createObjectURL(blob))
       const elapsed = Math.round((Date.now() - startedAtRef.current) / 1000)
       setDurationSec(elapsed)
+      // Move to preview state so the recruiter can play back + submit.
+      // Previously the state stayed on 'recording' which left the UI
+      // stuck on the recording indicator and never showed the Submit
+      // button - hence "stop recording fails to submit".
+      setState('preview')
     }
     recorder.start(1000)
     recorderRef.current = recorder
@@ -162,6 +191,10 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
           candidate_email: email.trim() || null,
           audio_path: signed.path,
           audio_duration_sec: durationSec,
+          // The Phone Screen Questions the recruiter agreed before the
+          // call - persisted so the AI scorer can ground answers against
+          // the same questions the candidate was asked.
+          questions: questions.map(q => q.trim()).filter(Boolean),
         }),
       })
       const submitJson = await submitRes.json()
@@ -201,7 +234,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
         </div>
       )}
 
-      {(state === 'idle' || state === 'permission' || state === 'consent') && (
+      {(state === 'idle' || state === 'permission') && (
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -222,18 +255,61 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
           </label>
 
           {state === 'idle' && (
-            <button onClick={requestMic} className="bg-black text-white text-sm font-bold rounded-full px-5 py-2.5 hover:bg-charcoal">
-              Request microphone access
+            <button onClick={requestMic} disabled={!consent || !name.trim()} className="bg-accent text-ink-on-accent text-sm font-bold rounded-full px-5 py-2.5 hover:bg-accent-hover disabled:opacity-50">
+              Start microphone
             </button>
           )}
           {state === 'permission' && (
             <p className="text-xs text-mid">Waiting for microphone permission...</p>
           )}
-          {state === 'consent' && (
-            <button onClick={startRecording} className="bg-black text-white text-sm font-bold rounded-full px-5 py-2.5 hover:bg-charcoal disabled:opacity-50" disabled={!consent || !name.trim()}>
+        </div>
+      )}
+
+      {state === 'questions' && (
+        <div className="space-y-3">
+          <div className="bg-bg-soft rounded-xl px-3.5 py-3 mb-1">
+            <p className="text-xs font-bold text-charcoal mb-1">Phone Screen Questions</p>
+            <p className="text-[11px] text-mid leading-snug">
+              Review the questions you&apos;ll ask. Edit, reorder, or remove any line. These are mirrored from the video-interview rubric so the AI scoring works the same way.
+            </p>
+          </div>
+          <div className="space-y-2 max-h-72 overflow-y-auto scrollbar-thin pr-1">
+            {questions.map((q, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-[11px] font-bold text-mid mt-2.5 w-5 text-right tabular-nums">{i + 1}.</span>
+                <textarea
+                  value={q}
+                  onChange={e => setQuestions(qs => qs.map((row, idx) => idx === i ? e.target.value : row))}
+                  rows={2}
+                  className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-ink resize-y"
+                />
+                <button
+                  type="button"
+                  onClick={() => setQuestions(qs => qs.filter((_, idx) => idx !== i))}
+                  className="text-[11px] font-bold text-mid hover:text-danger mt-2.5 px-1.5"
+                  aria-label="Remove question"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => setQuestions(qs => [...qs, ''])}
+              className="text-xs font-bold text-ink hover:underline"
+            >
+              + Add question
+            </button>
+            <button
+              onClick={startRecording}
+              disabled={!consent || !name.trim()}
+              className="bg-accent text-ink-on-accent text-sm font-bold rounded-full px-5 py-2.5 hover:bg-accent-hover disabled:opacity-50"
+            >
               Start recording
             </button>
-          )}
+          </div>
         </div>
       )}
 
@@ -244,7 +320,19 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
             <span className="text-sm font-bold text-danger">Recording</span>
             <span className="text-sm font-mono text-mid">{formatDuration(durationSec)}</span>
           </div>
-          <button onClick={stopRecording} className="bg-black text-white text-sm font-bold rounded-full px-5 py-2.5 hover:bg-charcoal">
+          {/* Question prompter visible during the call so the recruiter
+              can scroll through the agreed list without leaving the page. */}
+          {questions.length > 0 && (
+            <div className="bg-bg-soft rounded-xl px-3.5 py-3 max-h-56 overflow-y-auto scrollbar-thin">
+              <p className="text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Questions</p>
+              <ol className="text-xs text-charcoal space-y-1.5 list-decimal list-inside leading-snug">
+                {questions.filter(q => q.trim()).map((q, i) => (
+                  <li key={i}>{q}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+          <button onClick={stopRecording} className="bg-accent text-ink-on-accent text-sm font-bold rounded-full px-5 py-2.5 hover:bg-accent-hover">
             Stop recording
           </button>
         </div>
@@ -263,7 +351,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
               {state === 'uploading' ? 'Uploading...' : state === 'submitting' ? 'Submitting...' : 'Submit for AI scoring'}
             </button>
             <button
-              onClick={() => { setAudioBlob(null); setPlaybackUrl(null); setState('consent') }}
+              onClick={() => { setAudioBlob(null); setPlaybackUrl(null); setState('questions') }}
               className="bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-5 py-2.5 hover:bg-light"
             >
               Re-record

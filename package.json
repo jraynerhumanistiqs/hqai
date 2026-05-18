@@ -34,6 +34,7 @@
     "cohere-ai": "^8.0.0",
     "docx": "^9.6.1",
     "docxtemplater": "^3.68.7",
+    "docxtemplater-image-module-free": "^1.1.1",
     "geist": "^1.7.0",
     "gsap": "^3.15.0",
     "jszip": "^3.10.1",

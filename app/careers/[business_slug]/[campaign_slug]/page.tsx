@@ -264,7 +264,7 @@ export default async function CareersCampaignPage({
 
       <header className="sticky top-0 z-10 w-full bg-white border-b border-border">
         <div className="mx-auto max-w-5xl flex items-center justify-between px-6 h-16">
-          <Link href="/" className="font-display font-bold text-xl text-black">HQ.ai</Link>
+          <Link href="/" className="font-display font-bold text-xl text-ink">HQ.ai</Link>
           <Link
             href="/"
             className="bg-light rounded-full px-3 py-1 text-xs font-bold text-mid hover:bg-border transition"

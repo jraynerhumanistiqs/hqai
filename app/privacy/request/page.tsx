@@ -56,7 +56,7 @@ export default function PrivacyRequestPage() {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-2xl mx-auto px-6 py-16">
-          <Link href="/privacy" className="text-xs font-bold text-mid hover:text-black uppercase tracking-wider">
+          <Link href="/privacy" className="text-xs font-bold text-mid hover:text-ink uppercase tracking-wider">
             &larr; Back to Privacy Policy
           </Link>
           <h1 className="font-display text-3xl font-bold text-charcoal mt-6 mb-4">Request received</h1>
@@ -81,7 +81,7 @@ export default function PrivacyRequestPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
-        <Link href="/privacy" className="text-xs font-bold text-mid hover:text-black uppercase tracking-wider">
+        <Link href="/privacy" className="text-xs font-bold text-mid hover:text-ink uppercase tracking-wider">
           &larr; Back to Privacy Policy
         </Link>
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-charcoal mt-6 mb-2">

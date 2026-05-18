@@ -20,7 +20,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-3xl mx-auto px-6 py-12 sm:py-16">
-        <Link href="/" className="text-xs font-bold text-mid hover:text-black uppercase tracking-wider">
+        <Link href="/" className="text-xs font-bold text-mid hover:text-ink uppercase tracking-wider">
           &larr; Back to HQ.ai
         </Link>
 
