@@ -109,9 +109,14 @@ export function routeTask(input: RoutingSignals): Tier {
 
     // AI Administrator ---------------------------------------------
     case 'administrator-template-fill':
-      // Most-common path. Merge-field substitution against a known
-      // template - Haiku handles this well.
-      return 'simple'
+      // Was 'simple' (Haiku) but Haiku was repeatedly emitting
+      // heading-only documents - sections with a title and no
+      // paragraph blocks under them. Sonnet follows the structured
+      // output schema reliably and is the right baseline for a doc
+      // that ends up in front of an employee. The cost delta is a
+      // few cents per generation; the quality delta is the difference
+      // between a real Letter of Offer and an empty template.
+      return 'standard'
     case 'administrator-edit-section':
       // Either: small textual tweak (Haiku) or rewrite-a-paragraph
       // (Sonnet). Default to Sonnet for safety; call site can pass

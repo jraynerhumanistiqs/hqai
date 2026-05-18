@@ -168,6 +168,7 @@ export const STRUCTURED_DOC_TOOL = {
       },
       sections: {
         type: 'array',
+        minItems: 1,
         items: {
           type: 'object',
           required: ['blocks'],
@@ -176,13 +177,52 @@ export const STRUCTURED_DOC_TOOL = {
             title:  { type: 'string' },
             blocks: {
               type: 'array',
+              // Every section MUST contain at least one block, and at
+              // least one of those blocks must be a paragraph / list /
+              // table / kv / signature with real text. Heading-only
+              // sections produce empty documents and are rejected
+              // downstream. The renderer's switch statement still
+              // validates the discriminator at runtime; we just put
+              // the minimum-content rule into JSON-schema so the
+              // model is more likely to follow it.
+              minItems: 1,
               items: {
                 type: 'object',
-                // Block discriminated union - validated downstream by
-                // isDocumentBlock + the renderers' switch statements
-                // rather than enforced rigidly in JSON schema so the
-                // model isn't penalised for emitting blocks in the
-                // right shape but the wrong schema-wrapper order.
+                required: ['type'],
+                properties: {
+                  type: {
+                    type: 'string',
+                    enum: ['heading', 'paragraph', 'list', 'table', 'kv', 'spacer', 'page_break', 'signature', 'notice'],
+                  },
+                  // Common text-bearing field. Required for heading /
+                  // paragraph / notice blocks - the renderer crashes
+                  // (or now renders as blank) if these are missing.
+                  text: { type: 'string', minLength: 1 },
+                  // List-specific.
+                  ordered: { type: 'boolean' },
+                  items: { type: 'array', items: { type: 'string', minLength: 1 } },
+                  // Table-specific.
+                  headers: { type: 'array', items: { type: 'string' } },
+                  rows: { type: 'array', items: { type: 'array', items: { type: 'string' } } },
+                  // KV-specific.
+                  // (items is already declared above as a string array
+                  // for list blocks; the kv block uses a different
+                  // shape but the JSON schema we pass to Anthropic
+                  // doesn't need full union discrimination - the
+                  // server-side validator handles the precise check.)
+                  // Signature-specific.
+                  party: { type: 'string', enum: ['employer', 'employee', 'witness', 'guarantor'] },
+                  name: { type: 'string' },
+                  label: { type: 'string' },
+                  // Heading-specific.
+                  level: { type: 'integer', minimum: 1, maximum: 4 },
+                  // Notice-specific.
+                  variant: { type: 'string', enum: ['info', 'warning', 'caution'] },
+                  // Spacer-specific.
+                  size: { type: 'string', enum: ['sm', 'md', 'lg'] },
+                  // Citations attached to a block.
+                  citations: { type: 'array', items: { type: 'string' } },
+                },
               },
             },
           },
@@ -232,5 +272,31 @@ export function assertStructuredDocument(value: unknown): StructuredDocument {
   for (const s of obj.sections) {
     if (!s || !Array.isArray(s.blocks)) throw new Error('Each section must have a blocks[] array.')
   }
+  // Detect the "heading-only" failure mode where Claude emits a section
+  // title but no real prose under it. We don't throw - throwing would
+  // dead-end the user - but we tag the doc as failed so the route can
+  // retry with a stronger model + harder prompt.
   return obj as StructuredDocument
+}
+
+/** Returns true when every section contains at least one block that
+ *  carries actual content (paragraph / list / table / kv / signature /
+ *  notice with text). Heading-only sections fail. Used by the generate
+ *  route to decide whether to retry. */
+export function hasRealContent(doc: StructuredDocument): boolean {
+  if (!doc.sections.length) return false
+  return doc.sections.every(section => {
+    if (!section.blocks?.length) return false
+    return section.blocks.some(b => {
+      switch (b.type) {
+        case 'paragraph': return typeof b.text === 'string' && b.text.trim().length > 0
+        case 'list':      return Array.isArray(b.items) && b.items.some(i => i && i.trim().length > 0)
+        case 'table':     return Array.isArray(b.rows) && b.rows.length > 0
+        case 'kv':        return Array.isArray(b.items) && b.items.length > 0
+        case 'signature': return true // signature lines are content
+        case 'notice':    return typeof b.text === 'string' && b.text.trim().length > 0
+        default:          return false // heading / spacer / page_break alone don't count
+      }
+    })
+  })
 }

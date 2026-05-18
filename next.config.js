@@ -31,6 +31,21 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Vercel / Next bundles server modules through Webpack which relocates
+  // node_modules into the lambda. @sparticuz/chromium ships a `bin/`
+  // directory with the Chromium binary (.tar.br) that the relocator
+  // does not copy, so the runtime throws:
+  //   "The input directory /var/task/node_modules/@sparticuz/chromium/bin
+  //    does not exist."
+  // Externalising the package keeps it in node_modules at its expected
+  // path, and outputFileTracingIncludes tells Next's lambda packer to
+  // include the bin/ assets in the deployment artefact.
+  // See: https://github.com/Sparticuz/chromium#bundler-configuration
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  outputFileTracingIncludes: {
+    '/api/administrator/documents/**': ['./node_modules/@sparticuz/chromium/bin/**'],
+    '/api/**/render**':                ['./node_modules/@sparticuz/chromium/bin/**'],
+  },
   async headers() {
     return [
       {

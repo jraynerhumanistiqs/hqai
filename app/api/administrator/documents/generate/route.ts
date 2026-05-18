@@ -24,8 +24,10 @@ import { resolveModel, withPromptCache } from '@/lib/router'
 import {
   STRUCTURED_DOC_TOOL,
   assertStructuredDocument,
+  hasRealContent,
   type StructuredDocument,
 } from '@/lib/doc-model'
+import { MODELS } from '@/lib/router'
 import { recordCredits } from '@/lib/credits'
 import { TEMPLATE_BY_ID } from '@/lib/template-ip'
 
@@ -233,6 +235,32 @@ ${issuerContext || '(no business profile on file - use a generic placeholder)'}`
     doc = assertStructuredDocument(toolBlock.input)
   } catch (err) {
     return NextResponse.json({ error: 'Invalid structured document', detail: (err as Error).message }, { status: 422 })
+  }
+
+  // Heading-only retry. If the model emitted sections with titles but
+  // no real content, hit it again with Opus and a harder steering
+  // message. Costs an extra credit's worth of compute but avoids
+  // delivering an empty document to the recruiter.
+  if (!hasRealContent(doc)) {
+    console.warn('[administrator/generate] empty sections detected, retrying with Opus')
+    try {
+      const retry = await anthropic.messages.create({
+        model: MODELS.complex,
+        max_tokens: 6000,
+        system: withPromptCache(systemText +
+          '\n\nIMPORTANT - the previous attempt emitted a document with section titles but no paragraph blocks underneath. Do not repeat that mistake. Every section MUST contain prose paragraphs that use the recruiter-supplied inputs verbatim. A heading without a paragraph is a failed document.'),
+        tools: [STRUCTURED_DOC_TOOL as unknown as Anthropic.Messages.Tool],
+        tool_choice: { type: 'tool', name: STRUCTURED_DOC_TOOL.name },
+        messages: [{ role: 'user', content: buildPrompt(body) }],
+      })
+      const retryTool = retry.content.find(b => b.type === 'tool_use') as Anthropic.Messages.ToolUseBlock | undefined
+      if (retryTool) {
+        const retryDoc = assertStructuredDocument(retryTool.input)
+        if (hasRealContent(retryDoc)) doc = retryDoc
+      }
+    } catch (err) {
+      console.warn('[administrator/generate] retry failed, keeping first pass:', (err as Error).message)
+    }
   }
 
   // Merge any issuer fields the business already has on file so the

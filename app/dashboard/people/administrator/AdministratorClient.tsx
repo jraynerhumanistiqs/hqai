@@ -265,10 +265,9 @@ export default function AdministratorClient({ templates, categories, initialTemp
         )}
 
         {active && (
-          // Tips on the LEFT, actions on the RIGHT - the CV Scoring
-          // Agent pattern the founder called out. Tips don't change
-          // mid-flow so the user can keep them visible while they
-          // fill the form.
+          // Tips on the LEFT, form on the RIGHT. The live preview is no
+          // longer in the page flow - it opens as an A4 modal once the
+          // first generate completes (see the dialog block below).
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-6">
 
             {/* LEFT - tips + how this template will be drafted */}
@@ -346,52 +345,88 @@ export default function AdministratorClient({ templates, categories, initialTemp
                 </form>
               </section>
 
-              <section className="bg-bg-elevated border border-border rounded-2xl p-3 min-h-[480px] flex flex-col">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live editor</p>
-                    {previewId && (
-                      <p className="text-[10px] text-ink-muted mt-0.5">Click anywhere in the document to edit. Your edits are included in the PDF.</p>
-                    )}
-                  </div>
-                  {previewId && (
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={downloadPdf}
-                      disabled={downloading || !previewHtml}
-                    >
-                      {downloading ? 'Preparing PDF...' : 'Download PDF'}
-                    </Button>
-                  )}
-                </div>
-                {previewId ? (
-                  previewHtml ? (
-                    <div
-                      ref={editableRef}
-                      contentEditable
-                      suppressContentEditableWarning
-                      role="textbox"
-                      aria-label="Document body - editable"
-                      spellCheck
-                      className="flex-1 mt-2 bg-white rounded-md p-6 sm:p-8 overflow-y-auto scrollbar-thin text-ink focus:outline-none focus:ring-1 focus:ring-accent"
-                      style={{ minHeight: '460px', maxHeight: '70vh' }}
-                      dangerouslySetInnerHTML={{ __html: previewHtml }}
-                    />
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center text-xs text-ink-muted">Loading preview...</div>
-                  )
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-xs text-ink-muted">
-                    {busy ? 'Generating...' : 'Fill the form and click Generate to see the document here.'}
-                  </div>
-                )}
-              </section>
             </div>
           </div>
         )}
       </div>
+
+      {/* A4 live-edit modal. Mounts once a generate succeeds and a
+          previewId is set. Click the doc to edit any wording, click
+          Download PDF to export. Backdrop click + Esc close the modal
+          (the structured doc + edits live in state until the user
+          either downloads or generates again). */}
+      {previewId && (
+        <div
+          className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Live editor"
+          onClick={() => setPreviewId(null)}
+        >
+          <div
+            className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-[860px] max-h-[92vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live editor</p>
+                <p className="text-[11px] text-ink-muted mt-0.5">
+                  Click any sentence to edit. Your edits are included in the PDF.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={downloadPdf}
+                  disabled={downloading || !previewHtml}
+                >
+                  {downloading ? 'Preparing PDF...' : 'Download PDF'}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewId(null)}
+                  aria-label="Close editor"
+                  className="text-ink-muted hover:text-ink text-lg font-bold px-2"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            {error && (
+              <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
+            )}
+            <div className="flex-1 overflow-y-auto bg-bg-soft p-4 sm:p-6 flex items-start justify-center scrollbar-thin">
+              {/* A4 page sized at 210mm x 297mm. We scale on small
+                  viewports via max-width so the inner page stays a
+                  reasonable size on a phone, but the proportions stay
+                  A4 because the print stylesheet enforces them in the
+                  exported PDF anyway. */}
+              {previewHtml ? (
+                <div
+                  ref={editableRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  role="textbox"
+                  aria-label="Document body - editable"
+                  spellCheck
+                  className="bg-white shadow-card rounded-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  style={{
+                    width: '210mm',
+                    minHeight: '297mm',
+                    maxWidth: '100%',
+                    padding: '24mm 22mm',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              ) : (
+                <div className="text-xs text-ink-muted py-12">Loading preview...</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
