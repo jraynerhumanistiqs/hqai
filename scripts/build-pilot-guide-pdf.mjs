@@ -16,7 +16,13 @@ const __dirname  = dirname(__filename)
 const ROOT       = resolve(__dirname, '..')
 
 const HTML_PATH = resolve(ROOT, 'docs/PILOT-TESTING-GUIDE.html')
-const PDF_PATH  = resolve(ROOT, 'docs/PILOT-TESTING-GUIDE.pdf')
+// Allow overriding the output path with --out so we can write to a
+// fresh filename when the previous PDF is still open in a viewer
+// (Windows file lock - EBUSY otherwise).
+const outIdx = process.argv.indexOf('--out')
+const PDF_PATH = outIdx >= 0 && process.argv[outIdx + 1]
+  ? resolve(ROOT, process.argv[outIdx + 1])
+  : resolve(ROOT, 'docs/PILOT-TESTING-GUIDE.pdf')
 
 async function main() {
   console.log('[pilot-guide-pdf] reading', HTML_PATH)

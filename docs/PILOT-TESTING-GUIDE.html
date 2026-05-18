@@ -70,7 +70,7 @@
   }
   .hero .meta span { display: inline-flex; align-items: center; gap: 6px; }
 
-  /* ── Golden rule banner ────────────────────────────────── */
+  /* ── Banner ──────────────────────────────────────────── */
   .gold {
     background: var(--bg-card);
     border-left: 4px solid var(--accent);
@@ -86,7 +86,7 @@
   }
   .gold p { margin: 0; font-size: 12px; font-weight: 500; color: var(--ink); }
 
-  /* ── Section header (page-by-page grid) ────────────────── */
+  /* ── Section header ────────────────────────────────────── */
   .section-header {
     display: flex; align-items: baseline; justify-content: space-between;
     margin: 18px 0 10px;
@@ -109,7 +109,7 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 10px 12px;
+    padding: 11px 13px;
     box-shadow: 0 1px 2px rgba(20,20,19,0.03);
     position: relative;
     page-break-inside: avoid;
@@ -124,59 +124,37 @@
     background: var(--accent-soft);
     color: var(--accent);
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700;
+    font-size: 13px; font-weight: 700;
     flex-shrink: 0;
   }
   .card-title {
-    font-size: 11.5px; font-weight: 700;
+    font-size: 12px; font-weight: 700;
     color: var(--ink); line-height: 1.25;
     margin: 0 0 1px;
   }
-  .card-path {
-    font-size: 9px; color: var(--ink-muted);
-    font-family: 'Courier New', monospace;
-    word-break: break-all;
-  }
-  .card-status {
-    margin-top: 4px;
-    display: inline-block;
-    font-size: 8.5px; font-weight: 700;
-    letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 1.5px 6px;
-    border-radius: 999px;
-  }
-  .status-solid    { background: rgba(61,138,94,0.12);  color: var(--success); }
-  .status-working  { background: rgba(106,155,204,0.16); color: var(--info); }
-  .status-polish   { background: rgba(184,119,15,0.14); color: var(--warning); }
-  .status-flagged  { background: rgba(197,72,58,0.12);  color: var(--danger); }
-
-  .card-try {
-    font-size: 9.5px; color: var(--ink-soft);
-    line-height: 1.45; margin: 4px 0 0;
-  }
-  .card-try strong { color: var(--ink); font-weight: 700; }
-  .card-feedback {
-    margin-top: 5px; padding-top: 5px;
-    border-top: 1px dashed var(--border);
-    font-size: 9px; color: var(--ink-muted);
+  .card-sub {
+    font-size: 9.5px; color: var(--ink-muted);
     font-style: italic;
   }
-
-  /* ── Legend ───────────────────────────────────────────── */
-  .legend {
-    display: flex; flex-wrap: wrap; gap: 12px;
-    background: var(--bg-soft);
-    border-radius: 10px;
-    padding: 8px 12px;
-    margin-bottom: 14px;
-    font-size: 9px;
+  .card-section {
+    margin-top: 6px;
+    font-size: 9.5px; color: var(--ink-soft);
+    line-height: 1.45;
   }
-  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .dot-solid    { background: var(--success); }
-  .dot-working  { background: var(--info); }
-  .dot-polish   { background: var(--warning); }
-  .dot-flagged  { background: var(--danger); }
+  .card-section strong { color: var(--ink); font-weight: 700; }
+  .card-section-label {
+    display: block;
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1px;
+  }
+  .card-list {
+    margin: 0; padding: 0 0 0 14px;
+    font-size: 9.5px; color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .card-list li { margin-bottom: 1px; }
 
   /* ── Flow diagram ─────────────────────────────────────── */
   .flow {
@@ -220,7 +198,7 @@
     flex-shrink: 0;
   }
 
-  /* ── Page 2: feedback lenses + limitations ────────────── */
+  /* ── Page 2: useful feedback + reporting ──────────────── */
   .page-break { page-break-before: always; }
 
   .panel {
@@ -245,6 +223,49 @@
     background: var(--accent-soft); color: var(--accent);
   }
 
+  /* ── Compare grid: useful vs not useful ───────────────── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .compare-col h3 {
+    font-size: 11px; font-weight: 700;
+    margin: 0 0 6px;
+    padding-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .compare-col.good h3 { color: var(--success); border-bottom: 1px solid rgba(61,138,94,0.25); }
+  .compare-col.bad  h3 { color: var(--danger);  border-bottom: 1px solid rgba(197,72,58,0.25); }
+  .compare-col h3 .tick {
+    font-size: 12px; display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .compare-col.good h3 .tick { background: var(--success); }
+  .compare-col.bad  h3 .tick { background: var(--danger);  }
+  .compare-item {
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin-bottom: 5px;
+    font-size: 9.5px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .compare-item em {
+    display: block;
+    color: var(--ink-muted);
+    font-style: normal;
+    font-size: 9px;
+    margin-top: 1px;
+  }
+
+  /* ── Five lenses grid ─────────────────────────────────── */
   .lens-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -269,28 +290,6 @@
   .lens-body {
     font-size: 9px; color: var(--ink-soft); line-height: 1.4;
   }
-
-  .limit-list {
-    margin: 0; padding: 0; list-style: none;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px;
-    font-size: 10px;
-  }
-  .limit-list li {
-    padding-left: 16px;
-    position: relative;
-    color: var(--ink-soft);
-  }
-  .limit-list li::before {
-    content: '!';
-    position: absolute; left: 0;
-    width: 12px; height: 12px;
-    background: var(--warning); color: white;
-    border-radius: 50%;
-    font-size: 8px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    top: 2px;
-  }
-  .limit-list strong { color: var(--ink); font-weight: 700; }
 
   .severity {
     display: grid;
@@ -357,29 +356,22 @@
 <div class="hero">
   <p class="hero-eyebrow">HQ.ai - Beta Pilot</p>
   <h1>Pilot Testing Map</h1>
-  <p>A one-page overview of every surface to test, what to look for, and how to feed it back. Pair this with PILOT-TESTING-GUIDE.md for the deep dive.</p>
+  <p>A plain-English walk-through of the site. Each card explains what a page does, the main buttons on it, and what we'd love your eye on.</p>
   <div class="meta">
-    <span>📅 Pilot window: this week</span>
     <span>🔗 hqai.vercel.app</span>
     <span>✉️ jrayner@humanistiqs.com.au</span>
+    <span>📄 Pair with PILOT-TESTING-GUIDE.md for the long version</span>
   </div>
 </div>
 
 <div class="gold">
-  <p class="gold-label">Golden Rule</p>
-  <p>Test as an Australian SME owner with 20 staff, not as an HR consultant. The product needs to feel obvious to someone who isn't us.</p>
-</div>
-
-<div class="legend">
-  <span class="legend-item"><span class="legend-dot dot-solid"></span> Solid</span>
-  <span class="legend-item"><span class="legend-dot dot-working"></span> Working - watch closely</span>
-  <span class="legend-item"><span class="legend-dot dot-polish"></span> Visual polish queued</span>
-  <span class="legend-item"><span class="legend-dot dot-flagged"></span> Known limitation</span>
+  <p class="gold-label">Read this first</p>
+  <p>Pretend you're an Australian small-business owner with 20 staff who's never seen HQ.ai before. Whatever confuses, surprises, or impresses you - that's the feedback we want.</p>
 </div>
 
 <div class="section-header">
-  <h2>The 11 surfaces</h2>
-  <span class="hint">Scan left-to-right, top-to-bottom. Each card is one page of the app.</span>
+  <h2>What's on each page</h2>
+  <span class="hint">Twelve surfaces, top-to-bottom. Each one tells you what it's for, what's on it, and what we want you to look at.</span>
 </div>
 
 <div class="grid">
@@ -389,13 +381,18 @@
     <div class="card-head">
       <div class="card-icon">0</div>
       <div>
-        <p class="card-title">Sign in / Magic link</p>
-        <p class="card-path">/login</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-title">Sign in screen</p>
+        <p class="card-sub">First page anyone visiting the site sees.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Sign up fresh; sign out; request magic link; open in same browser.</p>
-    <p class="card-feedback">Same browser only. Phone-to-laptop fails by design.</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      Email + password fields, a "create account" link, and a "send me a magic link" button (email-only sign in).
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Sign up with your work email. Does the page feel trustworthy? Are the choices (password vs magic link) clear?
+    </div>
   </div>
 
   <!-- 1 -->
@@ -404,12 +401,17 @@
       <div class="card-icon">1</div>
       <div>
         <p class="card-title">Onboarding wizard</p>
-        <p class="card-path">/onboarding</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-sub">Three quick questions to set up your business.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Walk all 3 steps as a real SME. Pick a real Modern Award.</p>
-    <p class="card-feedback">Plain enough for a non-HR owner?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      Asks for business name, industry, state, headcount, and which Modern Award applies (or skip).
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Fill it in like a regular SME owner. Does the language feel plain? Does any question feel intrusive or unclear?
+    </div>
   </div>
 
   <!-- 2 -->
@@ -418,12 +420,17 @@
       <div class="card-icon">2</div>
       <div>
         <p class="card-title">Dashboard home</p>
-        <p class="card-path">/dashboard</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-sub">The landing screen after you sign in.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Collapse + drag-resize the sidebar; hover for tooltips.</p>
-    <p class="card-feedback">Does it tell you what to do next?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A greeting, the left sidebar with every tool, and a list of recent work.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Do you know what to click first? Is anything missing from the sidebar that you'd expect to find?
+    </div>
   </div>
 
   <!-- 3 -->
@@ -431,13 +438,18 @@
     <div class="card-head">
       <div class="card-icon">3</div>
       <div>
-        <p class="card-title">HQ People - AI Advisor</p>
-        <p class="card-path">/dashboard/people</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-title">AI Advisor (chat)</p>
+        <p class="card-sub">An AI that answers Australian HR questions.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Topic Picker → seed Q → follow-up message → high-stakes triage.</p>
-    <p class="card-feedback">Plain-English advisor tone? Legally wrong answers?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A chat box. Four starter topics (Employment Law, Recruitment, Pay/Performance, Redundancy) each with seed questions. Answers cite Fair Work / Awards.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Ask 3-5 real questions. Does it sound like a calm advisor or a chatbot? Anything that's flat-out wrong - tell us the question.
+    </div>
   </div>
 
   <!-- 4 -->
@@ -445,13 +457,18 @@
     <div class="card-head">
       <div class="card-icon">4</div>
       <div>
-        <p class="card-title">AI Administrator (templates)</p>
-        <p class="card-path">/dashboard/people/administrator</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-title">AI Administrator (HR documents)</p>
+        <p class="card-sub">Generates contracts, letters and warnings.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Generate a Letter of Offer. Edit inline (toolbar: bold, lists, font size, table, page setup). Download PDF.</p>
-    <p class="card-feedback">PDF only by design. Test at least 5 templates.</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A library of 33 templates (Letter of Offer, warnings, PIPs, terminations...). Pick one, fill a short form, generate. A Word-style editor opens so you can fine-tune the wording. One button to download a PDF.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Try at least 5 different templates. Is the draft usable, or are you rewriting most of it?
+    </div>
   </div>
 
   <!-- 5 -->
@@ -459,13 +476,18 @@
     <div class="card-head">
       <div class="card-icon">5</div>
       <div>
-        <p class="card-title">CV Formatter / Contract review</p>
-        <p class="card-path">.../administrator/ingest</p>
-        <span class="card-status status-working">Working</span>
+        <p class="card-title">CV Formatter + Contract Review</p>
+        <p class="card-sub">Drop a file, get something useful back.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Run a real CV through (DOCX, PDF, TXT). Run a real contract.</p>
-    <p class="card-feedback">PDF extraction flaky in prod - flag if "Could not extract text".</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      One drop zone. Throw in a CV and it comes back rewritten to the Humanistiqs format. Throw in an employment contract and it comes back with a plain-English review.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Run a real CV through. Would you send the output to a client without editing? Run a real contract - does the review flag the right things?
+    </div>
   </div>
 
   <!-- 6 -->
@@ -473,13 +495,18 @@
     <div class="card-head">
       <div class="card-icon">6</div>
       <div>
-        <p class="card-title">HQ Recruit - CV Scoring</p>
-        <p class="card-path">/dashboard/recruit/cv-screening</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-title">CV Scoring</p>
+        <p class="card-sub">Rank a stack of CVs against a role.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Score 3-5 CVs. Override a band. Rename a candidate (pencil on hover). Watch for auto-anonymise.</p>
-    <p class="card-feedback">Is the bias auto-anonymise the right baseline?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      Pick or build a scoring rubric for the role. Upload several CVs. Each gets a 1-5 band and a "next step" recommendation. You can override the AI, leave a note, compare candidates side-by-side, and rename anyone.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Score 3-5 real CVs. Do the band and the reasoning make sense? Would the override flow feel obvious to a client?
+    </div>
   </div>
 
   <!-- 7 -->
@@ -487,13 +514,18 @@
     <div class="card-head">
       <div class="card-icon">7</div>
       <div>
-        <p class="card-title">Shortlist (video + phone)</p>
-        <p class="card-path">/dashboard/recruit</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-title">Shortlist (video + phone screen)</p>
+        <p class="card-sub">Run first-round screens without a recruiter.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Send invite link, record in incognito. Then record a phone screen (consent → Start microphone → edit Qs → record → stop → submit).</p>
-    <p class="card-feedback">Stop-recording was broken; confirm it works.</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      Set up a role with 3-5 interview questions. Share a single link - the candidate records short video answers. You also have a "phone screen" recorder for live calls. The AI scores each answer.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Record a video answer yourself (use incognito). Try the phone screen recorder. Are the AI scores fair? Does any step feel like too many clicks?
+    </div>
   </div>
 
   <!-- 8 -->
@@ -502,12 +534,17 @@
       <div class="card-icon">8</div>
       <div>
         <p class="card-title">Campaign Coach (job ads)</p>
-        <p class="card-path">/dashboard/recruit/campaign-coach</p>
-        <span class="card-status status-polish">Polish</span>
+        <p class="card-sub">Writes a SEEK-ready job ad in a few minutes.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Walk all 3 steps. Generate the ad.</p>
-    <p class="card-feedback">Sounds like an SME or generic AI ad?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A short three-step wizard. You answer light questions about the role; it writes an ad you can paste into SEEK or Workable.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Generate one ad for a real role. Does it sound like an SME you'd advise, or like a generic AI ad?
+    </div>
   </div>
 
   <!-- 9 -->
@@ -516,12 +553,17 @@
       <div class="card-icon">9</div>
       <div>
         <p class="card-title">Documents library</p>
-        <p class="card-path">/dashboard/documents</p>
-        <span class="card-status status-polish">Polish</span>
+        <p class="card-sub">Everything you've generated, in one list.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Generate 2-3 docs from other surfaces. Confirm they appear. Re-download one.</p>
-    <p class="card-feedback">Filtering / by-client grouping missing?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A scrollable list of every document you've made (letters, contracts, formatted CVs, contract reviews). Click any row to re-download.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      After making 3-4 documents, come here. Can you find what you want quickly? Would you want filtering or "by client" grouping?
+    </div>
   </div>
 
   <!-- 10 -->
@@ -530,12 +572,17 @@
       <div class="card-icon">10</div>
       <div>
         <p class="card-title">Settings</p>
-        <p class="card-path">/dashboard/settings</p>
-        <span class="card-status status-solid">Solid</span>
+        <p class="card-sub">Business profile, logo, billing.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Upload logo → confirm in next PDF. Try Stripe checkout (test card 4242 4242 4242 4242).</p>
-    <p class="card-feedback">Price ladder $99 / $199 / $379 - right?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      Edit your business details, upload a logo (lands in every generated PDF footer), set the human and AI advisor names, and manage the subscription. Test with Stripe card 4242 4242 4242 4242 - any future date, any CVC.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Upload a real client logo and check it appears on the next document. Does $99 / $199 / $379 feel right for what you've seen?
+    </div>
   </div>
 
   <!-- 11 -->
@@ -543,136 +590,183 @@
     <div class="card-head">
       <div class="card-icon">11</div>
       <div>
-        <p class="card-title">$25 Letter of Offer (public)</p>
-        <p class="card-path">/offer</p>
-        <span class="card-status status-flagged">Flagged</span>
+        <p class="card-title">$25 Letter of Offer (public page)</p>
+        <p class="card-sub">A pay-as-you-go entry for cold prospects.</p>
       </div>
     </div>
-    <p class="card-try"><strong>Try.</strong> Open in incognito (no login). Walk it as a cold prospect. Don't complete in prod.</p>
-    <p class="card-feedback">Value prop clear in 6 seconds?</p>
+    <div class="card-section">
+      <span class="card-section-label">What's on it</span>
+      A public page (no login). Sells a single Letter of Offer for $25. Open the URL <code>/offer</code> in incognito to see what a cold prospect sees.
+    </div>
+    <div class="card-section">
+      <span class="card-section-label">What we want from you</span>
+      Is the value clear in 6 seconds? Would you click "Get my letter for $25" if you saw it as an ad? Don't actually pay in production.
+    </div>
   </div>
 
 </div>
 
 <!-- ── Hero flow: how a single doc gets made ────────────── -->
 <div class="flow">
-  <p class="flow-title">The signature flow worth testing end-to-end</p>
+  <p class="flow-title">The flow we most want you to walk end-to-end</p>
   <div class="flow-row">
     <div class="flow-step accent">
       <p class="flow-step-num">Step 1</p>
-      <p class="flow-step-label">Pick template</p>
-      <p class="flow-step-desc">33 HR / recruitment options</p>
+      <p class="flow-step-label">Pick a template</p>
+      <p class="flow-step-desc">33 to choose from</p>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <p class="flow-step-num">Step 2</p>
-      <p class="flow-step-label">Fill form</p>
-      <p class="flow-step-desc">Only the minimum needed</p>
+      <p class="flow-step-label">Fill the form</p>
+      <p class="flow-step-desc">Only the basics</p>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <p class="flow-step-num">Step 3</p>
-      <p class="flow-step-label">AI generates</p>
-      <p class="flow-step-desc">Sonnet 4 + Fair Work grounding</p>
+      <p class="flow-step-label">AI writes the draft</p>
+      <p class="flow-step-desc">Grounded in Fair Work</p>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <p class="flow-step-num">Step 4</p>
       <p class="flow-step-label">Edit inline</p>
-      <p class="flow-step-desc">Word-level rich-text editor</p>
+      <p class="flow-step-desc">Like a mini Word</p>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step accent">
       <p class="flow-step-num">Step 5</p>
       <p class="flow-step-label">Download PDF</p>
-      <p class="flow-step-desc">Logo footer + custom margins</p>
+      <p class="flow-step-desc">Your logo on the footer</p>
     </div>
   </div>
 </div>
 
 
-<!-- ───────────── PAGE 2: feedback lenses + limits + how to flag ─────────── -->
+<!-- ───────────── PAGE 2: useful feedback ───────────── -->
 <div class="page-break"></div>
 
 <div class="panel">
-  <h2 class="panel-title"><span class="pill">Most useful</span> What we want from this group</h2>
+  <h2 class="panel-title"><span class="pill">Read me</span> What useful feedback looks like</h2>
   <p style="margin:0 0 10px; font-size:11px; color:var(--ink-soft);">
-    You're not testing for bugs - you're testing for <strong style="color:var(--ink);">product instinct</strong>. Five lenses we lean on hardest.
+    The most valuable feedback is <strong style="color:var(--ink);">specific, repeatable, and tells us the "why".</strong>
+    Here's the difference between feedback we can act on and feedback we can't.
+  </p>
+  <div class="compare-grid">
+    <div class="compare-col good">
+      <h3><span class="tick">✓</span> Useful</h3>
+      <div class="compare-item">
+        "On the AI Advisor, I asked about casual conversion and the answer ignored the 6-month rule. The new rules from August are missing."
+        <em>Specific page · specific question · specific gap.</em>
+      </div>
+      <div class="compare-item">
+        "The Letter of Offer skipped the probation clause even though the role was 6 months casual."
+        <em>What you tried, what was wrong, why it matters.</em>
+      </div>
+      <div class="compare-item">
+        "When I clicked Generate on a Termination Letter, the candidate name was in the recipient block but not in the body paragraphs."
+        <em>Reproducible. Useful.</em>
+      </div>
+      <div class="compare-item">
+        "The Sidebar has Settings under Sign Out. As an owner I'd expect Settings near my profile photo."
+        <em>Tells us why your client would expect different.</em>
+      </div>
+      <div class="compare-item">
+        "CV Scoring rated a strong candidate at 'Maybe'. Looking at the rationale, the AI missed their 4 years in industry buried below the certifications block."
+        <em>Names the actual gap so we can fix the rubric.</em>
+      </div>
+    </div>
+    <div class="compare-col bad">
+      <h3><span class="tick">✗</span> Not useful</h3>
+      <div class="compare-item">
+        "The AI doesn't sound right."
+        <em>We can't act. Sound right how?</em>
+      </div>
+      <div class="compare-item">
+        "Templates need work."
+        <em>Which one? What was wrong?</em>
+      </div>
+      <div class="compare-item">
+        "It feels clunky."
+        <em>Where exactly? On what action?</em>
+      </div>
+      <div class="compare-item">
+        "I think we should add X feature."
+        <em>Skip unless it's the one feature blocking client use.</em>
+      </div>
+      <div class="compare-item">
+        "The font size on the dashboard could be a bit bigger."
+        <em>Polish. Save it for launch. Tell us product problems first.</em>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2 class="panel-title"><span class="pill">Most useful</span> Five questions we want you to answer</h2>
+  <p style="margin:0 0 10px; font-size:11px; color:var(--ink-soft);">
+    These five things matter more than anything else. If you only have an hour, answer these.
   </p>
   <div class="lens-grid">
     <div class="lens">
       <div class="lens-num">1</div>
       <p class="lens-title">Would a real SME owner click this?</p>
-      <p class="lens-body">Flag where the language gets too HR-jargon, or where it talks down.</p>
+      <p class="lens-body">Where does the language get too HR-jargon? Where does it talk down?</p>
     </div>
     <div class="lens">
       <div class="lens-num">2</div>
-      <p class="lens-title">Where does it save 80%?</p>
-      <p class="lens-body">vs your current consulting workflow. Be ruthless on where it saves nothing.</p>
+      <p class="lens-title">Does it save you 80%?</p>
+      <p class="lens-body">vs. how you currently do this work as a consultant. Be ruthless about where it saves nothing.</p>
     </div>
     <div class="lens">
       <div class="lens-num">3</div>
-      <p class="lens-title">What's the missing feature?</p>
-      <p class="lens-body">The one thing that would make you confident handing this to a client tomorrow.</p>
+      <p class="lens-title">What's the one missing feature?</p>
+      <p class="lens-body">The single thing that would make you confident handing this to a client tomorrow.</p>
     </div>
     <div class="lens">
       <div class="lens-num">4</div>
       <p class="lens-title">Where do you mistrust the AI?</p>
-      <p class="lens-body">Specific examples. "This clause read wrong because X" beats "AI feels off".</p>
+      <p class="lens-body">A specific clause, specific answer, or specific score that read wrong.</p>
     </div>
     <div class="lens">
       <div class="lens-num">5</div>
-      <p class="lens-title">What would clients break?</p>
-      <p class="lens-body">Walk as your worst-case-scenario client. Tell us where they'd get stuck.</p>
+      <p class="lens-title">What would your clients break?</p>
+      <p class="lens-body">Walk a page as your hardest client. Where would they get stuck or give up?</p>
     </div>
   </div>
 </div>
 
 <div class="panel">
-  <h2 class="panel-title"><span class="pill">Known</span> Limits (so you don't flag them as bugs)</h2>
-  <ul class="limit-list">
-    <li><strong>Dark mode</strong> forced off until a full legacy-panel audit.</li>
-    <li><strong>Documents library + Shortlist top header</strong> on old layout - function works.</li>
-    <li><strong>DOCX / PPTX / shareable-link export</strong> removed by design - PDF only.</li>
-    <li><strong>Voyage embeddings + Cohere rerank</strong> may be env-gated in pilot.</li>
-    <li><strong>$25 anonymous Letter fulfilment</strong> route incomplete - don't complete in prod.</li>
-    <li><strong>Resend</strong> sender / reply-to needs final-domain verification.</li>
-    <li><strong>PDF / PPTX visual QA</strong> on Vercel serverless still pending.</li>
-    <li><strong>Citations panel</strong> removed from generated documents on purpose.</li>
-  </ul>
-</div>
-
-<div class="panel">
-  <h2 class="panel-title"><span class="pill">Reporting</span> How to flag issues</h2>
+  <h2 class="panel-title"><span class="pill">Reporting</span> How to send feedback</h2>
   <ol class="repro-steps">
-    <li><strong>Tag</strong> by page name (eg "AI Administrator", "Shortlist / phone screen", "CV Scoring").</li>
-    <li><strong>Severity</strong> in plain language (see below).</li>
-    <li><strong>Repro</strong> - one line of steps + screenshot or Loom.</li>
-    <li><strong>Suggestion</strong> if you have one - optional, no design pressure.</li>
-    <li><strong>Daily summary</strong> to Jimmy end-of-day. One Loom beats 100 screenshots.</li>
+    <li><strong>Page name</strong> at the top of each note (e.g. "AI Administrator", "Shortlist").</li>
+    <li><strong>How serious</strong> - use the three categories below.</li>
+    <li><strong>What you did and what happened</strong> - one or two lines is fine. Screenshot or short Loom is gold.</li>
+    <li><strong>What you expected instead</strong> - only if it's not obvious.</li>
+    <li><strong>Send Jimmy a daily wrap</strong> at end-of-day. One Loom beats 20 emails.</li>
   </ol>
   <div class="severity">
     <div class="sev sev-blocker">
-      <p class="sev-label">Blocker</p>
-      <p class="sev-title">Stops the flow</p>
-      <p class="sev-desc">Can't sign in. Can't generate a doc. Error screen with no recovery.</p>
+      <p class="sev-label">Show-stopper</p>
+      <p class="sev-title">Stops you doing the task</p>
+      <p class="sev-desc">Can't sign in. Page won't load. Can't generate a doc. No way to recover.</p>
     </div>
     <div class="sev sev-annoying">
       <p class="sev-label">Annoying</p>
-      <p class="sev-title">Slows you down</p>
-      <p class="sev-desc">Hover state wrong, dropdown closes too fast, copy reads weirdly.</p>
+      <p class="sev-title">Slows you down or confuses</p>
+      <p class="sev-desc">Hover state off, dropdown closes too fast, copy reads weirdly, missing labels.</p>
     </div>
     <div class="sev sev-polish">
       <p class="sev-label">Polish</p>
-      <p class="sev-title">Looks-and-feels</p>
-      <p class="sev-desc">Spacing, alignment, colour, font weight. Nice-to-have not need-to-have.</p>
+      <p class="sev-title">Cosmetic</p>
+      <p class="sev-desc">Spacing, alignment, colour. Nice-to-have, not need-to-have. Tell us last.</p>
     </div>
   </div>
 </div>
 
 <div class="footer">
-  <strong>HQ.ai - The operating system for people, compliance, and hiring</strong> · Beta pilot · v0.1 ·
-  Honest feedback now is worth ten polite reviews after launch.
+  <strong>HQ.ai - the operating system for people, compliance, and hiring</strong> · Beta pilot ·
+  Honest feedback now beats polite reviews after launch.
 </div>
 
 </body>
