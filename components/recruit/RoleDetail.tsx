@@ -907,8 +907,42 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               {initials(name)}
                             </div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-ink truncate">{name}</p>
+                          <div className="flex-1 min-w-0 group">
+                            <p className="text-sm font-bold text-ink truncate flex items-center gap-1.5">
+                              <span className="truncate">{name}</span>
+                              {!anonymise && (
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  aria-label="Rename candidate"
+                                  title="Rename candidate"
+                                  onClick={async (e) => {
+                                    e.stopPropagation()
+                                    const next = window.prompt('Rename candidate', r.candidate_name ?? '')
+                                    if (!next || !next.trim() || next.trim() === (r.candidate_name ?? '')) return
+                                    try {
+                                      const resp = await fetch(`/api/prescreen/responses/${r.id}`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ candidate_name: next.trim() }),
+                                      })
+                                      const data = await resp.json()
+                                      if (!resp.ok) throw new Error(data.error || 'Update failed')
+                                      onPatchResponse(r.id, { candidate_name: next.trim() })
+                                    } catch (err) {
+                                      window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
+                                    }
+                                  }}
+                                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { (e.currentTarget as HTMLElement).click() } }}
+                                  className="opacity-0 group-hover:opacity-100 text-[10px] text-mid hover:text-ink rounded p-0.5 transition-opacity cursor-pointer flex-shrink-0"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                    <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                    <path d="M10 3l3 3" />
+                                  </svg>
+                                </span>
+                              )}
+                            </p>
                             <p className="text-xs text-mid truncate">
                               {anonymise ? '' : `${r.candidate_email} - `}{new Date(r.submitted_at).toLocaleDateString('en-AU')}
                             </p>

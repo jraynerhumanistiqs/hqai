@@ -13,6 +13,10 @@ interface Body {
   override_band?: string | null
   override_next_action?: string | null
   override_comment?: string | null
+  /** Recruiter-edited candidate display name. Overrides whatever the
+   *  AI extracted from the CV. Persisted as candidate_label so the
+   *  pipeline + reports + comparison view all read the curated name. */
+  candidate_label?: string
 }
 
 const VALID_BANDS = new Set(['strong_yes', 'yes', 'maybe', 'likely_no', 'reject'])
@@ -67,9 +71,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         patch.override_comment = body.override_comment.trim().slice(0, 1000) || null
       }
     }
+    if ('candidate_label' in body) {
+      if (typeof body.candidate_label !== 'string' || !body.candidate_label.trim()) {
+        return NextResponse.json({ error: 'candidate_label must be a non-empty string' }, { status: 400 })
+      }
+      patch.candidate_label = body.candidate_label.trim().slice(0, 200)
+    }
 
     // If nothing actually changed besides the audit columns, refuse.
-    if (!('override_band' in body) && !('override_next_action' in body) && !('override_comment' in body)) {
+    if (
+      !('override_band' in body) &&
+      !('override_next_action' in body) &&
+      !('override_comment' in body) &&
+      !('candidate_label' in body)
+    ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
 

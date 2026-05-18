@@ -544,12 +544,43 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                     className="w-4 h-4 rounded border-border accent-black cursor-pointer"
                                   />
                                 </label>
-                                <button
-                                  onClick={() => setSelectedId(s.id)}
-                                  className="col-span-3 text-sm font-bold text-charcoal truncate text-left"
-                                >
-                                  {s.candidate_label}
-                                </button>
+                                <div className="col-span-3 text-sm font-bold text-charcoal truncate text-left flex items-center gap-1.5 group">
+                                  <button
+                                    onClick={() => setSelectedId(s.id)}
+                                    className="truncate text-left flex-1 min-w-0"
+                                    title={s.candidate_label}
+                                  >
+                                    {s.candidate_label}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation()
+                                      const next = window.prompt('Rename candidate', s.candidate_label)
+                                      if (!next || !next.trim() || next.trim() === s.candidate_label) return
+                                      try {
+                                        const r = await fetch(`/api/cv-screening/screenings/${s.id}`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ candidate_label: next.trim() }),
+                                        })
+                                        const data = await r.json()
+                                        if (!r.ok) throw new Error(data.error || 'Update failed')
+                                        setScreenings(prev => prev.map(row => row.id === s.id ? { ...row, candidate_label: data.screening.candidate_label } : row))
+                                      } catch (err) {
+                                        window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
+                                      }
+                                    }}
+                                    aria-label="Rename candidate"
+                                    title="Rename candidate"
+                                    className="opacity-0 group-hover:opacity-100 text-[10px] text-mid hover:text-charcoal rounded p-0.5 flex-shrink-0 transition-opacity"
+                                  >
+                                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                      <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                      <path d="M10 3l3 3" />
+                                    </svg>
+                                  </button>
+                                </div>
                                 <button
                                   onClick={() => setSelectedId(s.id)}
                                   className="col-span-1 text-sm text-charcoal font-bold text-left"
@@ -665,6 +696,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           screening={selected}
           customRubrics={customRubrics}
           onClose={() => setSelectedId(null)}
+          onRenameCandidate={(next) =>
+            setScreenings(prev => prev.map(row => row.id === selected.id ? { ...row, candidate_label: next } : row))
+          }
         />
       )}
 

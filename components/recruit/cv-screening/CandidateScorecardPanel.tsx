@@ -20,6 +20,10 @@ interface Props {
   screening: CandidateScreening
   customRubrics?: CustomRubricRow[]
   onClose: () => void
+  /** Called when the recruiter renames the candidate. Lets the parent
+   *  (CvScreeningClient) update its screenings[] state so the list +
+   *  panel header stay in sync. */
+  onRenameCandidate?: (next: string) => void
 }
 
 interface HandoffResult {
@@ -35,7 +39,7 @@ interface ProbeResult {
   verdict: string
 }
 
-export default function CandidateScorecardPanel({ screening, customRubrics, onClose }: Props) {
+export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate }: Props) {
   const rubric = useMemo(() => {
     const standard = getRubric(screening.rubric_id)
     if (standard) return standard
@@ -123,8 +127,35 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
               {rubric?.role ?? screening.rubric_id}
             </p>
-            <h2 className="font-display text-h3 font-bold text-charcoal">
-              {screening.candidate_label}
+            <h2 className="font-display text-h3 font-bold text-charcoal inline-flex items-center gap-2 group">
+              <span>{screening.candidate_label}</span>
+              <button
+                type="button"
+                onClick={async () => {
+                  const next = window.prompt('Rename candidate', screening.candidate_label)
+                  if (!next || !next.trim() || next.trim() === screening.candidate_label) return
+                  try {
+                    const r = await fetch(`/api/cv-screening/screenings/${screening.id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ candidate_label: next.trim() }),
+                    })
+                    const data = await r.json()
+                    if (!r.ok) throw new Error(data.error || 'Update failed')
+                    onRenameCandidate?.(data.screening.candidate_label)
+                  } catch (err) {
+                    window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
+                  }
+                }}
+                aria-label="Rename candidate"
+                title="Rename candidate"
+                className="text-[11px] text-mid hover:text-charcoal opacity-0 group-hover:opacity-100 rounded p-1 transition-opacity"
+              >
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                  <path d="M10 3l3 3" />
+                </svg>
+              </button>
             </h2>
           </div>
           <button
