@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<title>HQ.ai - Pilot Testing Map</title>
+<style>
+  @page { size: A4; margin: 12mm; }
+
+  :root {
+    --ink: #141413;
+    --ink-soft: #3D3D3A;
+    --ink-muted: #5E5D59;
+    --bg: #FAF9F5;
+    --bg-soft: #F0EEE6;
+    --bg-card: #FFFFFF;
+    --accent: #D97757;
+    --accent-soft: #F5E5DD;
+    --border: #D1CFC5;
+    --success: #3D8A5E;
+    --warning: #B8770F;
+    --danger: #C5483A;
+    --info: #6A9BCC;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--accent) 0%, #C6613F 100%);
+    color: white;
+    padding: 24px 28px;
+    border-radius: 16px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .hero-eyebrow {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    opacity: 0.85; margin-bottom: 6px;
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: 32px; font-weight: 700;
+    letter-spacing: -0.01em; line-height: 1.1;
+  }
+  .hero p {
+    margin: 0; font-size: 13px;
+    max-width: 520px; opacity: 0.95;
+  }
+  .hero .meta {
+    margin-top: 14px;
+    display: flex; gap: 16px;
+    font-size: 10px; opacity: 0.85;
+  }
+  .hero .meta span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ── Golden rule banner ────────────────────────────────── */
+  .gold {
+    background: var(--bg-card);
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(20,20,19,0.04);
+  }
+  .gold-label {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 4px;
+  }
+  .gold p { margin: 0; font-size: 12px; font-weight: 500; color: var(--ink); }
+
+  /* ── Section header (page-by-page grid) ────────────────── */
+  .section-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 18px 0 10px;
+  }
+  .section-header h2 {
+    margin: 0; font-size: 16px; font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+  .section-header .hint {
+    font-size: 10px; color: var(--ink-muted);
+  }
+
+  /* ── Grid of page cards ───────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 2px rgba(20,20,19,0.03);
+    position: relative;
+    page-break-inside: avoid;
+  }
+  .card-head {
+    display: flex; align-items: flex-start;
+    gap: 8px; margin-bottom: 6px;
+  }
+  .card-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 11.5px; font-weight: 700;
+    color: var(--ink); line-height: 1.25;
+    margin: 0 0 1px;
+  }
+  .card-path {
+    font-size: 9px; color: var(--ink-muted);
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+  }
+  .card-status {
+    margin-top: 4px;
+    display: inline-block;
+    font-size: 8.5px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 1.5px 6px;
+    border-radius: 999px;
+  }
+  .status-solid    { background: rgba(61,138,94,0.12);  color: var(--success); }
+  .status-working  { background: rgba(106,155,204,0.16); color: var(--info); }
+  .status-polish   { background: rgba(184,119,15,0.14); color: var(--warning); }
+  .status-flagged  { background: rgba(197,72,58,0.12);  color: var(--danger); }
+
+  .card-try {
+    font-size: 9.5px; color: var(--ink-soft);
+    line-height: 1.45; margin: 4px 0 0;
+  }
+  .card-try strong { color: var(--ink); font-weight: 700; }
+  .card-feedback {
+    margin-top: 5px; padding-top: 5px;
+    border-top: 1px dashed var(--border);
+    font-size: 9px; color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  /* ── Legend ───────────────────────────────────────────── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    font-size: 9px;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-solid    { background: var(--success); }
+  .dot-working  { background: var(--info); }
+  .dot-polish   { background: var(--warning); }
+  .dot-flagged  { background: var(--danger); }
+
+  /* ── Flow diagram ─────────────────────────────────────── */
+  .flow {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 18px;
+    page-break-inside: avoid;
+  }
+  .flow-title {
+    font-size: 12px; font-weight: 700;
+    margin: 0 0 10px;
+  }
+  .flow-row {
+    display: flex; align-items: stretch; gap: 6px;
+    margin-bottom: 4px;
+  }
+  .flow-step {
+    flex: 1;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 9.5px;
+    position: relative;
+  }
+  .flow-step.accent {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  .flow-step-num {
+    font-size: 8px; font-weight: 700; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .flow-step-label { font-weight: 700; color: var(--ink); }
+  .flow-step-desc { color: var(--ink-soft); font-size: 9px; margin-top: 1px; }
+  .flow-arrow {
+    display: flex; align-items: center;
+    color: var(--accent); font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Page 2: feedback lenses + limitations ────────────── */
+  .page-break { page-break-before: always; }
+
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+  }
+  .panel-title {
+    font-size: 13px; font-weight: 700;
+    margin: 0 0 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title .pill {
+    display: inline-block;
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+
+  .lens-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .lens {
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .lens-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: white;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 6px;
+  }
+  .lens-title {
+    font-size: 10px; font-weight: 700; line-height: 1.25;
+    margin-bottom: 3px;
+  }
+  .lens-body {
+    font-size: 9px; color: var(--ink-soft); line-height: 1.4;
+  }
+
+  .limit-list {
+    margin: 0; padding: 0; list-style: none;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px;
+    font-size: 10px;
+  }
+  .limit-list li {
+    padding-left: 16px;
+    position: relative;
+    color: var(--ink-soft);
+  }
+  .limit-list li::before {
+    content: '!';
+    position: absolute; left: 0;
+    width: 12px; height: 12px;
+    background: var(--warning); color: white;
+    border-radius: 50%;
+    font-size: 8px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    top: 2px;
+  }
+  .limit-list strong { color: var(--ink); font-weight: 700; }
+
+  .severity {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .sev {
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 10px;
+  }
+  .sev-blocker  { background: var(--danger); }
+  .sev-annoying { background: var(--warning); }
+  .sev-polish   { background: var(--info); }
+  .sev-label {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    opacity: 0.85; margin-bottom: 3px;
+  }
+  .sev-title { font-size: 11px; font-weight: 700; }
+  .sev-desc { font-size: 9px; opacity: 0.92; margin-top: 2px; }
+
+  .footer {
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 9px;
+    margin-top: 14px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .footer strong { color: var(--ink); }
+
+  .repro-steps {
+    list-style: none; padding: 0; margin: 8px 0 0;
+    counter-reset: rs;
+    font-size: 10px;
+  }
+  .repro-steps li {
+    padding: 6px 10px 6px 28px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    position: relative;
+    counter-increment: rs;
+  }
+  .repro-steps li::before {
+    content: counter(rs);
+    position: absolute; left: 8px; top: 6px;
+    width: 14px; height: 14px;
+    background: var(--accent); color: white;
+    border-radius: 50%;
+    font-size: 8px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .repro-steps strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- ───────────── PAGE 1: hero + grid ──────────────── -->
+
+<div class="hero">
+  <p class="hero-eyebrow">HQ.ai - Beta Pilot</p>
+  <h1>Pilot Testing Map</h1>
+  <p>A one-page overview of every surface to test, what to look for, and how to feed it back. Pair this with PILOT-TESTING-GUIDE.md for the deep dive.</p>
+  <div class="meta">
+    <span>📅 Pilot window: this week</span>
+    <span>🔗 hqai.vercel.app</span>
+    <span>✉️ jrayner@humanistiqs.com.au</span>
+  </div>
+</div>
+
+<div class="gold">
+  <p class="gold-label">Golden Rule</p>
+  <p>Test as an Australian SME owner with 20 staff, not as an HR consultant. The product needs to feel obvious to someone who isn't us.</p>
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot dot-solid"></span> Solid</span>
+  <span class="legend-item"><span class="legend-dot dot-working"></span> Working - watch closely</span>
+  <span class="legend-item"><span class="legend-dot dot-polish"></span> Visual polish queued</span>
+  <span class="legend-item"><span class="legend-dot dot-flagged"></span> Known limitation</span>
+</div>
+
+<div class="section-header">
+  <h2>The 11 surfaces</h2>
+  <span class="hint">Scan left-to-right, top-to-bottom. Each card is one page of the app.</span>
+</div>
+
+<div class="grid">
+
+  <!-- 0 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">0</div>
+      <div>
+        <p class="card-title">Sign in / Magic link</p>
+        <p class="card-path">/login</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Sign up fresh; sign out; request magic link; open in same browser.</p>
+    <p class="card-feedback">Same browser only. Phone-to-laptop fails by design.</p>
+  </div>
+
+  <!-- 1 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">1</div>
+      <div>
+        <p class="card-title">Onboarding wizard</p>
+        <p class="card-path">/onboarding</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Walk all 3 steps as a real SME. Pick a real Modern Award.</p>
+    <p class="card-feedback">Plain enough for a non-HR owner?</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">2</div>
+      <div>
+        <p class="card-title">Dashboard home</p>
+        <p class="card-path">/dashboard</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Collapse + drag-resize the sidebar; hover for tooltips.</p>
+    <p class="card-feedback">Does it tell you what to do next?</p>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">3</div>
+      <div>
+        <p class="card-title">HQ People - AI Advisor</p>
+        <p class="card-path">/dashboard/people</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Topic Picker → seed Q → follow-up message → high-stakes triage.</p>
+    <p class="card-feedback">Plain-English advisor tone? Legally wrong answers?</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">4</div>
+      <div>
+        <p class="card-title">AI Administrator (templates)</p>
+        <p class="card-path">/dashboard/people/administrator</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Generate a Letter of Offer. Edit inline (toolbar: bold, lists, font size, table, page setup). Download PDF.</p>
+    <p class="card-feedback">PDF only by design. Test at least 5 templates.</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">5</div>
+      <div>
+        <p class="card-title">CV Formatter / Contract review</p>
+        <p class="card-path">.../administrator/ingest</p>
+        <span class="card-status status-working">Working</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Run a real CV through (DOCX, PDF, TXT). Run a real contract.</p>
+    <p class="card-feedback">PDF extraction flaky in prod - flag if "Could not extract text".</p>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">6</div>
+      <div>
+        <p class="card-title">HQ Recruit - CV Scoring</p>
+        <p class="card-path">/dashboard/recruit/cv-screening</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Score 3-5 CVs. Override a band. Rename a candidate (pencil on hover). Watch for auto-anonymise.</p>
+    <p class="card-feedback">Is the bias auto-anonymise the right baseline?</p>
+  </div>
+
+  <!-- 7 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">7</div>
+      <div>
+        <p class="card-title">Shortlist (video + phone)</p>
+        <p class="card-path">/dashboard/recruit</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Send invite link, record in incognito. Then record a phone screen (consent → Start microphone → edit Qs → record → stop → submit).</p>
+    <p class="card-feedback">Stop-recording was broken; confirm it works.</p>
+  </div>
+
+  <!-- 8 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">8</div>
+      <div>
+        <p class="card-title">Campaign Coach (job ads)</p>
+        <p class="card-path">/dashboard/recruit/campaign-coach</p>
+        <span class="card-status status-polish">Polish</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Walk all 3 steps. Generate the ad.</p>
+    <p class="card-feedback">Sounds like an SME or generic AI ad?</p>
+  </div>
+
+  <!-- 9 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">9</div>
+      <div>
+        <p class="card-title">Documents library</p>
+        <p class="card-path">/dashboard/documents</p>
+        <span class="card-status status-polish">Polish</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Generate 2-3 docs from other surfaces. Confirm they appear. Re-download one.</p>
+    <p class="card-feedback">Filtering / by-client grouping missing?</p>
+  </div>
+
+  <!-- 10 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">10</div>
+      <div>
+        <p class="card-title">Settings</p>
+        <p class="card-path">/dashboard/settings</p>
+        <span class="card-status status-solid">Solid</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Upload logo → confirm in next PDF. Try Stripe checkout (test card 4242 4242 4242 4242).</p>
+    <p class="card-feedback">Price ladder $99 / $199 / $379 - right?</p>
+  </div>
+
+  <!-- 11 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon">11</div>
+      <div>
+        <p class="card-title">$25 Letter of Offer (public)</p>
+        <p class="card-path">/offer</p>
+        <span class="card-status status-flagged">Flagged</span>
+      </div>
+    </div>
+    <p class="card-try"><strong>Try.</strong> Open in incognito (no login). Walk it as a cold prospect. Don't complete in prod.</p>
+    <p class="card-feedback">Value prop clear in 6 seconds?</p>
+  </div>
+
+</div>
+
+<!-- ── Hero flow: how a single doc gets made ────────────── -->
+<div class="flow">
+  <p class="flow-title">The signature flow worth testing end-to-end</p>
+  <div class="flow-row">
+    <div class="flow-step accent">
+      <p class="flow-step-num">Step 1</p>
+      <p class="flow-step-label">Pick template</p>
+      <p class="flow-step-desc">33 HR / recruitment options</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <p class="flow-step-num">Step 2</p>
+      <p class="flow-step-label">Fill form</p>
+      <p class="flow-step-desc">Only the minimum needed</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <p class="flow-step-num">Step 3</p>
+      <p class="flow-step-label">AI generates</p>
+      <p class="flow-step-desc">Sonnet 4 + Fair Work grounding</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <p class="flow-step-num">Step 4</p>
+      <p class="flow-step-label">Edit inline</p>
+      <p class="flow-step-desc">Word-level rich-text editor</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step accent">
+      <p class="flow-step-num">Step 5</p>
+      <p class="flow-step-label">Download PDF</p>
+      <p class="flow-step-desc">Logo footer + custom margins</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ───────────── PAGE 2: feedback lenses + limits + how to flag ─────────── -->
+<div class="page-break"></div>
+
+<div class="panel">
+  <h2 class="panel-title"><span class="pill">Most useful</span> What we want from this group</h2>
+  <p style="margin:0 0 10px; font-size:11px; color:var(--ink-soft);">
+    You're not testing for bugs - you're testing for <strong style="color:var(--ink);">product instinct</strong>. Five lenses we lean on hardest.
+  </p>
+  <div class="lens-grid">
+    <div class="lens">
+      <div class="lens-num">1</div>
+      <p class="lens-title">Would a real SME owner click this?</p>
+      <p class="lens-body">Flag where the language gets too HR-jargon, or where it talks down.</p>
+    </div>
+    <div class="lens">
+      <div class="lens-num">2</div>
+      <p class="lens-title">Where does it save 80%?</p>
+      <p class="lens-body">vs your current consulting workflow. Be ruthless on where it saves nothing.</p>
+    </div>
+    <div class="lens">
+      <div class="lens-num">3</div>
+      <p class="lens-title">What's the missing feature?</p>
+      <p class="lens-body">The one thing that would make you confident handing this to a client tomorrow.</p>
+    </div>
+    <div class="lens">
+      <div class="lens-num">4</div>
+      <p class="lens-title">Where do you mistrust the AI?</p>
+      <p class="lens-body">Specific examples. "This clause read wrong because X" beats "AI feels off".</p>
+    </div>
+    <div class="lens">
+      <div class="lens-num">5</div>
+      <p class="lens-title">What would clients break?</p>
+      <p class="lens-body">Walk as your worst-case-scenario client. Tell us where they'd get stuck.</p>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2 class="panel-title"><span class="pill">Known</span> Limits (so you don't flag them as bugs)</h2>
+  <ul class="limit-list">
+    <li><strong>Dark mode</strong> forced off until a full legacy-panel audit.</li>
+    <li><strong>Documents library + Shortlist top header</strong> on old layout - function works.</li>
+    <li><strong>DOCX / PPTX / shareable-link export</strong> removed by design - PDF only.</li>
+    <li><strong>Voyage embeddings + Cohere rerank</strong> may be env-gated in pilot.</li>
+    <li><strong>$25 anonymous Letter fulfilment</strong> route incomplete - don't complete in prod.</li>
+    <li><strong>Resend</strong> sender / reply-to needs final-domain verification.</li>
+    <li><strong>PDF / PPTX visual QA</strong> on Vercel serverless still pending.</li>
+    <li><strong>Citations panel</strong> removed from generated documents on purpose.</li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h2 class="panel-title"><span class="pill">Reporting</span> How to flag issues</h2>
+  <ol class="repro-steps">
+    <li><strong>Tag</strong> by page name (eg "AI Administrator", "Shortlist / phone screen", "CV Scoring").</li>
+    <li><strong>Severity</strong> in plain language (see below).</li>
+    <li><strong>Repro</strong> - one line of steps + screenshot or Loom.</li>
+    <li><strong>Suggestion</strong> if you have one - optional, no design pressure.</li>
+    <li><strong>Daily summary</strong> to Jimmy end-of-day. One Loom beats 100 screenshots.</li>
+  </ol>
+  <div class="severity">
+    <div class="sev sev-blocker">
+      <p class="sev-label">Blocker</p>
+      <p class="sev-title">Stops the flow</p>
+      <p class="sev-desc">Can't sign in. Can't generate a doc. Error screen with no recovery.</p>
+    </div>
+    <div class="sev sev-annoying">
+      <p class="sev-label">Annoying</p>
+      <p class="sev-title">Slows you down</p>
+      <p class="sev-desc">Hover state wrong, dropdown closes too fast, copy reads weirdly.</p>
+    </div>
+    <div class="sev sev-polish">
+      <p class="sev-label">Polish</p>
+      <p class="sev-title">Looks-and-feels</p>
+      <p class="sev-desc">Spacing, alignment, colour, font weight. Nice-to-have not need-to-have.</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <strong>HQ.ai - The operating system for people, compliance, and hiring</strong> · Beta pilot · v0.1 ·
+  Honest feedback now is worth ten polite reviews after launch.
+</div>
+
+</body>
+</html>
