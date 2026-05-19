@@ -195,6 +195,42 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             </p>
           )}
 
+          {/* Resume Agent download options. Three exports off the same
+              underlying screening record: a recruiter-facing score
+              summary, the candidate's CV rewritten into the Humanistiqs
+              house layout, and a single docx that combines both with a
+              page break between them. The Formatted & Combined paths
+              do a fresh Claude pass to restructure the CV so we don't
+              need a separate upload step. */}
+          <div className="bg-light rounded-2xl px-4 py-3">
+            <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
+              Download
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={`/api/cv-screening/screenings/${screening.id}/export?mode=score`}
+                className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+              >
+                CV Score Summary
+              </a>
+              <a
+                href={`/api/cv-screening/screenings/${screening.id}/export?mode=formatted`}
+                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg"
+              >
+                Formatted &amp; Branded CV
+              </a>
+              <a
+                href={`/api/cv-screening/screenings/${screening.id}/export?mode=combined`}
+                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg"
+              >
+                Combine Both
+              </a>
+            </div>
+            <p className="text-[10px] text-muted mt-2">
+              Formatted CV preserves the candidate&apos;s wording verbatim - only the section order matches the Humanistiqs layout. Combine Both packages the summary on page one and the CV from page two onwards.
+            </p>
+          </div>
+
           <div>
             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
               Criteria

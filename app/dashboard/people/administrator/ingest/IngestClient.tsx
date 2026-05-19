@@ -15,7 +15,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-type IngestKind = 'cv_formatter' | 'contract'
+// Contract Review has moved out of AI Administrator - it will return
+// as its own dedicated tool if/when demand justifies it. This page
+// now only handles the CV Formatter ingest path.
+type IngestKind = 'cv_formatter'
 
 interface CvPayload {
   full_name?: string
@@ -103,26 +106,21 @@ export default function IngestClient() {
     setBusy(false)
   }
 
-  const kindLabel: Record<IngestKind, string> = {
-    cv_formatter: 'CV Formatter',
-    contract:     'Contract review',
-  }
+  void kind // kept as a single-value union for now; future tools land here
 
   return (
     <div className="h-full overflow-y-auto bg-bg">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
         <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
-          HQ People - AI Administrator - Ingest IP
+          HQ People - AI Administrator - CV Formatter
         </p>
         <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
-          Drop a CV or a contract. I&apos;ll handle it.
+          Drop a CV. I&apos;ll restructure it.
         </h1>
         <p className="text-body text-ink-soft mb-6 max-w-2xl">
           Upload a PDF, Word doc, or plain text file (up to 10 MB).
           CV Formatter restructures the candidate&apos;s document into
           the Humanistiqs house format without changing a single word.
-          Contract review returns a Fair Work + NES check with
-          severity-tagged findings.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-6">
@@ -130,24 +128,24 @@ export default function IngestClient() {
           {/* LEFT - guidance */}
           <aside className="space-y-4">
             <section className="bg-bg-elevated border border-border rounded-2xl p-5">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">When to use which</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted mb-3">What CV Formatter does</p>
               <ul className="space-y-3 text-xs text-ink-soft leading-relaxed">
                 <li>
-                  <p className="font-bold text-ink mb-0.5">CV Formatter</p>
-                  Used by HQ Advisors or Hiring Managers to ensure every
-                  candidate CV reads consistently. The candidate&apos;s
-                  wording is preserved verbatim - only the section
-                  ordering and labels change to match the Humanistiqs
-                  template. The reformatted Word doc downloads in one
-                  click.
+                  Restructures any candidate CV into the Humanistiqs house
+                  format - candidate details first, then Professional
+                  Summary, Qualifications, Memberships, Certificates,
+                  Systems, Skills, and Professional Experience.
                 </li>
                 <li>
-                  <p className="font-bold text-ink mb-0.5">Contract review</p>
-                  Reviews an Australian employment contract against the
-                  Fair Work Act 2009, the National Employment Standards,
-                  and the inferred Modern Award. Returns findings tagged
-                  info / caution / risk with the relevant statutory
-                  citation.
+                  The candidate&apos;s wording stays verbatim - only the
+                  section ordering and labels change. No paraphrasing,
+                  no embellishment.
+                </li>
+                <li>
+                  Downloads as a Word doc you can edit or send straight
+                  on. Also available alongside CV scoring in the Resume
+                  Agent (Recruit -&gt; Resume Agent) when you want a
+                  formatted CV plus a score summary in one pass.
                 </li>
               </ul>
             </section>
@@ -166,20 +164,9 @@ export default function IngestClient() {
           {/* RIGHT - drop-zone + result */}
           <div className="space-y-4">
             <section className="bg-bg-elevated border border-border rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <button
-                  onClick={() => setKind('cv_formatter')}
-                  className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1.5 transition-colors ${kind === 'cv_formatter' ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink hover:bg-bg-elevated'}`}
-                >
-                  CV Formatter
-                </button>
-                <button
-                  onClick={() => setKind('contract')}
-                  className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1.5 transition-colors ${kind === 'contract' ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink hover:bg-bg-elevated'}`}
-                >
-                  Contract review
-                </button>
-              </div>
+              {/* Contract Review removed - it will return as its own tool
+                  if demand justifies it. CV Formatter is the only ingest
+                  mode here for now. */}
 
               <label
                 htmlFor="ingest-file"
@@ -216,15 +203,12 @@ export default function IngestClient() {
                 disabled={!file || busy}
                 className="mt-4 w-full"
               >
-                {busy ? 'Reading...' : kind === 'cv_formatter' ? 'Reformat CV' : 'Review contract'}
+                {busy ? 'Reading...' : 'Reformat CV'}
               </Button>
             </section>
 
             {result && result.kind === 'cv_formatter' && (
               <CvResult payload={result.payload as CvPayload} documentId={result.document_id ?? null} />
-            )}
-            {result && result.kind === 'contract' && (
-              <ContractResult payload={result.payload as ContractPayload} />
             )}
           </div>
         </div>

@@ -84,7 +84,7 @@ export default function Step1Brief() {
           Step 1 - Tell me about the role
         </h2>
         <p className="text-sm text-mid leading-relaxed max-w-xl">
-          Just rough notes are fine. I'll classify the role, find the right Modern Award, and
+          Just rough notes are fine. I'll classify the role, recommend the right Modern Award, and
           draft an ad you can react to.
         </p>
       </div>

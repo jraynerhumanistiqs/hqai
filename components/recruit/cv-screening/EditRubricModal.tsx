@@ -135,7 +135,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
               Edit scoring criteria
             </h2>
             <p className="text-xs text-muted mt-1">
-              {rubric.label_family ?? rubric.label} - saving creates version {(rubric.version_number ?? 1) + 1}. Candidates already scored stay on version {rubric.version_number ?? 1} so their old scores don&apos;t change.
+              {`${rubric.label_family ?? rubric.label} - saving creates version ${(rubric.version_number ?? 1) + 1}. Candidates already scored stay on version ${rubric.version_number ?? 1} so their old scores don't change.`}
             </p>
           </div>
           <button
@@ -238,7 +238,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                       <option value="binary">Yes / No only</option>
                     </select>
                   </div>
-                  <div className="sm:col-span-8 flex flex-col gap-1.5 sm:pt-5 sm:flex-row sm:gap-4 sm:items-center">
+                  <div className="sm:col-span-8 flex flex-col gap-3 sm:pt-5 sm:flex-row sm:gap-6 sm:items-start">
                     <label className="inline-flex items-start gap-2 text-xs text-mid leading-snug">
                       <input
                         type="checkbox"

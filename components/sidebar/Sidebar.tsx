@@ -329,7 +329,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <Link href="/dashboard/recruit/cv-screening"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/recruit/cv-screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              CV Scoring Agent
+              Resume Agent
             </Link>
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
@@ -360,13 +360,11 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/documents') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
               <span>My Documents</span>
-              <InfoTooltip text="Documents your HQ.ai Advisor has created in chat" />
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
                 ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
-              <span>Templates</span>
-              <InfoTooltip text="Best practice templates curated by HQ.ai experts (subscribers only)" />
+              <span>All Templates</span>
             </Link>
           </div>
         )}
@@ -533,7 +531,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             one line of text at the default sidebar width. */}
         <div className="px-1 pt-1 sidebar-collapsible-hide">
           <p className="text-[11px] text-white/55 leading-snug mb-1.5">
-            Need more support?
+            Need more specific support from a human?
           </p>
           <button
             type="button"
@@ -546,8 +544,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Settings - sits below HQ Advisor, above Sign out, left-aligned
             to match Sign out and the sidebar nav above. */}
+        {/* gap-2.5 + px-3 + py-2 match every other top-level sidebar
+            item so the Settings cog sits on the same vertical axis as
+            the nav icons above. Previously used gap-2 which pulled the
+            label half a pixel off-grid. */}
         <Link href="/dashboard/settings" title="Settings" aria-label="Settings"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-bold transition-all
             ${isActive('/dashboard/settings')
               ? 'bg-white/11 text-white'
               : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>

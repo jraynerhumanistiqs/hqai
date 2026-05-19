@@ -1,14 +1,46 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useWizard } from './wizard-state'
 
+// CAMPAIGN_COACH_HANDOFF_KEY stores a small role-context payload in
+// sessionStorage so the Resume Agent can pre-fill a fresh rubric with
+// the title, must-haves and nice-to-haves the recruiter just defined,
+// when the user clicks "Create job in Resume Agent (no ad)". This is
+// the lightweight pre-Job-Board integration handoff path - the proper
+// API-side wire-up arrives when the job-board feature lands.
+const CAMPAIGN_COACH_HANDOFF_KEY = 'hqai:campaign-coach:handoff'
+
 export default function Step5Launch() {
   const { state, callLaunch } = useWizard()
+  const router = useRouter()
   const [questions, setQuestions] = useState<string[]>(defaultQuestions(state.role_profile))
   const [launching, setLaunching] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+
+  function handoffToResumeAgent() {
+    if (typeof window === 'undefined') return
+    const profile = state.role_profile
+    if (!profile) {
+      setError('Finish the role profile first - I need the title and must-have skills before I can hand this off.')
+      return
+    }
+    const payload = {
+      title:       profile.title,
+      location:    profile.location,
+      salary:      profile.salary,
+      must_have:   profile.must_have_skills ?? [],
+      nice_to_have: profile.nice_to_have_skills ?? [],
+      questions,
+      createdAt:   new Date().toISOString(),
+    }
+    try {
+      window.sessionStorage.setItem(CAMPAIGN_COACH_HANDOFF_KEY, JSON.stringify(payload))
+    } catch {/* private mode - ignore, the user can still create the role manually */}
+    router.push('/dashboard/recruit/cv-screening?source=campaign-coach')
+  }
 
   const profile = state.role_profile
   const draft = state.job_ad_draft
@@ -163,14 +195,37 @@ export default function Step5Launch() {
         <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
       )}
 
-      <div className="flex justify-end">
-        <button
-          onClick={onLaunch}
-          disabled={launching}
-          className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] disabled:bg-muted transition-colors"
-        >
-          {launching ? 'Launching…' : 'Launch campaign →'}
-        </button>
+      {/* Phase 4 - Distribution. Two-track exit: launch publicly across
+          job boards, or skip the public ad entirely and continue the
+          workflow inside the Resume Agent (useful for internal hires,
+          warm referrals, or existing candidate pipelines where the ad
+          isn't needed). Job-board integration is on the roadmap; for
+          now the secondary path hands the role context through to the
+          Resume Agent via sessionStorage so the recruiter can keep
+          working without rebuilding the rubric. */}
+      <div className="bg-light rounded-2xl px-5 py-4">
+        <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
+          Phase 4 - Distribution
+        </p>
+        <p className="text-xs text-mid leading-relaxed mb-3 max-w-2xl">
+          Launch publicly across job boards, or skip the ad and feed the role straight to the Resume Agent. Job-board integration is a future addition; for now you can keep the workflow moving by scoring candidates you already have.
+        </p>
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <button
+            type="button"
+            onClick={handoffToResumeAgent}
+            className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-bg transition-colors"
+          >
+            Create Job in Resume Agent (with no ad)
+          </button>
+          <button
+            onClick={onLaunch}
+            disabled={launching}
+            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] disabled:bg-muted transition-colors"
+          >
+            {launching ? 'Launching…' : 'Launch campaign →'}
+          </button>
+        </div>
       </div>
     </div>
   )

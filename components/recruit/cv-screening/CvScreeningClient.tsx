@@ -302,7 +302,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             HQ Recruit
           </p>
           <h1 className="font-sans text-lg font-bold text-ink tracking-tight mb-1">
-            CV Scoring Agent
+            Resume Agent
           </h1>
           <p className="text-xs text-ink-soft mb-2">
             {customCount} saved criteria. Score CVs against your rubric, then send the shortlist to video pre-screen.
@@ -633,7 +633,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-black" />
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the Resume Agent works</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
