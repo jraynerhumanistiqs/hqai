@@ -12,11 +12,16 @@ interface SavedRubric {
 interface Props {
   onClose: () => void
   onCreated: (saved: SavedRubric) => void
+  /** Optional pre-fill - used by the Campaign Coach handoff flow so
+   *  the recruiter only has to review / save instead of retyping the
+   *  role title and JD they already entered in the wizard. */
+  initialLabel?: string
+  initialJd?: string
 }
 
-export default function NewRubricModal({ onClose, onCreated }: Props) {
-  const [label, setLabel] = useState('')
-  const [jd, setJd] = useState('')
+export default function NewRubricModal({ onClose, onCreated, initialLabel, initialJd }: Props) {
+  const [label, setLabel] = useState(initialLabel ?? '')
+  const [jd, setJd] = useState(initialJd ?? '')
   const [stage, setStage] = useState<'input' | 'reviewing'>('input')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

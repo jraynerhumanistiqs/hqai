@@ -58,6 +58,56 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [batchHandoffResult, setBatchHandoffResult] = useState<string | null>(null)
   const [savingStarterId, setSavingStarterId] = useState<string | null>(null)
 
+  // Campaign Coach handoff - Step 5 ("Create Job in CV Scoring Agent
+  // with no ad") stashes the role payload to sessionStorage and routes
+  // the user here. We hydrate that into a pre-filled "New scoring
+  // criteria" modal so the recruiter only has to review + save.
+  const [campaignHandoff, setCampaignHandoff] = useState<{
+    title: string
+    jd: string
+  } | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = window.sessionStorage.getItem('hqai:campaign-coach:handoff')
+      if (!raw) return
+      window.sessionStorage.removeItem('hqai:campaign-coach:handoff')
+      const data = JSON.parse(raw) as {
+        title?: string
+        must_have?: string[]
+        nice_to_have?: string[]
+        location?: { suburb?: string; state?: string }
+        salary?:   { min?: number; max?: number; currency?: string }
+        questions?: string[]
+      }
+      if (!data.title) return
+      // Synthesise a job description from the Campaign Coach output so
+      // the rubric-suggestion endpoint has something concrete to chew
+      // on. The recruiter can edit it before clicking Suggest.
+      const lines: string[] = [`Role: ${data.title}`]
+      if (data.location?.suburb || data.location?.state) {
+        lines.push(`Location: ${[data.location.suburb, data.location.state].filter(Boolean).join(', ')}`)
+      }
+      if (data.salary?.min || data.salary?.max) {
+        lines.push(`Salary: ${data.salary.currency ?? 'AUD'} ${data.salary.min ?? '-'} to ${data.salary.max ?? '-'}`)
+      }
+      if (data.must_have?.length) {
+        lines.push('', 'Must-have skills:', ...data.must_have.map(s => `- ${s}`))
+      }
+      if (data.nice_to_have?.length) {
+        lines.push('', 'Nice-to-have skills:', ...data.nice_to_have.map(s => `- ${s}`))
+      }
+      if (data.questions?.length) {
+        lines.push('', 'Screening questions:', ...data.questions.map((q, i) => `${i + 1}. ${q}`))
+      }
+      setCampaignHandoff({ title: data.title, jd: lines.join('\n') })
+      setShowNewRubric(true)
+    } catch {
+      // sessionStorage parse / read failure - silently skip the handoff
+      // so the user lands on a normal CV Scoring Agent page.
+    }
+  }, [])
+
   // Save a starter-library rubric into the user's "Saved scoring criteria"
   // list so they can reuse it for future roles - including editing it
   // (which the starter library can't be). Hits the same POST endpoint
@@ -745,7 +795,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* New rubric modal */}
       {showNewRubric && (
         <NewRubricModal
-          onClose={() => setShowNewRubric(false)}
+          initialLabel={campaignHandoff?.title}
+          initialJd={campaignHandoff?.jd}
+          onClose={() => { setShowNewRubric(false); setCampaignHandoff(null) }}
           onCreated={(saved) => {
             // NewRubricModal returns the legacy shape; coerce to the full
             // versioned row shape so the new list rendering stays happy.
@@ -758,6 +810,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             setCustomRubrics(prev => [row, ...prev])
             setRubricId(row.id)
             setShowNewRubric(false)
+            setCampaignHandoff(null)
           }}
         />
       )}
