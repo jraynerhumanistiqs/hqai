@@ -126,7 +126,7 @@ export const BAND_LABELS: Record<CandidateBand, string> = {
 }
 
 export const ACTION_LABELS: Record<NextAction, string> = {
-  schedule_panel: 'Schedule panel',
+  schedule_panel: 'Schedule Interview',
   schedule_phone_screen: 'Phone screen',
   schedule_video_interview: 'Video interview',
   send_technical_task: 'Technical task',

@@ -643,7 +643,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         <li>Scores each CV against the criteria on the left, weighted by importance.</li>
                         <li>Masks names, photos, addresses, dates of birth and graduation years before scoring - the model judges substance, not signal.</li>
                         <li>Backs every score with a verbatim line from the CV so you can see exactly why.</li>
-                        <li>Recommends a next step (Schedule panel, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
+                        <li>Recommends a next step (Schedule Interview, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
                       </ul>
                     </div>
 
