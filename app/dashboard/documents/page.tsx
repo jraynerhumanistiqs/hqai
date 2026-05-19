@@ -246,38 +246,45 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
       aria-label="Edit document"
       onClick={onClose}
     >
+      {/* Grid layout (auto/1fr) over fixed 92vh height. The 1fr row
+          gives DocEditor a fully-resolved containing block so the
+          inner overflow-y-auto pane can actually scroll - the previous
+          flex/max-h chain failed to clamp on tall content. */}
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-[920px] max-h-[92vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-modal w-full max-w-[920px] h-[92vh] grid"
+        style={{ gridTemplateRows: 'auto 1fr' }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Editing</p>
-            <p className="text-sm font-bold text-charcoal truncate max-w-[400px]">{doc.title}</p>
+        <div>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Editing</p>
+              <p className="text-sm font-bold text-charcoal truncate max-w-[400px]">{doc.title}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={downloadPdf}
+                disabled={downloading}
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-2 transition-colors disabled:opacity-60"
+              >
+                {downloading ? 'Preparing PDF...' : 'Download PDF'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close editor"
+                className="text-mid hover:text-charcoal text-lg font-bold px-2"
+              >
+                ×
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={downloadPdf}
-              disabled={downloading}
-              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-2 transition-colors disabled:opacity-60"
-            >
-              {downloading ? 'Preparing PDF...' : 'Download PDF'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close editor"
-              className="text-mid hover:text-charcoal text-lg font-bold px-2"
-            >
-              ×
-            </button>
-          </div>
+          {error && (
+            <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
+          )}
         </div>
-        {error && (
-          <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
-        )}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="min-h-0 overflow-hidden">
           <DocEditor ref={editorRef} initialHtml={initialHtml} />
         </div>
       </div>

@@ -368,47 +368,51 @@ export default function AdministratorClient({ templates, categories, initialTemp
           aria-label="Live editor"
           onClick={() => setPreviewId(null)}
         >
+          {/* Grid template rows: auto for the toolbar/error band, 1fr
+              for the editor. The 1fr track resolves to "modal height
+              minus toolbar" inside a fixed-height modal, giving DocEditor
+              a fully-resolved containing block. min-h-0 on the editor
+              cell prevents the grid from blowing out when ProseMirror
+              content is taller than viewport - which was the root
+              cause of the editor refusing to scroll. */}
           <div
-            className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-[860px] max-h-[92vh] flex flex-col"
+            className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-[860px] h-[92vh] grid"
+            style={{ gridTemplateRows: 'auto 1fr' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live editor</p>
-                <p className="text-[11px] text-ink-muted mt-0.5">
-                  Click any sentence to edit. Your edits are included in the PDF.
-                </p>
+            <div>
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Live editor</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">
+                    Click any sentence to edit. Your edits are included in the PDF.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={downloadPdf}
+                    disabled={downloading || !previewHtml}
+                  >
+                    {downloading ? 'Preparing PDF...' : 'Download PDF'}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewId(null)}
+                    aria-label="Close editor"
+                    className="text-ink-muted hover:text-ink text-lg font-bold px-2"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={downloadPdf}
-                  disabled={downloading || !previewHtml}
-                >
-                  {downloading ? 'Preparing PDF...' : 'Download PDF'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewId(null)}
-                  aria-label="Close editor"
-                  className="text-ink-muted hover:text-ink text-lg font-bold px-2"
-                >
-                  ✕
-                </button>
-              </div>
+              {error && (
+                <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
+              )}
             </div>
-            {error && (
-              <p className="text-xs text-danger px-5 py-2 border-b border-border" role="alert">{error}</p>
-            )}
-            {/* min-h-0 is critical here. Without it the flex child
-                resolves min-height: auto and the wrapper grows to fit
-                the A4 page inside DocEditor, which means the inner
-                overflow-y-auto pane never gets a constrained height
-                and cannot scroll. min-h-0 lets flex-1 actually
-                constrain the wrapper to the remaining modal space. */}
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="min-h-0 overflow-hidden">
               {previewHtml ? (
                 <DocEditor ref={editorRef} initialHtml={previewHtml} />
               ) : (

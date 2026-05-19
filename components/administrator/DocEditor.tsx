@@ -148,8 +148,22 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
     return <div className="text-xs text-ink-muted p-6">Loading editor...</div>
   }
 
+  // Grid layout with explicit auto rows for the toolbar / optional
+  // settings bands and a final 1fr row for the editor canvas. This
+  // gives the canvas a fully-resolved height inside whatever parent
+  // the editor is mounted in (modal grid cell, full-page route, etc.)
+  // so the inner overflow-y-auto pane always knows when to scroll.
+  // The flex flex-col chain previously here was failing to clamp when
+  // ProseMirror's intrinsic content was taller than the viewport.
+  const gridRows = [
+    'auto', // toolbar
+    showPageMenu ? 'auto' : null,
+    linkOpen     ? 'auto' : null,
+    '1fr',  // editor canvas
+  ].filter(Boolean).join(' ')
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="grid h-full max-h-full" style={{ gridTemplateRows: gridRows }}>
       {/* Tailwind's preflight strips list-style + padding from <ul>
           and <ol>, which made the bullet / numbered list buttons in
           the toolbar look like no-ops (the editor inserted real list
@@ -264,7 +278,7 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
           child grows to fit the 297mm A4 page and the overflow-y-auto
           never engages. items-start keeps the page top-aligned so the
           scroll starts at the top of the document, not the centre. */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-bg-soft p-4 sm:p-6 scrollbar-thin flex justify-center items-start">
+      <div className="min-h-0 overflow-y-auto bg-bg-soft p-4 sm:p-6 scrollbar-thin flex justify-center items-start">
         <div
           className="bg-white shadow-card rounded-sm doc-editor-page"
           style={{
