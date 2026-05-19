@@ -1,4 +1,4 @@
-// CV export endpoint - powers the three Resume Agent download options:
+// CV export endpoint - powers the three CV Scoring Agent download options:
 //
 //   mode=score      → Score summary docx (per-candidate scorecard).
 //   mode=formatted  → Formatted & branded CV docx (Humanistiqs CV layout).
@@ -253,21 +253,48 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: `Invalid mode "${mode}". Use score | formatted | combined.` }, { status: 400 })
   }
 
+  // Use the profile.business_id column directly rather than the
+  // businesses() relation embed. The embed occasionally returned an
+  // array on this route (different to what cv-screening/score sees),
+  // and a mis-shaped `business.id` was producing a stale filter on the
+  // screening lookup -> "Screening not found" even when the row was
+  // there. Fetch the business name separately so the report header
+  // still has a friendly issuer line.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('businesses(id, name)')
+    .select('business_id')
     .eq('id', user.id)
     .single()
-  const business = profile?.businesses as unknown as { id: string; name: string } | null
-  if (!business?.id) return NextResponse.json({ error: 'No business profile' }, { status: 400 })
+  const businessId = profile?.business_id as string | undefined
+  if (!businessId) return NextResponse.json({ error: 'No business profile' }, { status: 400 })
 
+  // Fetch the screening WITHOUT the business filter first, then verify
+  // ownership. This separates "row doesn't exist" from "row exists but
+  // not yours", which gives us a cleaner error message + lets us
+  // surface a 403 instead of silent 404 when a cross-tenant lookup is
+  // attempted.
   const { data: screening, error } = await supabaseAdmin
     .from('cv_screenings')
     .select('*')
     .eq('id', id)
-    .eq('business_id', business.id)
-    .single()
-  if (error || !screening) return NextResponse.json({ error: 'Screening not found' }, { status: 404 })
+    .maybeSingle()
+  if (error) {
+    console.error('[cv-screening/export] lookup error:', error.message)
+    return NextResponse.json({ error: 'Screening lookup failed', detail: error.message }, { status: 500 })
+  }
+  if (!screening) {
+    return NextResponse.json({ error: 'Screening not found', detail: `No cv_screenings row with id ${id}.` }, { status: 404 })
+  }
+  if (screening.business_id !== businessId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const { data: bizRow } = await supabaseAdmin
+    .from('businesses')
+    .select('name')
+    .eq('id', businessId)
+    .maybeSingle()
+  const businessName = (bizRow?.name as string | undefined) ?? 'Your business'
 
   // Resolve rubric for criterion labels and role title.
   let rubric: Rubric | null = getStandardRubric(screening.rubric_id) ?? null
@@ -283,7 +310,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Body assembly per mode.
   const children: Array<Paragraph | Table> = []
   if (mode === 'score' || mode === 'combined') {
-    children.push(...buildScoreSummarySection({ screening, rubric, businessName: business.name }))
+    children.push(...buildScoreSummarySection({ screening, rubric, businessName }))
   }
   if (mode === 'formatted' || mode === 'combined') {
     if (!screening.cv_text) {
@@ -301,7 +328,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const doc = new Document({
-    creator: 'HQ.ai Resume Agent',
+    creator: 'HQ.ai CV Scoring Agent',
     title: `${screening.candidate_label ?? 'Candidate'} - ${mode}`,
     sections: [{ properties: {}, children }],
   })

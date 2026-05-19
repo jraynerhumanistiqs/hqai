@@ -195,7 +195,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             </p>
           )}
 
-          {/* Resume Agent download options. Three exports off the same
+          {/* CV Scoring Agent download options. Three exports off the same
               underlying screening record: a recruiter-facing score
               summary, the candidate's CV rewritten into the Humanistiqs
               house layout, and a single docx that combines both with a

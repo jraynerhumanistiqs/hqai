@@ -31,7 +31,7 @@ function categoryOf(type: string): string {
   if (t.includes('termination') || t.includes('warning') || t.includes('improvement')) return 'Performance & Exits'
   if (t.includes('flex') || t.includes('confirmation') || t.includes('variation'))   return 'Employment Letters'
   if (t.includes('job-advertisement') || t.includes('reference') || t.includes('campaign')) return 'Recruitment'
-  if (t.includes('cv-score') || t.includes('candidate-summary') || t.includes('shortlist')) return 'Resume Agent reports'
+  if (t.includes('cv-score') || t.includes('candidate-summary') || t.includes('shortlist')) return 'CV Scoring Agent reports'
   if (t.includes('medical') || t.includes('suitable'))                               return 'Workers Comp / WHS'
   return 'Other'
 }
@@ -65,7 +65,7 @@ export default function DocumentsPage() {
       map.get(c)!.push(d)
     }
     // Stable category ordering with Candidate Resumes near the top.
-    const order = ['Candidate Resumes', 'Offers', 'Contracts', 'Employment Letters', 'Performance & Exits', 'Recruitment', 'Resume Agent reports', 'Workers Comp / WHS', 'Other']
+    const order = ['Candidate Resumes', 'Offers', 'Contracts', 'Employment Letters', 'Performance & Exits', 'Recruitment', 'CV Scoring Agent reports', 'Workers Comp / WHS', 'Other']
     return order
       .filter(name => map.has(name))
       .map(name => ({ title: name, docs: map.get(name)!.sort((a, b) => b.created_at.localeCompare(a.created_at)) }))
@@ -100,7 +100,7 @@ export default function DocumentsPage() {
         <p className="text-xs sm:text-sm text-mid mb-4 sm:mb-6">
           {loading
             ? 'Loading your documents…'
-            : `${total} document${total === 1 ? '' : 's'} generated across the AI Administrator, Resume Agent and chat.`}
+            : `${total} document${total === 1 ? '' : 's'} generated across the AI Administrator, CV Scoring Agent and chat.`}
         </p>
 
         <div className="mb-4 sm:mb-6">
@@ -115,7 +115,7 @@ export default function DocumentsPage() {
         {!loading && total === 0 && (
           <div className="bg-white shadow-card rounded-2xl px-6 py-10 text-center">
             <p className="text-sm text-mid">
-              No documents yet. Generate one from the AI Administrator, or score a CV in the Resume Agent and download the formatted version.
+              No documents yet. Generate one from the AI Administrator, or score a CV in the CV Scoring Agent and download the formatted version.
             </p>
           </div>
         )}

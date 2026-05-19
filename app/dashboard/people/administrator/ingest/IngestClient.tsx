@@ -144,7 +144,7 @@ export default function IngestClient() {
                 <li>
                   Downloads as a Word doc you can edit or send straight
                   on. Also available alongside CV scoring in the Resume
-                  Agent (Recruit -&gt; Resume Agent) when you want a
+                  Agent (Recruit -&gt; CV Scoring Agent) when you want a
                   formatted CV plus a score summary in one pass.
                 </li>
               </ul>

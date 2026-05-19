@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useWizard } from './wizard-state'
 
 // CAMPAIGN_COACH_HANDOFF_KEY stores a small role-context payload in
-// sessionStorage so the Resume Agent can pre-fill a fresh rubric with
+// sessionStorage so the CV Scoring Agent can pre-fill a fresh rubric with
 // the title, must-haves and nice-to-haves the recruiter just defined,
-// when the user clicks "Create job in Resume Agent (no ad)". This is
+// when the user clicks "Create job in CV Scoring Agent (no ad)". This is
 // the lightweight pre-Job-Board integration handoff path - the proper
 // API-side wire-up arrives when the job-board feature lands.
 const CAMPAIGN_COACH_HANDOFF_KEY = 'hqai:campaign-coach:handoff'
@@ -197,18 +197,18 @@ export default function Step5Launch() {
 
       {/* Phase 4 - Distribution. Two-track exit: launch publicly across
           job boards, or skip the public ad entirely and continue the
-          workflow inside the Resume Agent (useful for internal hires,
+          workflow inside the CV Scoring Agent (useful for internal hires,
           warm referrals, or existing candidate pipelines where the ad
           isn't needed). Job-board integration is on the roadmap; for
           now the secondary path hands the role context through to the
-          Resume Agent via sessionStorage so the recruiter can keep
+          CV Scoring Agent via sessionStorage so the recruiter can keep
           working without rebuilding the rubric. */}
       <div className="bg-light rounded-2xl px-5 py-4">
         <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
           Phase 4 - Distribution
         </p>
         <p className="text-xs text-mid leading-relaxed mb-3 max-w-2xl">
-          Launch publicly across job boards, or skip the ad and feed the role straight to the Resume Agent. Job-board integration is a future addition; for now you can keep the workflow moving by scoring candidates you already have.
+          Launch publicly across job boards, or skip the ad and feed the role straight to the CV Scoring Agent. Job-board integration is a future addition; for now you can keep the workflow moving by scoring candidates you already have.
         </p>
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <button
@@ -216,7 +216,7 @@ export default function Step5Launch() {
             onClick={handoffToResumeAgent}
             className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-bg transition-colors"
           >
-            Create Job in Resume Agent (with no ad)
+            Create Job in CV Scoring Agent (with no ad)
           </button>
           <button
             onClick={onLaunch}

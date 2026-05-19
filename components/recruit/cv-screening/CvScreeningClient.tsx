@@ -139,7 +139,27 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     setBatchHandoffBusy(false)
   }
 
-  const filtered = screenings.filter(s => s.rubric_id === rubricId)
+  // Include screenings scored against ANY version of the active rubric
+  // family, not just the currently-selected version. Previously the
+  // filter was `s.rubric_id === rubricId` which meant switching to v2
+  // hid every candidate that had been scored under v1, even though
+  // they're the same role - confused users into thinking their data
+  // had disappeared. Each row carries its own version badge so the
+  // recruiter can still tell which version produced each score.
+  // Resolve once - we re-derive activeCustom / activeStandard later in
+  // the component for the right-panel header; computing the family ids
+  // here keeps the filter declaration above the band-count derivations
+  // that depend on it.
+  const activeFamilyIds = (() => {
+    const ac = customRubrics.find(cr => cr.id === rubricId)
+    if (ac) {
+      const familyKey = ac.parent_rubric_id ?? ac.id
+      return new Set(customRubrics.filter(cr => (cr.parent_rubric_id ?? cr.id) === familyKey).map(cr => cr.id))
+    }
+    if (ALL_RUBRICS.find(r => r.rubric_id === rubricId)) return new Set<string>([rubricId])
+    return new Set<string>()
+  })()
+  const filtered = screenings.filter(s => activeFamilyIds.has(s.rubric_id))
   const counts = {
     all: filtered.length,
     strong: filtered.filter(s => effectiveBand(s) === 'strong_yes').length,
@@ -302,7 +322,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             HQ Recruit
           </p>
           <h1 className="font-sans text-lg font-bold text-ink tracking-tight mb-1">
-            Resume Agent
+            CV Scoring Agent
           </h1>
           <p className="text-xs text-ink-soft mb-2">
             {customCount} saved criteria. Score CVs against your rubric, then send the shortlist to video pre-screen.
@@ -583,9 +603,29 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 </div>
                                 <button
                                   onClick={() => setSelectedId(s.id)}
-                                  className="col-span-1 text-sm text-charcoal font-bold text-left"
+                                  className="col-span-1 text-sm text-charcoal font-bold text-left inline-flex items-center gap-1.5"
                                 >
-                                  {Number(s.overall_score).toFixed(2)}
+                                  <span>{Number(s.overall_score).toFixed(2)}</span>
+                                  {/* Version badge - shows which rubric
+                                      version this candidate was scored
+                                      under. Helps the recruiter spot
+                                      candidates scored on older versions
+                                      now that we show the whole family
+                                      in a single view. Hidden when the
+                                      row was scored against the active
+                                      version itself (no information). */}
+                                  {(() => {
+                                    const scoredAgainst = customRubrics.find(cr => cr.id === s.rubric_id)
+                                    if (!scoredAgainst || scoredAgainst.id === rubricId) return null
+                                    return (
+                                      <span
+                                        title={`Scored under v${scoredAgainst.version_number ?? 1}`}
+                                        className="text-[9px] font-bold text-mid bg-light border border-border rounded-full px-1.5 py-0.5"
+                                      >
+                                        v{scoredAgainst.version_number ?? 1}
+                                      </span>
+                                    )
+                                  })()}
                                 </button>
                                 <button
                                   onClick={() => setOverrideTarget(s)}
@@ -633,7 +673,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-black" />
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the Resume Agent works</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
