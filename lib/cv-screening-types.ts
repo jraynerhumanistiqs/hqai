@@ -136,10 +136,14 @@ export const ACTION_LABELS: Record<NextAction, string> = {
   reject: 'Reject (needs human click)',
 }
 
+// Premium-minimal band styling. Semantic colour kept for instant
+// recognition but tuned per the rule-5 status-pill pattern:
+//   8% alpha background, the colour itself for text, hairline border
+//   in the same hue at 20% alpha. Likely-no / final states use ink/5.
 export const BAND_COLOURS: Record<CandidateBand, string> = {
-  strong_yes: 'bg-success/10 text-success',
-  yes: 'bg-success/10 text-success',
-  maybe: 'bg-warning/10 text-warning',
-  likely_no: 'bg-mid/10 text-mid',
-  reject: 'bg-danger/10 text-danger',
+  strong_yes: 'bg-success/8 text-success border border-success/20',
+  yes:        'bg-success/8 text-success border border-success/20',
+  maybe:      'bg-warning/8 text-warning border border-warning/20',
+  likely_no:  'bg-ink/5 text-ink border border-border',
+  reject:     'bg-danger/8 text-danger border border-danger/20',
 }

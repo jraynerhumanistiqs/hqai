@@ -16,8 +16,11 @@ const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number 
 
 type PaidPlanId = 'essentials' | 'growth' | 'scale'
 
-const inputCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-ink transition-colors"
-const selectCls = inputCls + " appearance-none"
+// Premium-minimal underline for text inputs; selects keep a subtle
+// box because a bare underline + browser chevron renders inconsistently
+// across OSes.
+const inputCls = "w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
+const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-ink transition-colors appearance-none"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -175,7 +178,7 @@ export default function SettingsPage() {
         </p>
 
         {/* Company Logo */}
-        <section className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+        <section className="bg-bg-elevated border border-border rounded-3xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Company logo</h2>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-light border-2 border-dashed border-border rounded-xl flex items-center justify-center overflow-hidden">
@@ -201,7 +204,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Personal */}
-        <section className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+        <section className="bg-bg-elevated border border-border rounded-3xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Your profile</h2>
           <Field label="Your name">
             <input className={inputCls} value={userName} onChange={e => setUserName(e.target.value)} placeholder="James Smith" />
@@ -209,7 +212,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Business */}
-        <section className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5">
+        <section className="bg-bg-elevated border border-border rounded-3xl p-4 sm:p-6 mb-4 sm:mb-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-4">Business details</h2>
           <div className="space-y-4">
             <Field label="Business name">
@@ -245,13 +248,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Advisor - subscription gated */}
-        <section className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
+        <section className="bg-bg-elevated border border-border rounded-3xl p-4 sm:p-6 mb-4 sm:mb-5 relative">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Advisor details</h2>
           <p className="text-xs text-muted mb-4">Two advisors looking after you: your AI Advisor (in the app) and your human Humanistiqs Advisor (real person, on call when things get complex).</p>
           {plan === 'free' && (
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-[1.5px] rounded-2xl flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-bg/40 backdrop-blur-[1.5px] rounded-3xl flex items-center justify-center z-10">
               <button onClick={openPortal}
-                className="bg-black text-white font-display font-bold text-lg px-6 py-3 rounded-full hover:bg-[#1a1a1a] transition-colors uppercase tracking-wider">
+                className="bg-ink text-bg-elevated font-display text-lg px-6 py-3 rounded-full hover:bg-accent transition-colors tracking-tight">
                 Upgrade to unlock
               </button>
             </div>
@@ -277,7 +280,7 @@ export default function SettingsPage() {
                   rel={form.calendly_link ? 'noopener noreferrer' : undefined}
                   onClick={e => { if (!form.calendly_link) e.preventDefault() }}
                   aria-disabled={!form.calendly_link}
-                  className={`w-full inline-flex items-center justify-center gap-2 bg-black text-white font-bold px-4 py-2.5 rounded-full text-sm transition-colors ${form.calendly_link ? 'hover:bg-[#1a1a1a]' : 'opacity-50 cursor-not-allowed'}`}
+                  className={`w-full inline-flex items-center justify-center gap-2 bg-ink text-bg-elevated font-semibold px-4 py-2.5 rounded-full text-sm transition-colors ${form.calendly_link ? 'hover:bg-accent' : 'opacity-50 cursor-not-allowed'}`}
                 >
                   <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
@@ -291,7 +294,7 @@ export default function SettingsPage() {
                   href={form.advisor_email ? `mailto:${form.advisor_email}?subject=HQ.ai%20advisor%20call` : '#'}
                   onClick={e => { if (!form.advisor_email) e.preventDefault() }}
                   aria-disabled={!form.advisor_email}
-                  className={`w-full inline-flex items-center justify-center gap-2 bg-bg-elevated border border-black text-charcoal font-bold px-4 py-2.5 rounded-full text-sm transition-colors ${form.advisor_email ? 'hover:bg-light' : 'opacity-50 cursor-not-allowed'}`}
+                  className={`w-full inline-flex items-center justify-center gap-2 bg-bg-elevated border border-border text-ink font-semibold px-4 py-2.5 rounded-full text-sm transition-colors ${form.advisor_email ? 'hover:bg-bg-soft' : 'opacity-50 cursor-not-allowed'}`}
                 >
                   <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
@@ -313,7 +316,7 @@ export default function SettingsPage() {
 
 
         {/* Billing */}
-        <section className="bg-bg-elevated shadow-card rounded-2xl p-6 mt-5">
+        <section className="bg-bg-elevated border border-border rounded-3xl p-6 mt-5">
           <h2 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-1">Billing & subscription</h2>
           <p className="text-xs text-muted mb-4">Manage your HQ.ai plan and payment method</p>
 
@@ -368,7 +371,7 @@ export default function SettingsPage() {
                     key={pid}
                     onClick={() => startCheckout(pid)}
                     disabled={disabled}
-                    className={`text-left rounded-xl border p-4 transition-colors hover:border-black focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-ink bg-ink/5' : 'border-border'}`}
+                    className={`text-left rounded-2xl border p-4 transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-ink bg-ink/5' : 'border-border'}`}
                   >
                     <p className="text-sm font-bold text-charcoal">{p.name}</p>
                     <p className="text-lg font-bold text-charcoal mt-1">{p.price}</p>
@@ -378,7 +381,7 @@ export default function SettingsPage() {
                         {busy ? 'Redirecting...' : `Choose ${p.name}`}
                       </span>
                       {pid === 'growth' && (
-                        <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>
+                        <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>
                       )}
                     </div>
                   </button>

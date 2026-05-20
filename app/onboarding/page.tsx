@@ -144,8 +144,11 @@ export default function OnboardingPage() {
     }
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
-  const selectCls = inputCls + " appearance-none"
+  // Text inputs use the underline pattern; selects keep a subtle box
+  // because a bare underline + browser chevron reads inconsistently
+  // across OSes.
+  const inputCls = "w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
+  const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-ink transition-colors appearance-none"
 
   if (!authReady) {
     return (
@@ -164,18 +167,18 @@ export default function OnboardingPage() {
           <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
         </div>
 
-        <div className="bg-white shadow-modal rounded-2xl border border-border p-8">
+        <div className="bg-bg-elevated rounded-3xl border border-border p-8">
 
-          {/* Progress */}
+          {/* Progress - hairline connector + ink-pill active state. */}
           <div className="flex items-center gap-2 mb-8">
             {steps.map((s, i) => (
               <div key={i} className="flex items-center gap-2 flex-1">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 transition-colors
-                  ${step > i + 1 ? 'bg-accent text-ink-on-accent' : step === i + 1 ? 'bg-accent text-ink-on-accent' : 'bg-light text-muted border border-border'}`}>
+                  ${step > i + 1 ? 'bg-ink text-bg-elevated' : step === i + 1 ? 'bg-ink text-bg-elevated' : 'bg-bg-soft text-ink-muted border border-border'}`}>
                   {step > i + 1 ? '✓' : i + 1}
                 </div>
-                <span className={`text-xs font-bold ${step === i + 1 ? 'text-charcoal' : 'text-muted'}`}>{s.label}</span>
-                {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-black' : 'bg-border'}`} />}
+                <span className={`text-xs font-semibold ${step === i + 1 ? 'text-ink' : 'text-ink-muted'}`}>{s.label}</span>
+                {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-ink' : 'bg-border'}`} />}
               </div>
             ))}
           </div>
@@ -183,7 +186,7 @@ export default function OnboardingPage() {
           {/* Step 1 - Business */}
           {step === 1 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Tell us about your business</h2>
+              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Tell us about your business</h2>
               <p className="text-sm text-mid mb-6">HQ uses this to tailor every response to your specific situation.</p>
               <div className="space-y-4">
                 <div>
@@ -216,8 +219,8 @@ export default function OnboardingPage() {
                     <div className="flex flex-wrap gap-2">
                       {STATES_BY_COUNTRY[form.country].map(s => (
                         <button key={s} type="button" onClick={() => update('state', s)}
-                          className={`px-4 py-2 rounded-lg text-sm border font-bold transition-colors
-                            ${form.state === s ? 'bg-black text-white border-black' : 'bg-white border-border text-mid hover:border-black'}`}>
+                          className={`px-4 py-2 rounded-full text-sm border font-semibold transition-colors
+                            ${form.state === s ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
                           {s}
                         </button>
                       ))}
@@ -242,7 +245,7 @@ export default function OnboardingPage() {
           {/* Step 2 - Employment */}
           {step === 2 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Employment details</h2>
+              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Employment details</h2>
               <p className="text-sm text-mid mb-6">HQ applies the right awards and compliance rules automatically.</p>
               <div className="space-y-4">
                 <div>
@@ -253,9 +256,9 @@ export default function OnboardingPage() {
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
                           ${form.awards.includes(a) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                          ${form.awards.includes(a) ? 'border-black bg-black' : 'border-border'}`}>
+                          ${form.awards.includes(a) ? 'border-ink bg-ink' : 'border-border'}`}>
                           {form.awards.includes(a) && (
-                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                             </svg>
                           )}
@@ -276,9 +279,9 @@ export default function OnboardingPage() {
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
                           ${form.empTypes.includes(t) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                          ${form.empTypes.includes(t) ? 'border-black bg-black' : 'border-border'}`}>
+                          ${form.empTypes.includes(t) ? 'border-ink bg-ink' : 'border-border'}`}>
                           {form.empTypes.includes(t) && (
-                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                             </svg>
                           )}
@@ -298,7 +301,7 @@ export default function OnboardingPage() {
           {/* Step 3 - Advisor */}
           {step === 3 && (
             <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">Meet your AI Advisor</h2>
+              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Meet your AI Advisor</h2>
               <p className="text-sm text-mid mb-6">Give your AI Advisor a name - it&apos;s the assistant that handles your day-to-day HR questions inside HQ.ai. When something complex comes up, your AI Advisor hands off to your real Humanistiqs human advisor automatically.</p>
               <div className="space-y-4">
                 <div>
@@ -318,16 +321,16 @@ export default function OnboardingPage() {
                         className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
                           ${form.plan === p.id ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
                         <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                          ${form.plan === p.id ? 'border-black bg-black' : 'border-border'}`}>
-                          {form.plan === p.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                          ${form.plan === p.id ? 'border-ink bg-ink' : 'border-border'}`}>
+                          {form.plan === p.id && <div className="w-1.5 h-1.5 bg-bg-elevated rounded-full" />}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-charcoal">{p.label}</span>
-                            {p.recommended && <span className="text-xs bg-black text-white px-2 py-0.5 rounded-full font-bold">Popular</span>}
-                            <span className="text-sm font-bold text-charcoal ml-auto">{p.price}</span>
+                            <span className="text-sm font-semibold text-ink">{p.label}</span>
+                            {p.recommended && <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>}
+                            <span className="text-sm font-semibold text-ink ml-auto">{p.price}</span>
                           </div>
-                          <p className="text-xs text-muted mt-0.5">{p.desc}</p>
+                          <p className="text-xs text-ink-muted mt-0.5">{p.desc}</p>
                         </div>
                       </button>
                     ))}
@@ -348,18 +351,20 @@ export default function OnboardingPage() {
           <div className="flex justify-between mt-8">
             {step > 1 ? (
               <button type="button" onClick={() => setStep(s => s - 1)}
-                className="px-5 py-2.5 bg-white hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
+                className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors">
                 ← Back
               </button>
             ) : <div />}
             {step < 3 ? (
               <button type="button" onClick={() => setStep(s => s + 1)}
-                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold transition-colors">
+                className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors">
                 Continue →
               </button>
             ) : (
+              // Final celebratory CTA - the ONE Clay accent moment in
+              // the whole wizard (rule 4 of the kit).
               <button type="button" onClick={completeOnboarding} disabled={saving}
-                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold transition-colors disabled:opacity-60">
+                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
                 {saving ? 'Setting up…' : 'Launch HQ.ai →'}
               </button>
             )}

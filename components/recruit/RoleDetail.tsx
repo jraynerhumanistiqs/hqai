@@ -65,16 +65,20 @@ const STATUS_LABEL: Record<string, string> = {
   reviewed: 'Reviewed',
 }
 
+// Premium-minimal pill pattern.
+//   submitted / transcribed / new      -> draft chip (bg-soft + muted ink)
+//   transcribing / evaluating / scored -> active state via accent-soft
+//   staff_reviewed / reviewed / shared -> final state via ink/5
 const STATUS_PILL: Record<string, string> = {
-  submitted:      'bg-light text-mid border-border',
-  transcribing:   'bg-blue-50 text-blue-600 border-blue-200',
-  transcribed:    'bg-light text-mid border-border',
-  evaluating:     'bg-blue-50 text-blue-600 border-blue-200',
-  scored:         'bg-amber-50 text-amber-700 border-amber-200',
-  staff_reviewed: 'bg-green-50 text-green-600 border-green-200',
-  shared:         'bg-purple-50 text-purple-600 border-purple-200',
-  new:            'bg-light text-mid border-border',
-  reviewed:       'bg-green-50 text-green-600 border-green-200',
+  submitted:      'bg-bg-soft text-ink-muted border-border',
+  transcribing:   'bg-accent-soft text-accent border-accent/30',
+  transcribed:    'bg-bg-soft text-ink-muted border-border',
+  evaluating:     'bg-accent-soft text-accent border-accent/30',
+  scored:         'bg-accent-soft text-accent border-accent/30',
+  staff_reviewed: 'bg-ink/5 text-ink border-border',
+  shared:         'bg-ink/5 text-ink border-border',
+  new:            'bg-bg-soft text-ink-muted border-border',
+  reviewed:       'bg-ink/5 text-ink border-border',
 }
 
 function initials(name: string) {

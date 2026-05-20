@@ -260,16 +260,19 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </div>
       </div>
 
-      {/* Scrollable nav area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2">
-        {/* Modules */}
-        <p className="text-xs font-bold text-ink-muted uppercase tracking-widest px-2 mb-1.5 font-display sidebar-collapsible-hide">Modules</p>
+      {/* Scrollable nav area. Groups are separated by gap-7 with gap-0.5
+          between items inside a group. Top-level items are h-9, px-3,
+          rounded-full at 13px - the premium-minimal nav pattern. */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2 flex flex-col gap-7">
+        {/* Workspace group ------------------------------------------------ */}
+        <div className="flex flex-col gap-0.5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-muted px-3 mb-1 sidebar-collapsible-hide">Workspace</p>
 
         {/* Home */}
         <Link href="/dashboard" title="Home" aria-label="Home"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all group
+          className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all group
             ${isActive('/dashboard', true)
-              ? 'bg-ink text-bg-elevated'
+              ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <HomeIcon active={isActive('/dashboard', true)} />
           <span className="flex-1">Home</span>
@@ -277,9 +280,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* HQ People dropdown */}
         <button onClick={() => toggleSubmenu(peopleOpen, setPeopleOpen)} title="HQ People" aria-label="HQ People"
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
-              ? 'bg-ink text-bg-elevated'
+              ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <PeopleIcon active={isActive('/dashboard/people')} />
           <span className="flex-1 text-left">HQ People</span>
@@ -311,9 +314,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* HQ Recruit dropdown */}
         <button onClick={() => toggleSubmenu(recruitOpen, setRecruitOpen)} title="HQ Recruit" aria-label="HQ Recruit"
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/recruit')
-              ? 'bg-ink text-bg-elevated'
+              ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <RecruitIcon active={isActive('/dashboard/recruit')} />
           <span className="flex-1 text-left">HQ Recruit</span>
@@ -346,9 +349,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
         {/* Documents dropdown */}
         <button onClick={() => toggleSubmenu(docsOpen, setDocsOpen)} title="Documents" aria-label="Documents"
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/documents')
-              ? 'bg-ink text-bg-elevated'
+              ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <DocsIcon active={isActive('/dashboard/documents')} />
           <span className="flex-1 text-left">Documents</span>
@@ -369,28 +372,22 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           </div>
         )}
 
-        {/* Tools - single collapsible parent wrapping the coming-soon
-            sub-tools (Compliance / Leadership / Business). Visible if
-            the user has any tools to see; auto-hidden for member-role
-            accounts when no feature flags are set. */}
-        {(isInternal
-          || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')
-          || flag('team_development') || flag('strategy_coach')) && (
+        {/* Tools - single collapsible parent wrapping the (active-only)
+            sub-tools (Compliance / Leadership / Business). Only shown
+            when a feature flag is set OR the user is internal staff;
+            active customers don't see a "coming soon" tease. */}
+        {(flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')
+          || flag('team_development') || flag('strategy_coach') || isInternal) && (
           <>
             <button onClick={() => toggleSubmenu(toolsOpen, setToolsOpen)} title="Tools" aria-label="Tools"
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mt-4 mb-0.5 text-sm font-bold transition-all
+              className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
                 ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
                   || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                   || isActive('/dashboard/business')
-                  ? 'bg-ink text-bg-elevated'
+                  ? 'bg-ink text-bg-elevated font-semibold'
                   : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
               <ToolsIcon active={toolsOpen} />
-              <span className="flex-1 text-left flex items-center gap-1.5">
-                Tools
-                <span className="text-[9px] uppercase font-bold tracking-wider bg-bg-soft text-ink-muted px-1.5 py-0.5 rounded-full">
-                  Coming soon
-                </span>
-              </span>
+              <span className="flex-1 text-left">Tools</span>
               <ChevronIcon open={toolsOpen} />
             </button>
             {toolsOpen && (
@@ -498,76 +495,54 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <p>You can view every surface. Owner approval is required for any save, edit, or send action.</p>
           </div>
         )}
+        </div>{/* end Workspace group */}
 
-        {/* Recruitment-tools section removed - Shortlist Agent lives in HQ Recruit
-            already, and Candidate Screening + Campaign Coach were moved into the
-            HQ Recruit dropdown above. Settings link now lives in the footer
-            stack between the HQ Advisor button and Sign out. */}
-      </div>
-
-      {/* Footer - everything left-aligned. New order is:
-            1. Brand logo (left-aligned)
-            2. HQ Advisor support note + Contact button
-            3. Settings link
-            4. Sign out
-         */}
-      <div className="px-2.5 pb-3 pt-2 space-y-1.5 flex-shrink-0 border-t border-border">
-        {/* Brand logo - left-aligned per request. Uses the dark-mode
-            wordmark (light marks on the dark sidebar bg). The SVG is
-            trimmed to the wordmark bounds (1428 x 521) so w-[108px]
-            gives the same visible size we had before. Hidden in
-            collapsed mode so the rail stays compact. */}
-        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1 sidebar-collapsible-hide">
-          {/* Light sidebar - use the ink (dark) logo so it reads against the white surface. */}
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto" priority />
-        </Link>
-
-        {/* Advisor handoff - small note + button that opens the
-            contact modal. Hidden entirely in collapsed mode (the
-            Contact HQ Advisor flow needs the full label + paragraph
-            to make sense). The button is centred inside a full-width
-            pill so the label sits visually in the middle of the
-            container regardless of sidebar width (was text-left which
-            made the pill look stretched). Upsell line tightened to
-            one line of text at the default sidebar width. */}
-        <div className="px-1 pt-1 sidebar-collapsible-hide">
-          <p className="text-[11px] text-ink-soft leading-snug mb-1.5">
-            Need more specific support from a human?
-          </p>
-          <button
-            type="button"
-            onClick={handleContactPartner}
-            className="block w-full text-center bg-ink hover:bg-accent text-bg-elevated text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
-          >
-            Contact HQ Advisor
+        {/* Account group ------------------------------------------------- */}
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-muted px-3 mb-1 sidebar-collapsible-hide">Account</p>
+          <Link href="/dashboard/settings" title="Settings" aria-label="Settings"
+            className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
+              ${isActive('/dashboard/settings')
+                ? 'bg-ink text-bg-elevated font-semibold'
+                : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+            <SettingsIcon active={isActive('/dashboard/settings')} />
+            <span>Settings</span>
+          </Link>
+          <button onClick={signOut} title="Sign out" aria-label="Sign out"
+            className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink-soft hover:bg-bg-soft hover:text-ink transition-all">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0 opacity-60">
+              <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
+            </svg>
+            <span>Sign out</span>
           </button>
         </div>
 
-        {/* Settings - sits below HQ Advisor, above Sign out, left-aligned
-            to match Sign out and the sidebar nav above. */}
-        {/* gap-2.5 + px-3 + py-2 match every other top-level sidebar
-            item so the Settings cog sits on the same vertical axis as
-            the nav icons above. Previously used gap-2 which pulled the
-            label half a pixel off-grid. */}
-        <Link href="/dashboard/settings" title="Settings" aria-label="Settings"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-bold transition-all
-            ${isActive('/dashboard/settings')
-              ? 'bg-ink text-bg-elevated'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-          <SettingsIcon active={isActive('/dashboard/settings')} />
-          <span>Settings</span>
-        </Link>
+        {/* Support group ------------------------------------------------- */}
+        <div className="flex flex-col gap-0.5 sidebar-collapsible-hide">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-muted px-3 mb-1">Support</p>
+          <div className="px-1">
+            <p className="text-[11px] text-ink-soft leading-snug mb-1.5">
+              Need more specific support from a human?
+            </p>
+            <button
+              type="button"
+              onClick={handleContactPartner}
+              className="block w-full text-center h-9 rounded-full bg-ink text-bg-elevated text-[12px] font-semibold px-4 hover:bg-accent transition-colors"
+            >
+              Contact HQ Advisor
+            </button>
+          </div>
+        </div>
+      </div>{/* end scroll area */}
 
-        {/* Sign out - label is hidden via the .sidebar-collapsible-hide
-            CSS rule when collapsed; the icon stays clickable, and the
-            hover tooltip surfaces the label. */}
-        <button onClick={signOut} title="Sign out" aria-label="Sign out"
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-ink-muted hover:text-ink-soft text-sm transition-colors">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0">
-            <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
-          </svg>
-          <span>Sign out</span>
-        </button>
+      {/* Footer brand mark + version stamp. Logo at the bottom is the
+          quiet identity anchor; the v0.4 stamp tells testers which
+          preview build they're looking at. */}
+      <div className="px-2.5 pb-3 pt-3 flex-shrink-0 border-t border-border space-y-2">
+        <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-1 sidebar-collapsible-hide">
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto" priority />
+        </Link>
+        <p className="px-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted sidebar-collapsible-hide">v0.4 preview</p>
       </div>
 
       {/* Contact HQ Advisor - HR / Recruitment decision-tree modal */}

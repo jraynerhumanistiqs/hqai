@@ -235,7 +235,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
                 works" pattern used on the CV Scoring page so the two
                 product surfaces feel consistent. Two columns: what
                 the engine does + what to do as the operator. */}
-            <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8 mt-6">
+            <section className="bg-bg-elevated border border-border rounded-3xl p-6 sm:p-8 mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" aria-hidden />
                 <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">How the AI Administrator works</p>
@@ -292,7 +292,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
                 <p className="text-xs text-ink-soft">{active.description}</p>
               </section>
 
-              <section className="bg-bg-elevated shadow-card rounded-2xl p-5">
+              <section className="bg-bg-elevated border border-border rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" aria-hidden />
                   <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">How this draft is built</p>

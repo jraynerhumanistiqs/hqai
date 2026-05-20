@@ -100,7 +100,10 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-white border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-black transition-colors"
+  // Premium-minimal underline input. Replaces the boxed input pattern
+  // per the kit's rule 6 - keeps the field calm on a clean white page
+  // and lets the focus state read as a confident black underline.
+  const inputCls = "w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">

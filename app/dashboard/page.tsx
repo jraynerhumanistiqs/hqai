@@ -67,7 +67,7 @@ export default async function DashboardHome() {
 
         {/* Quick Actions - headings only with hover tooltip */}
         <div>
-          <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Quick actions</h2>
+          <h2 className="font-display text-xl tracking-tight text-ink mb-4">Quick actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <QuickAction
               href="/dashboard/people"
@@ -95,14 +95,14 @@ export default async function DashboardHome() {
 
           {/* Recent Conversations */}
           <div className="flex flex-col">
-            <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent conversations</h2>
-            <div className="bg-bg-elevated border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
+            <h2 className="font-display text-xl tracking-tight text-ink mb-4">Recent conversations</h2>
+            <div className="bg-bg-elevated border border-border rounded-3xl flex-1 flex flex-col transition-colors">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
                   {recentConvos.map((c: any) => (
-                    <li key={c.id} className="px-5 py-4 hover:bg-light transition-colors">
+                    <li key={c.id} className="px-5 py-4 hover:bg-bg-soft transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-ink'}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-charcoal truncate">{normaliseDashes(c.title)}</p>
                           <p className="text-xs text-muted">
@@ -130,13 +130,13 @@ export default async function DashboardHome() {
 
           {/* Recent Documents */}
           <div className="flex flex-col">
-            <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent documents</h2>
-            <div className="bg-bg-elevated border border-black rounded-2xl flex-1 flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_8px_16px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.18)] transition-shadow">
+            <h2 className="font-display text-xl tracking-tight text-ink mb-4">Recent documents</h2>
+            <div className="bg-bg-elevated border border-border rounded-3xl flex-1 flex flex-col transition-colors">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
                   {recentDocs.map((d: any) => (
                     <li key={d.id}>
-                      <Link href="/dashboard/documents" className="block px-5 py-4 hover:bg-light transition-colors">
+                      <Link href="/dashboard/documents" className="block px-5 py-4 hover:bg-bg-soft transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0">
                             <DocsIcon />
@@ -162,7 +162,7 @@ export default async function DashboardHome() {
 
         {/* Recent News & Information */}
         <div>
-          <h2 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-4">Recent applicable news &amp; information</h2>
+          <h2 className="font-display text-xl tracking-tight text-ink mb-4">Recent applicable news &amp; information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             <NewsCard
               image="/news/fair-work-update.jpg"
@@ -192,17 +192,17 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
   return (
     <div className="relative group">
       <Link href={href}
-        className="block bg-bg-elevated border border-black rounded-2xl p-6 transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)]">
+        className="block bg-bg-elevated border border-border rounded-3xl p-6 transition-all hover:-translate-y-0.5 hover:border-ink/30">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-ink/8 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-ink/15 transition-colors">
+          <div className="w-12 h-12 bg-bg-soft rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-ink/10 transition-colors">
             {icon}
           </div>
-          <p className="font-display text-lg font-bold text-charcoal uppercase tracking-wider">{title}</p>
+          <p className="font-display text-lg tracking-tight text-ink">{title}</p>
         </div>
       </Link>
       {/* Info bubble on hover */}
       <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="bg-black text-white font-display text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg whitespace-nowrap shadow-lg">
+        <div className="bg-ink text-bg-elevated text-[11px] font-medium px-3 py-2 rounded-lg whitespace-nowrap shadow-float">
           {desc}
         </div>
       </div>
@@ -212,8 +212,8 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
 
 function NewsCard({ image, title, date }: { image: string; title: string; date: string }) {
   return (
-    <div className="bg-bg-elevated border border-black rounded-2xl overflow-hidden transition-all hover:-translate-y-1 shadow-[0_1px_0_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.08),0_16px_32px_-8px_rgba(0,0,0,0.14)] hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.12),0_28px_56px_-12px_rgba(0,0,0,0.22)] group">
-      <div className="h-36 bg-light flex items-center justify-center overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-3xl overflow-hidden transition-all hover:-translate-y-0.5 hover:border-ink/30 group">
+      <div className="h-36 bg-bg-soft flex items-center justify-center overflow-hidden">
         <svg className="w-10 h-10 text-muted" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd"/>
           <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z"/>

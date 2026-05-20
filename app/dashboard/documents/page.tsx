@@ -40,6 +40,29 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Premium-minimal status pill - per founder feedback the dot indicators
+// flip back to coloured pills but tuned to the kit:
+//   Final/done   -> ink/5  text-ink  border-border
+//   Sent/active  -> accent-soft text-accent border-accent/30
+//   Draft/pending -> bg-soft text-ink-muted border-border
+function StatusPill({ status }: { status: string }) {
+  const s = (status ?? 'draft').toLowerCase()
+  let cls = 'bg-bg-soft text-ink-muted border-border'
+  let label = 'Draft'
+  if (s === 'final' || s === 'completed' || s === 'done') {
+    cls = 'bg-ink/5 text-ink border-border'
+    label = 'Final'
+  } else if (s === 'sent' || s === 'shared' || s === 'delivered' || s === 'active') {
+    cls = 'bg-accent-soft text-accent border-accent/30'
+    label = 'Sent'
+  }
+  return (
+    <span className={`inline-flex items-center text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
 export default function DocumentsPage() {
   const [docs, setDocs] = useState<Doc[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,10 +117,10 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin bg-white">
+    <div className="h-full overflow-y-auto scrollbar-thin bg-bg">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        <h1 className="font-display text-2xl sm:text-h1 font-bold text-charcoal uppercase tracking-wide mb-1">My Documents</h1>
-        <p className="text-xs sm:text-sm text-mid mb-4 sm:mb-6">
+        <h1 className="font-display text-[44px] sm:text-[56px] tracking-tight text-ink leading-[1.05] mb-1">My Documents</h1>
+        <p className="text-xs sm:text-sm text-ink-soft mb-4 sm:mb-6">
           {loading
             ? 'Loading your documents…'
             : `${total} document${total === 1 ? '' : 's'} generated across the AI Administrator, CV Scoring Agent and chat.`}
@@ -108,13 +131,13 @@ export default function DocumentsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search documents"
-            className="w-full px-4 py-2.5 bg-white border border-border rounded-full text-sm text-charcoal placeholder-muted outline-none focus:border-charcoal transition-colors"
+            className="w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
           />
         </div>
 
         {!loading && total === 0 && (
-          <div className="bg-white shadow-card rounded-2xl px-6 py-10 text-center">
-            <p className="text-sm text-mid">
+          <div className="bg-bg-elevated border border-border rounded-3xl px-6 py-10 text-center">
+            <p className="text-sm text-ink-soft">
               No documents yet. Generate one from the AI Administrator, or score a CV in the CV Scoring Agent and download the formatted version.
             </p>
           </div>
@@ -122,14 +145,14 @@ export default function DocumentsPage() {
 
         <div className="space-y-3">
           {categories.map(cat => (
-            <div key={cat.title} className="bg-white shadow-card rounded-2xl overflow-hidden">
+            <div key={cat.title} className="bg-bg-elevated border border-border rounded-3xl overflow-hidden">
               <button
                 onClick={() => setOpenCategory(prev => prev === cat.title ? null : cat.title)}
-                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-light transition-colors"
+                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-bg-soft transition-colors"
               >
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <h2 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{cat.title}</h2>
-                  <span className="text-xs text-muted bg-light px-2 py-0.5 rounded-full flex-shrink-0">{cat.docs.length}</span>
+                  <h2 className="font-display text-base sm:text-lg tracking-tight text-ink truncate">{cat.title}</h2>
+                  <span className="text-xs text-ink-muted bg-bg-soft px-2 py-0.5 rounded-full flex-shrink-0 border border-border">{cat.docs.length}</span>
                 </div>
                 <svg className={`w-4 h-4 text-gray-500 transition-transform ${openCategory === cat.title ? 'rotate-180' : ''}`}
                   viewBox="0 0 20 20" fill="currentColor">
@@ -140,30 +163,33 @@ export default function DocumentsPage() {
               {openCategory === cat.title && (
                 <div className="border-t border-border">
                   {cat.docs.map((doc, idx) => (
-                    <div key={doc.id} className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-light transition-colors ${idx > 0 ? 'border-t border-border' : ''}`}>
+                    <div key={doc.id} className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-bg-soft transition-colors ${idx > 0 ? 'border-t border-border' : ''}`}>
                       <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="w-8 h-8 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex">
+                        <div className="w-8 h-8 bg-bg-soft rounded-lg items-center justify-center flex-shrink-0 mt-0.5 hidden sm:flex border border-border">
                           <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-charcoal truncate">{doc.title}</p>
-                          <p className="text-[11px] sm:text-xs text-muted mt-0.5 leading-relaxed">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-ink truncate">{doc.title}</p>
+                            <StatusPill status={doc.status} />
+                          </div>
+                          <p className="text-[11px] sm:text-xs text-ink-muted mt-0.5 leading-relaxed">
                             {(doc.type ?? '').replace(/[-_]/g, ' ') || 'document'} - {formatDate(doc.created_at)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => setEditing(doc)}
-                            className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
+                            className="bg-ink hover:bg-accent text-bg-elevated text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => downloadDocx(doc)}
                             disabled={downloading === doc.id}
-                            className="bg-white hover:bg-light text-mid hover:text-charcoal text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-border transition-colors disabled:opacity-50"
+                            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-border transition-colors disabled:opacity-50"
                           >
                             {downloading === doc.id ? 'Preparing…' : 'Download'}
                           </button>
