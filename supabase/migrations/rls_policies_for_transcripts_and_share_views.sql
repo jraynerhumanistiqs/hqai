@@ -33,16 +33,25 @@
 --     on public.prescreen_share_views;
 -- ============================================================================
 
+-- IMPORTANT SCHEMA NOTE
+--   prescreen_sessions DOES NOT have a business_id column. The tenant
+--   boundary is reached via prescreen_sessions.created_by (a user id)
+--   which is then matched against the set of user ids in the calling
+--   user's business via public.current_business_member_ids(). This
+--   mirrors the pattern already established in
+--   rls_extend_prescreen_and_core.sql. An earlier draft of this
+--   migration assumed a direct ps.business_id and tripped
+--   42703 "column ps.business_id does not exist" in the SQL Editor.
+
 -- ──────────────────────────────────────────────────────────────────
 -- 1. prescreen_transcripts
 -- ──────────────────────────────────────────────────────────────────
 -- Schema: id, response_id (FK -> prescreen_responses), provider, raw,
 -- text, utterances, created_at. No direct business_id column - the
--- tenant boundary is reached through the response_id -> session_id
--- chain.
---
--- SELECT: a transcript belongs to the calling business if the parent
--- prescreen_session's business_id matches public.current_business_id().
+-- tenant boundary is reached through:
+--   transcripts.response_id -> prescreen_responses.session_id
+--                           -> prescreen_sessions.created_by
+--                           IN public.current_business_member_ids()
 --
 -- INSERT/UPDATE/DELETE: service-role only. The transcribe / score /
 -- rescore routes all use supabaseAdmin which bypasses RLS, and no
@@ -63,7 +72,7 @@ begin
             select pr.id
             from public.prescreen_responses pr
             join public.prescreen_sessions  ps on ps.id = pr.session_id
-            where ps.business_id = public.current_business_id()
+            where ps.created_by in (select public.current_business_member_ids())
           )
         )
     $POLICY$;
@@ -77,8 +86,11 @@ end$$;
 -- user_agent. Tracking table for share-link analytics (records every
 -- view of a recruiter-issued candidate share link).
 --
--- Tenant boundary: link_id -> prescreen_share_links.response_id ->
--- prescreen_responses.session_id -> prescreen_sessions.business_id.
+-- Tenant boundary chain:
+--   share_views.link_id -> prescreen_share_links.response_id
+--                       -> prescreen_responses.session_id
+--                       -> prescreen_sessions.created_by
+--                       IN public.current_business_member_ids()
 --
 -- SELECT: only the business that owns the parent share link can see
 -- its view-tracking rows. Lets recruiters audit how often their share
@@ -105,7 +117,7 @@ begin
             from public.prescreen_share_links psl
             join public.prescreen_responses   pr  on pr.id = psl.response_id
             join public.prescreen_sessions    ps  on ps.id = pr.session_id
-            where ps.business_id = public.current_business_id()
+            where ps.created_by in (select public.current_business_member_ids())
           )
         )
     $POLICY$;
