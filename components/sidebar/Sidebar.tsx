@@ -193,7 +193,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   return (
     <aside
       data-collapsed={collapsed ? 'true' : 'false'}
-      className="relative flex-shrink-0 bg-surface-inverse flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out"
+      className="relative flex-shrink-0 bg-bg flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out border-r border-border"
       style={{ width: `${widthPx}px` }}
     >
       {/* Drag handle - the 4px strip on the right edge. Only visible
@@ -205,7 +205,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           onPointerDown={onResizeStart}
           aria-label="Resize sidebar"
           title="Drag to resize"
-          className="hidden lg:block absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent hover:bg-white/15 active:bg-white/25 transition-colors"
+          className="hidden lg:block absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent hover:bg-bg-soft active:bg-border transition-colors"
         />
       )}
       {/* Top bar - mobile close + desktop collapse toggle.
@@ -218,7 +218,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           onClick={toggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-pressed={collapsed}
-          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/55 hover:text-white/80 relative z-30"
+          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-bg-soft transition-colors text-ink-muted hover:text-ink-soft relative z-30"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -232,8 +232,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Mobile close - the brand logo used to sit here too; moved
             to the footer above the advisor support callout. */}
         {onClose ? (
-          <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors" aria-label="Close menu">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-white/50" aria-hidden="true">
+          <button onClick={onClose} className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bg-soft transition-colors" aria-label="Close menu">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-ink-muted" aria-hidden="true">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
           </button>
@@ -244,7 +244,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           tight. The brand logo at the footer carries enough identity
           for the collapsed state. */}
       <div className="px-3 pt-3 pb-1.5 sidebar-collapsible-hide">
-        <div className="bg-white/6 rounded-lg px-2.5 py-2 flex items-center gap-2 min-h-[40px]">
+        <div className="bg-bg-soft rounded-lg px-2.5 py-2 flex items-center gap-2 min-h-[40px]">
           {bizLogoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -253,7 +253,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className="max-h-7 max-w-full w-auto h-auto object-contain"
             />
           ) : (
-            <p className="flex-1 min-w-0 text-[13px] font-normal text-white uppercase truncate">
+            <p className="flex-1 min-w-0 text-[13px] font-normal text-ink uppercase truncate">
               {bizName}
             </p>
           )}
@@ -263,14 +263,14 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       {/* Scrollable nav area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2">
         {/* Modules */}
-        <p className="text-xs font-bold text-white uppercase tracking-widest px-2 mb-1.5 font-display sidebar-collapsible-hide">Modules</p>
+        <p className="text-xs font-bold text-ink-muted uppercase tracking-widest px-2 mb-1.5 font-display sidebar-collapsible-hide">Modules</p>
 
         {/* Home */}
         <Link href="/dashboard" title="Home" aria-label="Home"
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all group
             ${isActive('/dashboard', true)
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              ? 'bg-ink text-bg-elevated'
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <HomeIcon active={isActive('/dashboard', true)} />
           <span className="flex-1">Home</span>
         </Link>
@@ -279,8 +279,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         <button onClick={() => toggleSubmenu(peopleOpen, setPeopleOpen)} title="HQ People" aria-label="HQ People"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              ? 'bg-ink text-bg-elevated'
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <PeopleIcon active={isActive('/dashboard/people')} />
           <span className="flex-1 text-left">HQ People</span>
           <ChevronIcon open={peopleOpen} />
@@ -293,17 +293,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 Administrator engine ships across Weeks 3-5. */}
             <Link href="/dashboard/people/advisor"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/people/advisor') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/people/advisor') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               AI Advisor
             </Link>
             <Link href="/dashboard/people/administrator"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/people/administrator') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/people/administrator') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               AI Administrator
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               HR Templates
             </Link>
           </div>
@@ -313,8 +313,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         <button onClick={() => toggleSubmenu(recruitOpen, setRecruitOpen)} title="HQ Recruit" aria-label="HQ Recruit"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/recruit')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              ? 'bg-ink text-bg-elevated'
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <RecruitIcon active={isActive('/dashboard/recruit')} />
           <span className="flex-1 text-left">HQ Recruit</span>
           <ChevronIcon open={recruitOpen} />
@@ -323,22 +323,22 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/recruit/campaign-coach"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               Campaign Coach
             </Link>
             <Link href="/dashboard/recruit/cv-screening"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               CV Scoring Agent
             </Link>
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/shortlist') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               Shortlist Agent
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/recruit/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               Recruitment Templates
             </Link>
           </div>
@@ -348,8 +348,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         <button onClick={() => toggleSubmenu(docsOpen, setDocsOpen)} title="Documents" aria-label="Documents"
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
             ${isActive('/dashboard/documents')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              ? 'bg-ink text-bg-elevated'
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <DocsIcon active={isActive('/dashboard/documents')} />
           <span className="flex-1 text-left">Documents</span>
           <ChevronIcon open={docsOpen} />
@@ -358,12 +358,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/documents"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/documents') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/documents') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               <span>My Documents</span>
             </Link>
             <Link href="/dashboard/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/templates') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
               <span>All Templates</span>
             </Link>
           </div>
@@ -382,12 +382,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
                   || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                   || isActive('/dashboard/business')
-                  ? 'bg-white/11 text-white'
-                  : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                  ? 'bg-ink text-bg-elevated'
+                  : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
               <ToolsIcon active={toolsOpen} />
               <span className="flex-1 text-left flex items-center gap-1.5">
                 Tools
-                <span className="text-[9px] uppercase font-bold tracking-wider bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full">
+                <span className="text-[9px] uppercase font-bold tracking-wider bg-bg-soft text-ink-muted px-1.5 py-0.5 rounded-full">
                   Coming soon
                 </span>
               </span>
@@ -401,8 +401,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                     <button onClick={() => setComplianceOpen(!complianceOpen)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
-                          ? 'bg-white/11 text-white'
-                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                          ? 'bg-ink text-bg-elevated'
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
                       <span className="flex-1 text-left">Compliance</span>
                       <ChevronIcon open={complianceOpen} />
@@ -412,14 +412,14 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                         {(isInternal || flag('compliance_audit')) && (
                           <Link href="/dashboard/compliance/audit"
                             className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                              ${isActive('/dashboard/compliance/audit') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                              ${isActive('/dashboard/compliance/audit') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                             Workplace Compliance Audit
                           </Link>
                         )}
                         {(isInternal || flag('awards_interpreter')) && (
                           <Link href="/dashboard/awards"
                             className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                              ${isActive('/dashboard/awards') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                              ${isActive('/dashboard/awards') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                             Award Interpreter
                           </Link>
                         )}
@@ -434,8 +434,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                     <button onClick={() => setLeadershipOpen(!leadershipOpen)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
-                          ? 'bg-white/11 text-white'
-                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                          ? 'bg-ink text-bg-elevated'
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
                       <span className="flex-1 text-left">Leadership</span>
                       <ChevronIcon open={leadershipOpen} />
@@ -444,17 +444,17 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                       <div className="ml-6 space-y-0.5">
                         <Link href="/dashboard/performance"
                           className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/performance') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            ${isActive('/dashboard/performance') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                           Performance Management
                         </Link>
                         <Link href="/dashboard/leadership/development"
                           className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/leadership/development') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            ${isActive('/dashboard/leadership/development') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                           Team Development
                         </Link>
                         <Link href="/dashboard/leadership/coaching"
                           className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/leadership/coaching') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            ${isActive('/dashboard/leadership/coaching') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                           Coaching
                         </Link>
                       </div>
@@ -468,8 +468,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                     <button onClick={() => setBusinessOpen(!businessOpen)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/business')
-                          ? 'bg-white/11 text-white'
-                          : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+                          ? 'bg-ink text-bg-elevated'
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <BusinessIcon active={isActive('/dashboard/business')} />
                       <span className="flex-1 text-left">Business</span>
                       <ChevronIcon open={businessOpen} />
@@ -478,7 +478,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                       <div className="ml-6 space-y-0.5">
                         <Link href="/dashboard/business/strategy-coach"
                           className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-white/11 text-white' : 'text-white/40 hover:bg-white/7 hover:text-white/70'}`}>
+                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
                           Strategy Coach
                         </Link>
                       </div>
@@ -493,7 +493,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Read-only watermark for test_admin - text-heavy, hidden in
             the collapsed icon-rail view. */}
         {role === 'test_admin' && (
-          <div className="mt-3 mx-2 px-3 py-2 rounded-lg bg-white/5 text-white/60 text-[11px] leading-snug sidebar-collapsible-hide">
+          <div className="mt-3 mx-2 px-3 py-2 rounded-lg bg-bg-soft text-ink-soft text-[11px] leading-snug sidebar-collapsible-hide">
             <p className="font-bold uppercase tracking-wider mb-0.5">Read-only access</p>
             <p>You can view every surface. Owner approval is required for any save, edit, or send action.</p>
           </div>
@@ -511,14 +511,15 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             3. Settings link
             4. Sign out
          */}
-      <div className="px-2.5 pb-3 pt-2 space-y-1.5 flex-shrink-0 border-t border-white/8">
+      <div className="px-2.5 pb-3 pt-2 space-y-1.5 flex-shrink-0 border-t border-border">
         {/* Brand logo - left-aligned per request. Uses the dark-mode
             wordmark (light marks on the dark sidebar bg). The SVG is
             trimmed to the wordmark bounds (1428 x 521) so w-[108px]
             gives the same visible size we had before. Hidden in
             collapsed mode so the rail stays compact. */}
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-2 pb-1 sidebar-collapsible-hide">
-          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="opacity-90 w-[86px] max-w-full h-auto" priority />
+          {/* Light sidebar - use the ink (dark) logo so it reads against the white surface. */}
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto" priority />
         </Link>
 
         {/* Advisor handoff - small note + button that opens the
@@ -530,13 +531,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             made the pill look stretched). Upsell line tightened to
             one line of text at the default sidebar width. */}
         <div className="px-1 pt-1 sidebar-collapsible-hide">
-          <p className="text-[11px] text-white/55 leading-snug mb-1.5">
+          <p className="text-[11px] text-ink-soft leading-snug mb-1.5">
             Need more specific support from a human?
           </p>
           <button
             type="button"
             onClick={handleContactPartner}
-            className="block w-full text-center bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
+            className="block w-full text-center bg-ink hover:bg-accent text-bg-elevated text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
           >
             Contact HQ Advisor
           </button>
@@ -551,8 +552,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         <Link href="/dashboard/settings" title="Settings" aria-label="Settings"
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-bold transition-all
             ${isActive('/dashboard/settings')
-              ? 'bg-white/11 text-white'
-              : 'text-white/50 hover:bg-white/7 hover:text-white/80'}`}>
+              ? 'bg-ink text-bg-elevated'
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <SettingsIcon active={isActive('/dashboard/settings')} />
           <span>Settings</span>
         </Link>
@@ -561,7 +562,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             CSS rule when collapsed; the icon stays clickable, and the
             hover tooltip surfaces the label. */}
         <button onClick={signOut} title="Sign out" aria-label="Sign out"
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/35 hover:text-white/60 text-sm transition-colors">
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-ink-muted hover:text-ink-soft text-sm transition-colors">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
           </svg>
@@ -661,10 +662,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 function InfoTooltip({ text }: { text: string }) {
   return (
     <span className="relative group ml-auto">
-      <svg className="w-4 h-4 text-white/25 hover:text-white/50 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+      <svg className="w-4 h-4 text-ink-muted hover:text-ink-soft cursor-help" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
       </svg>
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#222222] text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-ink text-bg-elevated text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
         {text}
       </span>
     </span>

@@ -72,14 +72,25 @@ const config: Config = {
 
       fontFamily: {
         sans:    ['var(--font-inter)', 'Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        // Fraunces is kept available via `font-serif` for any heading
-        // that explicitly wants the editorial serif look. The default
-        // `font-display` token now resolves to Inter (per founder
-        // request) so the whole product surface reads consistently in
-        // Inter rather than a serif/sans mix.
-        serif:   ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
-        display: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        mono:    ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
+        // Premium-minimal kit (May 2026): every editorial moment uses
+        // Bebas Neue. That includes hero headlines, big stats, page
+        // section titles - anywhere 28-72px sizing is used.
+        //   - `font-display` resolves to Bebas Neue
+        //   - `font-serif` ALSO resolves to Bebas Neue so the hundreds
+        //     of existing `className="font-serif"` callsites pick up
+        //     the new editorial face automatically without per-file
+        //     edits.
+        // Fraunces is no longer the editorial face, but it stays
+        // available under `font-fraunces` for the few callsites (legal
+        // sample documents, print exports) that need a proper serif.
+        // Bebas Neue is naturally uppercase - components that use the
+        // editorial tokens should pass real headline strings; the
+        // typeface enforces the all-caps editorial register.
+        serif:    ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        display:  ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        bebas:    ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        fraunces: ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
+        mono:     ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
 
       fontSize: {

@@ -48,18 +48,19 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Mobile top bar */}
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#222222] bg-[#0a0a0a] lg:hidden flex-shrink-0">
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-bg lg:hidden flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-bg-soft transition-colors"
             aria-label="Open menu"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" className="text-white">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" className="text-ink">
               <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
             </svg>
           </button>
           <Link href="/dashboard" aria-label="Go to dashboard home">
-            <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="opacity-90 h-[26px] w-auto" />
+            {/* Light-mode topbar - use the ink (dark) logo so it reads against the white surface. */}
+            <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="h-[26px] w-auto" />
           </Link>
           <div className="ml-auto flex items-center">
             {sidebarProps.bizLogoUrl ? (
@@ -70,7 +71,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
                 className="max-h-7 max-w-[120px] w-auto h-auto object-contain"
               />
             ) : (
-              <span className="text-base font-normal text-white uppercase truncate max-w-[160px] block">
+              <span className="text-base font-normal text-ink uppercase truncate max-w-[160px] block">
                 {sidebarProps.bizName}
               </span>
             )}
