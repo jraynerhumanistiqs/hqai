@@ -263,7 +263,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       {/* Scrollable nav area. Groups are separated by gap-7 with gap-0.5
           between items inside a group. Top-level items are h-9, px-3,
           rounded-full at 13px - the premium-minimal nav pattern. */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2 flex flex-col gap-7">
+      {/* Scroll area: Workspace fills the top, Account + Support pinned
+          via mt-auto to the bottom so the Contact HQ Advisor button
+          doesn't push off-screen when Workspace is tall. Tightened
+          gap from 7 to 4 to keep the three groups visually grouped
+          without needing to scroll. */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 mt-2 flex flex-col gap-4">
         {/* Workspace group ------------------------------------------------ */}
         <div className="flex flex-col gap-0.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-muted px-3 mb-1 sidebar-collapsible-hide">Workspace</p>
@@ -273,7 +278,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all group
             ${isActive('/dashboard', true)
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+              : 'text-ink hover:bg-bg-soft'}`}>
           <HomeIcon active={isActive('/dashboard', true)} />
           <span className="flex-1">Home</span>
         </Link>
@@ -283,7 +288,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+              : 'text-ink hover:bg-bg-soft'}`}>
           <PeopleIcon active={isActive('/dashboard/people')} />
           <span className="flex-1 text-left">HQ People</span>
           <ChevronIcon open={peopleOpen} />
@@ -317,7 +322,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/recruit')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+              : 'text-ink hover:bg-bg-soft'}`}>
           <RecruitIcon active={isActive('/dashboard/recruit')} />
           <span className="flex-1 text-left">HQ Recruit</span>
           <ChevronIcon open={recruitOpen} />
@@ -352,7 +357,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/documents')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+              : 'text-ink hover:bg-bg-soft'}`}>
           <DocsIcon active={isActive('/dashboard/documents')} />
           <span className="flex-1 text-left">Documents</span>
           <ChevronIcon open={docsOpen} />
@@ -385,7 +390,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                   || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                   || isActive('/dashboard/business')
                   ? 'bg-ink text-bg-elevated font-semibold'
-                  : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+                  : 'text-ink hover:bg-bg-soft'}`}>
               <ToolsIcon active={toolsOpen} />
               <span className="flex-1 text-left">Tools</span>
               <ChevronIcon open={toolsOpen} />
@@ -396,10 +401,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
                   <>
                     <button onClick={() => setComplianceOpen(!complianceOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
                         ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+                          : 'text-ink hover:bg-bg-soft'}`}>
                       <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
                       <span className="flex-1 text-left">Compliance</span>
                       <ChevronIcon open={complianceOpen} />
@@ -429,10 +434,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('team_development')) && (
                   <>
                     <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
                         ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+                          : 'text-ink hover:bg-bg-soft'}`}>
                       <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
                       <span className="flex-1 text-left">Leadership</span>
                       <ChevronIcon open={leadershipOpen} />
@@ -463,10 +468,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('strategy_coach')) && (
                   <>
                     <button onClick={() => setBusinessOpen(!businessOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
                         ${isActive('/dashboard/business')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+                          : 'text-ink hover:bg-bg-soft'}`}>
                       <BusinessIcon active={isActive('/dashboard/business')} />
                       <span className="flex-1 text-left">Business</span>
                       <ChevronIcon open={businessOpen} />
@@ -497,6 +502,14 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         )}
         </div>{/* end Workspace group */}
 
+        {/* Account + Support are pinned to the bottom of the scroll
+            area via mt-auto so the Contact HQ Advisor button is
+            always visible without scrolling, regardless of how many
+            workspace items are above. The internal gap between
+            Account and Support is tight (gap-3) so they read as one
+            footer-group. */}
+        <div className="mt-auto flex flex-col gap-3">
+
         {/* Account group ------------------------------------------------- */}
         <div className="flex flex-col gap-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-muted px-3 mb-1 sidebar-collapsible-hide">Account</p>
@@ -504,12 +517,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
               ${isActive('/dashboard/settings')
                 ? 'bg-ink text-bg-elevated font-semibold'
-                : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+                : 'text-ink hover:bg-bg-soft'}`}>
             <SettingsIcon active={isActive('/dashboard/settings')} />
             <span>Settings</span>
           </Link>
           <button onClick={signOut} title="Sign out" aria-label="Sign out"
-            className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink-soft hover:bg-bg-soft hover:text-ink transition-all">
+            className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink hover:bg-bg-soft transition-all">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0 opacity-60">
               <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
             </svg>
@@ -533,6 +546,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             </button>
           </div>
         </div>
+        </div>{/* end pinned Account+Support footer cluster */}
       </div>{/* end scroll area */}
 
       {/* Footer brand mark + version stamp. Logo at the bottom is the

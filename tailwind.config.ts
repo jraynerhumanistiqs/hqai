@@ -72,22 +72,19 @@ const config: Config = {
 
       fontFamily: {
         sans:    ['var(--font-inter)', 'Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        // Premium-minimal kit (May 2026): every editorial moment uses
-        // Bebas Neue. That includes hero headlines, big stats, page
-        // section titles - anywhere 28-72px sizing is used.
-        //   - `font-display` resolves to Bebas Neue
-        //   - `font-serif` ALSO resolves to Bebas Neue so the hundreds
-        //     of existing `className="font-serif"` callsites pick up
-        //     the new editorial face automatically without per-file
-        //     edits.
-        // Fraunces is no longer the editorial face, but it stays
-        // available under `font-fraunces` for the few callsites (legal
-        // sample documents, print exports) that need a proper serif.
-        // Bebas Neue is naturally uppercase - components that use the
-        // editorial tokens should pass real headline strings; the
-        // typeface enforces the all-caps editorial register.
-        serif:    ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
-        display:  ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        // Founder reverted Bebas Neue (May 2026 v2). Inter is now used
+        // for EVERYTHING - body, labels, and editorial headlines alike.
+        // The `font-display` and `font-serif` Tailwind tokens both
+        // resolve to Inter so the hundreds of existing
+        // className="font-serif" / className="font-display" callsites
+        // automatically render in Inter at whatever px size they're
+        // already targeting.
+        // The Bebas + Fraunces fonts stay loaded under their --font-bebas
+        // and --font-fraunces variables so a future direction shift
+        // doesn't require re-importing; but no Tailwind token currently
+        // points at them.
+        serif:    ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        display:  ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
         bebas:    ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
         fraunces: ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
         mono:     ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],

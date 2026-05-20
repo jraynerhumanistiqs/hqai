@@ -147,7 +147,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
             </div>
             {bandChanged && (
               <p className="text-[10px] text-mid mt-1.5 italic">
-                AI originally said {BAND_LABELS[screening.band]}.
+                CV Scoring Agent originally said {BAND_LABELS[screening.band]}.
               </p>
             )}
           </div>
@@ -165,7 +165,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
             </select>
             {actionChanged && (
               <p className="text-[10px] text-mid mt-1.5 italic">
-                AI originally said {ACTION_LABELS[screening.next_action]}.
+                CV Scoring Agent originally said {ACTION_LABELS[screening.next_action]}.
               </p>
             )}
           </div>
