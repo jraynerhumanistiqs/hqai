@@ -110,12 +110,12 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
   return (
     <section id="marketplace" className="bg-bg-soft py-20 md:py-28" aria-labelledby="marketplace-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-accent">Coming soon - pay-as-you-go</p>
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-accent">Pay-as-you-go - launching soon</p>
         <h2 id="marketplace-heading" className="max-w-3xl font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]">
-          Just need one letter today? From $15.
+          One letter, one warning, one ad - on tap.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          A growing library of one-off HR documents - no subscription, no card today, just the document you need. Reserve a spot now and we&apos;ll let you know when it&apos;s live.
+          Not every business needs a subscription. Buy a single HR document or recruitment deliverable, with your logo on the footer, without the monthly commitment. Reserve a spot below - first 100 get $10 off launch pricing.
         </p>
         <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
           <button

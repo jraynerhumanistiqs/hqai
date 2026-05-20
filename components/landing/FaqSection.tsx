@@ -1,44 +1,44 @@
 'use client'
 
-// Section 8: FAQ. 8 Q&A pairs in the brief's kill-rate order
-// (section 6 of docs/research/landing-page-research-brief.md).
-// Single-open accordion with native <details> behaviour for JS-off
-// reachability + custom styling.
+// FAQ - decision-making rewrite (May 2026). Eight Q&A pairs, less
+// Fair-Work-heavy, more time/cost/trust framing. Single-open
+// accordion with native <details> behaviour for JS-off reachability
+// + custom styling.
 
 import { useState } from 'react'
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
-    q: 'Is the AI legally accurate?',
-    a: "Every answer cites the specific Fair Work Act section, NES standard, or Modern Award clause it's drawn from. When the question is too complex for the AI, you get handed off to a human Humanistiqs advisor on the same call - no repeating yourself.",
+    q: 'Will it actually save me time?',
+    a: "Yes - that's the whole pitch. Most decisions that used to take a half-day of Googling, calling an advisor, and drafting a document take three minutes inside HQ.ai. We track that for every customer in their first month.",
   },
   {
-    q: 'Why would I pay for this when I can Google it?',
-    a: 'Google gives you 47 American results and three Fair Work pages buried on page two. HQ.ai gives you the right answer for your award in 30 seconds, with the citation. Your hourly rate is more than $99/month.',
+    q: 'Why pay for this when I can just Google it?',
+    a: 'Google gives you 47 American answers and three Fair Work pages buried on page two. HQ.ai gives you the right answer for your business in 30 seconds, with the citation. Your hourly rate is worth more than $99 a month.',
   },
   {
-    q: 'I only need one letter. Do I have to subscribe?',
-    a: 'No. Reserve your spot on the pay-as-you-go marketplace - first 100 reservations get $10 off the $25 Letter of Offer when it launches. No subscription, no card today.',
+    q: 'I only need one document. Do I have to subscribe?',
+    a: 'No. Reserve a spot on the pay-as-you-go marketplace - first 100 reservations get $10 off the $25 Letter of Offer when it launches. No subscription, no card today.',
+  },
+  {
+    q: 'Is the AI good enough to trust on real decisions?',
+    a: 'Every answer cites the specific Fair Work Act section, NES standard, or Modern Award clause it is drawn from. When the question is too complex, you get handed off to the same human advisor every time - no repeating yourself.',
+  },
+  {
+    q: 'What does it actually cost?',
+    a: '$99 a month for 3 seats, $199 for 6, $379 for 12. 14-day free trial, no card. Cancel any time. The pay-as-you-go items start at $15.',
+  },
+  {
+    q: 'How long does setup take?',
+    a: "Three minutes. You sign up, tell HQ.ai your industry, and it picks the right Modern Award and remembers it. There's nothing to install. The chat just works.",
   },
   {
     q: 'Where is my data stored?',
-    a: 'In Sydney. On Supabase Australian infrastructure. Compliant with Australian Privacy Principles 1-13.',
+    a: 'In Sydney, on Supabase Australian infrastructure. Compliant with Australian Privacy Principles 1-13. We never sell it.',
   },
   {
-    q: 'What happens after my 14-day trial?',
-    a: "You pick a plan or you don't. Your data stays in your account whether you subscribe or not. We never sell it, ever.",
-  },
-  {
-    q: 'How long does it take to learn?',
-    a: 'Three minutes. The chat is just chat. Tell it what you need and it asks the right follow-up questions.',
-  },
-  {
-    q: 'Does it know my Modern Award?',
-    a: 'It knows all 122 Modern Awards on the Fair Work register. Tell it your industry on signup; it picks the right award and remembers it.',
-  },
-  {
-    q: 'Is this another Employsure?',
-    a: 'No. No 5-year contract. No phone tree. No cold-call team. Cancel any time. The full pricing is on this page.',
+    q: 'Why would I trust an AU startup over Employment Hero or Employsure?',
+    a: 'Because HQ.ai is built for decision-making, not payroll administration or panic-button advisory. Different problem, different tool. And the same human advisor is on the line when the AI hits its limit - not a fresh agent every call.',
   },
 ]
 

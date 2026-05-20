@@ -1,34 +1,41 @@
-// Section 3: the problem. 3-column pain breakdown from brief section 5.
+// Problem section - decision-making rewrite. Three text-only columns,
+// no icons, equal weight: People decisions, Hiring decisions, Cost of
+// getting it wrong.
 
 export default function ProblemSection() {
   const cards = [
     {
-      title: "The Award changed and you didn't know",
-      body: 'A new minimum rate or allowance dropped on 1 July. You found out when an employee asked for back-pay.',
+      title: 'Every HR call feels like a coin flip.',
+      body: "A staff member resigns at 4pm Friday. You don't know what to write, what to pay out, or what counts as the right notice. The Award is 600 pages.",
     },
     {
-      title: "An employee resigned and you don't know what to send",
-      body: "Notice, final pay, leave entitlements, the offer of a reference. Each one has a Fair Work answer you don't have time to find.",
+      title: "Hiring takes weeks you don't have.",
+      body: "You read 80 CVs, interview six, hire the wrong one. You wrote the ad on a Sunday night, in your second language as a tradie - not a copywriter.",
     },
     {
-      title: 'Employsure rang again',
-      body: "The same retainer you've used twice this year is still costing $850 a month. You meant to cancel last quarter.",
+      title: 'Outside advice costs four figures.',
+      body: 'A 30-minute call with a workplace lawyer is $450. A retainer with Employsure is $850 a month, locked for 5 years. You used them twice.',
     },
   ]
 
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="problem-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">The HR problem</p>
-        <h2 id="problem-heading" className="font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]">
-          Modern Awards are 600 pages. Your phone is in your pocket.
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+          Where small businesses burn hours and dollars
+        </p>
+        <h2
+          id="problem-heading"
+          className="max-w-3xl font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]"
+        >
+          You shouldn&apos;t have to guess at this.
         </h2>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-12">
           {cards.map((c) => (
-            <article key={c.title} className="rounded-2xl border border-border bg-bg-elevated p-6 shadow-card">
-              <h3 className="font-serif text-xl text-ink">{c.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-ink-soft">{c.body}</p>
+            <article key={c.title} className="max-w-md">
+              <h3 className="font-serif text-[22px] leading-snug text-ink">{c.title}</h3>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">{c.body}</p>
             </article>
           ))}
         </div>

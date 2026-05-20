@@ -1,17 +1,25 @@
 'use client'
 
-// Top-level landing-page shell. Composes the nine sections in the order
-// prescribed by section 5 of docs/research/landing-page-research-brief.md.
+// Top-level landing-page shell. Composes the sections in the
+// decision-making narrative order (May 2026 restructure):
 //
-// Renders inside the marketing data-app scope so the Ivory & Clay tokens
-// from app/globals.css :root apply.
+//   Hero -> SocialProof -> Metrics -> Problem -> ProductPillars ->
+//   PeopleDeepDive -> RecruitDeepDive -> Marketplace -> CustomerStory ->
+//   Comparison -> Pricing -> FAQ -> FooterCta -> StickyMobile -> ReserveModal
+//
+// Renders inside the marketing data-app scope so the Ivory & Clay
+// tokens from app/globals.css :root apply.
 
 import { useEffect, useState } from 'react'
 import HeroSection from './HeroSection'
 import SocialProofRibbon from './SocialProofRibbon'
+import MetricsStrip from './MetricsStrip'
 import ProblemSection from './ProblemSection'
-import ProductSection from './ProductSection'
+import ProductPillars from './ProductPillars'
+import PeopleDeepDive from './PeopleDeepDive'
+import RecruitDeepDive from './RecruitDeepDive'
 import MarketplaceCarousel from './MarketplaceCarousel'
+import CustomerStory from './CustomerStory'
 import ComparisonSection from './ComparisonSection'
 import PricingSection from './PricingSection'
 import FaqSection from './FaqSection'
@@ -39,9 +47,13 @@ export default function LandingPage() {
     <main className="min-h-screen bg-bg text-ink antialiased">
       <HeroSection />
       <SocialProofRibbon />
+      <MetricsStrip />
       <ProblemSection />
-      <ProductSection />
+      <ProductPillars />
+      <PeopleDeepDive />
+      <RecruitDeepDive />
       <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
+      <CustomerStory />
       <ComparisonSection />
       <PricingSection onReserve={() => setReserveOpen(true)} />
       <FaqSection />

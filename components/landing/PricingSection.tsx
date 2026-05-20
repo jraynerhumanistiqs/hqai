@@ -50,7 +50,7 @@ export default function PricingSection({ onReserve }: Props) {
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* LEFT: subscription tiers */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">If you&apos;ve got HR work every week</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">If you have ongoing HR and hiring work</p>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
               {PLANS.map((p) => (
                 <article
