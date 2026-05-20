@@ -43,30 +43,62 @@ small loop rather than a single hardcoded statement.
 ### EXECUTE grant revocation (lints 0028 + 0029)
 
 Five `SECURITY DEFINER` functions in the `public` schema are exposed at
-`/rest/v1/rpc/<name>` by default. None of them are meant to be called
-that way:
+`/rest/v1/rpc/<name>` by default. Three of them are not meant to be
+called by `anon` / `authenticated` at all; two are RLS helpers that
+**must remain executable** by those roles for RLS policies to evaluate
+correctly.
 
-| Function                          | Called by                                     |
-|-----------------------------------|-----------------------------------------------|
-| `current_business_id()`           | RLS policies (`business_id = public.current_business_id()`) |
-| `current_business_member_ids()`   | RLS policies                                  |
-| `get_session_response_counts()`   | Server-side queries from the recruit dashboard |
-| `handle_new_user()`               | Trigger on `auth.users` insert                |
-| `rls_auto_enable()`               | Admin maintenance only                        |
+| Function                          | Called by                                                  | EXECUTE retained for |
+|-----------------------------------|------------------------------------------------------------|----------------------|
+| `current_business_id()`           | **RLS predicates across most tables** (profiles, businesses, cv_screenings, documents, conversations, ...) | anon, authenticated, service_role |
+| `current_business_member_ids()`   | **RLS predicates on prescreen_sessions + descendants**     | anon, authenticated, service_role |
+| `get_session_response_counts()`   | Server-side queries from the recruit dashboard             | service_role only    |
+| `handle_new_user()`               | Trigger on `auth.users` insert                             | service_role only    |
+| `rls_auto_enable()`               | Admin maintenance only                                     | service_role only    |
 
-The migration REVOKEs EXECUTE on each from `public`, `anon`, and
-`authenticated`, and explicitly GRANTs EXECUTE to `service_role` for
-clarity. This closes the `/rest/v1/rpc/<name>` attack surface.
+The original `security_function_hardening.sql` revoked EXECUTE on all
+five from `public` / `anon` / `authenticated`. That broke login - the
+`profiles_self_or_same_business_select` policy is
+`id = auth.uid() or business_id = public.current_business_id()`, and
+PostgreSQL evaluates BOTH sides of an `OR`. With EXECUTE revoked, the
+second clause raised a permission error for every authenticated user;
+the profile lookup returned null and the dashboard layout redirected
+to `/onboarding`.
 
-**Why this doesn't break anything:**
+`restore_rls_helper_function_execute.sql` re-grants EXECUTE on
+`current_business_id()` and `current_business_member_ids()` to
+`anon` + `authenticated` + `service_role`. The other three stay
+revoked.
 
-- RLS policies that call these functions run as the policy owner (the
-  database owner), not as the calling role. EXECUTE grants on
-  `anon`/`authenticated` are irrelevant to RLS evaluation.
+**Why re-exposing the two RLS helpers is acceptable.** Both helpers
+read from the calling user's own `auth.uid()` context:
+
+```sql
+create or replace function public.current_business_id()
+returns uuid
+language sql stable security definer set search_path = public as $$
+  select business_id from public.profiles where id = auth.uid()
+$$;
+```
+
+So calling `/rest/v1/rpc/current_business_id` as an anon or
+authenticated user just returns information the caller already has
+access to via their own profile row. There is no privilege escalation,
+no cross-tenant data leak, no enumeration risk.
+
+**Expected Advisor noise.** The Database Advisor will flag both
+functions again with lints 0028 + 0029. This is a documented,
+deliberate exception - documented here, in the migration header, and
+in the `restore_rls_helper_function_execute.sql` source.
+
+**Why the trigger + non-RLS functions stay revoked:**
+
 - The trigger on `auth.users` that invokes `handle_new_user` runs as
-  the trigger owner.
-- All server-side calls in the codebase use the service-role client
-  (`supabaseAdmin`), which bypasses these grants by design.
+  the trigger owner, so EXECUTE on the user-facing roles is irrelevant
+  to it firing.
+- `get_session_response_counts` and `rls_auto_enable` are only ever
+  called by the service-role admin client, which bypasses these
+  grants by design.
 
 ## Deferred items
 
