@@ -278,7 +278,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all group
             ${isActive('/dashboard', true)
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink hover:bg-bg-soft'}`}>
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <HomeIcon active={isActive('/dashboard', true)} />
           <span className="flex-1">Home</span>
         </Link>
@@ -288,7 +288,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/people') || isActive('/dashboard/templates')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink hover:bg-bg-soft'}`}>
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <PeopleIcon active={isActive('/dashboard/people')} />
           <span className="flex-1 text-left">HQ People</span>
           <ChevronIcon open={peopleOpen} />
@@ -300,18 +300,18 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 each tool reads as a named product surface. The
                 Administrator engine ships across Weeks 3-5. */}
             <Link href="/dashboard/people/advisor"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/people/advisor') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/people/advisor') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               AI Advisor
             </Link>
             <Link href="/dashboard/people/administrator"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/people/administrator') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/people/administrator') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               AI Administrator
             </Link>
             <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               HR Templates
             </Link>
           </div>
@@ -322,7 +322,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/recruit')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink hover:bg-bg-soft'}`}>
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <RecruitIcon active={isActive('/dashboard/recruit')} />
           <span className="flex-1 text-left">HQ Recruit</span>
           <ChevronIcon open={recruitOpen} />
@@ -330,23 +330,23 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {recruitOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/recruit/campaign-coach"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Campaign Coach
             </Link>
             <Link href="/dashboard/recruit/cv-screening"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               CV Scoring Agent
             </Link>
             <Link href="/dashboard/recruit/shortlist"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Shortlist Agent
             </Link>
             <Link href="/dashboard/recruit/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/recruit/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Recruitment Templates
             </Link>
           </div>
@@ -357,7 +357,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
             ${isActive('/dashboard/documents')
               ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink hover:bg-bg-soft'}`}>
+              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <DocsIcon active={isActive('/dashboard/documents')} />
           <span className="flex-1 text-left">Documents</span>
           <ChevronIcon open={docsOpen} />
@@ -365,13 +365,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {docsOpen && (
           <div className="ml-6 space-y-0.5">
             <Link href="/dashboard/documents"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/documents') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/documents') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               <span>My Documents</span>
             </Link>
             <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               <span>All Templates</span>
             </Link>
           </div>
@@ -390,7 +390,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                   || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                   || isActive('/dashboard/business')
                   ? 'bg-ink text-bg-elevated font-semibold'
-                  : 'text-ink hover:bg-bg-soft'}`}>
+                  : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
               <ToolsIcon active={toolsOpen} />
               <span className="flex-1 text-left">Tools</span>
               <ChevronIcon open={toolsOpen} />
@@ -401,10 +401,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
                   <>
                     <button onClick={() => setComplianceOpen(!complianceOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink hover:bg-bg-soft'}`}>
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
                       <span className="flex-1 text-left">Compliance</span>
                       <ChevronIcon open={complianceOpen} />
@@ -413,15 +413,15 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                       <div className="ml-6 space-y-0.5">
                         {(isInternal || flag('compliance_audit')) && (
                           <Link href="/dashboard/compliance/audit"
-                            className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                              ${isActive('/dashboard/compliance/audit') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                            className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                              ${isActive('/dashboard/compliance/audit') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                             Workplace Compliance Audit
                           </Link>
                         )}
                         {(isInternal || flag('awards_interpreter')) && (
                           <Link href="/dashboard/awards"
-                            className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                              ${isActive('/dashboard/awards') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                            className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                              ${isActive('/dashboard/awards') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                             Award Interpreter
                           </Link>
                         )}
@@ -434,10 +434,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('team_development')) && (
                   <>
                     <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink hover:bg-bg-soft'}`}>
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
                       <span className="flex-1 text-left">Leadership</span>
                       <ChevronIcon open={leadershipOpen} />
@@ -445,18 +445,18 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                     {leadershipOpen && (
                       <div className="ml-6 space-y-0.5">
                         <Link href="/dashboard/performance"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/performance') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                            ${isActive('/dashboard/performance') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                           Performance Management
                         </Link>
                         <Link href="/dashboard/leadership/development"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/leadership/development') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                            ${isActive('/dashboard/leadership/development') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                           Team Development
                         </Link>
                         <Link href="/dashboard/leadership/coaching"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/leadership/coaching') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                            ${isActive('/dashboard/leadership/coaching') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                           Coaching
                         </Link>
                       </div>
@@ -468,10 +468,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 {(isInternal || flag('strategy_coach')) && (
                   <>
                     <button onClick={() => setBusinessOpen(!businessOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm transition-all
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
                         ${isActive('/dashboard/business')
                           ? 'bg-ink text-bg-elevated'
-                          : 'text-ink hover:bg-bg-soft'}`}>
+                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
                       <BusinessIcon active={isActive('/dashboard/business')} />
                       <span className="flex-1 text-left">Business</span>
                       <ChevronIcon open={businessOpen} />
@@ -479,8 +479,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                     {businessOpen && (
                       <div className="ml-6 space-y-0.5">
                         <Link href="/dashboard/business/strategy-coach"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all
-                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-ink text-bg-elevated' : 'text-ink-muted hover:bg-bg-soft hover:text-ink-soft'}`}>
+                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
+                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
                           Strategy Coach
                         </Link>
                       </div>
@@ -517,12 +517,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
               ${isActive('/dashboard/settings')
                 ? 'bg-ink text-bg-elevated font-semibold'
-                : 'text-ink hover:bg-bg-soft'}`}>
+                : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
             <SettingsIcon active={isActive('/dashboard/settings')} />
             <span>Settings</span>
           </Link>
           <button onClick={signOut} title="Sign out" aria-label="Sign out"
-            className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink hover:bg-bg-soft transition-all">
+            className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink-soft hover:bg-bg-soft hover:text-ink transition-all">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0 opacity-60">
               <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
             </svg>
