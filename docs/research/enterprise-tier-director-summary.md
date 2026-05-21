@@ -26,6 +26,17 @@
 
 The recruitment delta is the spear-tip of every sales conversation.
 
+## Pricing flexes on three published multipliers
+
+Base price is the headline. On top of it, three transparent uplifts capture the
+dimensions that genuinely drive advisor and talent-partner workload:
+
+- **Headcount uplift** for 151-250 staff: +$400/mo (People), +$300/mo (Recruit), +$650/mo (Full). 251+ staff is Strategic tier, founder discretion.
+- **Volume uplift** for higher hiring concurrency (Recruit and Full only): +$750/mo at 5-6 concurrent roles, +$1,500/mo at 7-8 concurrent. 9+ is Bulk Hiring, quoted separately.
+- **Entity uplift** for multi-entity / franchise: +15% of base for 2-3 entities, +25% of base for 4-5 entities. 6+ is Strategic tier.
+
+Schedule is public. Customer self-calculates. No negotiation. Full design rationale and worked examples in `enterprise-sliding-scale-analysis.md` and `enterprise-tier-strategy.md` §3.3.
+
 ## How we protect margin AND advisors AND service quality
 
 Three explicit constraints, all enforced in writing:

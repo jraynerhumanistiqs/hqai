@@ -64,6 +64,12 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
         <p className="text-[10px] text-ink-muted">
           Annual saves ${annualSavingVsMonthly}/yr over month-to-month
         </p>
+        <p className="text-[11px] text-ink-muted">
+          Plus uplifts for headcount / volume / entity complexity.{' '}
+          <a href="#pricing-flexes" className="font-medium text-ink underline hover:text-accent">
+            See How pricing flexes below.
+          </a>
+        </p>
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{variant.tagline}</p>

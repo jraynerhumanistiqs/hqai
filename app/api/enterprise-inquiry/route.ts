@@ -33,6 +33,13 @@ type Urgency = (typeof URGENCY_VALUES)[number]
 
 const STAFF_BUCKETS = ['Under 30', '30-50', '50-150', '150+'] as const
 
+// Multiplier-relevant optional fields (added May 2026 with the
+// enterprise sliding-scale schedule). Captured here so the founder can
+// quote the effective price before the discovery call. Empty submissions
+// stay valid - the legacy form never sent these.
+const ENTITY_COUNT_VALUES = ['1', '2-3', '4-5', '6+'] as const
+const ANNUAL_HIRING_VOLUME_VALUES = ['under-30', '30-60', '60-100', '100-plus'] as const
+
 interface InquiryBody {
   full_name?: unknown
   work_email?: unknown
@@ -43,6 +50,8 @@ interface InquiryBody {
   urgency?: unknown
   notes?: unknown
   consent?: unknown
+  entity_count?: unknown
+  annual_hiring_volume?: unknown
 }
 
 function asTrimmed(value: unknown, max = 500): string {
@@ -66,6 +75,21 @@ export async function POST(req: Request) {
   const currentSpend = asTrimmed(body.current_spend, 500) || null
   const notes = asTrimmed(body.notes, 2000) || null
   const consent = body.consent === true
+
+  // Optional multiplier-relevant fields. Empty = not provided; treat as
+  // null. Unknown values are dropped silently rather than rejected so a
+  // legacy form post never 400s on these.
+  const entityCountRaw = asTrimmed(body.entity_count, 10)
+  const entityCount =
+    entityCountRaw && (ENTITY_COUNT_VALUES as readonly string[]).includes(entityCountRaw)
+      ? entityCountRaw
+      : null
+  const annualHiringVolumeRaw = asTrimmed(body.annual_hiring_volume, 20)
+  const annualHiringVolume =
+    annualHiringVolumeRaw &&
+    (ANNUAL_HIRING_VOLUME_VALUES as readonly string[]).includes(annualHiringVolumeRaw)
+      ? annualHiringVolumeRaw
+      : null
 
   if (!fullName) {
     return NextResponse.json({ error: 'Your name is required.' }, { status: 400 })
@@ -114,6 +138,8 @@ export async function POST(req: Request) {
         current_spend: currentSpend,
         urgency,
         notes,
+        entity_count: entityCount,
+        annual_hiring_volume: annualHiringVolume,
         inquirer_ip: inquirerIp,
         inquirer_user_agent: userAgent,
       })
@@ -142,6 +168,8 @@ export async function POST(req: Request) {
         urgency,
         currentSpend,
         notes,
+        entityCount,
+        annualHiringVolume,
         belowThreshold,
         inquirerIp,
       }),

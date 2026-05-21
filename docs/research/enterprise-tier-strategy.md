@@ -140,7 +140,83 @@ The recruitment-side delta is what makes this work. Australian SMEs are paying o
 - Bullhorn + agency contingency: ~$8k/mo plus per-placement. HQ Recruit Ent at $2,995 undercuts massively if the customer was paying for both.
 - HRBP-as-a-service offerings (e.g. People Stack, HR Anchor): $1,200-2,500/mo subscriptions. We sit at the upper end because of the AI tool inclusion - which they don't have.
 
-### 3.3 What we deliberately don't do
+### 3.3 Multiplier schedule (live May 2026)
+
+Layered on top of the three base SKUs above. Customer self-calculates from
+the published bands; no negotiation, no custom-quote-per-deal. Lifted from
+`enterprise-sliding-scale-analysis.md` §3.2 and §3.4.
+
+**Headcount uplift** (proxies People Enterprise workload)
+
+| Band | People Ent uplift | Recruit Ent uplift | Full Ent uplift |
+|---|---|---|---|
+| 40-150 staff | $0 (base) | $0 (base) | $0 (base) |
+| 151-250 staff | +$400/mo | +$300/mo | +$650/mo |
+| 251-500 staff | Strategic tier (founder discretion) | Strategic tier | Strategic tier |
+| 500+ staff | Not a standard Enterprise band - quote standalone | same | same |
+
+**Volume uplift** (Recruit Enterprise and Full Enterprise only)
+
+| Concurrent roles / annual throughput | Uplift |
+|---|---|
+| Up to 4 concurrent / ~50 closures per year | $0 (base) |
+| 5-6 concurrent / ~60-80 closures per year | +$750/mo |
+| 7-8 concurrent / ~80-100 closures per year | +$1,500/mo |
+| 9+ concurrent / over 100 closures per year | Bulk Hiring add-on, quoted separately |
+
+**Entity-complexity uplift** (any variant, percent of base price)
+
+| Entity count | Uplift |
+|---|---|
+| Single entity | $0 (base) |
+| 2-3 entities (small group / restaurant chain / small franchise) | +15% of base |
+| 4-5 entities (mid franchise / national footprint) | +25% of base |
+| 6+ entities | Strategic tier (founder discretion) |
+
+Multipliers stack. They are calculated against the **annual-contract base**
+even if the customer is on month-to-month - the ~17% monthly-rolling premium
+then applies once to the total. Entity uplift is calculated against the base
+price alone, not against base + headcount + volume.
+
+**Worked examples**
+
+*Customer A - 200-staff single-entity allied health, wants People Enterprise*
+
+- Base People Ent annual: $1,495/mo
+- Headcount uplift (151-250): +$400/mo
+- Volume uplift: not applicable (People variant)
+- Entity uplift: $0 (single entity)
+- **Effective price: $1,895/mo annual ($22,740/yr), or $2,275/mo billed monthly**
+
+*Customer B - 75-staff franchise group of 4 cafes, wants Full Enterprise*
+
+- Base Full Ent annual: $3,995/mo
+- Headcount uplift: $0 (75 staff is in base band)
+- Volume uplift: $0 (assume normal hiring pace)
+- Entity uplift (4 entities, +25%): +$999/mo
+- **Effective price: $4,994/mo annual ($59,928/yr), or $5,993/mo billed monthly**
+
+*Customer C - 120-staff scaling tech business, ~75 roles/year, 6 concurrent, wants Recruit Enterprise*
+
+- Base Recruit Ent annual: $2,995/mo
+- Headcount uplift: $0 (120 staff is in base band)
+- Volume uplift (5-6 concurrent, ~75/yr): +$750/mo
+- Entity uplift: $0 (single entity)
+- **Effective price: $3,745/mo annual ($44,940/yr), or $4,495/mo billed monthly**
+- vs internal RPO recruiter at $150k/yr: still 3.3x cheaper.
+
+*Customer D - 220-staff multi-state retail group with 3 entities, wants Full Enterprise, hires ~65 roles/year*
+
+- Base Full Ent annual: $3,995/mo
+- Headcount uplift (151-250): +$650/mo
+- Volume uplift (5-6 concurrent, ~65/yr): +$750/mo
+- Entity uplift (3 entities, +15%): +$599/mo
+- **Effective price: $5,994/mo annual ($71,928/yr), or $7,202/mo billed monthly**
+- This is the upper end of "standard" Enterprise. Beyond this, founder reaches for the Strategic tier conversation.
+
+The full design rationale lives in `enterprise-sliding-scale-analysis.md`.
+
+### 3.4 What we deliberately don't do
 
 - **No published price-per-seat scaling.** Enterprise is a single price regardless of customer headcount within the qualification band (50-250 staff). Pricing per seat would put HQ.ai in the same anchor frame as Employment Hero and that frame loses on volume math.
 - **No discounting at sale.** The first 3-5 Enterprise customers might get a Foundation-style anchor ("Inaugural Enterprise Partner: $1,295/mo for 12 months on People Ent") in exchange for a public case study, but the published rate is the rate. Discount discipline is a margin protection.

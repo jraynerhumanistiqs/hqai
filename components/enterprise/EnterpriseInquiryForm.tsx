@@ -19,6 +19,10 @@ interface FormState {
   urgency: 'this-month' | 'next-month' | 'this-quarter' | 'exploring' | ''
   notes: string
   consent: boolean
+  // Multiplier-relevant optional fields (May 2026). Empty = not provided.
+  // See docs/research/enterprise-sliding-scale-analysis.md §6.
+  entity_count: '' | '1' | '2-3' | '4-5' | '6+'
+  annual_hiring_volume: '' | 'under-30' | '30-60' | '60-100' | '100-plus'
 }
 
 const INITIAL: FormState = {
@@ -31,6 +35,8 @@ const INITIAL: FormState = {
   urgency: '',
   notes: '',
   consent: false,
+  entity_count: '',
+  annual_hiring_volume: '',
 }
 
 export default function EnterpriseInquiryForm() {
@@ -188,6 +194,53 @@ export default function EnterpriseInquiryForm() {
             <option value="exploring">Just exploring</option>
           </select>
         </label>
+
+        {/* Optional multiplier-relevant fields. Sourced from the published
+            schedule in lib/pricing-config.ts (PRICING.enterprise.enterpriseMultipliers).
+            Capturing these pre-call lets the founder quote the effective
+            price on the discovery call, not after. */}
+        <div className="md:col-span-2 mt-2 rounded-2xl border border-border bg-bg-soft p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+            Optional - helps us quote your exact price before the call
+          </p>
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            <label className="flex flex-col gap-2">
+              <span className={labelCls}>How many entities does the business operate as?</span>
+              <select
+                value={state.entity_count}
+                onChange={(e) => update('entity_count', e.target.value as FormState['entity_count'])}
+                className={selectCls}
+              >
+                <option value="">Not specified</option>
+                <option value="1">1 (single entity)</option>
+                <option value="2-3">2-3 entities</option>
+                <option value="4-5">4-5 entities</option>
+                <option value="6+">6+ entities</option>
+              </select>
+            </label>
+
+            {(state.variant_interest === 'recruit' ||
+              state.variant_interest === 'full' ||
+              state.variant_interest === 'unsure') && (
+              <label className="flex flex-col gap-2">
+                <span className={labelCls}>Annual hiring volume estimate</span>
+                <select
+                  value={state.annual_hiring_volume}
+                  onChange={(e) =>
+                    update('annual_hiring_volume', e.target.value as FormState['annual_hiring_volume'])
+                  }
+                  className={selectCls}
+                >
+                  <option value="">Not specified</option>
+                  <option value="under-30">Under 30 roles</option>
+                  <option value="30-60">30-60 roles</option>
+                  <option value="60-100">60-100 roles</option>
+                  <option value="100-plus">100+ roles</option>
+                </select>
+              </label>
+            )}
+          </div>
+        </div>
 
         <label className="flex flex-col gap-2 md:col-span-2">
           <span className={labelCls}>Anything else?</span>

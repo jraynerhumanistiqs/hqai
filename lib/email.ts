@@ -478,6 +478,8 @@ export async function sendEnterpriseInquiryEmail({
   urgency,
   currentSpend,
   notes,
+  entityCount,
+  annualHiringVolume,
   belowThreshold,
   inquirerIp,
 }: {
@@ -491,6 +493,10 @@ export async function sendEnterpriseInquiryEmail({
   urgency: string
   currentSpend?: string | null
   notes?: string | null
+  // Multiplier-relevant fields (May 2026). Optional - empty for legacy
+  // submissions. Founder uses these to quote effective price pre-call.
+  entityCount?: string | null
+  annualHiringVolume?: string | null
   belowThreshold: boolean
   inquirerIp?: string | null
 }) {
@@ -511,6 +517,10 @@ export async function sendEnterpriseInquiryEmail({
     `Variant: ${variantInterest}`,
     `Urgency: ${urgency}`,
     `Current spend: ${currentSpend && currentSpend.trim() ? currentSpend : 'not stated'}`,
+    '',
+    'PRICING SIGNALS (for multiplier quote)',
+    `Entity count: ${entityCount && entityCount.trim() ? entityCount : 'not stated'}`,
+    `Annual hiring volume: ${annualHiringVolume && annualHiringVolume.trim() ? annualHiringVolume : 'not stated'}`,
     thresholdLine,
     'Notes from inquirer:',
     notes && notes.trim() ? notes : 'none',
@@ -543,6 +553,11 @@ export async function sendEnterpriseInquiryEmail({
             <tr><td style="padding:6px 0; color:#4b4b4b;">Variant</td><td style="padding:6px 0;">${escape(variantInterest)}</td></tr>
             <tr><td style="padding:6px 0; color:#4b4b4b;">Urgency</td><td style="padding:6px 0;">${escape(urgency)}</td></tr>
             <tr><td style="padding:6px 0; color:#4b4b4b;">Current spend</td><td style="padding:6px 0;">${escape(currentSpend && currentSpend.trim() ? currentSpend : 'not stated')}</td></tr>
+          </table>
+          <h3 style="margin:24px 0 8px; font-size:14px; color:#4b4b4b; text-transform:uppercase; letter-spacing:0.08em;">Pricing signals (for multiplier quote)</h3>
+          <table style="width:100%; border-collapse:collapse; font-size:14px; line-height:1.55;">
+            <tr><td style="padding:6px 0; color:#4b4b4b; width:180px;">Entity count</td><td style="padding:6px 0;">${escape(entityCount && entityCount.trim() ? entityCount : 'not stated')}</td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Annual hiring volume</td><td style="padding:6px 0;">${escape(annualHiringVolume && annualHiringVolume.trim() ? annualHiringVolume : 'not stated')}</td></tr>
           </table>
           <h3 style="margin:24px 0 8px; font-size:14px; color:#4b4b4b; text-transform:uppercase; letter-spacing:0.08em;">Notes from inquirer</h3>
           <p style="white-space:pre-wrap; font-size:14px; line-height:1.6; color:#1F1F1F;">${escape(notes && notes.trim() ? notes : 'none')}</p>
