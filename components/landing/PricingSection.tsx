@@ -197,12 +197,14 @@ export default function PricingSection({ onReserve }: Props) {
                 AI plus human judgement.
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                A Humanistiqs Advisor or Talent Partner embedded into your business. Three SKUs, annual contracts,
-                capacity-capped at {PRICING.enterprise.capacityCapYear1} partnerships in 2026.
+                A Humanistiqs Advisor or Talent Partner embedded into your business. Three SKUs, annual contract or
+                month-to-month, capacity-capped at {PRICING.enterprise.capacityCapYear1} partnerships in 2026.
               </p>
-              {/* Anchor price: From $1,495/mo (sourced from PRICING.enterprise.variants[0].priceMonthlyDisplay). */}
+              {/* Anchor price sourced from PRICING.enterprise.variants[0] - both
+                  annual-equiv and monthly-rolling shown so customers self-select. */}
               <p className="mt-3 text-sm font-semibold text-ink">
-                From ${PRICING.enterprise.variants[0].priceMonthlyDisplay.toLocaleString('en-AU')}/mo
+                From ${PRICING.enterprise.variants[0].priceMonthlyDisplay.toLocaleString('en-AU')}/mo on annual,
+                or ${PRICING.enterprise.variants[0].priceMonthlyRolling.toLocaleString('en-AU')}/mo billed monthly
               </p>
             </div>
             <Link

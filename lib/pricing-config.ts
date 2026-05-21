@@ -86,18 +86,30 @@ export interface EnterpriseVariant {
   id: EnterpriseVariantId
   name: string
   tagline: string
-  // Headline monthly equivalent for display only. The actual contract
-  // is annual (12-month minimum). See docs/research/enterprise-tier-strategy.md §3.1.
-  priceMonthlyDisplay: number
-  priceAnnualTotal: number
-  currency: Currency
+  // ANNUAL-CONTRACT pricing (the anchor). Customer commits to 12 months
+  // and either pays upfront or quarterly via Stripe Invoicing.
+  priceMonthlyDisplay: number       // monthly equivalent of the annual price (e.g. 1,495)
+  priceAnnualTotal: number          // annual contract value (e.g. 17,940)
   contractTermMonths: 12
+  // MONTHLY-ROLLING pricing. Same scope of work; customer pays a premium
+  // for the cash-flow flexibility and the option to give 30 days' notice.
+  // Founder's call (May 2026): some customers will pay for 12+ months
+  // anyway but won't sign a fixed-term, so make it a Stripe option.
+  // The premium protects the advisor calendar (no churn-and-rehire
+  // burn) and aligns with the inverse of the Solo/Business 16.7%
+  // annual discount band.
+  priceMonthlyRolling: number       // monthly-billed price (e.g. 1,795)
+  monthlyRollingNoticePeriodDays: 30
+  // Env-var keys, not literals. Sales-assisted - never surfaced in the
+  // public checkout flow. The founder issues the Stripe Invoice using
+  // whichever Price ID matches the cycle the customer chose.
+  stripePriceIdEnvKeyAnnual: string
+  stripePriceIdEnvKeyMonthly: string
+  currency: Currency
   includedSummary: string[]
   notIncluded: string[]
   overage: EnterpriseOverageLine[]
   qualifyingHeadcountMin: number
-  // Env-var key, not literal. Sales-assisted - not used for public checkout.
-  stripePriceIdEnvKey: string
 }
 
 export interface EnterpriseInauguralOffer {
@@ -326,10 +338,13 @@ export const PRICING: PricingShape = {
         tagline: 'A named Humanistiqs Advisor on the line for the hard 20% of HR.',
         priceMonthlyDisplay: 1495,
         priceAnnualTotal: 17940,
+        priceMonthlyRolling: 1795,
+        monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
         qualifyingHeadcountMin: 40,
-        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE',
+        stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL',
+        stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY',
         includedSummary: [
           'Everything in Business (15 seats, 2,500 credits, unlimited recruit roles)',
           'Named Humanistiqs Advisor - same person every time, photo and direct mobile',
@@ -354,10 +369,13 @@ export const PRICING: PricingShape = {
         tagline: 'A Talent Partner running your hiring funnel. Not a recruiter, not an agency.',
         priceMonthlyDisplay: 2995,
         priceAnnualTotal: 35940,
+        priceMonthlyRolling: 3495,
+        monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
         qualifyingHeadcountMin: 50,
-        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT',
+        stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_ANNUAL',
+        stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_MONTHLY',
         includedSummary: [
           'Everything in Business tier',
           'Named Humanistiqs Talent Partner running HQ Recruit on your behalf',
@@ -383,10 +401,13 @@ export const PRICING: PricingShape = {
         tagline: 'People and Recruit. One partner team. The operating layer for both functions.',
         priceMonthlyDisplay: 3995,
         priceAnnualTotal: 47940,
+        priceMonthlyRolling: 4495,
+        monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
         qualifyingHeadcountMin: 80,
-        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL',
+        stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL',
+        stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY',
         includedSummary: [
           'Everything in HQ People Enterprise AND HQ Recruit Enterprise',
           'Single dedicated partner team - one Advisor and one Talent Partner who coordinate',

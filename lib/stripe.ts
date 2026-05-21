@@ -47,10 +47,18 @@ interface PlanCatalogueEntry {
 // flagged as sales-assisted and the public checkout route refuses to
 // start a Stripe Checkout Session for them - see isSalesAssistedPlan().
 //
-// Enterprise env-var keys (set in Vercel + .env.local for Invoicing):
-//   STRIPE_PRICE_ID_ENTERPRISE_PEOPLE
-//   STRIPE_PRICE_ID_ENTERPRISE_RECRUIT
-//   STRIPE_PRICE_ID_ENTERPRISE_FULL
+// Enterprise env-var keys (set in Vercel + .env.local for Invoicing).
+// Each variant now has BOTH an annual-contract Price and a monthly-rolling
+// Price - the founder chose to offer monthly with a ~17% premium so
+// customers who want cash-flow flexibility can pay monthly without
+// signing a 12-month fixed term. 30-day cancellation notice on monthly
+// rolling protects the advisor calendar.
+//   STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL
+//   STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY
+//   STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_ANNUAL
+//   STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_MONTHLY
+//   STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL
+//   STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY
 export const PLANS: Record<
   'solo' | 'business' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
   PlanCatalogueEntry
@@ -81,30 +89,49 @@ export const PLANS: Record<
       envKey: 'STRIPE_PRICE_ID_BUSINESS_ANNUAL',
     },
   },
-  // Enterprise variants - sales-assisted, annual-only contracts. The
-  // monthly entry exists only so the catalogue type stays uniform; it
-  // is never resolved against by the public checkout. Pricing source:
-  // PRICING.enterprise.variants.
+  // Enterprise variants - sales-assisted. Both annual-contract AND
+  // monthly-rolling are real Stripe Prices that the founder issues via
+  // Stripe Invoicing depending on the customer's chosen cycle. Public
+  // checkout still refuses these planIds (isSalesAssistedPlan).
+  // Pricing source: PRICING.enterprise.variants.
   'enterprise-people': {
     name: PRICING.enterprise.variants[0].name,
     seats: PRICING.tiers[1].seats,
     credits: PRICING.tiers[1].includedCredits,
-    monthly: { price: PRICING.enterprise.variants[0].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE' },
-    annual:  { price: PRICING.enterprise.variants[0].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE' },
+    monthly: {
+      price:  PRICING.enterprise.variants[0].priceMonthlyRolling,
+      envKey: PRICING.enterprise.variants[0].stripePriceIdEnvKeyMonthly,
+    },
+    annual: {
+      price:  PRICING.enterprise.variants[0].priceMonthlyDisplay,
+      envKey: PRICING.enterprise.variants[0].stripePriceIdEnvKeyAnnual,
+    },
   },
   'enterprise-recruit': {
     name: PRICING.enterprise.variants[1].name,
     seats: PRICING.tiers[1].seats,
     credits: PRICING.tiers[1].includedCredits,
-    monthly: { price: PRICING.enterprise.variants[1].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT' },
-    annual:  { price: PRICING.enterprise.variants[1].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT' },
+    monthly: {
+      price:  PRICING.enterprise.variants[1].priceMonthlyRolling,
+      envKey: PRICING.enterprise.variants[1].stripePriceIdEnvKeyMonthly,
+    },
+    annual: {
+      price:  PRICING.enterprise.variants[1].priceMonthlyDisplay,
+      envKey: PRICING.enterprise.variants[1].stripePriceIdEnvKeyAnnual,
+    },
   },
   'enterprise-full': {
     name: PRICING.enterprise.variants[2].name,
     seats: PRICING.tiers[1].seats,
     credits: 5000,
-    monthly: { price: PRICING.enterprise.variants[2].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL' },
-    annual:  { price: PRICING.enterprise.variants[2].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL' },
+    monthly: {
+      price:  PRICING.enterprise.variants[2].priceMonthlyRolling,
+      envKey: PRICING.enterprise.variants[2].stripePriceIdEnvKeyMonthly,
+    },
+    annual: {
+      price:  PRICING.enterprise.variants[2].priceMonthlyDisplay,
+      envKey: PRICING.enterprise.variants[2].stripePriceIdEnvKeyAnnual,
+    },
   },
 }
 

@@ -66,8 +66,8 @@ const jsonLd = {
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
-    q: 'Why a 12-month contract?',
-    a: 'Your advisor or talent partner reserves a slot in their calendar for the year. The contract aligns you to that reservation. Churn-and-rehire would destroy the calendar economics and the service quality.',
+    q: 'Annual contract or month-to-month?',
+    a: "Both. Annual gives you the headline rate and locks the slot in your advisor or talent partner's calendar for the year. Month-to-month carries a ~17% premium and runs on 30 days notice, which is the right fit if cash-flow flexibility matters more than the saving. Most customers staying 12+ months are better off on annual, but the choice is yours at signing.",
   },
   {
     q: 'Who is my advisor and can I meet them first?',
@@ -164,9 +164,11 @@ export default function EnterprisePage() {
                 See the three variants -&gt;
               </a>
             </div>
-            {/* Hero anchor price: From $1,495/mo - rendered at runtime from PRICING.enterprise.variants[0].priceMonthlyDisplay. */}
+            {/* Hero anchor price - both billing options shown. Sourced at
+                runtime from PRICING.enterprise.variants[0]. */}
             <p className="mt-4 text-sm text-ink-muted">
-              From ${minMonthly.toLocaleString('en-AU')}/mo. Annual contract. Capped at {enterprise.capacityCapYear1} partnerships in 2026.
+              From ${minMonthly.toLocaleString('en-AU')}/mo on annual contract, or month-to-month at a {''}
+              ~17% premium with 30 days notice. Capped at {enterprise.capacityCapYear1} partnerships in 2026.
             </p>
           </div>
         </section>

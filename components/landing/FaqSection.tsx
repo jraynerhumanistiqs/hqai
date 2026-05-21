@@ -30,7 +30,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Do you offer Enterprise with a dedicated advisor?',
-    a: 'Yes - HQ People Enterprise pairs you with a named Humanistiqs Advisor, and HQ Recruit Enterprise pairs you with a Talent Partner running the hiring funnel on your behalf. Pricing starts at $1,495/month. Annual contracts only, capped at 10 partnerships in 2026. See humanistiqs.ai/enterprise for the detail.',
+    a: 'Yes - HQ People Enterprise pairs you with a named Humanistiqs Advisor, and HQ Recruit Enterprise pairs you with a Talent Partner running the hiring funnel on your behalf. Pricing starts at $1,495/month on an annual contract, or month-to-month at a ~17% premium with 30 days notice. Capped at 10 partnerships in 2026. See humanistiqs.ai/enterprise for the detail.',
   },
   {
     q: 'How long does setup take?',

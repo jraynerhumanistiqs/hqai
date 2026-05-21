@@ -8,15 +8,15 @@
 
 **Enterprise is where HQ.ai stops being a tool and starts being a partner.** A Humanistiqs Advisor (and/or Talent Partner) embeds into the customer's business, with the AI as their leverage rather than as the product itself. AI plus HQ - Human Intelligence and Judgement.
 
-## Three SKUs only
+## Three SKUs, two billing options each
 
-| Variant | Monthly equiv | Annual contract | The buyer |
+| Variant | Annual contract (monthly equiv / annual total) | Month-to-month rate | The buyer |
 |---|---|---|---|
-| **HQ People Enterprise** | $1,495 | $17,940 | 40-150 staff. Office Manager or Operations Lead doing HR on the side. Wants a named human for the hard 20%. |
-| **HQ Recruit Enterprise** | $2,995 | $35,940 | 50-250 staff. Hires 12-60 roles/year. Tired of agency fees. Won't hire an internal recruiter. |
-| **Full Enterprise** | $3,995 | $47,940 | 80-250 staff. Both shapes of problem. Wants one partner team across People and Recruit. |
+| **HQ People Enterprise** | $1,495/mo, $17,940/yr | $1,795/mo | 40-150 staff. Office Manager or Operations Lead doing HR on the side. Wants a named human for the hard 20%. |
+| **HQ Recruit Enterprise** | $2,995/mo, $35,940/yr | $3,495/mo | 50-250 staff. Hires 12-60 roles/year. Tired of agency fees. Won't hire an internal recruiter. |
+| **Full Enterprise** | $3,995/mo, $47,940/yr | $4,495/mo | 80-250 staff. Both shapes of problem. Wants one partner team across People and Recruit. |
 
-**Annual contracts only.** No month-to-month. The advisor capacity is reserved; the contract aligns the customer to that reservation.
+**Annual is the anchor. Month-to-month is offered at a ~17% premium with 30-day cancellation notice.** The premium does two jobs - protects advisor calendar economics against churn-and-rehire burn, and frames annual as the obvious economic call for any customer expecting to stay 12+ months. Both routed via Stripe Invoicing.
 
 ## Why these prices
 

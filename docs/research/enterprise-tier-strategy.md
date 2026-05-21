@@ -89,13 +89,19 @@ Three SKUs only. More than that creates a packaging matrix the founder cannot br
 
 ### 3.1 The numbers
 
-| Variant | Monthly equivalent | Annual contract (mandatory) | Min commitment |
-|---|---|---|---|
-| HQ People Enterprise | $1,495 | $17,940 | 12 months |
-| HQ Recruit Enterprise | $2,995 | $35,940 | 12 months |
-| Full Enterprise | $3,995 | $47,940 | 12 months |
+| Variant | Annual contract (monthly equiv) | Annual contract total | Month-to-month rate | Annual saving over month-to-month |
+|---|---|---|---|---|
+| HQ People Enterprise | $1,495 | $17,940 | $1,795/mo | $3,600/yr |
+| HQ Recruit Enterprise | $2,995 | $35,940 | $3,495/mo | $6,000/yr |
+| Full Enterprise | $3,995 | $47,940 | $4,495/mo | $5,940/yr |
 
-**No month-to-month for Enterprise.** Annual contract billed annually upfront OR quarterly via Stripe Invoicing. The reason: the advisor capacity is reserved; the contract aligns the customer with that reservation. Churn-and-rehire would destroy the calendar economics.
+**Both options offered (founder decision, May 2026).** Annual contract is the headline rate and the calendar-reservation-aligned choice. Month-to-month exists for customers whose cash-flow constraints don't fit a 12-month upfront-or-quarterly commit - some of those customers will stay 12+ months anyway and we'd rather have their MRR than lose them to a "no" at signing.
+
+Month-to-month carries a **~17% premium** (mirror of the Solo/Business 16.7% annual discount band) and a **30-day cancellation notice**. The premium does two jobs:
+1. Protects margin against churn-and-rehire calendar burn for the advisor.
+2. Makes annual the obvious economic call for any customer expecting to stay - which is the conversation we want them having on the discovery call.
+
+The 30-day notice gives the advisor a clean offboarding window to redistribute work to other customers, rather than a same-day disappearance. Both options billed via Stripe Invoicing; the founder picks the right Stripe Price ID at engagement-letter signing.
 
 ### 3.2 Why these numbers, not bigger or smaller
 

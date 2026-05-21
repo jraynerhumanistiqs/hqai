@@ -107,6 +107,13 @@ STRIPE_PRICE_ID_SOLO_ANNUAL       # recurring annual Solo ($890/yr = $74/mo equi
 STRIPE_PRICE_ID_BUSINESS_MONTHLY  # recurring monthly Business ($249/mo)
 STRIPE_PRICE_ID_BUSINESS_ANNUAL   # recurring annual Business ($2490/yr = $207/mo equivalent)
 STRIPE_PRICE_ID_BUSINESS_FOUNDATION  # optional. Foundation 100 locked annual Business ($179/mo equivalent, $2148/yr)
+# Enterprise - both annual contract AND monthly-rolling, sales-assisted only
+STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL     # HQ People Enterprise annual ($17,940/yr = $1,495/mo equiv)
+STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY    # HQ People Enterprise month-to-month ($1,795/mo, 30-day notice)
+STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_ANNUAL    # HQ Recruit Enterprise annual ($35,940/yr = $2,995/mo equiv)
+STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_MONTHLY   # HQ Recruit Enterprise month-to-month ($3,495/mo, 30-day notice)
+STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL       # Full Enterprise annual ($47,940/yr = $3,995/mo equiv)
+STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY      # Full Enterprise month-to-month ($4,495/mo, 30-day notice)
 STRIPE_PRICE_ID_LETTER_OF_OFFER   # one-off Price id for the $25 Letter of Offer
 STRIPE_PRICE_ID_TERMINATION              # one-off $45
 STRIPE_PRICE_ID_EMPLOYMENT_CONTRACT      # one-off $49
@@ -209,6 +216,12 @@ docs/research/retention-and-monetisation-brief.md is the analyst rationale.
 - Foundation 100: first 100 customers lock Business at $179/month forever on a 12-month annual commit. Lifetime-locked rate, founder Slack, first access to new modules.
 - Overage credits: $20 = 500 credits, top-up on either tier.
 - One-off marketplace: 10 SKUs between $25 and $49 (Letter of Offer $25, Termination $45, Employment Contract $49, First-and-Final Warning $35, Position Description $29, PIP $39, Casual Conversion $29, Resignation Acceptance $25, Probation Outcome $35, Reference Check $25). No signup required.
+- Enterprise (sales-assisted, /enterprise inquiry funnel - never public checkout). Three SKUs, each available as annual contract OR month-to-month with 30-day notice and a ~17% premium:
+  - HQ People Enterprise: $1,495/mo on annual ($17,940/yr) OR $1,795/mo monthly. Named Humanistiqs Advisor.
+  - HQ Recruit Enterprise: $2,995/mo on annual ($35,940/yr) OR $3,495/mo monthly. Named Talent Partner.
+  - Full Enterprise: $3,995/mo on annual ($47,940/yr) OR $4,495/mo monthly. Both surfaces, single partner team.
+  - Year-1 hard cap of 10 partnerships; published on /enterprise as scarcity signal.
+  - First 5 customers get $200/mo inaugural concession in exchange for a public case study.
 
 Legacy Essentials/Growth/Scale tiers are retired - the catalogue in lib/stripe.ts no longer references them.
 

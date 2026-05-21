@@ -17,6 +17,12 @@ interface Props {
 export default function EnterpriseVariantCard({ variant, highlight = false, highlightBadge }: Props) {
   const [referralsOpen, setReferralsOpen] = useState(false)
   const annual = variant.priceAnnualTotal.toLocaleString('en-AU')
+  const monthlyEquiv = variant.priceMonthlyDisplay.toLocaleString('en-AU')
+  const monthlyRolling = variant.priceMonthlyRolling.toLocaleString('en-AU')
+  // Annual-vs-monthly saving over a 12-month horizon. Helps customers
+  // who plan to stay 12+ months see the economic argument for annual.
+  const annualSavingVsMonthly =
+    (variant.priceMonthlyRolling * 12 - variant.priceAnnualTotal).toLocaleString('en-AU')
 
   return (
     <article
@@ -38,13 +44,27 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
         )}
       </div>
 
-      <p className="mt-4 text-3xl font-semibold text-ink">
-        From ${variant.priceMonthlyDisplay.toLocaleString('en-AU')}
-        <span className="ml-1 text-sm font-normal text-ink-muted">/month</span>
-      </p>
-      <p className="mt-1 text-xs text-ink-muted">
-        ${annual} annual contract, {variant.contractTermMonths}-month minimum
-      </p>
+      <div className="mt-4 space-y-1.5">
+        <p className="text-3xl font-semibold text-ink">
+          ${monthlyEquiv}
+          <span className="ml-1 text-sm font-normal text-ink-muted">/mo on annual</span>
+        </p>
+        <p className="text-xs text-ink-muted">
+          ${annual} annual contract, {variant.contractTermMonths}-month minimum
+        </p>
+        <div className="flex items-baseline gap-2 pt-2">
+          <p className="text-base font-semibold text-ink-soft">
+            ${monthlyRolling}
+            <span className="ml-1 text-xs font-normal text-ink-muted">/mo billed monthly</span>
+          </p>
+          <span className="rounded-full bg-bg-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            {variant.monthlyRollingNoticePeriodDays}-day notice
+          </span>
+        </div>
+        <p className="text-[10px] text-ink-muted">
+          Annual saves ${annualSavingVsMonthly}/yr over month-to-month
+        </p>
+      </div>
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{variant.tagline}</p>
 
