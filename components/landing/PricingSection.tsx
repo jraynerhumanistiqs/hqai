@@ -187,6 +187,32 @@ export default function PricingSection({ onReserve }: Props) {
             </div>
           </div>
         )}
+
+        {/* Enterprise teaser. Third row of the pricing stack - the human-led layer above the AI tool. */}
+        <div className="mt-6 rounded-3xl border border-border bg-bg-elevated p-7 shadow-card md:p-9">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Enterprise</p>
+              <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
+                AI plus human judgement.
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                A Humanistiqs Advisor or Talent Partner embedded into your business. Three SKUs, annual contracts,
+                capacity-capped at {PRICING.enterprise.capacityCapYear1} partnerships in 2026.
+              </p>
+              {/* Anchor price: From $1,495/mo (sourced from PRICING.enterprise.variants[0].priceMonthlyDisplay). */}
+              <p className="mt-3 text-sm font-semibold text-ink">
+                From ${PRICING.enterprise.variants[0].priceMonthlyDisplay.toLocaleString('en-AU')}/mo
+              </p>
+            </div>
+            <Link
+              href="/enterprise"
+              className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
+            >
+              See Enterprise variants -&gt;
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   )

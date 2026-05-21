@@ -462,6 +462,171 @@ export async function sendOneOffLetterOfOfferEmail({
   }
 }
 
+// -- Enterprise inquiry notification (founder) -----------------------------
+// Sent to the founder when a new inquiry lands on /enterprise. Structured
+// for fast triage - the founder reads this in 30 seconds and decides
+// whether to book a discovery call within 48 hours.
+
+export async function sendEnterpriseInquiryEmail({
+  toEmail,
+  inquiryId,
+  fullName,
+  workEmail,
+  businessName,
+  staffHeadcount,
+  variantInterest,
+  urgency,
+  currentSpend,
+  notes,
+  belowThreshold,
+  inquirerIp,
+}: {
+  toEmail: string
+  inquiryId: string
+  fullName: string
+  workEmail: string
+  businessName: string
+  staffHeadcount: string
+  variantInterest: string
+  urgency: string
+  currentSpend?: string | null
+  notes?: string | null
+  belowThreshold: boolean
+  inquirerIp?: string | null
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const subject = `[Enterprise inquiry] ${businessName} - ${variantInterest} - ${urgency}`
+  const thresholdLine = belowThreshold
+    ? '\nBelow qualifying threshold - recommend Business tier.\n'
+    : ''
+
+  const text = [
+    'NEW ENTERPRISE INQUIRY',
+    '',
+    `Business: ${businessName}`,
+    `Contact: ${fullName} <${workEmail}>`,
+    `Staff size: ${staffHeadcount}`,
+    `Variant: ${variantInterest}`,
+    `Urgency: ${urgency}`,
+    `Current spend: ${currentSpend && currentSpend.trim() ? currentSpend : 'not stated'}`,
+    thresholdLine,
+    'Notes from inquirer:',
+    notes && notes.trim() ? notes : 'none',
+    '',
+    `Submission id: ${inquiryId}`,
+    `IP: ${inquirerIp || 'unknown'}`,
+    '',
+    'Action: review in Supabase, qualify, book discovery call within 48h.',
+  ].join('\n')
+
+  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: workEmail,
+      subject,
+      text,
+      html: `
+        <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #1F1F1F;">
+          <div style="border-bottom: 1px solid #e2e2e2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai - Enterprise inquiry</span>
+          </div>
+          ${belowThreshold ? '<p style="background:#FFF6E0; border:1px solid #C8850A; color:#7a5400; padding:10px 12px; border-radius:8px; font-size:13px;">Below qualifying threshold - recommend Business tier.</p>' : ''}
+          <table style="width:100%; border-collapse:collapse; font-size:14px; line-height:1.55;">
+            <tr><td style="padding:6px 0; color:#4b4b4b; width:140px;">Business</td><td style="padding:6px 0;"><strong>${escape(businessName)}</strong></td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Contact</td><td style="padding:6px 0;">${escape(fullName)} &lt;<a href="mailto:${escape(workEmail)}" style="color:#000;">${escape(workEmail)}</a>&gt;</td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Staff size</td><td style="padding:6px 0;">${escape(staffHeadcount)}</td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Variant</td><td style="padding:6px 0;">${escape(variantInterest)}</td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Urgency</td><td style="padding:6px 0;">${escape(urgency)}</td></tr>
+            <tr><td style="padding:6px 0; color:#4b4b4b;">Current spend</td><td style="padding:6px 0;">${escape(currentSpend && currentSpend.trim() ? currentSpend : 'not stated')}</td></tr>
+          </table>
+          <h3 style="margin:24px 0 8px; font-size:14px; color:#4b4b4b; text-transform:uppercase; letter-spacing:0.08em;">Notes from inquirer</h3>
+          <p style="white-space:pre-wrap; font-size:14px; line-height:1.6; color:#1F1F1F;">${escape(notes && notes.trim() ? notes : 'none')}</p>
+          <p style="color:#afafaf; font-size:11px; margin-top:24px; border-top:1px solid #e2e2e2; padding-top:12px;">
+            Submission id: ${escape(inquiryId)}<br/>
+            IP: ${escape(inquirerIp || 'unknown')}<br/>
+            Action: review in Supabase, qualify, book discovery call within 48h.
+          </p>
+        </div>
+      `,
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendEnterpriseInquiryEmail failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
+  }
+}
+
+// -- Enterprise inquiry confirmation (to the inquirer) ---------------------
+// A short personal note signed by the founder. Plain language, no marketing
+// padding. Sets the expectation that Jimmy himself will reply within 48h.
+
+export async function sendEnterpriseInquiryConfirmation({
+  toEmail,
+  fullName,
+  businessName,
+}: {
+  toEmail: string
+  fullName: string
+  businessName: string
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const subject = 'Thanks for reaching out about HQ.ai Enterprise'
+  const text = [
+    `Hi ${fullName},`,
+    '',
+    'Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.',
+    '',
+    `I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at humanistiqs.ai/enterprise so the call gets straight to the specifics for ${businessName}.`,
+    '',
+    'Speak soon,',
+    'Jimmy Rayner',
+    'Founder, Humanistiqs',
+  ].join('\n')
+
+  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: 'jrayner@humanistiqs.com.au',
+      subject,
+      text,
+      html: `
+        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #1F1F1F; line-height: 1.6;">
+          <div style="border-bottom: 1px solid #e2e2e2; padding-bottom: 16px; margin-bottom: 24px;">
+            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
+          </div>
+          <p style="font-size: 15px; margin: 0 0 14px;">Hi ${escape(fullName)},</p>
+          <p style="font-size: 15px; margin: 0 0 14px;">
+            Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.
+          </p>
+          <p style="font-size: 15px; margin: 0 0 14px;">
+            I&apos;ll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at
+            <a href="https://humanistiqs.ai/enterprise" style="color:#000; text-decoration:underline;">humanistiqs.ai/enterprise</a>
+            so the call gets straight to the specifics for ${escape(businessName)}.
+          </p>
+          <p style="font-size: 15px; margin: 18px 0 0;">Speak soon,<br/>Jimmy Rayner<br/><span style="color:#4b4b4b;">Founder, Humanistiqs</span></p>
+          <p style="color:#afafaf; font-size:12px; margin-top:32px; border-top:1px solid #e2e2e2; padding-top:16px;">
+            Humanistiqs - humanistiqs.com.au
+          </p>
+        </div>
+      `,
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendEnterpriseInquiryConfirmation failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
+  }
+}
+
 export async function sendCandidateOutcomeEmail({
   toEmail,
   toName,

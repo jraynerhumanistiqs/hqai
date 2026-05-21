@@ -29,6 +29,10 @@ const FAQS: Array<{ q: string; a: string }> = [
     a: 'Two tiers. Solo $89 a month, 3 seats and 500 AI credits. Business $249 a month, 15 seats and 2,500 credits. Both come with a 14-day free trial - no card needed. Cancel any time. Single documents on the pay-as-you-go side start at $25 (Letter of Offer) with no signup.',
   },
   {
+    q: 'Do you offer Enterprise with a dedicated advisor?',
+    a: 'Yes - HQ People Enterprise pairs you with a named Humanistiqs Advisor, and HQ Recruit Enterprise pairs you with a Talent Partner running the hiring funnel on your behalf. Pricing starts at $1,495/month. Annual contracts only, capped at 10 partnerships in 2026. See humanistiqs.ai/enterprise for the detail.',
+  },
+  {
     q: 'How long does setup take?',
     a: "Three minutes. You sign up, tell HQ.ai your industry, and it picks the right Modern Award and remembers it. There's nothing to install. The chat just works.",
   },
@@ -49,7 +53,7 @@ export default function FaqSection() {
       <div className="mx-auto max-w-3xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">Questions</p>
         <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-          The eight things you&apos;re wondering.
+          The things you&apos;re wondering.
         </h2>
 
         <ul className="mt-10 divide-y divide-border border-y border-border">

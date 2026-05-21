@@ -37,11 +37,24 @@ export async function POST(req: NextRequest) {
           // Grant the recurring credit allocation for this plan. The
           // amounts mirror lib/pricing-config.ts §includedCredits and the
           // brief's §2.3 packaging table.
-          const allocationByPlan: Record<'solo' | 'business', number> = {
-            solo:     500,
-            business: 2500,
+          // Enterprise customers carry the Business credit ceiling
+          // (Full Enterprise gets a higher allowance because it combines
+          // both People and Recruit surfaces). Source: lib/pricing-config.ts
+          // §enterprise and the strategy doc §2.x.
+          const allocationByPlan: Record<
+            'solo' | 'business' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+            number
+          > = {
+            solo:                  500,
+            business:              2500,
+            'enterprise-people':   2500,
+            'enterprise-recruit':  2500,
+            'enterprise-full':     5000,
           }
-          const planKey: 'solo' | 'business' = plan === 'solo' ? 'solo' : 'business'
+          type PlanKey = keyof typeof allocationByPlan
+          const planKey: PlanKey = (plan && plan in allocationByPlan)
+            ? (plan as PlanKey)
+            : 'business'
           const allocated = allocationByPlan[planKey]
           await supabase.from('credit_allocations').insert({
             business_id:  businessId,

@@ -42,7 +42,19 @@ interface PlanCatalogueEntry {
   annual: PlanVariant
 }
 
-export const PLANS: Record<'solo' | 'business', PlanCatalogueEntry> = {
+// Self-serve subscription plans. Enterprise variants are also registered
+// here so the webhook can resolve allocations by planId, but they are
+// flagged as sales-assisted and the public checkout route refuses to
+// start a Stripe Checkout Session for them - see isSalesAssistedPlan().
+//
+// Enterprise env-var keys (set in Vercel + .env.local for Invoicing):
+//   STRIPE_PRICE_ID_ENTERPRISE_PEOPLE
+//   STRIPE_PRICE_ID_ENTERPRISE_RECRUIT
+//   STRIPE_PRICE_ID_ENTERPRISE_FULL
+export const PLANS: Record<
+  'solo' | 'business' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+  PlanCatalogueEntry
+> = {
   solo: {
     name: 'Solo',
     seats: PRICING.tiers[0].seats,
@@ -69,6 +81,31 @@ export const PLANS: Record<'solo' | 'business', PlanCatalogueEntry> = {
       envKey: 'STRIPE_PRICE_ID_BUSINESS_ANNUAL',
     },
   },
+  // Enterprise variants - sales-assisted, annual-only contracts. The
+  // monthly entry exists only so the catalogue type stays uniform; it
+  // is never resolved against by the public checkout. Pricing source:
+  // PRICING.enterprise.variants.
+  'enterprise-people': {
+    name: PRICING.enterprise.variants[0].name,
+    seats: PRICING.tiers[1].seats,
+    credits: PRICING.tiers[1].includedCredits,
+    monthly: { price: PRICING.enterprise.variants[0].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE' },
+    annual:  { price: PRICING.enterprise.variants[0].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE' },
+  },
+  'enterprise-recruit': {
+    name: PRICING.enterprise.variants[1].name,
+    seats: PRICING.tiers[1].seats,
+    credits: PRICING.tiers[1].includedCredits,
+    monthly: { price: PRICING.enterprise.variants[1].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT' },
+    annual:  { price: PRICING.enterprise.variants[1].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT' },
+  },
+  'enterprise-full': {
+    name: PRICING.enterprise.variants[2].name,
+    seats: PRICING.tiers[1].seats,
+    credits: 5000,
+    monthly: { price: PRICING.enterprise.variants[2].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL' },
+    annual:  { price: PRICING.enterprise.variants[2].priceMonthlyDisplay, envKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL' },
+  },
 }
 
 // The Foundation 100 offer is a separate annual SKU that locks Business
@@ -80,6 +117,18 @@ export type PlanId = keyof typeof PLANS
 
 export function isPlanId(value: unknown): value is PlanId {
   return typeof value === 'string' && value in PLANS
+}
+
+/**
+ * Sales-assisted plans (Enterprise variants) cannot self-serve through
+ * Stripe Checkout. The /api/stripe/checkout route refuses these and
+ * directs the buyer to /enterprise for a discovery call. They exist in
+ * the catalogue so the webhook can resolve subscription allocations
+ * when the founder invoices these customers manually via Stripe
+ * Invoicing.
+ */
+export function isSalesAssistedPlan(planId: PlanId): boolean {
+  return planId.startsWith('enterprise-')
 }
 
 export function isBillingCycle(value: unknown): value is BillingCycle {

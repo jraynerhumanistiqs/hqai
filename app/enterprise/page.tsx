@@ -1,0 +1,348 @@
+// HQ.ai Enterprise - the human-advisor-led top of the stack.
+//
+// Source of truth for inclusions, exclusions, pricing and capacity:
+//   docs/research/enterprise-tier-strategy.md
+//   docs/research/enterprise-tier-director-summary.md (one-pager framing)
+//
+// All prices and bullets pull from lib/pricing-config.ts (PRICING.enterprise).
+// This route is a server component that mounts the inquiry form as a
+// client subcomponent. No auth gating - cold visitors land here.
+
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { PRICING } from '@/lib/pricing-config'
+import EnterpriseVariantCard from '@/components/enterprise/EnterpriseVariantCard'
+import EnterpriseInquiryForm from '@/components/enterprise/EnterpriseInquiryForm'
+
+const PAGE_DESCRIPTION =
+  'A Humanistiqs Advisor and Talent Partner embedded into your business, with HQ.ai as their leverage.'
+
+export const metadata: Metadata = {
+  title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+  description: PAGE_DESCRIPTION,
+  alternates: { canonical: '/enterprise' },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+    description: PAGE_DESCRIPTION,
+    url: '/enterprise',
+    siteName: 'HQ.ai',
+    locale: 'en_AU',
+    type: 'website',
+    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'HQ.ai Enterprise' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+    description: PAGE_DESCRIPTION,
+    images: ['/logo.svg'],
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'HQ.ai Enterprise',
+  serviceType: 'AI-led HR and recruitment partnership',
+  provider: {
+    '@type': 'Organization',
+    name: 'Humanistiqs (Rayner Consulting Group Pty Ltd)',
+  },
+  areaServed: 'Australia',
+  description: PAGE_DESCRIPTION,
+  offers: PRICING.enterprise.variants.map((v) => ({
+    '@type': 'Offer',
+    name: v.name,
+    price: String(v.priceMonthlyDisplay),
+    priceCurrency: 'AUD',
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      price: String(v.priceMonthlyDisplay),
+      priceCurrency: 'AUD',
+      unitText: 'MONTH',
+    },
+  })),
+}
+
+const FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: 'Why a 12-month contract?',
+    a: 'Your advisor or talent partner reserves a slot in their calendar for the year. The contract aligns you to that reservation. Churn-and-rehire would destroy the calendar economics and the service quality.',
+  },
+  {
+    q: 'Who is my advisor and can I meet them first?',
+    a: 'Yes. Every Enterprise customer gets a named human with a photo, bio and direct mobile. You meet them on the scoping call before you sign, not after. If the fit is wrong, we re-pair you.',
+  },
+  {
+    q: 'What counts as an intensive month?',
+    a: 'A redundancy round, an investigation, or a hiring surge that pushes the partner above their usual hours for you. Each partner can flag this twice a year. The options are defer the non-urgent items, bring in a second partner at the overage rate, or refer the spike to a specialist.',
+  },
+  {
+    q: 'How does overage work?',
+    a: 'Mechanical, never a renegotiation. Additional advisor time on People Enterprise is $250 an hour billed in 15-minute increments. A 5th concurrent role on Recruit Enterprise is $750 a month, pro-rata. Executive search is $8,500 fixed-fee. We surface the overage on your monthly statement before it bills.',
+  },
+  {
+    q: 'When can we start?',
+    a: 'The fastest path is a discovery call within 48 hours, a scoping doc within 5 business days, a signed engagement letter that week, and your 30-day onboarding sprint starting the next Monday. From first call to first advisory session in under three weeks is normal.',
+  },
+]
+
+const HOW_IT_WORKS = [
+  { step: '01', title: 'Discovery call', body: '30 minutes. We map your current state, the shape of the problem, and which variant fits. Jimmy runs this personally for the first 10 customers.' },
+  { step: '02', title: 'Scoping doc', body: 'Within 5 business days of the call. Written scope, hours, cadence, named partner. PDF plus a Stripe Invoice draft.' },
+  { step: '03', title: '30-day onboarding sprint', body: 'Tool walkthrough, knowledge ingestion, goal definition, first advisory call or role calibration. Cadence locked by day 21.' },
+  { step: '04', title: 'Ongoing partnership', body: 'Standing calls, async advisory, quarterly health checks, annual renewal. Same partner every time.' },
+]
+
+export default function EnterprisePage() {
+  const enterprise = PRICING.enterprise
+  const variants = enterprise.variants
+  const minMonthly = Math.min(...variants.map((v) => v.priceMonthlyDisplay))
+  const slotsFilled = 0
+  const slotsLeft = Math.max(0, enterprise.capacityCapYear1 - slotsFilled)
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <main className="min-h-screen bg-bg text-ink antialiased">
+        {/* Header - keeps marketing nav consistent with the landing page. */}
+        <header className="border-b border-border bg-bg">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
+            <Link href="/landing-page" className="font-display text-lg font-bold tracking-tight text-ink">
+              HQ.ai
+            </Link>
+            <nav className="flex items-center gap-4 text-sm">
+              <Link href="/landing-page" className="hidden text-ink-soft hover:text-ink sm:inline">
+                Product
+              </Link>
+              <Link href="/login" className="text-ink-soft hover:text-ink">
+                Sign in
+              </Link>
+              <Link
+                href="#inquiry"
+                className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover"
+              >
+                Book a discovery call
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        {/* Hero */}
+        <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
+          <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
+            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+              HQ.ai Enterprise - for 30 to 250-staff Australian businesses
+            </p>
+            <h1
+              id="enterprise-hero"
+              className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[60px]"
+            >
+              AI is the leverage. Human judgement is the partner.
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
+              Enterprise is where HQ.ai stops being a tool and starts being a partner. A Humanistiqs
+              Advisor or Talent Partner embeds into your business, with the AI as their leverage rather
+              than as the product itself. AI plus HQ - human intelligence and judgement.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <a
+                href="#inquiry"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover"
+              >
+                Book a discovery call
+              </a>
+              <a
+                href="#variants"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent-soft"
+              >
+                See the three variants -&gt;
+              </a>
+            </div>
+            {/* Hero anchor price: From $1,495/mo - rendered at runtime from PRICING.enterprise.variants[0].priceMonthlyDisplay. */}
+            <p className="mt-4 text-sm text-ink-muted">
+              From ${minMonthly.toLocaleString('en-AU')}/mo. Annual contract. Capped at {enterprise.capacityCapYear1} partnerships in 2026.
+            </p>
+          </div>
+        </section>
+
+        {/* Three variant cards */}
+        <section id="variants" className="bg-bg-soft py-20 md:py-28" aria-labelledby="variants-heading">
+          <div className="mx-auto max-w-6xl px-6 md:px-10">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Three variants</p>
+            <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
+              Pick the surface you need a partner on.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
+              People for the hard 20% of HR. Recruit for the hiring funnel you don&apos;t have time to run.
+              Full Enterprise when you want one partner team across both.
+            </p>
+
+            <div className="mt-10 grid gap-6 lg:grid-cols-3">
+              {variants.map((v) => (
+                <EnterpriseVariantCard
+                  key={v.id}
+                  variant={v}
+                  highlight={v.id === 'enterprise-full'}
+                  highlightBadge={v.id === 'enterprise-full' ? 'Most chosen' : undefined}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Capacity cap signal */}
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="capacity-heading">
+          <div className="mx-auto max-w-5xl px-6 md:px-10">
+            <div className="rounded-3xl border border-accent bg-bg-elevated p-7 shadow-card md:p-9">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Capacity</p>
+              <h2 id="capacity-heading" className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
+                We&apos;re capping Enterprise at {enterprise.capacityCapYear1} partnerships in 2026. {slotsLeft} slots left.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
+                The cap is a service-quality protection, not a marketing trick. Each Enterprise customer reserves
+                a slot in their named partner&apos;s calendar for the year. When customer 9 lands, we hire the next
+                contract Advisor and Talent Partner ahead of capacity.
+              </p>
+              {enterprise.inaugural.enabled && (
+                <div className="mt-5 rounded-2xl border border-border bg-bg-soft p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">Inaugural partners</p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    The first {enterprise.inaugural.slotsRemaining} Enterprise sign-ons join as inaugural partners
+                    at a ${enterprise.inaugural.discountPerMonth}/month discount in exchange for a public case study
+                    once we&apos;re 90 days into the partnership.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Who this is for */}
+        <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="who-heading">
+          <div className="mx-auto max-w-5xl px-6 md:px-10">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Who this is for</p>
+            <h2 id="who-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
+              The qualifying band.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base text-ink-soft">
+              Enterprise is built for a specific shape of business. If you&apos;re below the band, the Business
+              tier is the right call and we&apos;ll say so on the call.
+            </p>
+
+            <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-bg-soft text-xs uppercase tracking-[0.12em] text-ink-muted">
+                  <tr>
+                    <th className="px-5 py-4 font-semibold">Variant</th>
+                    <th className="px-5 py-4 font-semibold">Headcount</th>
+                    <th className="px-5 py-4 font-semibold">Best fit signal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  <tr>
+                    <td className="px-5 py-4 font-semibold text-ink">HQ People Enterprise</td>
+                    <td className="px-5 py-4 text-ink-soft">40 to 150 staff</td>
+                    <td className="px-5 py-4 text-ink-soft">Office Manager or Operations Lead doing HR on the side, wants a named human for the hard 20%.</td>
+                  </tr>
+                  <tr>
+                    <td className="px-5 py-4 font-semibold text-ink">HQ Recruit Enterprise</td>
+                    <td className="px-5 py-4 text-ink-soft">50 to 250 staff</td>
+                    <td className="px-5 py-4 text-ink-soft">Hires 12 to 60 roles a year, tired of agency fees, won&apos;t hire an internal recruiter.</td>
+                  </tr>
+                  <tr>
+                    <td className="px-5 py-4 font-semibold text-ink">Full Enterprise</td>
+                    <td className="px-5 py-4 text-ink-soft">80 to 250 staff</td>
+                    <td className="px-5 py-4 text-ink-soft">Both shapes of problem above. Wants one partner team across People and Recruit.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* How the partnership works */}
+        <section className="bg-bg py-20 md:py-28" aria-labelledby="how-heading">
+          <div className="mx-auto max-w-6xl px-6 md:px-10">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">How it works</p>
+            <h2 id="how-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
+              From first call to first advisory session in under three weeks.
+            </h2>
+
+            <ol className="mt-10 grid gap-5 md:grid-cols-4">
+              {HOW_IT_WORKS.map((item) => (
+                <li key={item.step} className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
+                  <p className="font-display text-3xl font-bold tracking-tight text-accent">{item.step}</p>
+                  <h3 className="mt-3 font-display text-lg font-bold tracking-tight text-ink">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* Inquiry form */}
+        <section id="inquiry" className="bg-bg-soft py-20 md:py-28" aria-labelledby="inquiry-heading">
+          <div className="mx-auto max-w-3xl px-6 md:px-10">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Discovery call</p>
+            <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
+              Send Jimmy the shape of your situation.
+            </h2>
+            <p className="mt-4 text-base text-ink-soft md:text-lg">
+              Two minutes to fill in. Jimmy personally reads every inquiry and replies within 48 hours to
+              book a 30-minute discovery call.
+            </p>
+
+            <div className="mt-8">
+              <EnterpriseInquiryForm />
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-faq-heading">
+          <div className="mx-auto max-w-3xl px-6 md:px-10">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Questions</p>
+            <h2 id="enterprise-faq-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
+              The things people ask before signing.
+            </h2>
+
+            <ul className="mt-10 divide-y divide-border border-y border-border">
+              {FAQS.map((item) => (
+                <li key={item.q} className="py-6">
+                  <p className="text-base font-semibold text-ink md:text-lg">{item.q}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft md:text-base">{item.a}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-bg-soft py-14 md:py-16">
+          <div className="mx-auto max-w-6xl px-6 text-sm text-ink-muted md:px-10">
+            <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+              <div>
+                <p className="font-display text-base font-bold text-ink">HQ.ai</p>
+                <p className="mt-1">A Humanistiqs (Rayner Consulting Group Pty Ltd) product. Built in Australia.</p>
+              </div>
+              <div className="flex flex-col gap-2 md:items-end">
+                <Link href="/landing-page" className="hover:text-ink">Product</Link>
+                <Link href="/enterprise" className="hover:text-ink">Enterprise</Link>
+                <Link href="/login" className="hover:text-ink">Sign in</Link>
+              </div>
+            </div>
+            <p className="mt-8 border-t border-border pt-6 text-xs">
+              Grounded in the Fair Work Act 2009 and 122 Modern Awards. Hosted in Sydney.
+            </p>
+          </div>
+        </footer>
+      </main>
+    </>
+  )
+}

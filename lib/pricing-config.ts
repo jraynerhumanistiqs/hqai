@@ -72,6 +72,52 @@ export interface CreditsConfig {
   awardInterpretation: number
 }
 
+export type EnterpriseVariantId =
+  | 'enterprise-people'
+  | 'enterprise-recruit'
+  | 'enterprise-full'
+
+export interface EnterpriseOverageLine {
+  label: string
+  rate: string
+}
+
+export interface EnterpriseVariant {
+  id: EnterpriseVariantId
+  name: string
+  tagline: string
+  // Headline monthly equivalent for display only. The actual contract
+  // is annual (12-month minimum). See docs/research/enterprise-tier-strategy.md §3.1.
+  priceMonthlyDisplay: number
+  priceAnnualTotal: number
+  currency: Currency
+  contractTermMonths: 12
+  includedSummary: string[]
+  notIncluded: string[]
+  overage: EnterpriseOverageLine[]
+  qualifyingHeadcountMin: number
+  // Env-var key, not literal. Sales-assisted - not used for public checkout.
+  stripePriceIdEnvKey: string
+}
+
+export interface EnterpriseInauguralOffer {
+  enabled: boolean
+  slotsRemaining: number
+  discountPerMonth: number
+}
+
+export interface EnterpriseConfig {
+  variants: EnterpriseVariant[]
+  // Year-1 hard cap (strategy doc §4.2). Published on the landing page
+  // and on /enterprise as both scarcity signal and service-quality
+  // protection.
+  capacityCapYear1: number
+  inaugural: EnterpriseInauguralOffer
+  // When true, the public Stripe checkout route refuses these planIds
+  // and redirects the buyer to /enterprise for a discovery call.
+  salesAssistedOnly: boolean
+}
+
 export interface PricingShape {
   currency: Currency
   tiers: PricingTier[]
@@ -79,6 +125,7 @@ export interface PricingShape {
   foundation: FoundationOffer
   trial: TrialConfig
   credits: CreditsConfig
+  enterprise: EnterpriseConfig
 }
 
 export const PRICING: PricingShape = {
@@ -258,6 +305,107 @@ export const PRICING: PricingShape = {
     phoneScreenProcessed: 25,
     knowledgeIngestionPerDoc: 10,
     awardInterpretation: 5,
+  },
+  // Enterprise tier - the human-advisor-led layer above the AI product.
+  // Source: docs/research/enterprise-tier-strategy.md §2.1, §2.2, §2.3.
+  // Sales-assisted only; the founder runs discovery calls and invoices
+  // manually via Stripe Invoicing. Never surfaced in the public checkout
+  // flow - the public path is the /enterprise inquiry form.
+  enterprise: {
+    capacityCapYear1: 10,
+    inaugural: {
+      enabled: true,
+      slotsRemaining: 5,
+      discountPerMonth: 200,
+    },
+    salesAssistedOnly: true,
+    variants: [
+      {
+        id: 'enterprise-people',
+        name: 'HQ People Enterprise',
+        tagline: 'A named Humanistiqs Advisor on the line for the hard 20% of HR.',
+        priceMonthlyDisplay: 1495,
+        priceAnnualTotal: 17940,
+        currency: 'AUD',
+        contractTermMonths: 12,
+        qualifyingHeadcountMin: 40,
+        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE',
+        includedSummary: [
+          'Everything in Business (15 seats, 2,500 credits, unlimited recruit roles)',
+          'Named Humanistiqs Advisor - same person every time, photo and direct mobile',
+          'Two scheduled 45-minute advisory calls per month',
+          'Same-business-day SLA on Slack and email advisory queries',
+          'Quarterly compliance health check, 90 minutes, recorded deliverable',
+          'Quarterly roadmap-influence call direct with the founder',
+        ],
+        notIncluded: [
+          'Workplace investigations (referred to external specialist, paid)',
+          'Litigation or FWC representation (referred to employment lawyer, paid)',
+          'Custom enterprise agreement drafting (referred to ER specialist, paid)',
+        ],
+        overage: [
+          { label: 'Additional advisor time', rate: '$250/hour, billed in 15-min increments' },
+          { label: 'After-hours emergency advisory (outside 8am-6pm AEST weekdays)', rate: '$400/hour, capped 4 hours/month' },
+        ],
+      },
+      {
+        id: 'enterprise-recruit',
+        name: 'HQ Recruit Enterprise',
+        tagline: 'A Talent Partner running your hiring funnel. Not a recruiter, not an agency.',
+        priceMonthlyDisplay: 2995,
+        priceAnnualTotal: 35940,
+        currency: 'AUD',
+        contractTermMonths: 12,
+        qualifyingHeadcountMin: 50,
+        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT',
+        includedSummary: [
+          'Everything in Business tier',
+          'Named Humanistiqs Talent Partner running HQ Recruit on your behalf',
+          'Up to 4 active roles concurrent (typical throughput 50 closures/year)',
+          'Weekly role-status calls with the hiring manager (30 min per role)',
+          'Calibration sessions at role kickoff and after first shortlist',
+          'Shortlist delivery with named recommendations and structured rationale',
+        ],
+        notIncluded: [
+          'Executive search (over $150k base) - referred to Humanistiqs Executive Search, paid',
+          'Bulk hiring campaigns (over 10 simultaneous opens) - quoted separately',
+          'Passive sourcing campaigns - quoted at $1,500 per 30-day campaign',
+        ],
+        overage: [
+          { label: '5th and subsequent concurrent active role', rate: '$750/month per additional role, pro-rata' },
+          { label: 'Executive search add-on', rate: '$8,500 per placement, fixed fee not contingency' },
+          { label: 'Passive sourcing campaign', rate: '$1,500 per 30-day campaign' },
+        ],
+      },
+      {
+        id: 'enterprise-full',
+        name: 'Full Enterprise',
+        tagline: 'People and Recruit. One partner team. The operating layer for both functions.',
+        priceMonthlyDisplay: 3995,
+        priceAnnualTotal: 47940,
+        currency: 'AUD',
+        contractTermMonths: 12,
+        qualifyingHeadcountMin: 80,
+        stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ENTERPRISE_FULL',
+        includedSummary: [
+          'Everything in HQ People Enterprise AND HQ Recruit Enterprise',
+          'Single dedicated partner team - one Advisor and one Talent Partner who coordinate',
+          'Monthly Executive Review across workforce posture, hiring pipeline and compliance risk',
+          'Founder check-in twice yearly (Jimmy Rayner personally)',
+          'Priority on new module access (Hospitality, Trades, Allied Health Packs)',
+        ],
+        notIncluded: [
+          'Workplace investigations, litigation and FWC representation (referred, paid)',
+          'Executive search over $150k base (referred to Humanistiqs Executive Search, paid)',
+          'Bulk hiring campaigns over 10 simultaneous opens (quoted separately)',
+        ],
+        overage: [
+          { label: 'Additional advisor time', rate: '$250/hour, 15-min increments' },
+          { label: '5th and subsequent concurrent active role', rate: '$750/month per role' },
+          { label: 'Executive search add-on', rate: '$8,500 per placement, fixed fee' },
+        ],
+      },
+    ],
   },
 }
 

@@ -7,7 +7,7 @@
 // the browser there.
 
 import { createClient } from '@/lib/supabase/server'
-import { getStripe, getStripePriceId, isBillingCycle, isPlanId } from '@/lib/stripe'
+import { getStripe, getStripePriceId, isBillingCycle, isPlanId, isSalesAssistedPlan } from '@/lib/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -28,6 +28,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid planId. Expected one of: solo, business.' }, { status: 400 })
   }
   const planId = body.planId
+
+  // Enterprise variants are sales-assisted - they go through the
+  // discovery call funnel at /enterprise, not public Stripe Checkout.
+  // The founder invoices these customers manually via Stripe Invoicing.
+  if (isSalesAssistedPlan(planId)) {
+    return NextResponse.json({
+      error: 'This plan requires a discovery call.',
+      redirect: '/enterprise',
+    }, { status: 400 })
+  }
 
   // Default to monthly if the caller forgot to send a cycle. New clients
   // always send one; the default keeps any legacy callers limping along.
