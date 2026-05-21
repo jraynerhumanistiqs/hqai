@@ -84,62 +84,35 @@ export default function OnboardingPage() {
     setError('')
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      // Server-side route uses service-role to insert the business row and
+      // link the profile, sidestepping client-side RLS races during the
+      // single moment in the user's lifecycle when profile.business_id is
+      // still null. See app/api/onboarding/route.ts.
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
 
-      if (userError || !user) {
+      if (res.status === 401) {
         setError('Your session expired. Please sign in again.')
         window.location.href = '/login'
         return
       }
 
-      const { data: business, error: bizError } = await supabase
-        .from('businesses')
-        .insert({
-          name: form.bizName || 'My Business',
-          industry: form.industry,
-          country: form.country,
-          state: form.state,
-          award: form.awards.join(', '),
-          headcount: form.headcount,
-          // Stored as a comma-separated string for backward compatibility
-          // with existing AI prompts that interpolate "employment_types"
-          // verbatim. The settings UI also reads/writes this shape.
-          employment_types: form.empTypes.join(', '),
-          advisor_name: form.advisorName || 'Hugo',
-          plan: form.plan,
-        })
-        .select()
-        .single()
+      const json = await res.json().catch(() => ({}))
 
-      if (bizError) {
-        console.error('Business error:', bizError.message)
-        setError('Could not save business details: ' + bizError.message)
-        setSaving(false)
-        return
-      }
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          business_id: business.id,
-          full_name: form.userName || '',
-          email: user.email,
-          role: 'owner',
-        })
-
-      if (profileError) {
-        console.error('Profile error:', profileError.message)
-        setError('Could not save profile: ' + profileError.message)
+      if (!res.ok) {
+        const detail = (json as any)?.detail ? ` (${(json as any).detail})` : ''
+        setError(((json as any)?.error ?? 'Could not complete onboarding') + detail)
         setSaving(false)
         return
       }
 
       window.location.replace('/dashboard')
-
     } catch (err: any) {
       console.error('Onboarding error:', err)
-      setError('Something went wrong: ' + err.message)
+      setError('Something went wrong: ' + (err?.message ?? 'unknown'))
       setSaving(false)
     }
   }
