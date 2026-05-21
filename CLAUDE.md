@@ -102,10 +102,21 @@ NEXT_PUBLIC_BASE_URL          # e.g. https://hqai.vercel.app
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-STRIPE_PRICE_ID_ESSENTIALS    # monthly recurring Price id from Stripe for Essentials ($99)
-STRIPE_PRICE_ID_GROWTH        # monthly recurring Price id for Growth ($199)
-STRIPE_PRICE_ID_SCALE         # monthly recurring Price id for Scale ($379)
-STRIPE_PRICE_ID_LETTER_OF_OFFER  # one-off Price id for the $25 Letter of Offer experiment
+STRIPE_PRICE_ID_SOLO_MONTHLY      # recurring monthly Solo ($89/mo)
+STRIPE_PRICE_ID_SOLO_ANNUAL       # recurring annual Solo ($890/yr = $74/mo equivalent)
+STRIPE_PRICE_ID_BUSINESS_MONTHLY  # recurring monthly Business ($249/mo)
+STRIPE_PRICE_ID_BUSINESS_ANNUAL   # recurring annual Business ($2490/yr = $207/mo equivalent)
+STRIPE_PRICE_ID_BUSINESS_FOUNDATION  # optional. Foundation 100 locked annual Business ($179/mo equivalent, $2148/yr)
+STRIPE_PRICE_ID_LETTER_OF_OFFER   # one-off Price id for the $25 Letter of Offer
+STRIPE_PRICE_ID_TERMINATION              # one-off $45
+STRIPE_PRICE_ID_EMPLOYMENT_CONTRACT      # one-off $49
+STRIPE_PRICE_ID_FIRST_FINAL_WARNING      # one-off $35
+STRIPE_PRICE_ID_POSITION_DESCRIPTION     # one-off $29
+STRIPE_PRICE_ID_PERFORMANCE_PLAN         # one-off $39
+STRIPE_PRICE_ID_CASUAL_CONVERSION        # one-off $29
+STRIPE_PRICE_ID_RESIGNATION_ACCEPTANCE   # one-off $25
+STRIPE_PRICE_ID_PROBATION_OUTCOME        # one-off $35
+STRIPE_PRICE_ID_REFERENCE_CHECK          # one-off $25
 VOYAGE_API_KEY                # voyage-law-2 embeddings (optional - falls back to OpenAI)
 COHERE_API_KEY                # Cohere rerank-3 (optional)
 ```
@@ -188,12 +199,18 @@ handles complexity every time. No repeating yourself.
 
 Australian employment law only: Fair Work Act, NES, Modern Awards.
 
-## Pricing
-- Free: 14-day trial
-- Essentials: $99/month (3 seats)
-- Growth: $199/month (6 seats) - most popular
-- Scale: $379/month (12 seats)
-- Advisory add-ons: $250/$400/$680/$1,100/month
+## Pricing (v2 - May 2026)
+Single source of truth: lib/pricing-config.ts. The brief at
+docs/research/retention-and-monetisation-brief.md is the analyst rationale.
+
+- Free trial: 14 days. Full access to Business tier features, 200 credits to spend. No card required.
+- Solo: $89/month or $890/year (3 seats, 500 AI credits/mo, 1 active recruit role).
+- Business: $249/month or $2,490/year (15 seats, 2,500 credits/mo, unlimited recruit roles, founder-led onboarding). Most popular.
+- Foundation 100: first 100 customers lock Business at $179/month forever on a 12-month annual commit. Lifetime-locked rate, founder Slack, first access to new modules.
+- Overage credits: $20 = 500 credits, top-up on either tier.
+- One-off marketplace: 10 SKUs between $25 and $49 (Letter of Offer $25, Termination $45, Employment Contract $49, First-and-Final Warning $35, Position Description $29, PIP $39, Casual Conversion $29, Resignation Acceptance $25, Probation Outcome $35, Reference Check $25). No signup required.
+
+Legacy Essentials/Growth/Scale tiers are retired - the catalogue in lib/stripe.ts no longer references them.
 
 ## Next build priorities (in order)
 1. Enable Supabase RLS (run rls_prescreen.sql, write policies for all tables)

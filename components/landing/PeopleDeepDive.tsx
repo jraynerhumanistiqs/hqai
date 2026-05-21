@@ -54,7 +54,7 @@ export default function PeopleDeepDive() {
           </p>
           <h2
             id="people-deepdive-heading"
-            className="font-serif text-[28px] leading-tight tracking-tight text-ink md:text-[36px]"
+            className="font-display text-[28px] font-bold leading-tight tracking-tight text-ink md:text-[36px]"
           >
             Every HR call, with the right answer in 30 seconds.
           </h2>

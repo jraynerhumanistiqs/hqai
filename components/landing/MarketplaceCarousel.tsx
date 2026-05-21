@@ -6,7 +6,7 @@
 //
 // - Horizontal carousel, 5 cards visible desktop, 1.5 on mobile (CSS
 //   scroll-snap peek pattern).
-// - 280 x 360 cards with Clay icon, Fraunces title, Inter price, teaser,
+// - 280 x 360 cards with Clay icon, Inter bold title, Inter price, teaser,
 //   "Coming soon" badge top-right.
 // - GSAP auto-play at 1 card / 4s, power2.inOut, 1.2s slide transition.
 // - Pause on hover, resume 2s after mouseleave.
@@ -111,7 +111,7 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
     <section id="marketplace" className="bg-bg-soft py-20 md:py-28" aria-labelledby="marketplace-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-accent">Pay-as-you-go - launching soon</p>
-        <h2 id="marketplace-heading" className="max-w-3xl font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]">
+        <h2 id="marketplace-heading" className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           One letter, one warning, one ad - on tap.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
@@ -130,8 +130,10 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
       </div>
 
       {/* Carousel viewport - bleeds past the narrative max-width on desktop. */}
+      {/* Single className - prior version had a duplicate attribute which
+          React silently dropped, losing the mt-12/overflow-hidden styling. */}
       <div
-        className="mt-12 w-full overflow-hidden"
+        className="mt-12 w-full overflow-hidden rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-bg"
         role="region"
         aria-roledescription="carousel"
         aria-label="Marketplace document line-up"
@@ -141,10 +143,6 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
         onBlurCapture={onMouseLeaveCarousel}
         onKeyDown={onKeyDown}
         tabIndex={0}
-        // Visible focus ring for keyboard users so arrow-nav users
-        // can see the viewport has focus. Rounded to match the
-        // section's edge softness.
-        className="outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-bg rounded-3xl"
       >
         <div className="mx-auto max-w-7xl px-6 md:px-10">
           <span className="sr-only" aria-live="polite">
@@ -182,7 +180,7 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
                   <DocIcon n={i} />
                 </div>
 
-                <h3 className="mt-5 font-serif text-xl text-ink">{item.name}</h3>
+                <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-ink">{item.name}</h3>
                 <p className="mt-1 text-sm font-semibold text-accent">{item.price}</p>
                 <p className="mt-2 text-sm leading-snug text-ink-soft">{item.teaser}</p>
 

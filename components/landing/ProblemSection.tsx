@@ -26,7 +26,7 @@ export default function ProblemSection() {
         </p>
         <h2
           id="problem-heading"
-          className="max-w-3xl font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]"
+          className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
           You shouldn&apos;t have to guess at this.
         </h2>
@@ -34,7 +34,7 @@ export default function ProblemSection() {
         <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-12">
           {cards.map((c) => (
             <article key={c.title} className="max-w-md">
-              <h3 className="font-serif text-[22px] leading-snug text-ink">{c.title}</h3>
+              <h3 className="font-display text-[22px] font-bold tracking-tight leading-snug text-ink">{c.title}</h3>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">{c.body}</p>
             </article>
           ))}

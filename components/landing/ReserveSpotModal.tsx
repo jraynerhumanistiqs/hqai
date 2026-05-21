@@ -71,7 +71,7 @@ export default function ReserveSpotModal({ open, onClose }: Props) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Reserve your spot</p>
-            <h2 id="reserve-title" className="mt-2 font-serif text-2xl text-ink">
+            <h2 id="reserve-title" className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               Get the $25 Letter of Offer first.
             </h2>
           </div>

@@ -14,7 +14,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Why pay for this when I can just Google it?',
-    a: 'Google gives you 47 American answers and three Fair Work pages buried on page two. HQ.ai gives you the right answer for your business in 30 seconds, with the citation. Your hourly rate is worth more than $99 a month.',
+    a: 'Google gives you 47 American answers and three Fair Work pages buried on page two. HQ.ai gives you the right answer for your business in 30 seconds, with the citation. Your hourly rate is worth more than $89 a month.',
   },
   {
     q: 'I only need one document. Do I have to subscribe?',
@@ -26,7 +26,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it actually cost?',
-    a: '$99 a month for 3 seats, $199 for 6, $379 for 12. 14-day free trial, no card. Cancel any time. The pay-as-you-go items start at $15.',
+    a: 'Two tiers. Solo $89 a month, 3 seats and 500 AI credits. Business $249 a month, 15 seats and 2,500 credits. Both come with a 14-day free trial - no card needed. Cancel any time. Single documents on the pay-as-you-go side start at $25 (Letter of Offer) with no signup.',
   },
   {
     q: 'How long does setup take?',
@@ -48,7 +48,7 @@ export default function FaqSection() {
     <section className="bg-bg py-20 md:py-28" aria-labelledby="faq-heading">
       <div className="mx-auto max-w-3xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">Questions</p>
-        <h2 id="faq-heading" className="font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]">
+        <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           The eight things you&apos;re wondering.
         </h2>
 

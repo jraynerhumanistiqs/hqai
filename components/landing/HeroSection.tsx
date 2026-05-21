@@ -21,7 +21,7 @@ export default function HeroSection() {
           </p>
           <h1
             id="hero-heading"
-            className="font-serif text-[40px] leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
+            className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
           >
             Make HR and hiring decisions you can stand behind.
           </h1>
@@ -94,10 +94,10 @@ export default function HeroSection() {
               <div className="mt-4 flex items-baseline justify-between">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.14em] text-ink-muted">Candidate</p>
-                  <p className="font-serif text-base text-ink">Sarah K.</p>
+                  <p className="font-display text-base font-bold tracking-tight text-ink">Sarah K.</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-serif text-2xl text-ink">4.2<span className="text-sm text-ink-muted"> / 5</span></p>
+                  <p className="font-display text-2xl font-bold tracking-tight text-ink">4.2<span className="text-sm font-normal text-ink-muted"> / 5</span></p>
                   <span className="mt-1 inline-flex rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">Strong yes</span>
                 </div>
               </div>

@@ -13,7 +13,7 @@ export default function RecruitDeepDive() {
           </p>
           <h2
             id="recruit-deepdive-heading"
-            className="font-serif text-[28px] leading-tight tracking-tight text-ink md:text-[36px]"
+            className="font-display text-[28px] font-bold leading-tight tracking-tight text-ink md:text-[36px]"
           >
             Three fewer hours per CV. Zero gut-feel hires.
           </h2>
@@ -39,11 +39,11 @@ export default function RecruitDeepDive() {
                 <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">
                   Candidate scorecard
                 </p>
-                <p className="mt-1 font-serif text-xl text-ink">Daniel M.</p>
+                <p className="mt-1 font-display text-xl font-bold tracking-tight text-ink">Daniel M.</p>
               </div>
               <div className="text-right">
-                <p className="font-serif text-3xl text-ink">
-                  4.2<span className="text-base text-ink-muted"> / 5</span>
+                <p className="font-display text-3xl font-bold tracking-tight text-ink">
+                  4.2<span className="text-base font-normal text-ink-muted"> / 5</span>
                 </p>
                 <span className="mt-1 inline-flex rounded-full border border-accent bg-accent-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">
                   Strong yes

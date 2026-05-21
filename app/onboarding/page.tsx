@@ -21,11 +21,13 @@ const STATES_BY_COUNTRY: Record<string, string[]> = {
 // pool of casuals or contractors all at once. Mirror that reality at
 // onboarding so the AI prompts can target the right awards for each.
 const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
-const PLANS = [
-  { id: 'free', label: 'Free Trial', price: 'Free for 14 days', desc: 'Full access, no credit card required' },
-  { id: 'essentials', label: 'Essentials', price: '$99/month', desc: 'Up to 3 seats, 50 AI queries/month' },
-  { id: 'growth', label: 'Growth', price: '$199/month', desc: 'Up to 6 seats, unlimited queries + 1 advisor hr', recommended: true },
-  { id: 'scale', label: 'Scale', price: '$379/month', desc: 'Up to 12 seats, dedicated advisor, priority SLA' },
+// Plan IDs and copy mirror lib/pricing-config.ts (the brief's §2.3
+// packaging). The /api/onboarding route stores `plan` as an opaque
+// string, so the new IDs flow through without a schema change.
+const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
+  { id: 'free',     label: 'Free Trial', price: 'Free for 14 days', desc: 'Full access to Business features, no card required' },
+  { id: 'solo',     label: 'Solo',       price: '$89/month',         desc: '3 seats, 500 AI credits/month, 1 active recruit role' },
+  { id: 'business', label: 'Business',   price: '$249/month',        desc: '15 seats, 2,500 credits/month, unlimited recruit roles, founder-led onboarding', recommended: true },
 ]
 
 export default function OnboardingPage() {

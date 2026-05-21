@@ -7,7 +7,7 @@
 // the browser there.
 
 import { createClient } from '@/lib/supabase/server'
-import { getStripe, getStripePriceId, isPlanId } from '@/lib/stripe'
+import { getStripe, getStripePriceId, isBillingCycle, isPlanId } from '@/lib/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  let body: { planId?: unknown }
+  let body: { planId?: unknown; cycle?: unknown; foundation?: unknown }
   try {
     body = await req.json()
   } catch {
@@ -25,13 +25,26 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isPlanId(body.planId)) {
-    return NextResponse.json({ error: 'Invalid planId. Expected one of: essentials, growth, scale.' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid planId. Expected one of: solo, business.' }, { status: 400 })
   }
   const planId = body.planId
 
-  const priceId = getStripePriceId(planId)
+  // Default to monthly if the caller forgot to send a cycle. New clients
+  // always send one; the default keeps any legacy callers limping along.
+  const cycle = isBillingCycle(body.cycle) ? body.cycle : 'monthly'
+  const foundation = body.foundation === true
+
+  // TODO: gate Foundation pricing behind a foundation_members table once the first cohort lands.
+  // For now we trust the boolean flag from the client - the Foundation 100
+  // is enforced by Stripe at the price-id level (only Foundation customers
+  // are sent to the locked annual price).
+  if (foundation && (planId !== 'business' || cycle !== 'annual')) {
+    return NextResponse.json({ error: 'Foundation pricing requires the Business plan on an annual cycle.' }, { status: 400 })
+  }
+
+  const priceId = getStripePriceId(planId, cycle, foundation)
   if (!priceId) {
-    console.error(`[stripe/checkout] missing env var for plan ${planId}`)
+    console.error(`[stripe/checkout] missing env var for plan ${planId}/${cycle}${foundation ? '/foundation' : ''}`)
     return NextResponse.json({
       error: 'Billing is not fully configured yet. Please contact support.',
     }, { status: 503 })
@@ -88,6 +101,8 @@ export async function POST(req: NextRequest) {
         metadata: {
           business_id: profile.business_id,
           plan: planId,
+          cycle,
+          foundation: foundation ? 'true' : 'false',
         },
       },
       // Keep the business id on the checkout session too so the webhook
@@ -96,6 +111,8 @@ export async function POST(req: NextRequest) {
       metadata: {
         business_id: profile.business_id,
         plan: planId,
+        cycle,
+        foundation: foundation ? 'true' : 'false',
       },
     })
     if (!session.url) {

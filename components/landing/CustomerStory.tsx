@@ -10,7 +10,7 @@ export default function CustomerStory() {
         </p>
         <h2
           id="customer-story-heading"
-          className="max-w-3xl font-serif text-3xl leading-tight tracking-tight text-ink md:text-[40px]"
+          className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
           Pat ran an HR team of one. Now he has HQ.ai.
         </h2>
@@ -23,13 +23,13 @@ export default function CustomerStory() {
                 aria-hidden
                 className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-accent-soft text-accent"
               >
-                <span className="font-serif text-5xl">P</span>
+                <span className="font-display text-5xl font-bold">P</span>
               </div>
             </div>
 
             {/* RIGHT (60%): quote + attribution + bullets */}
             <div>
-              <blockquote className="font-serif text-[22px] italic leading-snug text-ink md:text-[26px]">
+              <blockquote className="font-display text-[22px] font-bold leading-snug tracking-tight text-ink md:text-[26px]">
                 &ldquo;I cancelled our $850 a month retainer in the second week. The AI answers the actual questions I had on hold. Two of my offer letters this quarter went out within an hour of the verbal.&rdquo;
               </blockquote>
               <p className="mt-5 text-sm text-ink-muted">

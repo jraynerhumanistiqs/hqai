@@ -6,7 +6,7 @@ export default function FooterCta() {
   return (
     <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="footer-cta-heading">
       <div className="mx-auto max-w-4xl px-6 text-center md:px-10">
-        <h2 id="footer-cta-heading" className="font-serif text-3xl leading-tight tracking-tight text-ink md:text-[44px]">
+        <h2 id="footer-cta-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[44px]">
           Three minutes. No credit card. Better decisions today.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base text-ink-soft md:text-lg">

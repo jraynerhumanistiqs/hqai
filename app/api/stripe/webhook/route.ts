@@ -32,17 +32,17 @@ export async function POST(req: NextRequest) {
           await supabase.from('businesses').update({
             stripe_subscription_id: subscription.id,
             subscription_status: 'active',
-            plan: plan || 'growth',
+            plan: plan || 'business',
           }).eq('id', businessId)
-          // B10 - grant the recurring credit allocation for this plan.
-          // The amount is hard-coded against the tier; future changes
-          // belong in lib/stripe.ts:PLANS.
-          const allocationByPlan: Record<string, number> = {
-            essentials: 500,
-            growth:    1500,
-            scale:     5000,
+          // Grant the recurring credit allocation for this plan. The
+          // amounts mirror lib/pricing-config.ts §includedCredits and the
+          // brief's §2.3 packaging table.
+          const allocationByPlan: Record<'solo' | 'business', number> = {
+            solo:     500,
+            business: 2500,
           }
-          const allocated = allocationByPlan[plan || 'growth'] ?? 1500
+          const planKey: 'solo' | 'business' = plan === 'solo' ? 'solo' : 'business'
+          const allocated = allocationByPlan[planKey]
           await supabase.from('credit_allocations').insert({
             business_id:  businessId,
             allocated,

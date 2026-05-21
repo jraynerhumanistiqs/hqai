@@ -36,7 +36,7 @@ export default function MetricsStrip() {
               key={m.figure}
               className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card md:p-8"
             >
-              <p className="font-serif text-[40px] leading-none tracking-tight text-ink md:text-[48px]">
+              <p className="font-display text-[40px] font-bold leading-none tracking-tight text-ink md:text-[48px]">
                 {m.figure}
               </p>
               <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">
