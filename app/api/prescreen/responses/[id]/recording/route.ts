@@ -18,6 +18,10 @@ interface Body {
   candidate_email?: string | null
   audio_path: string
   audio_duration_sec?: number | null
+  // ISO 8601. When the phone screen commenced, picked by the recruiter
+  // (datetime-local input in PhoneRecorder). Falls back to now() if the
+  // caller omits it.
+  recorded_at?: string | null
 }
 
 async function triggerScoringPipeline(responseId: string) {
@@ -52,6 +56,8 @@ export async function POST(
       return NextResponse.json({ error: 'session_id, candidate_name, audio_path required' }, { status: 400 })
     }
 
+    const recordedAt = body.recorded_at ?? new Date().toISOString()
+
     let row: { id: string } | null = null
 
     if (response_id === 'new') {
@@ -69,7 +75,7 @@ export async function POST(
           response_type: 'phone',
           audio_path: body.audio_path,
           audio_duration_sec: body.audio_duration_sec ?? null,
-          recorded_at: new Date().toISOString(),
+          recorded_at: recordedAt,
         })
         .select('id')
         .single()
@@ -88,7 +94,7 @@ export async function POST(
           response_type: 'phone',
           audio_path: body.audio_path,
           audio_duration_sec: body.audio_duration_sec ?? null,
-          recorded_at: new Date().toISOString(),
+          recorded_at: recordedAt,
         })
         .eq('id', response_id)
         .select('id')

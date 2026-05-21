@@ -14,9 +14,8 @@
 //      to create or update the response row and kick off transcription
 //      + scoring.
 //
-// Optional candidate_name + candidate_email props feed the new-response
-// branch in the recording API. If response_id is supplied we PATCH
-// instead.
+// Optional candidate_name prop feeds the new-response branch in the
+// recording API. If response_id is supplied we PATCH instead.
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -24,13 +23,20 @@ interface Props {
   sessionId: string
   responseId?: string | null
   candidateName?: string
-  candidateEmail?: string | null
   /** Pre-populates the Phone Screen Questions form. If the session already
    *  has questions on file (eg the same set used for the video invite),
    *  pass them in - the recruiter can still edit before the call starts. */
   initialQuestions?: string[]
   onSubmitted?: (responseId: string) => void
   onCancel?: () => void
+}
+
+// datetime-local input expects 'YYYY-MM-DDTHH:mm' in *local* time.
+// Format the current moment for that input shape.
+function nowForDatetimeLocal(): string {
+  const d = new Date()
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 type RecorderState = 'idle' | 'permission' | 'questions' | 'consent' | 'recording' | 'preview' | 'uploading' | 'submitting' | 'done' | 'error'
@@ -51,7 +57,7 @@ const DEFAULT_PHONE_QUESTIONS: string[] = [
 const MIN_DURATION_SEC = 5
 const MAX_DURATION_SEC = 60 * 60 // 60 min hard cap
 
-export function PhoneRecorder({ sessionId, responseId, candidateName, candidateEmail, initialQuestions, onSubmitted, onCancel }: Props) {
+export function PhoneRecorder({ sessionId, responseId, candidateName, initialQuestions, onSubmitted, onCancel }: Props) {
   const [state, setState] = useState<RecorderState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [consent, setConsent] = useState(false)
@@ -59,7 +65,9 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
   const [name, setName] = useState(candidateName ?? '')
-  const [email, setEmail] = useState(candidateEmail ?? '')
+  // Recruiter-picked start time of the phone screen. Defaults to "now"
+  // so the common case (recorder opened mid-call) is one click.
+  const [commencedAt, setCommencedAt] = useState<string>(() => nowForDatetimeLocal())
   const [questions, setQuestions] = useState<string[]>(() => {
     const seed = (initialQuestions && initialQuestions.length > 0) ? initialQuestions : DEFAULT_PHONE_QUESTIONS
     return [...seed]
@@ -188,7 +196,9 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
         body: JSON.stringify({
           session_id: sessionId,
           candidate_name: name.trim(),
-          candidate_email: email.trim() || null,
+          // datetime-local has no timezone - JS Date() reads it as local
+          // time, toISOString converts to UTC for Postgres timestamptz.
+          recorded_at: commencedAt ? new Date(commencedAt).toISOString() : null,
           audio_path: signed.path,
           audio_duration_sec: durationSec,
           // The Phone Screen Questions the recruiter agreed before the
@@ -242,8 +252,13 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, candidateE
               <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Candidate email (optional)</label>
-              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" />
+              <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Phone screen commenced</label>
+              <input
+                type="datetime-local"
+                className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black"
+                value={commencedAt}
+                onChange={e => setCommencedAt(e.target.value)}
+              />
             </div>
           </div>
 
