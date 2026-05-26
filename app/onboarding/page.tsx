@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
-    bizName: '', industry: '', country: 'Australia', state: '', awards: [] as string[], headcount: '',
+    bizName: '', industry: '', country: 'Australia', state: [] as string[], awards: [] as string[], headcount: '',
     empTypes: [] as string[],
     advisorName: 'Hugo', userName: '', plan: 'free'
   })
@@ -71,6 +71,16 @@ export default function OnboardingPage() {
     })
   }
 
+  function toggleState(s: string) {
+    setForm(f => {
+      const current = f.state
+      if (current.includes(s)) {
+        return { ...f, state: current.filter(x => x !== s) }
+      }
+      return { ...f, state: [...current, s] }
+    })
+  }
+
   function toggleEmpType(t: string) {
     setForm(f => {
       const current = f.empTypes
@@ -90,10 +100,15 @@ export default function OnboardingPage() {
       // link the profile, sidestepping client-side RLS races during the
       // single moment in the user's lifecycle when profile.business_id is
       // still null. See app/api/onboarding/route.ts.
+      // The /api/onboarding route stores `state` as a single text column.
+      // Join the multi-select array into a comma-separated string so the
+      // API contract stays identical to its current shape (matches the
+      // same pattern already used for awards and empTypes server side).
+      const payload = { ...form, state: form.state.join(', ') }
       const res = await fetch('/api/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
 
       if (res.status === 401) {
@@ -182,7 +197,7 @@ export default function OnboardingPage() {
                     value={form.country}
                     onChange={e => {
                       const next = e.target.value
-                      setForm(f => ({ ...f, country: next, state: '' }))
+                      setForm(f => ({ ...f, country: next, state: [] }))
                     }}
                   >
                     {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -193,13 +208,17 @@ export default function OnboardingPage() {
                     <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
                     <div className="flex flex-wrap gap-2">
                       {STATES_BY_COUNTRY[form.country].map(s => (
-                        <button key={s} type="button" onClick={() => update('state', s)}
+                        <button key={s} type="button" onClick={() => toggleState(s)}
                           className={`px-4 py-2 rounded-full text-sm border font-semibold transition-colors
-                            ${form.state === s ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                            ${form.state.includes(s) ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
                           {s}
                         </button>
                       ))}
                     </div>
+                    <p className="text-[10px] text-muted mt-2">Select all states your business operates in (multiple selections OK).</p>
+                    {form.state.length > 0 && (
+                      <p className="text-[10px] text-ink font-bold mt-1">{form.state.length} location{form.state.length > 1 ? 's' : ''} selected</p>
+                    )}
                   </div>
                 )}
                 <div>

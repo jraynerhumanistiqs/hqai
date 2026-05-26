@@ -97,7 +97,15 @@ const letterOfOffer: TemplateDefinition = {
     { key: 'acceptanceDeadline', label: 'Offer acceptance deadline', type: 'date' },
     { key: 'conditions', label: 'Conditions of offer', type: 'textarea', placeholder: 'e.g. Subject to reference checks, right to work verification' },
   ],
-  promptInstructions: `Generate a Letter of Offer following the Humanistiqs template structure. Include: congratulatory opening, position title, employment type, attached documents list (contract, handbook, super choice form, Fair Work Information Statement), instructions to sign and return, acceptance deadline, and warm sign-off from director. Use the business profile for employer details.`,
+  promptInstructions: `Generate a Letter of Offer following the Humanistiqs template structure. Include: congratulatory opening, position title, employment type, attached documents list (contract, handbook, super choice form, Fair Work Information Statement), instructions to sign and return, acceptance deadline, and warm sign-off from director. Use the business profile for employer details.
+
+CRITICAL NAMING RULES:
+- The candidate's full name is supplied in the form data as 'candidateName' (e.g. 'Sarah Chen'). You MUST use this name throughout the letter.
+- Open the body with a personalised salutation using the candidate's first name (e.g. 'Dear Sarah,') or 'Dear Ms Chen,' if a more formal register suits the business.
+- In the body prose, address the candidate directly by name or as 'you' / 'your'. The first sentence should reference them by name (e.g. 'We are delighted to offer you, Sarah, the position of...').
+- Subsequent references may use the first name, 'you', or 'your' as appropriate.
+- NEVER use generic placeholders like 'the successful candidate', 'the candidate', 'the applicant', 'the recipient', or '[Candidate Name]' in the body prose. These are not acceptable - the candidate's actual name from candidateName must be interpolated.
+- Sign-off block should still address them by full name on the acceptance signature line.`,
 }
 
 const nonContactablePostOffer: TemplateDefinition = {

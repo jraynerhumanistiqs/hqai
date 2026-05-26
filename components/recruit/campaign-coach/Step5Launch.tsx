@@ -325,7 +325,11 @@ function LaunchSuccess({ result }: { result: any }) {
               Move to CV Screening →
             </Link>
             <Link
-              href={sessionId ? `/dashboard/recruit/shortlist` : '/dashboard/recruit/shortlist'}
+              // Pass the just-created session id so RecruitDashboard
+              // (which reads ?session=<id>) lands the recruiter directly on
+              // the role they just built rubric/questions for, instead of
+              // defaulting to the first role in their list. Fix for Item 9.
+              href={sessionId ? `/dashboard/recruit/shortlist?session=${sessionId}` : '/dashboard/recruit/shortlist'}
               className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-light transition-colors"
             >
               Skip to Shortlist Agent →
