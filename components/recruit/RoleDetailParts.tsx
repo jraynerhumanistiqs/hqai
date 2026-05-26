@@ -65,106 +65,74 @@ export function AiSuggestionCard({
         )}
       </div>
 
-      <div className="px-5 py-5 space-y-7">
-        {/* Document-style score summary. Mirrors the CV Scoring Agent
-            v1 Score Summary layout: prominent overall (option c - 40px
-            mean of rubric scores), then Summary section, then Criteria
-            section with each entry showing label + score + italic
-            indented evidence quote with click-to-seek timestamp. */}
-        {(() => {
-          // Compute overall as the mean of rubric scores - the
-          // prescreen_evaluations row doesn't carry an overall_score
-          // directly, so this is the at-a-glance metric.
-          const overall = rubric.length > 0
-            ? rubric.reduce((sum, d) => sum + d.score, 0) / rubric.length
-            : 0
-          return (
-            <div className="flex items-baseline gap-3 flex-wrap">
-              <span className="text-[40px] leading-none font-bold text-ink tabular-nums">
-                {overall.toFixed(2)}
-              </span>
-              <span className="text-base text-mid">/ 5</span>
-              {(evaluation as { recommendation_action?: string }).recommendation_action && (() => {
-                const action = (evaluation as { recommendation_action?: string }).recommendation_action!
-                const labels: Record<string, { text: string; cls: string }> = {
-                  progress_to_shortlist: { text: 'Progress to shortlist', cls: 'bg-success/10 text-success border-success/30' },
-                  consider_with_caution: { text: 'Consider with caution', cls: 'bg-warning/10 text-warning border-warning/30' },
-                  reject:                { text: 'Recommend reject',    cls: 'bg-danger/10 text-danger border-danger/30' },
-                }
-                const meta = labels[action] || { text: action, cls: 'bg-light text-mid border-border' }
-                return (
-                  <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 border ${meta.cls}`}>
+      <div className="px-5 py-4 space-y-3">
+        {rubric.map((d, i) => (
+          <div key={i} className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="text-sm font-bold text-ink capitalize truncate">{d.name.replace(/_/g, ' ')}</p>
+                {d.confidence < 0.6 && (
+                  <span
+                    title="Low confidence - review manually"
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"
+                  >
+                    low confidence
+                  </span>
+                )}
+              </div>
+              <div className="text-xs font-bold text-ink flex-shrink-0">{d.score}/5</div>
+            </div>
+            <div className="w-full h-1.5 bg-light rounded-full overflow-hidden">
+              <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
+            </div>
+            {d.evidence_quote && (
+              <p
+                className="text-xs text-mid italic cursor-pointer hover:text-ink transition-colors"
+                title={anonymise ? 'Quotes from transcript may include identifying information' : undefined}
+                onClick={() => onQuoteClick?.(d.evidence_timestamp_sec)}
+              >
+                &ldquo;{d.evidence_quote}&rdquo;
+                <span className="not-italic text-mid/70 ml-1.5">&middot; {fmtTs(d.evidence_timestamp_sec)}</span>
+              </p>
+            )}
+          </div>
+        ))}
+
+        {evaluation.overall_summary && (
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-1">Summary</p>
+            <p className="text-sm text-charcoal">{evaluation.overall_summary}</p>
+          </div>
+        )}
+
+        {(evaluation as any).recommendation_action && (
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-bold uppercase tracking-wider text-mid mb-1">AI recommendation</p>
+            {(() => {
+              const action = (evaluation as any).recommendation_action as string
+              const labels: Record<string, { text: string; cls: string }> = {
+                progress_to_shortlist: { text: 'Progress to shortlist', cls: 'bg-success/10 text-success' },
+                consider_with_caution: { text: 'Consider with caution', cls: 'bg-warning/10 text-warning' },
+                reject: { text: 'Recommend reject', cls: 'bg-danger/10 text-danger' },
+              }
+              const meta = labels[action] || { text: action, cls: 'bg-light text-mid' }
+              return (
+                <div>
+                  <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1 ${meta.cls}`}>
                     {meta.text}
                   </span>
-                )
-              })()}
-            </div>
-          )
-        })()}
-
-        {/* Summary rationale - the docx h2 + paragraph treatment. */}
-        {evaluation.overall_summary && (
-          <section className="border-t border-border pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-mid mb-2">
-              Summary rationale
-            </p>
-            <p className="text-sm text-charcoal leading-relaxed">{evaluation.overall_summary}</p>
-          </section>
-        )}
-
-        {/* AI recommendation rationale (separate paragraph; the action
-            badge already appears in the top strip above). */}
-        {(evaluation as { recommendation_rationale?: string }).recommendation_rationale && (
-          <section className="border-t border-border pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-mid mb-2">
-              AI recommendation
-            </p>
-            <p className="text-sm text-charcoal leading-relaxed">
-              {(evaluation as { recommendation_rationale?: string }).recommendation_rationale}
-            </p>
-            <p className="text-[10px] text-muted mt-2">
-              AI recommendation only. Final decision rests with the hiring manager.
-            </p>
-          </section>
-        )}
-
-        {/* Criteria - flowing list with bold label + score, italic
-            indented evidence quote with click-to-seek timestamp. */}
-        {rubric.length > 0 && (
-          <section className="border-t border-border pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-mid mb-4">
-              Criteria
-            </p>
-            <div className="space-y-6">
-              {rubric.map((d, i) => (
-                <div key={i}>
-                  <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
-                    <p className="text-sm font-bold text-ink capitalize">
-                      {d.name.replace(/_/g, ' ')} - {d.score}/5
+                  {(evaluation as any).recommendation_rationale && (
+                    <p className="text-sm text-charcoal mt-2 leading-relaxed">
+                      {(evaluation as any).recommendation_rationale}
                     </p>
-                    {d.confidence < 0.6 && (
-                      <span
-                        title="Low confidence - review manually"
-                        className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"
-                      >
-                        low confidence
-                      </span>
-                    )}
-                  </div>
-                  {d.evidence_quote && (
-                    <blockquote
-                      className="text-sm text-mid italic border-l-2 border-border pl-3 ml-1 cursor-pointer hover:text-ink transition-colors"
-                      title={anonymise ? 'Quotes from transcript may include identifying information' : 'Jump to this moment in the video'}
-                      onClick={() => onQuoteClick?.(d.evidence_timestamp_sec)}
-                    >
-                      &ldquo;{d.evidence_quote}&rdquo;
-                      <span className="not-italic text-mid/70 ml-1.5 text-xs">&middot; {fmtTs(d.evidence_timestamp_sec)}</span>
-                    </blockquote>
                   )}
+                  <p className="text-[10px] text-muted mt-2">
+                    AI recommendation only. Final decision rests with the hiring manager.
+                  </p>
                 </div>
-              ))}
-            </div>
-          </section>
+              )
+            })()}
+          </div>
         )}
       </div>
 
