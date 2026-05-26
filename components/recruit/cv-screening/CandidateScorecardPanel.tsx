@@ -283,11 +283,16 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
           </button>
         </div>
 
-        <div className="px-6 py-6 space-y-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-display font-bold text-charcoal leading-none">
+        <div className="px-6 py-6 space-y-7">
+          {/* Top strip: prominent overall score (option c - 40px, smaller
+              than the previous display-size) + band pill + handoff CTA.
+              The body lines below restate the data in the document-style
+              reading flow so the panel mirrors the Score Summary docx. */}
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <span className="text-[40px] leading-none font-bold text-charcoal tabular-nums">
               {Number(screening.overall_score).toFixed(2)}
             </span>
+            <span className="text-base text-mid">/ 5</span>
             <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 ${BAND_COLOURS[screening.band as keyof typeof BAND_COLOURS] ?? ''}`}>
               {BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band}
             </span>
@@ -298,17 +303,28 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               >
                 Send to Shortlist Agent
               </button>
-            ) : (
-              <span className="ml-auto text-xs font-bold text-mid">
-                {ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}
-              </span>
-            )}
+            ) : null}
           </div>
 
+          {/* Next-action body line - mirrors the docx output. */}
+          <p className="text-sm text-charcoal">
+            <span className="text-muted">Next action:</span>{' '}
+            <span className="font-bold">
+              {ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}
+            </span>
+          </p>
+
+          {/* Summary rationale section - section label + body paragraph,
+              matching the docx h2 + paragraph treatment. */}
           {screening.rationale_short && (
-            <p className="text-sm text-charcoal leading-relaxed">
-              {screening.rationale_short}
-            </p>
+            <section className="border-t border-border pt-5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2">
+                Summary rationale
+              </p>
+              <p className="text-sm text-charcoal leading-relaxed">
+                {screening.rationale_short}
+              </p>
+            </section>
           )}
 
           {/* CV Scoring Agent download options. Three exports off the same
@@ -366,33 +382,32 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             )}
           </div>
 
-          <div>
-            <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
+          {/* Criteria section - document-style flowing list. Each entry:
+              bold label + score, rationale paragraph, italic indented
+              evidence quote. Mirrors the docx Score Summary criteria
+              treatment with section dividers between entries. */}
+          <section className="border-t border-border pt-5">
+            <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-4">
               Criteria
             </p>
-            <ul className="space-y-3">
+            <div className="space-y-6">
               {screening.criteria_scores.map(cs => (
-                <li key={cs.id} className="bg-light rounded-2xl px-4 py-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-charcoal">
-                      {criteriaById[cs.id] ?? cs.id}
-                    </span>
-                    <span className="text-sm font-bold text-charcoal">
-                      {cs.score}/5
-                    </span>
-                  </div>
+                <div key={cs.id}>
+                  <p className="text-sm font-bold text-charcoal mb-1.5">
+                    {criteriaById[cs.id] ?? cs.id} - {cs.score}/5
+                  </p>
                   {cs.rationale && (
-                    <p className="text-xs text-mid mb-1.5 leading-relaxed">{cs.rationale}</p>
+                    <p className="text-sm text-charcoal leading-relaxed mb-2">{cs.rationale}</p>
                   )}
                   {cs.evidence?.length > 0 && (
-                    <blockquote className="text-xs text-charcoal border-l-2 border-border pl-3 italic">
-                      "{cs.evidence[0].text}"
+                    <blockquote className="text-sm text-mid italic border-l-2 border-border pl-3 ml-1">
+                      &ldquo;{cs.evidence[0].text}&rdquo;
                     </blockquote>
                   )}
-                </li>
+                </div>
               ))}
-            </ul>
-          </div>
+            </div>
+          </section>
 
           {screening.fairness_checks && (
             <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-2">
