@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope } from '@/lib/supabase/scope'
 import { sendCandidateInviteEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -18,6 +19,15 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant gate: only the session owner's business can invite
+    // candidates to it. Without this, anyone could spam invite emails
+    // for any session id they guess and stick the wrong recruiter's
+    // company branding on it.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertSessionInScope(scope, session_id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { candidate_email, candidate_name, subject, body } = await req.json()
     if (!candidate_email) return NextResponse.json({ error: 'candidate_email is required' }, { status: 400 })
 

@@ -99,7 +99,11 @@ export async function POST(
 
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('[POST /api/prescreen/responses/:id/score]', err)
-    return NextResponse.json({ error: 'Scoring failed' }, { status: 500 })
+    // Surface the actual error in the response body so the failure is
+    // visible in Vercel logs and the parent triggerScoringPipeline can
+    // include it when the after() callback logs the failure.
+    const detail = err instanceof Error ? err.message : String(err)
+    console.error('[POST /api/prescreen/responses/:id/score]', { responseId: id, detail })
+    return NextResponse.json({ error: 'Scoring failed', detail }, { status: 500 })
   }
 }

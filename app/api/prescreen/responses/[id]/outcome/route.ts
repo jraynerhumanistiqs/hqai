@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -16,6 +17,12 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const { id } = await params
+  // Multi-tenant gate: outcome events expose the email subject + body
+  // sent to candidates, so caller must own the response first.
+  const scope = await resolveBusinessScope(user.id)
+  if (!(await assertResponseInScope(scope, id))) {
+    return NextResponse.json({ event: null })
+  }
   const { data } = await supabaseAdmin
     .from('prescreen_outcome_events')
     .select('id, response_id, outcome, email_sent, email_to, email_subject, email_body, triggered_by, created_at')

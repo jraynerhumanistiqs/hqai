@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -29,15 +30,17 @@ async function triggerScoringPipeline(responseId: string) {
   try {
     const tx = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
     if (!tx.ok) {
-      console.error('[recording/POST] transcribe failed', tx.status, await tx.text().catch(() => ''))
+      const body = await tx.text().catch(() => '')
+      console.error('[recording/POST] transcribe failed', { responseId, status: tx.status, body: body.slice(0, 500) })
       return
     }
     const sc = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/score`, { method: 'POST' })
     if (!sc.ok) {
-      console.error('[recording/POST] score failed', sc.status, await sc.text().catch(() => ''))
+      const body = await sc.text().catch(() => '')
+      console.error('[recording/POST] score failed', { responseId, status: sc.status, body: body.slice(0, 500) })
     }
   } catch (err) {
-    console.error('[recording/POST] scoring pipeline error:', err)
+    console.error('[recording/POST] scoring pipeline error:', { responseId, err: err instanceof Error ? err.message : String(err) })
   }
 }
 
@@ -54,6 +57,17 @@ export async function POST(
     const body = await req.json() as Body
     if (!body.session_id || !body.candidate_name || !body.audio_path) {
       return NextResponse.json({ error: 'session_id, candidate_name, audio_path required' }, { status: 400 })
+    }
+
+    // Multi-tenant gate: the recruiter must own the session they're
+    // attaching the phone screen to. For an existing response_id we
+    // also confirm that row sits inside the caller's business.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertSessionInScope(scope, body.session_id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (response_id !== 'new' && !(await assertResponseInScope(scope, response_id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const recordedAt = body.recorded_at ?? new Date().toISOString()

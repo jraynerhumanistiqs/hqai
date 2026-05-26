@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope } from '@/lib/supabase/scope'
 import { sendCandidateSubmittedEmail, sendCandidateSubmissionConfirmation } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -14,15 +15,19 @@ async function triggerScoringPipeline(responseId: string) {
   try {
     const tx = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
     if (!tx.ok) {
-      console.error('[responses/POST] transcribe failed', tx.status, await tx.text().catch(() => ''))
+      const body = await tx.text().catch(() => '')
+      // Surface the response body in the log so the next regression is
+      // findable in Vercel function logs without having to repro locally.
+      console.error('[responses/POST] transcribe failed', { responseId, status: tx.status, body: body.slice(0, 500) })
       return
     }
     const sc = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/score`, { method: 'POST' })
     if (!sc.ok) {
-      console.error('[responses/POST] score failed', sc.status, await sc.text().catch(() => ''))
+      const body = await sc.text().catch(() => '')
+      console.error('[responses/POST] score failed', { responseId, status: sc.status, body: body.slice(0, 500) })
     }
   } catch (err) {
-    console.error('[responses/POST] scoring pipeline error:', err)
+    console.error('[responses/POST] scoring pipeline error:', { responseId, err: err instanceof Error ? err.message : String(err) })
   }
 }
 
@@ -239,6 +244,15 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant scoping: confirm the session belongs to caller's
+    // business before reading any responses. Without this, anyone
+    // authenticated can list every candidate's PII + video ids by
+    // guessing/iterating session ids.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertSessionInScope(scope, session_id))) {
+      return NextResponse.json({ responses: [], bookings: [] })
+    }
+
     const { data, error } = await supabaseAdmin
       .from('prescreen_responses')
       .select('*')

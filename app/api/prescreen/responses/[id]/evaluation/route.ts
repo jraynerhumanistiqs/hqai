@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -19,6 +20,14 @@ export async function GET(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  // Multi-tenant gate: confirm the response belongs to the caller's
+  // business before exposing the rubric scoring. Same shape as the
+  // /transcript route - service-role bypasses RLS, we manually join.
+  const scope = await resolveBusinessScope(user.id)
+  if (!(await assertResponseInScope(scope, id))) {
+    return NextResponse.json({ evaluation: null })
+  }
 
   const { data, error } = await supabaseAdmin
     .from('prescreen_evaluations')

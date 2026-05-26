@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 import { processOutcomeForResponse } from '@/lib/outcome-service'
 
 export const runtime = 'nodejs'
@@ -19,6 +20,14 @@ export async function POST(
 
   const { id } = await params
   try {
+    // Multi-tenant gate: this endpoint emails the candidate. Anyone
+    // calling it on another tenant's response would impersonate that
+    // recruiter to that candidate.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const body = await req.json().catch(() => ({}))
     const outcome = body.outcome
     if (outcome !== 'shortlisted' && outcome !== 'rejected') {

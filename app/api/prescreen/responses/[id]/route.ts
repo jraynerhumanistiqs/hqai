@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -16,6 +17,14 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant gate: caller must own the response (via session ->
+    // business) before any field is mutated. Without this, any authed
+    // user could PATCH ratings / stage / notes on another tenant's
+    // candidates.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const body = await req.json()
     // Whitelist updatable columns - the route previously took whatever
     // the caller sent (rating + stage + notes + candidate_name + the

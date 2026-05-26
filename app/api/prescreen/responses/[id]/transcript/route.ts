@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -16,12 +17,17 @@ export async function GET(
 ) {
   const { id } = await params
 
-  // Auth gate: must be logged in. Anyone authed can read transcripts; if
-  // we want per-business scoping later, join through prescreen_responses
-  // -> prescreen_sessions -> businesses to check ownership.
+  // Auth gate + multi-tenant scoping. Service-role bypasses RLS so we
+  // join through prescreen_responses -> prescreen_sessions -> business
+  // ownership manually before returning the transcript text.
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const scope = await resolveBusinessScope(user.id)
+  if (!(await assertResponseInScope(scope, id))) {
+    return NextResponse.json({ transcript: null })
+  }
 
   const { data, error } = await supabaseAdmin
     .from('prescreen_transcripts')

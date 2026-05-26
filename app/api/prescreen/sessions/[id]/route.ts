@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -48,6 +49,12 @@ export async function PATCH(
 
   const { id } = await params
   try {
+    // Multi-tenant ownership gate: caller must share business_id with
+    // the session creator before any update is applied.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertSessionInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const body = await req.json()
     const patch: Record<string, unknown> = {}
     if (typeof body.company === 'string') patch.company = body.company
@@ -145,6 +152,12 @@ export async function DELETE(
 
   const { id } = await params
   try {
+    // Multi-tenant ownership gate: caller must share business_id with
+    // the session creator before soft-deleting.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertSessionInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const { error } = await supabaseAdmin
       .from('prescreen_sessions')
       .update({ deleted_at: new Date().toISOString() })

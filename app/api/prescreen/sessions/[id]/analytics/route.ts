@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -29,6 +30,20 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const { id: sessionId } = await params
+
+  // Multi-tenant gate: caller must own the session before we expose
+  // funnel + scoring analytics for it. Empty payload (not a 403) so
+  // dashboard pages render gracefully rather than flashing an error.
+  const scope = await resolveBusinessScope(user.id)
+  if (!(await assertSessionInScope(scope, sessionId))) {
+    return NextResponse.json({
+      funnel: { invited: 0, started: 0, submitted: 0, scored: 0, shortlisted: 0, rejected: 0 },
+      avgTimeToScoreSec: null,
+      dimensionStats: [],
+      aiAgreement: { accept: 0, adjust: 0, reject: 0, pending: 0 },
+      biasAudit: { protected_attr_violations: 0, insufficient_evidence_count: 0, low_confidence_count: 0 },
+    })
+  }
 
   // Responses for funnel + stage
   const { data: responses } = await supabaseAdmin

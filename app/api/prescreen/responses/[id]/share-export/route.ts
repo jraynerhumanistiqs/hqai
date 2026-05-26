@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 import { getSignedDownloadUrl } from '@/lib/cloudflare'
 import { randomUUID } from 'crypto'
 
@@ -19,6 +20,13 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant gate: creating a long-lived share token for another
+    // tenant's candidate video would be a direct PII leak.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const shareToken = randomUUID()
     const expiresAt  = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -47,6 +55,14 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant gate before returning signed download URLs for the
+    // candidate's video files - service-role bypasses RLS so the check
+    // must be manual.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { data, error } = await supabaseAdmin
       .from('candidate_responses')
       .select('video_ids, candidate_name')

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 
@@ -34,6 +35,15 @@ export async function POST(
       .single()
     if (evalErr || !evaluation) {
       return NextResponse.json({ error: 'Evaluation not found' }, { status: 404 })
+    }
+
+    // Multi-tenant gate: caller must own the response the evaluation
+    // hangs off before they can accept / adjust / reject the AI
+    // suggestion. Without this, a stranger could flip another tenant's
+    // candidates to staff_reviewed and pollute their audit trail.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, evaluation.response_id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { data: audit } = await supabaseAdmin

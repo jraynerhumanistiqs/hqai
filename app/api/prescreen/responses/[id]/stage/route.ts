@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 import { processOutcomeForResponse } from '@/lib/outcome-service'
 
 export const runtime = 'nodejs'
@@ -25,6 +26,13 @@ export async function PATCH(
 
   const { id } = await params
   try {
+    // Multi-tenant gate: stage transitions fire outcome emails to the
+    // candidate, so we MUST confirm the caller owns the response
+    // before flipping it to shortlisted/rejected.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const body = await req.json()
     const stage = body?.stage as Stage
     if (!VALID_STAGES.includes(stage)) {

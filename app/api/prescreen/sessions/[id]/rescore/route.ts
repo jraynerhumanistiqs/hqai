@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertSessionInScope } from '@/lib/supabase/scope'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -39,6 +40,15 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   const { id: sessionId } = await params
+
+  // Multi-tenant gate: caller must own the session before triggering a
+  // rescore. Rescore costs Claude credits per response, so a stranger
+  // calling this on another tenant's session would be both a leak and
+  // a wallet attack.
+  const scope = await resolveBusinessScope(user.id)
+  if (!(await assertSessionInScope(scope, sessionId))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const { data: session, error: sessErr } = await supabaseAdmin
     .from('prescreen_sessions')

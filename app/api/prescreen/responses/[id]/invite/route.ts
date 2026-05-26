@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { resolveBusinessScope, assertResponseInScope } from '@/lib/supabase/scope'
 import { sendCandidateInviteEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -33,6 +34,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   try {
+    // Multi-tenant gate: caller must own the placeholder response (via
+    // its session) before re-binding it to a candidate email and
+    // sending the invite. Without this, a stranger could rewrite the
+    // candidate email on another tenant's placeholder and intercept
+    // the prescreen flow.
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, response_id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const body = await req.json() as Body
     if (!body.candidate_email) {
       return NextResponse.json({ error: 'candidate_email is required' }, { status: 400 })
