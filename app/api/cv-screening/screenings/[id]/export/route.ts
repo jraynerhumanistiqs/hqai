@@ -142,13 +142,16 @@ function p(text: string, opts: { bold?: boolean; italics?: boolean; size?: numbe
   })
 }
 
-function h(text: string, level: 1 | 2 | 3, size?: number): Paragraph {
+function h(text: string, level: 1 | 2 | 3, size?: number, color: string = '111111'): Paragraph {
   const headingLevel = level === 1 ? HeadingLevel.HEADING_1 : level === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3
   const s = size ?? (level === 1 ? 32 : level === 2 ? 26 : 22)
   return new Paragraph({
     heading: headingLevel,
     spacing: { before: 280, after: 120 },
-    children: [new TextRun({ text, bold: true, size: s, font: FONT })],
+    // Default heading colour is black (charcoal 111111). Word's
+    // default heading style otherwise pulls a theme colour (often
+    // dark blue) which clashes with the brand.
+    children: [new TextRun({ text, bold: true, size: s, color, font: FONT })],
   })
 }
 
@@ -161,32 +164,53 @@ function bullet(text: string): Paragraph {
 }
 
 // Score summary section. Visual target: mirror the in-product
-// CandidateScorecardPanel (CV Scoring Agent) so a recruiter sharing
-// the downloaded docx with a hiring manager sees the same look they
-// see on screen. Layout:
+// CandidateScorecardPanel (CV Scoring Agent). Founder feedback
+// (May 2026) applied in this version:
 //
-//   [business name top right, small grey]
-//   H1: Candidate Score Summary - {name}
-//   Role: {role}
-//   <BIG score, ~28pt bold>  <band as a shaded pill>
-//   Next action: {label}
-//   {rationale paragraph - no heading, plain body}
-//   "Criteria" (small caps, muted)
-//   For each criterion:
-//     [shaded grey card]
-//       label (bold left)                       N/5 (bold right)
-//       rationale (small grey)
-//       "evidence quote" (italic, indented, soft grey)
-//
-// The "card" is a 1-cell Table with shading fill = bg-light (F5F5F4)
-// and no outer border. The label/score row uses a right-aligned tab
-// stop so the score lands flush to the right edge of the card.
+//   - Logo is the issuer attribution (no "Humanistiqs" text line).
+//   - H1 forced black (was inheriting Word's default heading colour).
+//   - "Role:" + "Next action:" labels rendered bold (value plain).
+//   - Big overall score number is colour-tinted to match the band
+//     (green/amber/red) per the same score thresholds used on the
+//     criterion cards: >=4 green, >=3 amber, <3 red.
+//   - Band label moved BELOW the score (was beside) and rendered in
+//     a pill matching the site BAND_COLOURS mapping (strong_yes/yes
+//     green, maybe amber, likely_no neutral grey, reject red).
+//   - Each criterion card's background is score-tinted using the
+//     same green/amber/red palette so the reader can spot weak /
+//     strong areas at a glance.
 
-const CARD_FILL = 'F5F5F4'     // bg-light approximation (warm grey)
 const MUTED_INK = '4D4D4D'     // text-mid
-const SOFT_INK  = '6B6B66'     // text-muted
-const ACCENT    = 'D97757'     // clay (band pill)
-const PILL_FILL = 'F5E5DD'     // accent-soft for the band pill background
+const NEUTRAL_FILL = 'F5F5F4'  // bg-light - fallback only
+
+// Score-band palette. The three buckets match the site's
+// success/warning/danger semantic tokens, with light fills paired
+// to darker text inks so contrast stays readable.
+const SCORE_GREEN  = { fill: 'DCFCE7', ink: '15803D' } // >=4
+const SCORE_AMBER  = { fill: 'FEF3C7', ink: 'B45309' } // 3 to <4
+const SCORE_RED    = { fill: 'FEE2E2', ink: 'B91C1C' } // <3
+const BAND_NEUTRAL = { fill: 'F4F4F5', ink: '3F3F46' } // likely_no
+
+function colourForScore(score: number): { fill: string; ink: string } {
+  if (score >= 4) return SCORE_GREEN
+  if (score >= 3) return SCORE_AMBER
+  return SCORE_RED
+}
+
+// Band -> palette. Mirrors the site's BAND_COLOURS mapping in
+// lib/cv-screening-types.ts (strong_yes + yes are success-green;
+// maybe is warning-amber; likely_no is neutral grey; reject is
+// danger-red).
+function colourForBand(band: string): { fill: string; ink: string } {
+  switch (band) {
+    case 'strong_yes':
+    case 'yes':       return SCORE_GREEN
+    case 'maybe':     return SCORE_AMBER
+    case 'likely_no': return BAND_NEUTRAL
+    case 'reject':    return SCORE_RED
+    default:          return { fill: NEUTRAL_FILL, ink: MUTED_INK }
+  }
+}
 
 function noBorders() {
   return {
@@ -204,85 +228,71 @@ function buildScoreSummarySection(opts: {
   rubric: Rubric | null
   businessName: string
 }): Array<Paragraph | Table> {
-  const { screening, rubric, businessName } = opts
+  const { screening, rubric } = opts
   const out: Array<Paragraph | Table> = []
 
-  // Issuer attribution top right. The on-screen panel sits inside the
-  // customer workspace so it doesn't show this, but the docx travels
-  // outside that workspace so the issuer line still earns its keep.
+  // H1 - forced black so it doesn't inherit Word's default heading
+  // theme colour. businessName text removed: the logo Header on every
+  // page is the issuer attribution.
+  out.push(h(`Candidate Score Summary - ${screening.candidate_label ?? 'Candidate'}`, 1, 30, '111111'))
+
+  // Role / rubric eyebrow line - label bold, value regular.
+  const roleValue = rubric?.role ? rubric.role : (screening.rubric_id ?? '-')
+  const roleLabel = rubric?.role ? 'Role: ' : 'Rubric: '
   out.push(new Paragraph({
-    alignment: AlignmentType.RIGHT,
     spacing: { before: 0, after: 240 },
-    children: [new TextRun({ text: businessName, size: 18, color: SOFT_INK, font: FONT })],
+    children: [
+      new TextRun({ text: roleLabel, bold: true, size: 22, font: FONT, color: '111111' }),
+      new TextRun({ text: roleValue, size: 22, font: FONT, color: '111111' }),
+    ],
   }))
 
-  // H1 - candidate score summary headline
-  out.push(h(`Candidate Score Summary - ${screening.candidate_label ?? 'Candidate'}`, 1, 30))
-
-  // Role / rubric eyebrow line
-  out.push(p(rubric?.role ? `Role: ${rubric.role}` : `Rubric: ${screening.rubric_id ?? '-'}`, {
-    size: 20, spacing: { before: 0, after: 200 },
+  // BIG overall score - tinted by score band (green/amber/red).
+  const overall = Number(screening.overall_score)
+  const overallColour = colourForScore(overall)
+  out.push(new Paragraph({
+    spacing: { before: 0, after: 120 },
+    children: [
+      new TextRun({
+        text: overall.toFixed(2),
+        bold: true,
+        size: 56,            // ~28pt - prominent without dominating an A4 page
+        font: FONT,
+        color: overallColour.ink,
+      }),
+      new TextRun({ text: '  / 5', size: 22, color: '6B6B66', font: FONT }),
+    ],
   }))
 
-  // BIG score number + band "pill" in one Table row. Mirrors the
-  // site's top strip: text-display number + rounded band pill.
-  const overall = Number(screening.overall_score).toFixed(2)
-  const bandLabel = BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band
-  out.push(new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: noBorders(),
-    rows: [new TableRow({
-      children: [
-        new TableCell({
-          width: { size: 35, type: WidthType.PERCENTAGE },
-          borders: noBorders(),
-          verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 0, bottom: 0, left: 0, right: 0 },
-          children: [new Paragraph({
-            spacing: { before: 0, after: 0 },
-            children: [
-              // 56 half-points = 28pt - the site uses 52px (~text-display)
-              // which translates roughly to 28pt in print, retaining
-              // the visual punch without dominating an A4 page.
-              new TextRun({ text: overall, bold: true, size: 56, font: FONT }),
-              new TextRun({ text: '  / 5', size: 22, color: SOFT_INK, font: FONT }),
-            ],
-          })],
-        }),
-        new TableCell({
-          width: { size: 65, type: WidthType.PERCENTAGE },
-          borders: noBorders(),
-          verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 0, bottom: 0, left: 200, right: 0 },
-          children: [new Paragraph({
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 0, after: 0 },
-            children: [
-              // The band rendering uses a coloured TextRun with a
-              // background-shaded text run + accent colour. Word's text
-              // shading is a paragraph-level affordance, so we fake the
-              // pill via accent text colour + bold weight. Visual is
-              // less obvious than the on-screen pill but reads cleanly.
-              new TextRun({
-                text: ` ${bandLabel} `,
-                bold: true,
-                size: 22,
-                font: FONT,
-                color: ACCENT,
-                shading: { type: ShadingType.SOLID, color: PILL_FILL, fill: PILL_FILL },
-              }),
-            ],
-          })],
-        }),
-      ],
+  // Band label - placed UNDER the score number, with palette per band.
+  // The shaded TextRun gives an inline-pill effect; not a true rounded
+  // pill (docx limitation) but reads cleanly as a coloured chip.
+  const bandKey = String(screening.band ?? '')
+  const bandLabel = BAND_LABELS[bandKey as keyof typeof BAND_LABELS] ?? bandKey
+  const bandColour = colourForBand(bandKey)
+  out.push(new Paragraph({
+    spacing: { before: 0, after: 240 },
+    children: [new TextRun({
+      text: ` ${bandLabel} `,
+      bold: true,
+      size: 22,
+      font: FONT,
+      color: bandColour.ink,
+      shading: { type: ShadingType.SOLID, color: bandColour.fill, fill: bandColour.fill },
     })],
   }))
 
-  // Next action body line (sits below the score / pill strip)
-  out.push(p(
-    `Next action: ${ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}`,
-    { size: 22, spacing: { before: 200, after: 200 } },
-  ))
+  // Next action body line - label bold, value regular.
+  out.push(new Paragraph({
+    spacing: { before: 0, after: 240 },
+    children: [
+      new TextRun({ text: 'Next action: ', bold: true, size: 22, font: FONT, color: '111111' }),
+      new TextRun({
+        text: ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action,
+        size: 22, font: FONT, color: '111111',
+      }),
+    ],
+  }))
 
   // Rationale - plain paragraph, no heading (matches site UI).
   if (screening.rationale_short) {
@@ -291,14 +301,15 @@ function buildScoreSummarySection(opts: {
 
   // Criteria section
   if (Array.isArray(screening.criteria_scores) && screening.criteria_scores.length > 0) {
-    // Small-caps muted "Criteria" label (mirrors site's text-[11px] uppercase tracking-wider muted).
+    // Small-caps muted "Criteria" label (mirrors site's
+    // text-[11px] uppercase tracking-wider muted styling).
     out.push(new Paragraph({
       spacing: { before: 120, after: 160 },
       children: [new TextRun({
         text: 'CRITERIA',
         bold: true,
         size: 18,
-        color: SOFT_INK,
+        color: '6B6B66',
         characterSpacing: 30,
         font: FONT,
       })],
@@ -310,15 +321,16 @@ function buildScoreSummarySection(opts: {
     for (const cs of screening.criteria_scores as Array<{ id: string; score: number; rationale?: string; evidence?: Array<{ text: string }> }>) {
       const labelText = criteriaById[cs.id] ?? cs.id
       const cardChildren: Paragraph[] = []
+      const cardColour = colourForScore(cs.score)
 
       // Top row of card: label (left) + score (right) via right-aligned tab.
       cardChildren.push(new Paragraph({
         spacing: { before: 0, after: 100 },
         tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
         children: [
-          new TextRun({ text: labelText, bold: true, size: 22, font: FONT }),
+          new TextRun({ text: labelText, bold: true, size: 22, font: FONT, color: '111111' }),
           new TextRun({ text: '\t', font: FONT }),
-          new TextRun({ text: `${cs.score}/5`, bold: true, size: 22, font: FONT }),
+          new TextRun({ text: `${cs.score}/5`, bold: true, size: 22, font: FONT, color: cardColour.ink }),
         ],
       }))
 
@@ -330,9 +342,7 @@ function buildScoreSummarySection(opts: {
         }))
       }
 
-      // Italic indented blockquote - matches the site's evidence
-      // treatment with a soft left rule (approximated via paragraph
-      // border on the LEFT side only).
+      // Italic indented blockquote with a soft left rule.
       if (cs.evidence?.[0]?.text) {
         cardChildren.push(new Paragraph({
           spacing: { before: 0, after: 0 },
@@ -350,13 +360,14 @@ function buildScoreSummarySection(opts: {
         }))
       }
 
-      // Shaded "card" - 1-row 1-cell Table with light fill, no borders.
+      // Score-tinted "card" - 1-row 1-cell Table with the colour
+      // selected from the green/amber/red mapping.
       out.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: noBorders(),
         rows: [new TableRow({
           children: [new TableCell({
-            shading: { type: ShadingType.SOLID, color: CARD_FILL, fill: CARD_FILL },
+            shading: { type: ShadingType.SOLID, color: cardColour.fill, fill: cardColour.fill },
             margins: { top: 200, bottom: 200, left: 280, right: 280 },
             borders: noBorders(),
             children: cardChildren,
@@ -424,12 +435,14 @@ function buildFormattedCvSection(payload: CvPayload): Array<Paragraph | Table> {
 // ── client logo header ─────────────────────────────────────────────
 // Fetches the customer's uploaded brand logo (businesses.logo_url) and
 // returns a docx Header that places it top-right of every page in the
-// final downloads. Fails gracefully: missing URL, fetch error, or
-// undecodable image -> no header rather than failing the export.
+// final downloads. The image-size probe reads the natural dimensions
+// of the uploaded image so we can scale it to fit a bounding box
+// without stretching (fix: tall or square logos previously came out
+// squashed because the transformation hard-coded 120x40).
 //
-// The image is constrained to a 120x40 EMU box that keeps tall logos
-// proportional in the header slot. Mirrors lib/render/docx.ts
-// buildLogoFooter() (the same pattern used by AI Administrator).
+// Fails gracefully: missing URL, fetch error, undecodable image, or
+// natural dimensions unavailable -> no header rather than failing
+// the export.
 async function buildLogoHeader(logoUrl: string | null): Promise<Header | null> {
   if (!logoUrl) return null
   try {
@@ -447,6 +460,26 @@ async function buildLogoHeader(logoUrl: string | null): Promise<Header | null> {
       : ct.includes('gif')  ? 'gif'
       : ct.includes('bmp')  ? 'bmp'
       : 'png'
+
+    // Probe natural dimensions so we can scale proportionally inside
+    // a bounding box. image-size is already in node_modules (transitive
+    // dep). If the probe fails, fall back to the previous hard-coded
+    // 120x40 so the header still renders, just slightly squashed.
+    const BOX_W = 160
+    const BOX_H = 56
+    let drawW = 120
+    let drawH = 40
+    try {
+      const probe = (await import('image-size')).default(buf) as { width?: number; height?: number }
+      if (probe?.width && probe?.height) {
+        const scale = Math.min(BOX_W / probe.width, BOX_H / probe.height)
+        drawW = Math.max(1, Math.round(probe.width * scale))
+        drawH = Math.max(1, Math.round(probe.height * scale))
+      }
+    } catch (err) {
+      console.warn('[cv-screening/export] image-size probe failed, using default 120x40:', (err as Error).message)
+    }
+
     return new Header({
       children: [
         new Paragraph({
@@ -454,7 +487,7 @@ async function buildLogoHeader(logoUrl: string | null): Promise<Header | null> {
           children: [
             new ImageRun({
               data: buf,
-              transformation: { width: 120, height: 40 },
+              transformation: { width: drawW, height: drawH },
               type,
             } as ConstructorParameters<typeof ImageRun>[0]),
           ],
