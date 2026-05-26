@@ -75,11 +75,15 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   const [downloadBusy, setDownloadBusy] = useState<'score' | 'formatted' | 'combined' | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
 
-  async function downloadExport(mode: 'score' | 'formatted' | 'combined', label: string) {
+  // Engine toggle: 'v1' keeps the live docx-library path. 'v2' uses the
+  // @turbodocx/html-to-docx POC route. A/B harness only - both produce
+  // the same content; the founder eyeballs render quality.
+  async function downloadExport(mode: 'score' | 'formatted' | 'combined', label: string, engine: 'v1' | 'v2' = 'v1') {
     setDownloadBusy(mode)
     setDownloadError(null)
     try {
-      const res = await fetch(`/api/cv-screening/screenings/${screening.id}/export?mode=${mode}`)
+      const endpoint = engine === 'v2' ? 'export-v2' : 'export'
+      const res = await fetch(`/api/cv-screening/screenings/${screening.id}/${endpoint}?mode=${mode}`)
       const ct = res.headers.get('content-type') || ''
       if (!res.ok) {
         // Try JSON first - the export route returns structured errors.
@@ -332,6 +336,46 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             <p className="text-[10px] text-muted mt-2">
               Formatted CV preserves the candidate&apos;s wording verbatim - only the section order matches the Humanistiqs layout. Combine Both packages the summary on page one and the CV from page two onwards.
             </p>
+
+            {/* A/B harness for the @turbodocx/html-to-docx POC. Same three
+                downloads, rendered through the HTML pipeline so the founder
+                can eyeball quality vs v1. Remove this block when the
+                migration is signed off; the v1 buttons above become the
+                v2 engine path. */}
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
+                v2 engine (HTML -&gt; docx) - test only
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => downloadExport('score', 'CV Score Summary', 'v2')}
+                  disabled={!!downloadBusy}
+                  className="bg-bg border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-light disabled:opacity-60"
+                >
+                  {downloadBusy === 'score' ? 'Generating...' : 'v2 Score Summary'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadExport('formatted', 'Formatted & Branded CV', 'v2')}
+                  disabled={!!downloadBusy}
+                  className="bg-bg border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-light disabled:opacity-60"
+                >
+                  {downloadBusy === 'formatted' ? 'Generating...' : 'v2 Formatted CV'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadExport('combined', 'Combined download', 'v2')}
+                  disabled={!!downloadBusy}
+                  className="bg-bg border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-light disabled:opacity-60"
+                >
+                  {downloadBusy === 'combined' ? 'Generating...' : 'v2 Combined'}
+                </button>
+              </div>
+              <p className="text-[10px] text-muted mt-2">
+                Files download with a `_v2.docx` suffix so you can sit them side-by-side with the v1 outputs.
+              </p>
+            </div>
             {downloadError && (
               <div className="mt-2 text-[11px] text-danger flex items-start gap-2">
                 <span className="flex-1">{downloadError}</span>
