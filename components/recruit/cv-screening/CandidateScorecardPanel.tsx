@@ -87,10 +87,15 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
       const ct = res.headers.get('content-type') || ''
       if (!res.ok) {
         // Try JSON first - the export route returns structured errors.
+        // Render BOTH the friendly error and the detail so Postgres /
+        // Claude / fetch errors surface to the founder without diving
+        // into Vercel logs.
         let detail = ''
         try {
           const j = await res.json()
-          detail = j?.error || j?.detail || ''
+          const top = j?.error ?? ''
+          const inner = j?.detail ?? ''
+          detail = top && inner ? `${top} - ${inner}` : (top || inner)
         } catch {
           detail = await res.text().catch(() => '')
         }
