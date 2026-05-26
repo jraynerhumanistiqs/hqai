@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import type { Rubric, RubricCriterion } from '@/lib/cv-screening-types'
+import { useRef, useState } from 'react'
+import type { Rubric } from '@/lib/cv-screening-types'
 
 interface SavedRubric {
   id: string
@@ -26,6 +26,31 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draftRubric, setDraftRubric] = useState<Rubric | null>(null)
+  // PD upload state - drag-and-drop populates the JD textarea so the
+  // recruiter doesn't have to copy-paste from Word / Adobe / Notion.
+  // The textarea stays the source of truth so they can still tweak
+  // after the file is parsed.
+  const [pdDragOver, setPdDragOver] = useState(false)
+  const [pdParsing, setPdParsing] = useState(false)
+  const [pdSourceName, setPdSourceName] = useState<string | null>(null)
+  const pdFileInput = useRef<HTMLInputElement | null>(null)
+
+  async function handlePdFile(file: File) {
+    setError(null)
+    setPdParsing(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/cv-screening/parse-pd', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      setJd(prev => prev.trim() ? `${prev.trim()}\n\n${data.text}` : data.text)
+      setPdSourceName(file.name)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not read that PD')
+    }
+    setPdParsing(false)
+  }
 
   async function suggest() {
     if (!jd.trim() || !label.trim()) {
@@ -154,6 +179,45 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
                 <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
                   Job description
                 </label>
+
+                {/* Drop zone for PD/JD file upload. Same visual idiom as
+                    the CV dropzone on the main page so the experience is
+                    consistent. After parse, text lands in the textarea
+                    below and the user can edit before clicking Suggest. */}
+                <label
+                  onDragOver={e => { e.preventDefault(); setPdDragOver(true) }}
+                  onDragLeave={() => setPdDragOver(false)}
+                  onDrop={e => {
+                    e.preventDefault()
+                    setPdDragOver(false)
+                    const f = e.dataTransfer.files?.[0]
+                    if (f) handlePdFile(f)
+                  }}
+                  className={`block border-2 border-dashed rounded-2xl px-4 py-5 text-center cursor-pointer transition-colors mb-2 ${
+                    pdDragOver ? 'border-charcoal bg-light' : 'border-border hover:border-mid hover:bg-light'
+                  } ${pdParsing ? 'opacity-60 pointer-events-none' : ''}`}
+                >
+                  <input
+                    ref={pdFileInput}
+                    type="file"
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0]
+                      if (f) handlePdFile(f)
+                      e.target.value = ''
+                    }}
+                  />
+                  <p className="text-xs font-bold text-charcoal mb-0.5">
+                    {pdParsing ? 'Reading PD...' : 'Drop a PD here or click to upload'}
+                  </p>
+                  <p className="text-[11px] text-muted">
+                    {pdSourceName
+                      ? `Loaded from ${pdSourceName}. Edit the text below if you need to.`
+                      : 'PDF, DOCX or plain text. Or paste it straight into the box below.'}
+                  </p>
+                </label>
+
                 <textarea
                   value={jd}
                   onChange={e => setJd(e.target.value)}

@@ -58,6 +58,20 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [batchHandoffResult, setBatchHandoffResult] = useState<string | null>(null)
   const [savingStarterId, setSavingStarterId] = useState<string | null>(null)
 
+  // Rescore toast - when the user saves a new rubric version we offer
+  // a one-click "rescore N candidates against the new version" CTA.
+  // Tracks both the target version id and the list of screenings
+  // eligible for rescore (i.e. all rows in the rubric family on the
+  // previous version).
+  const [rescorePrompt, setRescorePrompt] = useState<{
+    targetRubricId: string
+    targetVersion: number
+    eligibleScreeningIds: string[]
+  } | null>(null)
+  const [rescoreBusy, setRescoreBusy] = useState(false)
+  const [rescoreProgress, setRescoreProgress] = useState<{ done: number; total: number } | null>(null)
+  const [rescoreError, setRescoreError] = useState<string | null>(null)
+
   // Campaign Coach handoff - Step 5 ("Create Job in CV Scoring Agent
   // with no ad") stashes the role payload to sessionStorage and routes
   // the user here. We hydrate that into a pre-filled "New scoring
@@ -324,7 +338,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     ? (activeFamily.length > 1
         ? `${activeCustom.label_family ?? activeCustom.label} (v${activeCustom.version_number ?? 1})`
         : activeCustom.label)
-    : (activeStandard?.role ?? 'Select a rubric')
+    : (activeStandard?.role ?? 'Select scoring criteria')
   const activeRubricKind: 'custom' | 'standard' | null = activeCustom ? 'custom' : (activeStandard ? 'standard' : null)
 
   // Mobile back state: when a rubric is selected we hide the left panel
@@ -375,7 +389,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             CV Scoring Agent
           </h1>
           <p className="text-xs text-ink-soft mb-2">
-            {customCount} saved criteria. Score CVs against your rubric, then send the shortlist to video pre-screen.
+            {customCount} saved criteria. Score CVs against your criteria, then send the shortlist to video pre-screen.
           </p>
           <button
             onClick={() => setShowNewRubric(true)}
@@ -430,7 +444,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
                 </svg>
-                Back to rubrics
+                Back to scoring criteria
               </button>
             </div>
 
@@ -442,7 +456,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 <header className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                      {activeRubricKind === 'custom' ? 'Custom rubric' : 'Standard rubric'}
+                      {activeRubricKind === 'custom' ? 'Custom scoring criteria' : 'Standard scoring criteria'}
                     </p>
                     <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-1.5">
                       {activeRubricLabel}
@@ -504,6 +518,16 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
 
                 {/* Upload area */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl p-6 space-y-5">
+                  {/* Pre-flight nudge when no candidates yet - reminds the
+                      recruiter to sanity-check the criteria match the PD
+                      before they pour CVs in. Same scoring criteria seed
+                      the video pre-screen questions, so getting the rubric
+                      right pays off twice. */}
+                  {filtered.length === 0 && (
+                    <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-charcoal leading-relaxed">
+                      <strong className="text-warning">Before you upload:</strong> double-check the scoring criteria on the left match your PD. They shape both the CV scores AND the video pre-screen questions, so editing them later means rescoring.
+                    </div>
+                  )}
                   <label
                     onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                     onDragLeave={() => setDragOver(false)}
@@ -535,16 +559,26 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   </label>
 
                   {pending.length > 0 && (
-                    <ul className="space-y-1.5">
-                      {pending.map(p => (
-                        <li key={p.id} className="flex items-center justify-between text-xs bg-light rounded-full px-4 py-2">
-                          <span className="text-charcoal font-bold truncate max-w-[60%]">{p.filename}</span>
-                          <span className={p.status === 'error' ? 'text-danger' : 'text-mid'}>
-                            {p.status === 'error' ? `Couldn't process - ${p.error}` : statusLabel(p.status)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <ul className="space-y-1.5">
+                        {pending.map(p => (
+                          <li key={p.id} className="flex items-center justify-between text-xs bg-light rounded-full px-4 py-2">
+                            <span className="text-charcoal font-bold truncate max-w-[60%]">{p.filename}</span>
+                            <span className={p.status === 'error' ? 'text-danger' : 'text-mid'}>
+                              {p.status === 'error' ? `Couldn't process - ${p.error}` : statusLabel(p.status)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      {/* Reset SME expectations. Jess noted the scoring
+                          feels slow because she expected instant. This
+                          calmly explains the depth trade-off so she
+                          doesn't refresh halfway through. Anti-Employsure
+                          tone - professional, no panic. */}
+                      <p className="text-[11px] text-muted leading-relaxed mt-2">
+                        Scoring usually takes 30-90 seconds per CV. We run each one through your criteria with full reasoning, not a keyword match - the depth is what makes the ranking trustworthy.
+                      </p>
+                    </>
                   )}
                 </section>
 
@@ -758,23 +792,48 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center max-w-xs px-4">
-              <div className="w-14 h-14 bg-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-charcoal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
-              </div>
-              <h2 className="font-display text-xl font-bold text-charcoal mb-1 uppercase tracking-wider">Select scoring criteria</h2>
-              <p className="text-sm text-mid mb-5">
-                Pick a rubric from the left panel, or create a new one from a job ad.
+          <div className="flex items-center justify-center h-full px-4 py-10">
+            <div className="max-w-md w-full">
+              <h2 className="font-display text-xl font-bold text-charcoal mb-2 uppercase tracking-wider text-center">
+                Get started in two steps
+              </h2>
+              <p className="text-sm text-mid mb-6 text-center">
+                Set up the scoring criteria first, then upload CVs to score against them.
               </p>
-              <button
-                onClick={() => setShowNewRubric(true)}
-                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
-              >
-                + New scoring criteria
-              </button>
+
+              {/* Numbered onboarding. Explicit "1 -> 2" so SMEs who
+                  don't know the word "rubric" still see that criteria
+                  come BEFORE uploads. Jess uploaded CVs first and
+                  waited; this stops that. */}
+              <ol className="space-y-3 mb-6">
+                <li className="flex items-start gap-3 bg-bg-elevated shadow-card rounded-2xl px-4 py-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-black text-white text-sm font-bold flex items-center justify-center">1</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-charcoal">Create scoring criteria</p>
+                    <p className="text-xs text-mid leading-relaxed">
+                      The questions and skills each CV will be judged against. Paste a job ad or upload a PD and the AI drafts the criteria for you.
+                    </p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 bg-bg-elevated shadow-card rounded-2xl px-4 py-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-light text-charcoal text-sm font-bold flex items-center justify-center">2</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-charcoal">Upload CVs to score</p>
+                    <p className="text-xs text-mid leading-relaxed">
+                      Drop a batch in. Each CV is scored against your criteria, with the evidence quoted from the CV.
+                    </p>
+                  </div>
+                </li>
+              </ol>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowNewRubric(true)}
+                  className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+                >
+                  + Create scoring criteria
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -821,11 +880,118 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           rubric={editingRubric}
           onClose={() => setEditingRubric(null)}
           onSaved={(newVersion) => {
+            // Capture the previous rubric family BEFORE we add the new
+            // version so we know which existing screenings are eligible
+            // for the rescore-to-the-new-version toast prompt.
+            const familyKey = newVersion.parent_rubric_id ?? newVersion.id
+            const familyIds = new Set(
+              customRubrics
+                .filter(cr => (cr.parent_rubric_id ?? cr.id) === familyKey)
+                .map(cr => cr.id),
+            )
+            const eligible = screenings.filter(s => familyIds.has(s.rubric_id) && s.rubric_id !== newVersion.id)
+
             setCustomRubrics(prev => [newVersion, ...prev])
             setRubricId(newVersion.id)
             setEditingRubric(null)
+
+            if (eligible.length > 0) {
+              setRescorePrompt({
+                targetRubricId: newVersion.id,
+                targetVersion: newVersion.version_number ?? 1,
+                eligibleScreeningIds: eligible.map(s => s.id),
+              })
+              setRescoreError(null)
+              setRescoreProgress(null)
+            }
           }}
         />
+      )}
+
+      {/* Rescore-against-new-version toast. Fires after a successful
+          rubric edit when there are candidates still pegged to the
+          previous version. One click rescores them in place against
+          the new version. Audit trail trade-off: v1 scores are
+          overwritten - the comment block in the rescore route
+          captures the design decision. */}
+      {rescorePrompt && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-bg-elevated shadow-card rounded-2xl border border-border px-5 py-4 max-w-md w-[calc(100%-2rem)]">
+          <p className="text-xs font-bold text-charcoal mb-1">
+            v{rescorePrompt.targetVersion} saved
+          </p>
+          {rescoreError ? (
+            <p className="text-xs text-danger mb-2">{rescoreError}</p>
+          ) : rescoreBusy && rescoreProgress ? (
+            <p className="text-xs text-mid mb-2">
+              Rescoring {rescoreProgress.done} of {rescoreProgress.total}...
+            </p>
+          ) : (
+            <p className="text-xs text-mid mb-2">
+              You have {rescorePrompt.eligibleScreeningIds.length} candidate{rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'} scored on the previous version. Rescore them against v{rescorePrompt.targetVersion}?
+            </p>
+          )}
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={() => { setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null) }}
+              disabled={rescoreBusy}
+              className="text-xs font-bold text-mid hover:text-charcoal px-3 py-1.5 disabled:opacity-50"
+            >
+              Not now
+            </button>
+            <button
+              onClick={async () => {
+                if (!rescorePrompt) return
+                setRescoreBusy(true)
+                setRescoreError(null)
+                const total = rescorePrompt.eligibleScreeningIds.length
+                let done = 0
+                setRescoreProgress({ done, total })
+                const failures: string[] = []
+                // Sequential rather than Promise.all to avoid hammering
+                // Claude with N concurrent scoring calls. Each call is
+                // already 30-90 seconds; concurrency would push us into
+                // rate-limit territory on the pilot account.
+                for (const sid of rescorePrompt.eligibleScreeningIds) {
+                  try {
+                    const res = await fetch(`/api/cv-screening/screenings/${sid}/rescore`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ rubric_id: rescorePrompt.targetRubricId }),
+                    })
+                    const data = await res.json()
+                    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+                    setScreenings(prev => prev.map(s => s.id === sid ? {
+                      ...s,
+                      rubric_id: rescorePrompt.targetRubricId,
+                      overall_score: data.new_overall_score,
+                      band: data.new_band,
+                      override_band: null,
+                      override_next_action: null,
+                      override_comment: null,
+                    } : s))
+                  } catch (err) {
+                    failures.push(err instanceof Error ? err.message : 'unknown')
+                  }
+                  done += 1
+                  setRescoreProgress({ done, total })
+                }
+                setRescoreBusy(false)
+                if (failures.length > 0) {
+                  setRescoreError(`${failures.length} of ${total} failed. ${failures[0]}`)
+                } else {
+                  setRescorePrompt(null)
+                  setRescoreProgress(null)
+                }
+              }}
+              disabled={rescoreBusy}
+              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-1.5 disabled:opacity-50"
+            >
+              {rescoreBusy
+                ? 'Rescoring...'
+                : `Rescore ${rescorePrompt.eligibleScreeningIds.length} candidate${rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'}`}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Manual override modal - human edit of band/next_action/comment */}

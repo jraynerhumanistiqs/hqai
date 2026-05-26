@@ -981,7 +981,14 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           <button
                             onClick={() => {
                               setRowInviteFor(r.id)
-                              setRowInviteEmail('')
+                              // Pre-fill from the CV-extracted email when we
+                              // have one (item 11). The placeholder pattern
+                              // for CV-imported rows is `cv-<id>@no-email.local`
+                              // - we explicitly ignore that so the recruiter
+                              // sees an empty box and types one in rather than
+                              // accidentally emailing the placeholder.
+                              const e = r.candidate_email
+                              setRowInviteEmail(e && !e.endsWith('@no-email.local') ? e : '')
                               setRowInviteName(r.candidate_name ?? '')
                               setRowInviteError(null)
                             }}

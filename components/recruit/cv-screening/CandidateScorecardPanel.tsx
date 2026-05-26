@@ -56,11 +56,64 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   const [handoffError, setHandoffError] = useState<string | null>(null)
   const [handoffResult, setHandoffResult] = useState<HandoffResult | null>(null)
   const [draftQuestions, setDraftQuestions] = useState<string[] | null>(null)
+  // Snapshot of what came back from the first /handoff call, so we
+  // can detect whether the recruiter edited the questions and only
+  // send questions_override when they actually changed something.
+  const [originalQuestions, setOriginalQuestions] = useState<string[] | null>(null)
+  const [resending, setResending] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const [probeBusy, setProbeBusy] = useState(false)
   const [probeError, setProbeError] = useState<string | null>(null)
   const [probeResult, setProbeResult] = useState<ProbeResult | null>(null)
+
+  // Download state. Previously we used plain <a href> links which
+  // sent the user to the export route directly - so when the route
+  // returned an error JSON the browser rendered it as raw text and
+  // the user saw "a page with code". We now fetch + blob and surface
+  // any non-2xx as an inline error so they stay on the scorecard.
+  const [downloadBusy, setDownloadBusy] = useState<'score' | 'formatted' | 'combined' | null>(null)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
+
+  async function downloadExport(mode: 'score' | 'formatted' | 'combined', label: string) {
+    setDownloadBusy(mode)
+    setDownloadError(null)
+    try {
+      const res = await fetch(`/api/cv-screening/screenings/${screening.id}/export?mode=${mode}`)
+      const ct = res.headers.get('content-type') || ''
+      if (!res.ok) {
+        // Try JSON first - the export route returns structured errors.
+        let detail = ''
+        try {
+          const j = await res.json()
+          detail = j?.error || j?.detail || ''
+        } catch {
+          detail = await res.text().catch(() => '')
+        }
+        throw new Error(detail || `HTTP ${res.status}`)
+      }
+      if (!ct.includes('officedocument') && !ct.includes('octet-stream')) {
+        // 2xx but not a docx - belt-and-braces guard so we never
+        // present raw JSON or text as a download.
+        const text = await res.text().catch(() => '')
+        throw new Error(text || 'Unexpected response from export route')
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const cd = res.headers.get('Content-Disposition') || ''
+      const m = /filename="([^"]+)"/.exec(cd)
+      a.download = m?.[1] ?? `${screening.candidate_label || 'candidate'}_${mode}.docx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setDownloadError(`Could not generate ${label} - ${err instanceof Error ? err.message : 'unknown'}`)
+    }
+    setDownloadBusy(null)
+  }
 
   async function runCounterfactual() {
     setProbeBusy(true)
@@ -100,10 +153,54 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
       }
       setHandoffResult({ candidate_url: data.candidate_url, questions: data.questions })
       setDraftQuestions(data.questions)
+      setOriginalQuestions(data.questions)
     } catch (err) {
       setHandoffError(err instanceof Error ? err.message : 'Unknown error')
     }
     setHandoffLoading(false)
+  }
+
+  // Re-send the handoff with the edited questions. The handoff route
+  // accepts a questions_override field that, when present, bypasses
+  // the AI question generator and uses the supplied list verbatim.
+  // Reuses the same session because /handoff creates a new prescreen
+  // row each call - we only re-run it if the questions actually
+  // changed so the candidate URL doesn't bounce around.
+  async function applyEditedQuestions() {
+    if (!draftQuestions) return
+    const trimmed = draftQuestions.map(q => q.trim()).filter(Boolean)
+    if (trimmed.length < 3) {
+      setHandoffError('Keep at least 3 questions.')
+      return
+    }
+    const sameAsOriginal = originalQuestions
+      && trimmed.length === originalQuestions.length
+      && trimmed.every((q, i) => q === originalQuestions[i])
+    if (sameAsOriginal) {
+      // Nothing changed - close the modal silently.
+      setHandoffOpen(false)
+      return
+    }
+    setResending(true)
+    setHandoffError(null)
+    try {
+      const res = await fetch('/api/cv-screening/handoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          screening_id: screening.id,
+          questions_override: trimmed,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      setHandoffResult({ candidate_url: data.candidate_url, questions: data.questions })
+      setOriginalQuestions(data.questions)
+      setDraftQuestions(data.questions)
+    } catch (err) {
+      setHandoffError(err instanceof Error ? err.message : 'Could not save edits')
+    }
+    setResending(false)
   }
 
   async function copyLink() {
@@ -207,28 +304,46 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               Download
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <a
-                href={`/api/cv-screening/screenings/${screening.id}/export?mode=score`}
-                className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+              <button
+                type="button"
+                onClick={() => downloadExport('score', 'CV Score Summary')}
+                disabled={!!downloadBusy}
+                className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal disabled:opacity-60"
               >
-                CV Score Summary
-              </a>
-              <a
-                href={`/api/cv-screening/screenings/${screening.id}/export?mode=formatted`}
-                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg"
+                {downloadBusy === 'score' ? 'Generating...' : 'CV Score Summary'}
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadExport('formatted', 'Formatted & Branded CV')}
+                disabled={!!downloadBusy}
+                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg disabled:opacity-60"
               >
-                Formatted &amp; Branded CV
-              </a>
-              <a
-                href={`/api/cv-screening/screenings/${screening.id}/export?mode=combined`}
-                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg"
+                {downloadBusy === 'formatted' ? 'Generating...' : 'Formatted & Branded CV'}
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadExport('combined', 'Combined download')}
+                disabled={!!downloadBusy}
+                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg disabled:opacity-60"
               >
-                Combine Both
-              </a>
+                {downloadBusy === 'combined' ? 'Generating...' : 'Combine Both'}
+              </button>
             </div>
             <p className="text-[10px] text-muted mt-2">
               Formatted CV preserves the candidate&apos;s wording verbatim - only the section order matches the Humanistiqs layout. Combine Both packages the summary on page one and the CV from page two onwards.
             </p>
+            {downloadError && (
+              <div className="mt-2 text-[11px] text-danger flex items-start gap-2">
+                <span className="flex-1">{downloadError}</span>
+                <button
+                  type="button"
+                  onClick={() => setDownloadError(null)}
+                  className="text-mid hover:text-charcoal font-bold"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
 
           <div>
@@ -351,16 +466,58 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                 {handoffResult && draftQuestions && (
                   <>
                     <div>
-                      <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-                        Generated questions
-                      </p>
-                      <ol className="space-y-2 list-decimal list-inside text-sm text-charcoal">
+                      <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                        <p className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                          Generated questions
+                        </p>
+                        <p className="text-[10px] text-muted">
+                          Edit any line to tailor it to the PD.
+                        </p>
+                      </div>
+                      {/* Editable question list. Mirrors the question editor
+                          in PhoneRecorder so the interaction shape is the
+                          same across surfaces. Saving with edits POSTs
+                          questions_override back to the handoff route. */}
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                         {draftQuestions.map((q, i) => (
-                          <li key={i} className="leading-relaxed">{q}</li>
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-[11px] font-bold text-mid mt-2.5 w-5 text-right tabular-nums">{i + 1}.</span>
+                            <textarea
+                              value={q}
+                              onChange={e => setDraftQuestions(qs => qs ? qs.map((row, idx) => idx === i ? e.target.value : row) : qs)}
+                              rows={2}
+                              className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-ink resize-y text-charcoal"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setDraftQuestions(qs => qs ? qs.filter((_, idx) => idx !== i) : qs)}
+                              className="text-[11px] font-bold text-mid hover:text-danger mt-2.5 px-1.5"
+                              aria-label="Remove question"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         ))}
-                      </ol>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setDraftQuestions(qs => qs ? [...qs, ''] : [''])}
+                          className="text-xs font-bold text-ink hover:underline"
+                        >
+                          + Add question
+                        </button>
+                        <button
+                          type="button"
+                          onClick={applyEditedQuestions}
+                          disabled={resending}
+                          className="text-xs font-bold bg-bg-elevated border border-border rounded-full px-3 py-1.5 hover:bg-light disabled:opacity-50"
+                        >
+                          {resending ? 'Saving...' : 'Apply edits'}
+                        </button>
+                      </div>
                       <p className="text-xs text-muted mt-2">
-                        These target {screening.candidate_label}'s lowest-scoring criteria. The video answers will be auto-scored against the same rubric the CV was scored on.
+                        These target {screening.candidate_label}&apos;s lowest-scoring criteria. The video answers will be auto-scored against the same criteria the CV was scored on. Edit any question to tailor it to the PD.
                       </p>
                     </div>
 
