@@ -315,9 +315,22 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           const text = await res.text().catch(() => '')
           throw new Error(text || `HTTP ${res.status}`)
         }
-        const data = (await res.json()) as { screening: CandidateScreening }
-        setScreenings(s => [data.screening, ...s])
-        setPending(p => p.filter(x => x.id !== id))
+        const data = (await res.json()) as { screening: CandidateScreening; persistence_warning?: string | null }
+        // If the score API couldn't persist the row to Supabase (typically
+        // a schema migration that hasn't been applied), surface that on
+        // the pending tile rather than slipping a "local-*" placeholder
+        // into the list as if it had saved. Downloads won't work for
+        // these rows; the user sees the real Postgres message + can act.
+        if (data.persistence_warning) {
+          setPending(p => p.map(x => x.id === id ? {
+            ...x,
+            status: 'error',
+            error: `Score generated but not saved to database - ${data.persistence_warning}. Check the Vercel logs for the full Postgres detail.`,
+          } : x))
+        } else {
+          setScreenings(s => [data.screening, ...s])
+          setPending(p => p.filter(x => x.id !== id))
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Unknown error'
         setPending(p => p.map(x => x.id === id ? { ...x, status: 'error', error: msg } : x))

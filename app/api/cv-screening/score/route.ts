@@ -94,6 +94,10 @@ export async function POST(req: NextRequest) {
 
     let savedId = `local-${Math.random().toString(36).slice(2, 10)}`
     let createdAt = new Date().toISOString()
+    // Surfaces persistence failures up to the UI so the caller can
+    // disable download buttons and ask the user to retry / report it,
+    // instead of pretending the screening saved when it didn't.
+    let persistenceError: string | null = null
 
     if (businessId) {
       const { data: inserted, error } = await supabase
@@ -123,6 +127,17 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
       if (!error && inserted) {
         savedId = inserted.id
         createdAt = inserted.created_at
+      } else if (error) {
+        // Loudly log so the next regression is findable in Vercel logs,
+        // and capture the message so the UI can warn the user instead
+        // of silently handing them a local- placeholder id.
+        console.error('[cv-screening/score] cv_screenings insert failed:', {
+          message: error.message,
+          code: (error as { code?: string }).code,
+          hint: (error as { hint?: string }).hint,
+          details: (error as { details?: string }).details,
+        })
+        persistenceError = error.message
       }
 
       // If the bias detector tripped on this candidate AND the business
@@ -162,7 +177,10 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
       created_at: createdAt,
     }
 
-    return NextResponse.json({ screening })
+    // persistence_warning surfaces the cv_screenings INSERT error
+    // verbatim so the UI can show the user exactly why the row didn't
+    // save (typically a missing column from an unapplied migration).
+    return NextResponse.json({ screening, persistence_warning: persistenceError })
   } catch (err) {
     console.error('[cv-screening/score]', err)
     const detail = err instanceof Error ? err.message : String(err)

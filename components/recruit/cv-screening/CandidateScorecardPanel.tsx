@@ -81,6 +81,20 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   async function downloadExport(mode: 'score' | 'formatted' | 'combined', label: string, engine: 'v1' | 'v2' = 'v1') {
     setDownloadBusy(mode)
     setDownloadError(null)
+    // Guard: if the screening never persisted to Supabase (the score
+    // route fell back to a `local-*` placeholder id), the export
+    // routes will error with "invalid input syntax for type uuid".
+    // Surface a clearer message before we even hit the network so the
+    // user understands the root cause (typically an unapplied DB
+    // migration that's been logged in Vercel).
+    if (typeof screening.id === 'string' && screening.id.startsWith('local-')) {
+      setDownloadError(
+        'This screening was not saved to the database - downloads only work for persisted rows. ' +
+        'Re-score this CV; if it fails again, check the Vercel function logs for "[cv-screening/score] cv_screenings insert failed" - the Postgres error there will tell us which column is missing.'
+      )
+      setDownloadBusy(null)
+      return
+    }
     try {
       const endpoint = engine === 'v2' ? 'export-v2' : 'export'
       const res = await fetch(`/api/cv-screening/screenings/${screening.id}/${endpoint}?mode=${mode}`)
