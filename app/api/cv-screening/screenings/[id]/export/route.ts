@@ -34,6 +34,10 @@ import {
   PageBreak,
   Header,
   ImageRun,
+  TabStopType,
+  TabStopPosition,
+  VerticalAlign,
+  ShadingType,
 } from 'docx'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -156,6 +160,45 @@ function bullet(text: string): Paragraph {
   })
 }
 
+// Score summary section. Visual target: mirror the in-product
+// CandidateScorecardPanel (CV Scoring Agent) so a recruiter sharing
+// the downloaded docx with a hiring manager sees the same look they
+// see on screen. Layout:
+//
+//   [business name top right, small grey]
+//   H1: Candidate Score Summary - {name}
+//   Role: {role}
+//   <BIG score, ~28pt bold>  <band as a shaded pill>
+//   Next action: {label}
+//   {rationale paragraph - no heading, plain body}
+//   "Criteria" (small caps, muted)
+//   For each criterion:
+//     [shaded grey card]
+//       label (bold left)                       N/5 (bold right)
+//       rationale (small grey)
+//       "evidence quote" (italic, indented, soft grey)
+//
+// The "card" is a 1-cell Table with shading fill = bg-light (F5F5F4)
+// and no outer border. The label/score row uses a right-aligned tab
+// stop so the score lands flush to the right edge of the card.
+
+const CARD_FILL = 'F5F5F4'     // bg-light approximation (warm grey)
+const MUTED_INK = '4D4D4D'     // text-mid
+const SOFT_INK  = '6B6B66'     // text-muted
+const ACCENT    = 'D97757'     // clay (band pill)
+const PILL_FILL = 'F5E5DD'     // accent-soft for the band pill background
+
+function noBorders() {
+  return {
+    top:    { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    left:   { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    right:  { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+    insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'auto' },
+  }
+}
+
 function buildScoreSummarySection(opts: {
   screening: any
   rubric: Rubric | null
@@ -163,37 +206,169 @@ function buildScoreSummarySection(opts: {
 }): Array<Paragraph | Table> {
   const { screening, rubric, businessName } = opts
   const out: Array<Paragraph | Table> = []
+
+  // Issuer attribution top right. The on-screen panel sits inside the
+  // customer workspace so it doesn't show this, but the docx travels
+  // outside that workspace so the issuer line still earns its keep.
   out.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     spacing: { before: 0, after: 240 },
-    children: [new TextRun({ text: businessName, size: 18, color: '6B6B66', font: FONT })],
+    children: [new TextRun({ text: businessName, size: 18, color: SOFT_INK, font: FONT })],
   }))
+
+  // H1 - candidate score summary headline
   out.push(h(`Candidate Score Summary - ${screening.candidate_label ?? 'Candidate'}`, 1, 30))
-  out.push(p(rubric?.role ? `Role: ${rubric.role}` : `Rubric: ${screening.rubric_id ?? '-'}`))
-  out.push(p(`Overall score: ${Number(screening.overall_score).toFixed(2)} / 5`, { bold: true }))
-  out.push(p(`Band: ${BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band}`, { bold: true }))
-  out.push(p(`Next action: ${ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}`))
+
+  // Role / rubric eyebrow line
+  out.push(p(rubric?.role ? `Role: ${rubric.role}` : `Rubric: ${screening.rubric_id ?? '-'}`, {
+    size: 20, spacing: { before: 0, after: 200 },
+  }))
+
+  // BIG score number + band "pill" in one Table row. Mirrors the
+  // site's top strip: text-display number + rounded band pill.
+  const overall = Number(screening.overall_score).toFixed(2)
+  const bandLabel = BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band
+  out.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: noBorders(),
+    rows: [new TableRow({
+      children: [
+        new TableCell({
+          width: { size: 35, type: WidthType.PERCENTAGE },
+          borders: noBorders(),
+          verticalAlign: VerticalAlign.CENTER,
+          margins: { top: 0, bottom: 0, left: 0, right: 0 },
+          children: [new Paragraph({
+            spacing: { before: 0, after: 0 },
+            children: [
+              // 56 half-points = 28pt - the site uses 52px (~text-display)
+              // which translates roughly to 28pt in print, retaining
+              // the visual punch without dominating an A4 page.
+              new TextRun({ text: overall, bold: true, size: 56, font: FONT }),
+              new TextRun({ text: '  / 5', size: 22, color: SOFT_INK, font: FONT }),
+            ],
+          })],
+        }),
+        new TableCell({
+          width: { size: 65, type: WidthType.PERCENTAGE },
+          borders: noBorders(),
+          verticalAlign: VerticalAlign.CENTER,
+          margins: { top: 0, bottom: 0, left: 200, right: 0 },
+          children: [new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 0, after: 0 },
+            children: [
+              // The band rendering uses a coloured TextRun with a
+              // background-shaded text run + accent colour. Word's text
+              // shading is a paragraph-level affordance, so we fake the
+              // pill via accent text colour + bold weight. Visual is
+              // less obvious than the on-screen pill but reads cleanly.
+              new TextRun({
+                text: ` ${bandLabel} `,
+                bold: true,
+                size: 22,
+                font: FONT,
+                color: ACCENT,
+                shading: { type: ShadingType.SOLID, color: PILL_FILL, fill: PILL_FILL },
+              }),
+            ],
+          })],
+        }),
+      ],
+    })],
+  }))
+
+  // Next action body line (sits below the score / pill strip)
+  out.push(p(
+    `Next action: ${ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}`,
+    { size: 22, spacing: { before: 200, after: 200 } },
+  ))
+
+  // Rationale - plain paragraph, no heading (matches site UI).
   if (screening.rationale_short) {
-    out.push(h('Summary rationale', 2))
-    out.push(p(screening.rationale_short))
+    out.push(p(screening.rationale_short, { size: 22, spacing: { before: 0, after: 280 } }))
   }
 
+  // Criteria section
   if (Array.isArray(screening.criteria_scores) && screening.criteria_scores.length > 0) {
-    out.push(h('Criteria', 2))
+    // Small-caps muted "Criteria" label (mirrors site's text-[11px] uppercase tracking-wider muted).
+    out.push(new Paragraph({
+      spacing: { before: 120, after: 160 },
+      children: [new TextRun({
+        text: 'CRITERIA',
+        bold: true,
+        size: 18,
+        color: SOFT_INK,
+        characterSpacing: 30,
+        font: FONT,
+      })],
+    }))
+
     const criteriaById: Record<string, string> = {}
     rubric?.criteria.forEach(c => { criteriaById[c.id] = c.label })
+
     for (const cs of screening.criteria_scores as Array<{ id: string; score: number; rationale?: string; evidence?: Array<{ text: string }> }>) {
-      out.push(p(`${criteriaById[cs.id] ?? cs.id} - ${cs.score}/5`, { bold: true, spacing: { before: 120, after: 40 } }))
-      if (cs.rationale) out.push(p(cs.rationale))
-      if (cs.evidence?.[0]?.text) {
-        out.push(new Paragraph({
-          spacing: { before: 0, after: 80 },
-          indent: { left: 360 },
-          children: [new TextRun({ text: `"${cs.evidence[0].text}"`, italics: true, size: 20, font: FONT, color: '4a4a47' })],
+      const labelText = criteriaById[cs.id] ?? cs.id
+      const cardChildren: Paragraph[] = []
+
+      // Top row of card: label (left) + score (right) via right-aligned tab.
+      cardChildren.push(new Paragraph({
+        spacing: { before: 0, after: 100 },
+        tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        children: [
+          new TextRun({ text: labelText, bold: true, size: 22, font: FONT }),
+          new TextRun({ text: '\t', font: FONT }),
+          new TextRun({ text: `${cs.score}/5`, bold: true, size: 22, font: FONT }),
+        ],
+      }))
+
+      // Rationale paragraph - small, muted.
+      if (cs.rationale) {
+        cardChildren.push(new Paragraph({
+          spacing: { before: 0, after: 100 },
+          children: [new TextRun({ text: cs.rationale, size: 20, color: MUTED_INK, font: FONT })],
         }))
       }
+
+      // Italic indented blockquote - matches the site's evidence
+      // treatment with a soft left rule (approximated via paragraph
+      // border on the LEFT side only).
+      if (cs.evidence?.[0]?.text) {
+        cardChildren.push(new Paragraph({
+          spacing: { before: 0, after: 0 },
+          indent: { left: 200 },
+          border: {
+            left: { style: BorderStyle.SINGLE, size: 6, color: 'D9D9D6', space: 8 },
+          },
+          children: [new TextRun({
+            text: `"${cs.evidence[0].text}"`,
+            italics: true,
+            size: 20,
+            font: FONT,
+            color: '2C2C2C',
+          })],
+        }))
+      }
+
+      // Shaded "card" - 1-row 1-cell Table with light fill, no borders.
+      out.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: noBorders(),
+        rows: [new TableRow({
+          children: [new TableCell({
+            shading: { type: ShadingType.SOLID, color: CARD_FILL, fill: CARD_FILL },
+            margins: { top: 200, bottom: 200, left: 280, right: 280 },
+            borders: noBorders(),
+            children: cardChildren,
+          })],
+        })],
+      }))
+
+      // Small spacer between cards (the site uses space-y-3).
+      out.push(new Paragraph({ spacing: { before: 100, after: 0 }, children: [new TextRun({ text: '', font: FONT })] }))
     }
   }
+
   return out
 }
 
