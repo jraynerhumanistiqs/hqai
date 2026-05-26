@@ -32,6 +32,8 @@ import {
   WidthType,
   BorderStyle,
   PageBreak,
+  Header,
+  ImageRun,
 } from 'docx'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -41,7 +43,10 @@ export const maxDuration = 90
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 type Mode = 'score' | 'formatted' | 'combined'
-const FONT = 'Calibri'
+// Final document body font. Was Calibri; switched to Arial per founder
+// request (May 2026) so exports render with the same typeface across
+// Word, Pages, and Google Docs without font substitution.
+const FONT = 'Arial'
 
 // ── CV formatter tool (mirrors administrator/ingest) ────────────────
 interface CvPayload {
@@ -241,6 +246,52 @@ function buildFormattedCvSection(payload: CvPayload): Array<Paragraph | Table> {
   return out
 }
 
+// ── client logo header ─────────────────────────────────────────────
+// Fetches the customer's uploaded brand logo (businesses.logo_url) and
+// returns a docx Header that places it top-right of every page in the
+// final downloads. Fails gracefully: missing URL, fetch error, or
+// undecodable image -> no header rather than failing the export.
+//
+// The image is constrained to a 120x40 EMU box that keeps tall logos
+// proportional in the header slot. Mirrors lib/render/docx.ts
+// buildLogoFooter() (the same pattern used by AI Administrator).
+async function buildLogoHeader(logoUrl: string | null): Promise<Header | null> {
+  if (!logoUrl) return null
+  try {
+    const res = await fetch(logoUrl, { cache: 'no-store' })
+    if (!res.ok) {
+      console.warn(`[cv-screening/export] logo fetch failed (${res.status}) for ${logoUrl}`)
+      return null
+    }
+    const buf = Buffer.from(await res.arrayBuffer())
+    const ct = (res.headers.get('content-type') ?? '').toLowerCase()
+    const type: 'png' | 'jpg' | 'gif' | 'bmp' =
+        ct.includes('png')  ? 'png'
+      : ct.includes('jpeg') ? 'jpg'
+      : ct.includes('jpg')  ? 'jpg'
+      : ct.includes('gif')  ? 'gif'
+      : ct.includes('bmp')  ? 'bmp'
+      : 'png'
+    return new Header({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new ImageRun({
+              data: buf,
+              transformation: { width: 120, height: 40 },
+              type,
+            } as ConstructorParameters<typeof ImageRun>[0]),
+          ],
+        }),
+      ],
+    })
+  } catch (err) {
+    console.warn('[cv-screening/export] logo embed failed:', (err as Error).message)
+    return null
+  }
+}
+
 // ── handler ─────────────────────────────────────────────────────────
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -291,10 +342,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { data: bizRow } = await supabaseAdmin
     .from('businesses')
-    .select('name')
+    .select('name, logo_url')
     .eq('id', businessId)
     .maybeSingle()
   const businessName = (bizRow?.name as string | undefined) ?? 'Your business'
+  const businessLogoUrl = (bizRow?.logo_url as string | undefined) ?? null
 
   // Resolve rubric for criterion labels and role title.
   let rubric: Rubric | null = getStandardRubric(screening.rubric_id) ?? null
@@ -327,10 +379,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
   }
 
+  // Embed the client's uploaded brand logo top-right of every page if
+  // one is set on the business profile. Falls back to no header if no
+  // logo - the rest of the document still renders with the issuer
+  // name line in the body so the brand attribution stays intact.
+  const logoHeader = await buildLogoHeader(businessLogoUrl)
+
   const doc = new Document({
     creator: 'HQ.ai CV Scoring Agent',
     title: `${screening.candidate_label ?? 'Candidate'} - ${mode}`,
-    sections: [{ properties: {}, children }],
+    sections: [{
+      properties: {},
+      headers: logoHeader ? { default: logoHeader } : undefined,
+      children,
+    }],
   })
   const buffer = await Packer.toBuffer(doc)
   const filename = `${(screening.candidate_label ?? 'candidate').replace(/[^a-zA-Z0-9]+/g, '_')}_${mode}.docx`
