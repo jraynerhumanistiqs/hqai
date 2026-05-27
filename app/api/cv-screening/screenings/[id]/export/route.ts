@@ -360,14 +360,15 @@ function buildScoreSummarySection(opts: {
         }))
       }
 
-      // Score-tinted "card" - 1-row 1-cell Table with the colour
-      // selected from the green/amber/red mapping.
+      // Neutral light-grey card background. Score-band tinting was
+      // tried and rejected as too intense (May 2026 founder note);
+      // only the N/5 score number itself carries the colour now.
       out.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: noBorders(),
         rows: [new TableRow({
           children: [new TableCell({
-            shading: { type: ShadingType.SOLID, color: cardColour.fill, fill: cardColour.fill },
+            shading: { type: ShadingType.SOLID, color: NEUTRAL_FILL, fill: NEUTRAL_FILL },
             margins: { top: 200, bottom: 200, left: 280, right: 280 },
             borders: noBorders(),
             children: cardChildren,
