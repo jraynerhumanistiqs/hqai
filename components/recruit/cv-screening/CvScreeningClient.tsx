@@ -72,13 +72,17 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [rescoreProgress, setRescoreProgress] = useState<{ done: number; total: number } | null>(null)
   const [rescoreError, setRescoreError] = useState<string | null>(null)
 
-  // Campaign Coach handoff - Step 5 ("Create Job in CV Scoring Agent
-  // with no ad") stashes the role payload to sessionStorage and routes
-  // the user here. We hydrate that into a pre-filled "New scoring
-  // criteria" modal so the recruiter only has to review + save.
+  // Campaign Coach handoff - Step 5 ("Finalise Campaign (Move to CV
+  // Scoring Agent)") stashes the FULL role + ad payload to
+  // sessionStorage and routes the user here. We hydrate that into a
+  // pre-filled "New scoring criteria" modal so the recruiter only
+  // has to review + save. The modal also shows an explanatory banner
+  // (fromCampaignCoach flag) explaining where the draft came from
+  // and inviting edits.
   const [campaignHandoff, setCampaignHandoff] = useState<{
     title: string
     jd: string
+    fromCampaignCoach: boolean
   } | null>(null)
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -93,11 +97,24 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         location?: { suburb?: string; state?: string }
         salary?:   { min?: number; max?: number; currency?: string }
         questions?: string[]
+        ad?: {
+          overview?:          string
+          about_us?:          string
+          responsibilities?:  string[]
+          requirements_must?: string[]
+          requirements_nice?: string[]
+          benefits?:          string[]
+          apply_cta?:         string
+        } | null
       }
       if (!data.title) return
-      // Synthesise a job description from the Campaign Coach output so
-      // the rubric-suggestion endpoint has something concrete to chew
-      // on. The recruiter can edit it before clicking Suggest.
+      // Synthesise a comprehensive job description from the full
+      // Campaign Coach output. Previously we only carried title +
+      // must-haves which produced thin / wrong-named rubrics
+      // (feedback #14). Now the rubric-suggestion endpoint sees the
+      // overview, about_us, responsibilities, requirements (must +
+      // nice), benefits, apply_cta and structured role profile so
+      // the criteria reflect the actual brief.
       const lines: string[] = [`Role: ${data.title}`]
       if (data.location?.suburb || data.location?.state) {
         lines.push(`Location: ${[data.location.suburb, data.location.state].filter(Boolean).join(', ')}`)
@@ -105,16 +122,36 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       if (data.salary?.min || data.salary?.max) {
         lines.push(`Salary: ${data.salary.currency ?? 'AUD'} ${data.salary.min ?? '-'} to ${data.salary.max ?? '-'}`)
       }
-      if (data.must_have?.length) {
-        lines.push('', 'Must-have skills:', ...data.must_have.map(s => `- ${s}`))
+      if (data.ad?.overview) {
+        lines.push('', 'Overview:', data.ad.overview)
       }
-      if (data.nice_to_have?.length) {
-        lines.push('', 'Nice-to-have skills:', ...data.nice_to_have.map(s => `- ${s}`))
+      if (data.ad?.about_us) {
+        lines.push('', 'About us:', data.ad.about_us)
+      }
+      if (data.ad?.responsibilities?.length) {
+        lines.push('', 'Responsibilities:', ...data.ad.responsibilities.map(r => `- ${r}`))
+      }
+      // Requirements - prefer the ad's structured must/nice (which the
+      // recruiter explicitly approved in Step 3-4) and fall back to the
+      // role_profile lists if the ad blocks are empty.
+      const must = (data.ad?.requirements_must?.length ? data.ad.requirements_must : data.must_have) ?? []
+      const nice = (data.ad?.requirements_nice?.length ? data.ad.requirements_nice : data.nice_to_have) ?? []
+      if (must.length) {
+        lines.push('', 'Must-have skills:', ...must.map(s => `- ${s}`))
+      }
+      if (nice.length) {
+        lines.push('', 'Nice-to-have skills:', ...nice.map(s => `- ${s}`))
+      }
+      if (data.ad?.benefits?.length) {
+        lines.push('', 'Benefits:', ...data.ad.benefits.map(b => `- ${b}`))
+      }
+      if (data.ad?.apply_cta) {
+        lines.push('', `Apply CTA: ${data.ad.apply_cta}`)
       }
       if (data.questions?.length) {
         lines.push('', 'Screening questions:', ...data.questions.map((q, i) => `${i + 1}. ${q}`))
       }
-      setCampaignHandoff({ title: data.title, jd: lines.join('\n') })
+      setCampaignHandoff({ title: data.title, jd: lines.join('\n'), fromCampaignCoach: true })
       setShowNewRubric(true)
     } catch {
       // sessionStorage parse / read failure - silently skip the handoff
@@ -869,6 +906,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         <NewRubricModal
           initialLabel={campaignHandoff?.title}
           initialJd={campaignHandoff?.jd}
+          fromCampaignCoach={campaignHandoff?.fromCampaignCoach ?? false}
           onClose={() => { setShowNewRubric(false); setCampaignHandoff(null) }}
           onCreated={(saved) => {
             // NewRubricModal returns the legacy shape; coerce to the full

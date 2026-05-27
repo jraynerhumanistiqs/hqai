@@ -27,6 +27,13 @@ export default function Step5Launch() {
       setError('Finish the role profile first - I need the title and must-have skills before I can hand this off.')
       return
     }
+    // Full job ad content carried through so the rubric-suggestion
+    // endpoint has the same context the recruiter just iterated on
+    // (overview / about_us / responsibilities / requirements /
+    // benefits / apply_cta) instead of guessing from title + must-haves
+    // alone. Fixes feedback #14 "role flowed through to CV Scoring
+    // Agent but created the incorrect role name + thin content".
+    const draftBlocks = state.job_ad_draft?.blocks
     const payload = {
       title:       profile.title,
       location:    profile.location,
@@ -34,6 +41,17 @@ export default function Step5Launch() {
       must_have:   profile.must_have_skills ?? [],
       nice_to_have: profile.nice_to_have_skills ?? [],
       questions,
+      // Full ad blocks - the rubric will synthesise from this content
+      // so the criteria reflect the actual brief, not just must-haves.
+      ad: draftBlocks ? {
+        overview:         draftBlocks.overview ?? '',
+        about_us:         draftBlocks.about_us ?? '',
+        responsibilities: draftBlocks.responsibilities ?? [],
+        requirements_must: draftBlocks.requirements?.must ?? [],
+        requirements_nice: draftBlocks.requirements?.nice ?? [],
+        benefits:         draftBlocks.benefits ?? [],
+        apply_cta:        draftBlocks.apply_cta ?? '',
+      } : null,
       createdAt:   new Date().toISOString(),
     }
     try {
@@ -195,41 +213,42 @@ export default function Step5Launch() {
         <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
       )}
 
-      {/* Phase 4 - Distribution. Two-track exit: launch publicly across
-          job boards, or skip the public ad entirely and continue the
-          workflow inside the CV Scoring Agent (useful for internal hires,
-          warm referrals, or existing candidate pipelines where the ad
-          isn't needed). Job-board integration is on the roadmap; for
-          now the secondary path hands the role context through to the
-          CV Scoring Agent via sessionStorage so the recruiter can keep
-          working without rebuilding the rubric. */}
+      {/* Phase 4 - Finalise. Single-track exit: hand the approved ad
+          to the CV Scoring Agent. The previous "Launch campaign"
+          action created a Shortlist Agent prescreen_session at this
+          point, which surfaced the role in Shortlist BEFORE the
+          recruiter had used CV Scoring Agent (feedback #14 from
+          Rav/James). The Shortlist session is now created only when
+          the recruiter explicitly clicks "Send to Shortlist Agent"
+          inside the CV Scoring Agent after reviewing candidates.
+          Job-board publishing is parked until that feature ships;
+          the /api/campaign/launch endpoint stays in code so we can
+          re-enable it without a rebuild. */}
       <div className="bg-light rounded-2xl px-5 py-4">
         <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
-          Phase 4 - Distribution
+          Phase 4 - Finalise
         </p>
         <p className="text-xs text-mid leading-relaxed mb-3 max-w-2xl">
-          Launch publicly across job boards, or skip the ad and feed the role straight to the CV Scoring Agent. Job-board integration is a future addition; for now you can keep the workflow moving by scoring candidates you already have.
+          Hand the approved ad to your CV Scoring Agent. The agent will create scoring criteria from this brief, ready for your review and edits before you upload CVs.
         </p>
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <button
             type="button"
             onClick={handoffToResumeAgent}
-            className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-bg transition-colors"
+            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
           >
-            Create Job in CV Scoring Agent (with no ad)
-          </button>
-          <button
-            onClick={onLaunch}
-            disabled={launching}
-            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] disabled:bg-muted transition-colors"
-          >
-            {launching ? 'Launching…' : 'Launch campaign →'}
+            Finalise Campaign (Move to CV Scoring Agent) →
           </button>
         </div>
       </div>
     </div>
   )
 }
+
+// Reference: callLaunch + LaunchSuccess kept in this file so the
+// /api/campaign/launch path stays alive for the future job-board
+// publishing feature. Neither is reachable from the current UI; the
+// Step 5 user flow ends at handoffToResumeAgent.
 
 function LaunchSuccess({ result }: { result: any }) {
   const [copiedUrl, setCopiedUrl] = useState(false)

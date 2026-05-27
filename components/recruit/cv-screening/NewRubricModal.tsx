@@ -17,9 +17,15 @@ interface Props {
    *  role title and JD they already entered in the wizard. */
   initialLabel?: string
   initialJd?: string
+  /** True when the modal was opened from the Campaign Coach -> CV
+   *  Scoring Agent handoff (Step 5 "Finalise Campaign"). Shows an
+   *  explanatory banner at the top of the input stage so the
+   *  recruiter knows the draft criteria came from their just-built
+   *  brief and that they can edit anything before saving. */
+  fromCampaignCoach?: boolean
 }
 
-export default function NewRubricModal({ onClose, onCreated, initialLabel, initialJd }: Props) {
+export default function NewRubricModal({ onClose, onCreated, initialLabel, initialJd, fromCampaignCoach = false }: Props) {
   const [label, setLabel] = useState(initialLabel ?? '')
   const [jd, setJd] = useState(initialJd ?? '')
   const [stage, setStage] = useState<'input' | 'reviewing'>('input')
@@ -161,6 +167,16 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
         </div>
 
         <div className="px-6 py-5 space-y-4">
+          {stage === 'input' && fromCampaignCoach && (
+            <div className="rounded-2xl border border-accent/30 bg-accent-soft/40 px-4 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
+                From your Campaign Coach brief
+              </p>
+              <p className="text-sm text-charcoal leading-relaxed">
+                We&apos;ve drafted your scoring criteria from the role and ad you just finalised. Review the label and job description below, then click <span className="font-bold">Suggest criteria</span> to generate the rubric. Edit anything that needs adjusting before you save - this is the source of truth for how each CV is judged.
+              </p>
+            </div>
+          )}
           {stage === 'input' && (
             <>
               <div>
