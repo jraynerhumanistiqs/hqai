@@ -24,6 +24,9 @@ import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
 import { ProcessFlowTracker } from './ProcessFlowTracker'
 import { RoleStepperRail, type RoleStep } from './RoleStepperRail'
+import { Step1ScoreCvs } from './role-steps/Step1ScoreCvs'
+import { Step3Shortlist } from './role-steps/Step3Shortlist'
+import { Step4Decision } from './role-steps/Step4Decision'
 import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
@@ -601,6 +604,25 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
       </div>
 
       <div className="flex-1 overflow-y-auto bg-bg">
+        {currentStep === 1 && (
+          <Step1ScoreCvs sessionId={session.id} roleTitle={session.role_title} />
+        )}
+        {currentStep === 3 && (
+          <Step3Shortlist
+            session={session}
+            responses={mergedResponses}
+            onPatchResponse={onPatchResponse}
+            onShareResponse={onShareResponse}
+          />
+        )}
+        {currentStep === 4 && (
+          <Step4Decision
+            session={session}
+            responses={mergedResponses}
+            onPatchResponse={onPatchResponse}
+          />
+        )}
+        {currentStep === 2 && (
         <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
 
           {/* Process flow tracker - visible state of the role's funnel */}
@@ -1275,6 +1297,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             )}
           </div>
         </div>
+        )}
       </div>
 
       {selectedIds.size >= 1 && (

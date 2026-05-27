@@ -42,6 +42,15 @@ export async function POST(req: NextRequest) {
     const form = await req.formData()
     const file = form.get('file') as File | null
     const rubricId = String(form.get('rubricId') ?? '')
+    // Optional - when the upload happens inside a role (Step 1 of the
+    // workflow stepper), the role's prescreen_session_id is forwarded
+    // so the new cv_screening row is scoped to that role and shows up
+    // in Step 1 only for that role, not the standalone CV Scoring view.
+    const prescreenSessionIdRaw = form.get('prescreenSessionId')
+    const prescreenSessionId =
+      typeof prescreenSessionIdRaw === 'string' && prescreenSessionIdRaw.trim()
+        ? prescreenSessionIdRaw.trim()
+        : null
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
     const rubric = await resolveRubric(rubricId)
@@ -121,6 +130,10 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
           fairness_checks: fairness,
           bias_signals: biasReport.signals.length > 0 ? biasReport.signals : null,
           status: 'scored',
+          // Optional role anchor - only set when upload came from Step 1
+          // of the role workflow. NULL keeps the row in the standalone
+          // CV Scoring pool.
+          ...(prescreenSessionId ? { prescreen_session_id: prescreenSessionId } : {}),
         })
         .select('id, created_at')
         .single()

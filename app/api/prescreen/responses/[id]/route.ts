@@ -35,10 +35,34 @@ export async function PATCH(
       'rating', 'status', 'stage', 'notes', 'outcome', 'outcome_reason',
       'candidate_name', 'candidate_email',
       'recommendation', 'overall_score',
+      // Step 3 + Step 4 of the role workflow stepper. shortlist_action
+      // is a verb translated into shortlisted_at + shortlisted_by below;
+      // decision lands directly with the constraint-checked enum.
+      'shortlist_action', 'decision', 'decision_reason',
     ])
     const patch: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(body ?? {})) {
       if (ALLOWED.has(k)) patch[k] = v
+    }
+    // Translate the shortlist_action verb into timestamp + actor columns.
+    // Recording the actor lets us surface "shortlisted by Jane 5m ago"
+    // in the Step 3 view without an extra join.
+    if (patch.shortlist_action === 'promote') {
+      patch.shortlisted_at = new Date().toISOString()
+      patch.shortlisted_by = user.id
+    } else if (patch.shortlist_action === 'remove') {
+      patch.shortlisted_at = null
+      patch.shortlisted_by = null
+    }
+    delete patch.shortlist_action
+    // Stamp the decision actor + time whenever a Step 4 outcome lands.
+    // Clearing the decision back to null also clears the audit columns.
+    if ('decision' in patch) {
+      patch.decision_at = patch.decision === null ? null : new Date().toISOString()
+      patch.decision_by = patch.decision === null ? null : user.id
+    }
+    if (typeof patch.decision_reason === 'string') {
+      patch.decision_reason = (patch.decision_reason as string).trim().slice(0, 1000) || null
     }
     if (typeof patch.candidate_name === 'string') {
       patch.candidate_name = (patch.candidate_name as string).trim().slice(0, 200)

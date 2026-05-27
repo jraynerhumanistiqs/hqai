@@ -18,10 +18,10 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { id: 1, label: 'Score CVs',  hint: 'Upload and rank CVs',         status: 'soon' },
-  { id: 2, label: 'Prescreen',  hint: 'Video + phone responses',     status: 'live' },
-  { id: 3, label: 'Shortlist',  hint: 'Top picks for decision maker', status: 'soon' },
-  { id: 4, label: 'Decision',   hint: 'Hire outcome + handoff',      status: 'soon' },
+  { id: 1, label: 'Score CVs',  hint: 'Upload and rank CVs',          status: 'live' },
+  { id: 2, label: 'Prescreen',  hint: 'Video + phone responses',      status: 'live' },
+  { id: 3, label: 'Shortlist',  hint: 'Top picks for decision maker', status: 'live' },
+  { id: 4, label: 'Decision',   hint: 'Hire outcome + handoff',       status: 'live' },
 ]
 
 interface Props {
@@ -92,7 +92,7 @@ export function RoleStepperRail({ currentStep, onStepChange }: Props) {
       </nav>
       <div className="px-4 py-3 border-t border-border">
         <p className="text-[10px] text-muted leading-snug">
-          Steps 1, 3, and 4 ship in the next preview - this rail is the scaffold so you can sign off on the information architecture first.
+          Walk the candidate pool left to right. Each step uses the same data, just filtered for the phase you&apos;re in.
         </p>
       </div>
     </aside>

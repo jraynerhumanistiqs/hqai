@@ -29,6 +29,13 @@ interface Props {
   businessName: string
   initialScreenings: CandidateScreening[]
   initialCustomRubrics: CustomRubricRow[]
+  // Optional role anchor. When set, uploads carry the prescreen_session_id
+  // through to the API so each new cv_screening row is scoped to the
+  // role's Step 1, and the list view shows only role-scoped screenings.
+  // Standalone /dashboard/recruit/cv-screening continues to render
+  // without these props - behaviour is unchanged.
+  prescreenSessionId?: string
+  roleContextLabel?: string
 }
 
 interface PendingUpload {
@@ -38,7 +45,7 @@ interface PendingUpload {
   error?: string
 }
 
-export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics }: Props) {
+export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics, prescreenSessionId, roleContextLabel }: Props) {
   const [customRubrics, setCustomRubrics] = useState<CustomRubricRow[]>(initialCustomRubrics)
   const [rubricId, setRubricId] = useState<string>(
     initialCustomRubrics[0]?.id ?? ALL_RUBRICS[0].rubric_id,
@@ -229,19 +236,33 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       const res = await fetch('/api/cv-screening/batch-handoff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ screening_ids: Array.from(selectedIds) }),
+        body: JSON.stringify({
+          screening_ids: Array.from(selectedIds),
+          // When this surface is hosted inside Step 1 of an existing role,
+          // attach the CVs to that role's session instead of spawning a
+          // new one. The role's Step 2 (Prescreen) view picks them up
+          // immediately.
+          ...(prescreenSessionId ? { target_session_id: prescreenSessionId } : {}),
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Taking you there now...`)
-      try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
-      clearSelected()
-      // Auto-navigate to the new Shortlist Agent role so the user sees the
-      // candidates that flowed through. Short delay so the success toast is
-      // readable.
-      setTimeout(() => {
-        window.location.href = `/dashboard/recruit/shortlist?session=${data.session_id}`
-      }, 800)
+      if (prescreenSessionId) {
+        // In-role flow: stay on the page so the recruiter can keep
+        // promoting CVs. Step 2 fetches its responses again on focus.
+        setBatchHandoffResult(`Attached ${data.candidates_attached} candidate${data.candidates_attached === 1 ? '' : 's'} to this role. Switch to Step 2 (Prescreen) to send their invites.`)
+        clearSelected()
+      } else {
+        setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Taking you there now...`)
+        try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
+        clearSelected()
+        // Auto-navigate to the new Shortlist Agent role so the user sees
+        // the candidates that flowed through. Short delay so the success
+        // toast is readable.
+        setTimeout(() => {
+          window.location.href = `/dashboard/recruit/shortlist?session=${data.session_id}`
+        }, 800)
+      }
     } catch (err) {
       setBatchHandoffResult(`Failed: ${err instanceof Error ? err.message : 'unknown'}`)
     }
@@ -352,6 +373,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         const fd = new FormData()
         fd.append('file', f)
         fd.append('rubricId', rubricId)
+        // When the screen is hosted inside Step 1 of a role, the role's
+        // prescreen_session_id rides along so the new row is scoped to
+        // the role instead of landing in the standalone pool.
+        if (prescreenSessionId) fd.append('prescreenSessionId', prescreenSessionId)
         const res = await fetch('/api/cv-screening/score', {
           method: 'POST',
           body: fd,
