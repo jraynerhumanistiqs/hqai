@@ -97,6 +97,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         location?: { suburb?: string; state?: string }
         salary?:   { min?: number; max?: number; currency?: string }
         questions?: string[]
+        interview_types?: Array<'video' | 'phone'>
         ad?: {
           overview?:          string
           about_us?:          string
@@ -150,6 +151,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       }
       if (data.questions?.length) {
         lines.push('', 'Screening questions:', ...data.questions.map((q, i) => `${i + 1}. ${q}`))
+      }
+      // Echo the recruiter's interview-type choice so they see it
+      // flowed through. Persistence to prescreen_sessions happens in
+      // the batch-handoff route when the recruiter sends scored
+      // candidates to the Shortlist Agent.
+      if (data.interview_types?.length) {
+        lines.push('', `Interview types: ${data.interview_types.join(', ')}`)
       }
       setCampaignHandoff({ title: data.title, jd: lines.join('\n'), fromCampaignCoach: true })
       setShowNewRubric(true)
@@ -574,9 +582,56 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       the video pre-screen questions, so getting the rubric
                       right pays off twice. */}
                   {filtered.length === 0 && (
-                    <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-charcoal leading-relaxed">
-                      <strong className="text-warning">Before you upload:</strong> double-check the scoring criteria on the left match your PD. They shape both the CV scores AND the video pre-screen questions, so editing them later means rescoring.
-                    </div>
+                    <>
+                      <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-charcoal leading-relaxed">
+                        <strong className="text-warning">Before you upload:</strong> double-check the scoring criteria on the left match your PD. They shape both the CV scores AND the video pre-screen questions, so editing them later means rescoring.
+                      </div>
+                      {/* Live preview of the active rubric's criteria + their
+                          relative weighting. Gives the recruiter a quick
+                          visual of where the AI will spend its attention
+                          BEFORE the first CV lands - cheaper to spot a
+                          mis-weighted rubric here than after scoring 20
+                          CVs and having to rebuild. */}
+                      {(() => {
+                        const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
+                        if (criteria.length === 0) return null
+                        const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
+                        return (
+                          <div className="bg-light/60 border border-border rounded-2xl px-4 py-4">
+                            <div className="flex items-baseline justify-between mb-3">
+                              <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                                How the score is weighted
+                              </p>
+                              <p className="text-[10px] text-muted">
+                                {criteria.length} criteria
+                              </p>
+                            </div>
+                            <ul className="space-y-2">
+                              {criteria.map(c => {
+                                const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
+                                return (
+                                  <li key={c.id}>
+                                    <div className="flex items-baseline justify-between gap-3 mb-1">
+                                      <span className="text-xs text-charcoal font-medium truncate">{c.label}</span>
+                                      <span className="text-xs font-bold text-charcoal tabular-nums shrink-0">{pct}%</span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-accent rounded-full transition-all"
+                                        style={{ width: `${pct}%` }}
+                                      />
+                                    </div>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                            <p className="text-[10px] text-muted mt-3 leading-snug">
+                              Percentages show how each criterion is weighted in the overall CV score. Edit the criteria on the left to change the weighting.
+                            </p>
+                          </div>
+                        )
+                      })()}
+                    </>
                   )}
                   <label
                     onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -898,6 +953,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           onRenameCandidate={(next) =>
             setScreenings(prev => prev.map(row => row.id === selected.id ? { ...row, candidate_label: next } : row))
           }
+          onDeleteCandidate={(id) => {
+            setScreenings(prev => prev.filter(row => row.id !== id))
+            setSelectedIds(prev => {
+              if (!prev.has(id)) return prev
+              const next = new Set(prev)
+              next.delete(id)
+              return next
+            })
+          }}
         />
       )}
 
