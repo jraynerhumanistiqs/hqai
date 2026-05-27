@@ -921,88 +921,105 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         />
       )}
 
-      {/* Rescore-against-new-version toast. Fires after a successful
-          rubric edit when there are candidates still pegged to the
-          previous version. One click rescores them in place against
-          the new version. Audit trail trade-off: v1 scores are
-          overwritten - the comment block in the rescore route
-          captures the design decision. */}
+      {/* Rescore-against-new-version modal. Was a bottom-anchored toast
+          but pilots missed it (May 2026 founder note). Now a centered
+          overlay with backdrop so it's unmissable. The rescore call
+          itself creates NEW cv_screenings rows attached to the target
+          rubric_id - v1 rows are left intact, so the candidate appears
+          in both version tabs after the rescore. */}
       {rescorePrompt && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-bg-elevated shadow-card rounded-2xl border border-border px-5 py-4 max-w-md w-[calc(100%-2rem)]">
-          <p className="text-xs font-bold text-charcoal mb-1">
-            v{rescorePrompt.targetVersion} saved
-          </p>
-          {rescoreError ? (
-            <p className="text-xs text-danger mb-2">{rescoreError}</p>
-          ) : rescoreBusy && rescoreProgress ? (
-            <p className="text-xs text-mid mb-2">
-              Rescoring {rescoreProgress.done} of {rescoreProgress.total}...
+        <div
+          className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4"
+          onClick={() => {
+            if (rescoreBusy) return
+            setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null)
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rescore-modal-title"
+            className="bg-bg-elevated shadow-modal rounded-2xl w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p id="rescore-modal-title" className="font-display text-lg font-bold text-charcoal mb-1">
+              v{rescorePrompt.targetVersion} saved
             </p>
-          ) : (
-            <p className="text-xs text-mid mb-2">
-              You have {rescorePrompt.eligibleScreeningIds.length} candidate{rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'} scored on the previous version. Rescore them against v{rescorePrompt.targetVersion}?
-            </p>
-          )}
-          <div className="flex items-center gap-2 justify-end">
-            <button
-              onClick={() => { setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null) }}
-              disabled={rescoreBusy}
-              className="text-xs font-bold text-mid hover:text-charcoal px-3 py-1.5 disabled:opacity-50"
-            >
-              Not now
-            </button>
-            <button
-              onClick={async () => {
-                if (!rescorePrompt) return
-                setRescoreBusy(true)
-                setRescoreError(null)
-                const total = rescorePrompt.eligibleScreeningIds.length
-                let done = 0
-                setRescoreProgress({ done, total })
-                const failures: string[] = []
-                // Sequential rather than Promise.all to avoid hammering
-                // Claude with N concurrent scoring calls. Each call is
-                // already 30-90 seconds; concurrency would push us into
-                // rate-limit territory on the pilot account.
-                for (const sid of rescorePrompt.eligibleScreeningIds) {
-                  try {
-                    const res = await fetch(`/api/cv-screening/screenings/${sid}/rescore`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ rubric_id: rescorePrompt.targetRubricId }),
-                    })
-                    const data = await res.json()
-                    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-                    setScreenings(prev => prev.map(s => s.id === sid ? {
-                      ...s,
-                      rubric_id: rescorePrompt.targetRubricId,
-                      overall_score: data.new_overall_score,
-                      band: data.new_band,
-                      override_band: null,
-                      override_next_action: null,
-                      override_comment: null,
-                    } : s))
-                  } catch (err) {
-                    failures.push(err instanceof Error ? err.message : 'unknown')
-                  }
-                  done += 1
+            {rescoreError ? (
+              <p className="text-sm text-danger mb-4">{rescoreError}</p>
+            ) : rescoreBusy && rescoreProgress ? (
+              <p className="text-sm text-mid mb-4">
+                Rescoring {rescoreProgress.done} of {rescoreProgress.total}...
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-mid mb-2">
+                  You have {rescorePrompt.eligibleScreeningIds.length} candidate{rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'} scored on the previous version. Rescore them against v{rescorePrompt.targetVersion}?
+                </p>
+                <p className="text-xs text-muted mb-4">
+                  v1 scores stay intact for comparison - each candidate will appear in both version tabs.
+                </p>
+              </>
+            )}
+            <div className="flex items-center gap-2 justify-end">
+              <button
+                onClick={() => { setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null) }}
+                disabled={rescoreBusy}
+                className="text-sm font-bold text-mid hover:text-charcoal px-4 py-2 disabled:opacity-50"
+              >
+                Not now
+              </button>
+              <button
+                onClick={async () => {
+                  if (!rescorePrompt) return
+                  setRescoreBusy(true)
+                  setRescoreError(null)
+                  const total = rescorePrompt.eligibleScreeningIds.length
+                  let done = 0
                   setRescoreProgress({ done, total })
-                }
-                setRescoreBusy(false)
-                if (failures.length > 0) {
-                  setRescoreError(`${failures.length} of ${total} failed. ${failures[0]}`)
-                } else {
-                  setRescorePrompt(null)
-                  setRescoreProgress(null)
-                }
-              }}
-              disabled={rescoreBusy}
-              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-1.5 disabled:opacity-50"
-            >
-              {rescoreBusy
-                ? 'Rescoring...'
-                : `Rescore ${rescorePrompt.eligibleScreeningIds.length} candidate${rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'}`}
-            </button>
+                  const failures: string[] = []
+                  // Sequential rather than Promise.all to avoid hammering
+                  // Claude with N concurrent scoring calls. Each call is
+                  // already 30-90 seconds; concurrency would push us into
+                  // rate-limit territory on the pilot account.
+                  for (const sid of rescorePrompt.eligibleScreeningIds) {
+                    try {
+                      const res = await fetch(`/api/cv-screening/screenings/${sid}/rescore`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rubric_id: rescorePrompt.targetRubricId }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+                      // Rescore now creates a NEW screening row attached
+                      // to the target rubric_id; the v1 row at `sid` is
+                      // untouched. Splice the new row into local state
+                      // so it appears alongside the v1 row.
+                      if (data?.screening) {
+                        setScreenings(prev => [data.screening as CandidateScreening, ...prev])
+                      }
+                    } catch (err) {
+                      failures.push(err instanceof Error ? err.message : 'unknown')
+                    }
+                    done += 1
+                    setRescoreProgress({ done, total })
+                  }
+                  setRescoreBusy(false)
+                  if (failures.length > 0) {
+                    setRescoreError(`${failures.length} of ${total} failed. ${failures[0]}`)
+                  } else {
+                    setRescorePrompt(null)
+                    setRescoreProgress(null)
+                  }
+                }}
+                disabled={rescoreBusy}
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
+              >
+                {rescoreBusy
+                  ? 'Rescoring...'
+                  : `Rescore ${rescorePrompt.eligibleScreeningIds.length} candidate${rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'}`}
+              </button>
+            </div>
           </div>
         </div>
       )}

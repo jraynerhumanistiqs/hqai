@@ -1,14 +1,18 @@
 // Rescore an existing CV screening against a newer rubric version.
 // Triggered from the UI after the user saves an edited rubric (which
-// creates a new version row); for each screening already attached to
-// the rubric family we POST here to overwrite the scores in place.
+// creates a new version row).
 //
-// Design decision (pilot scope): we OVERWRITE the existing row rather
-// than copy it to a new row keyed on the new rubric_id. This matches
-// the founder's mental model ("I edited the criteria, now my scores
-// should reflect the new criteria") at the cost of losing the v1
-// scores for audit. A per-business audit-trail toggle was discussed
-// and parked - revisit if the audit gap becomes a real customer ask.
+// Design decision (May 2026 founder direction): we INSERT a new
+// cv_screenings row attached to the new rubric_id instead of
+// overwriting the existing row. The source row (v1) is left
+// completely untouched - its scores, rationale, override fields,
+// comments and audit timestamps remain intact. The new row becomes
+// the v2 score-card for the same candidate.
+//
+// Visible effect: a single candidate scored under v1 and then
+// rescored against v2 appears in BOTH version tabs in the UI, each
+// with the score that version's criteria produced. Recruiters can
+// compare v1 vs v2 outcomes; v1 stays as a historical record.
 
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
@@ -95,70 +99,62 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const band = bandFromScore(overall)
     const next_action = defaultActionForBand(band)
 
-    const { data: updated, error: uErr } = await supabaseAdmin
+    // INSERT a new row pegged to the target rubric. The source row
+    // (id = `id`) stays untouched. We carry forward the candidate
+    // identity columns (label, email, cv_text, cv_filename, fairness
+    // checks, bias signals) so the v2 card has full context without
+    // a re-upload. New scores + cleared overrides replace v1's.
+    const insertPayload: Record<string, unknown> = {
+      business_id: screening.business_id,
+      user_id: screening.user_id,
+      rubric_id: targetRubricId,
+      candidate_label: screening.candidate_label,
+      candidate_email: screening.candidate_email,
+      cv_text: screening.cv_text,
+      cv_filename: screening.cv_filename,
+      overall_score: overall,
+      band,
+      next_action,
+      rationale_short: result.rationale_short,
+      criteria_scores: result.criteria_scores,
+      fairness_checks: screening.fairness_checks,
+      bias_signals: screening.bias_signals,
+      status: 'scored',
+      rescored_from: id,  // breadcrumb to the source row (optional column)
+    }
+
+    const tryInsert = await supabaseAdmin
       .from('cv_screenings')
-      .update({
-        rubric_id: targetRubricId,
-        overall_score: overall,
-        band,
-        next_action,
-        rationale_short: result.rationale_short,
-        criteria_scores: result.criteria_scores,
-        // Clear any human override so the new AI call is the visible
-        // result. The recruiter can re-apply an override against the
-        // new score from the UI.
-        override_band: null,
-        override_next_action: null,
-        override_comment: null,
-        override_at: null,
-        override_by: null,
-        // Audit stamp so we can tell which rows were rescored vs
-        // originally-scored at the listed rubric version. Column is
-        // optional - if the migration isn't applied we strip it and
-        // retry to keep the pilot unblocked.
-        rescored_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('business_id', scope.businessId)
-      .select('id, band, overall_score')
+      .insert(insertPayload)
+      .select('*')
       .single()
 
-    if (uErr) {
-      // Retry without rescored_at if the column isn't there yet.
-      if (uErr.message?.toLowerCase().includes('rescored_at')) {
-        const { data: retry, error: rErr } = await supabaseAdmin
+    let inserted = tryInsert.data
+    if (tryInsert.error) {
+      // If the optional `rescored_from` column isn't migrated yet,
+      // retry without it so the pilot stays unblocked. Same belt-and-
+      // braces pattern the previous version used for `rescored_at`.
+      if (tryInsert.error.message?.toLowerCase().includes('rescored_from')) {
+        delete insertPayload.rescored_from
+        const retry = await supabaseAdmin
           .from('cv_screenings')
-          .update({
-            rubric_id: targetRubricId,
-            overall_score: overall,
-            band,
-            next_action,
-            rationale_short: result.rationale_short,
-            criteria_scores: result.criteria_scores,
-            override_band: null,
-            override_next_action: null,
-            override_comment: null,
-            override_at: null,
-            override_by: null,
-          })
-          .eq('id', id)
-          .eq('business_id', scope.businessId)
-          .select('id, band, overall_score')
+          .insert(insertPayload)
+          .select('*')
           .single()
-        if (rErr) return NextResponse.json({ error: rErr.message }, { status: 500 })
-        return NextResponse.json({
-          screening_id: retry.id,
-          new_band: retry.band,
-          new_overall_score: retry.overall_score,
-        })
+        if (retry.error) {
+          console.error('[cv-screening/rescore] insert retry failed:', retry.error.message)
+          return NextResponse.json({ error: retry.error.message }, { status: 500 })
+        }
+        inserted = retry.data
+      } else {
+        console.error('[cv-screening/rescore] insert failed:', tryInsert.error.message)
+        return NextResponse.json({ error: tryInsert.error.message }, { status: 500 })
       }
-      return NextResponse.json({ error: uErr.message }, { status: 500 })
     }
 
     return NextResponse.json({
-      screening_id: updated.id,
-      new_band: updated.band,
-      new_overall_score: updated.overall_score,
+      source_screening_id: id,
+      screening: inserted,
     })
   } catch (err) {
     console.error('[cv-screening/rescore]', err)
