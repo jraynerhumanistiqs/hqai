@@ -16,6 +16,11 @@ export default function Step5Launch() {
   const { state, callLaunch } = useWizard()
   const router = useRouter()
   const [questions, setQuestions] = useState<string[]>(defaultQuestions(state.role_profile))
+  // Interview types chosen by the recruiter (mirrors the Shortlist
+  // Agent's CreateRoleModal multi-select). Carried through to the
+  // CV Scoring Agent handoff so the downstream batch-handoff can
+  // stamp the prescreen_session correctly. Defaults to video.
+  const [interviewTypes, setInterviewTypes] = useState<Array<'video' | 'phone'>>(['video'])
   const [launching, setLaunching] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
@@ -41,6 +46,7 @@ export default function Step5Launch() {
       must_have:   profile.must_have_skills ?? [],
       nice_to_have: profile.nice_to_have_skills ?? [],
       questions,
+      interview_types: interviewTypes,
       // Full ad blocks - the rubric will synthesise from this content
       // so the criteria reflect the actual brief, not just must-haves.
       ad: draftBlocks ? {
@@ -90,6 +96,29 @@ export default function Step5Launch() {
           Final preview on the left. On the right, the screening questions and rubric I'll hand
           off to HQ Recruit. Edit anything before you launch.
         </p>
+      </div>
+
+      {/* Finalise Campaign - lifted above the ad preview + links so the
+          primary action is immediately visible at the top of Step 5
+          (founder feedback). Spacing matches the two-card grid below so
+          the page reads as three vertically-stacked containers of
+          consistent rhythm. */}
+      <div className="bg-light rounded-2xl px-5 py-4">
+        <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
+          Finalise Campaign
+        </p>
+        <p className="text-xs text-mid leading-relaxed mb-3 max-w-2xl">
+          Hand the approved ad to your CV Scoring Agent. The agent will create scoring criteria from this brief, ready for your review and edits before you upload CVs.
+        </p>
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <button
+            type="button"
+            onClick={handoffToResumeAgent}
+            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
+          >
+            Finalise Campaign (Move to CV Scoring Agent) →
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -206,6 +235,55 @@ export default function Step5Launch() {
               )}
             </div>
           </div>
+
+          {/* Interview type multi-select. Carried through to the
+              CV Scoring Agent handoff and then on to the Shortlist
+              Agent so the recruiter's choice isn't pre-set silently
+              (feedback: interview type was pre-selected with no way
+              to change it from Campaign Coach). Mirrors the multi-
+              select shape used by CreateRoleModal in the Shortlist
+              Agent. */}
+          <div>
+            <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
+              Interview type <span className="text-muted/70 normal-case font-normal ml-1">(pick one or both)</span>
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {([
+                { id: 'video', title: 'Video pre-screen', desc: 'Candidate records video answers in their browser.' },
+                { id: 'phone', title: 'Phone screen', desc: 'Recruiter records the call. Audio is transcribed and scored against the same rubric.' },
+              ] as const).map(opt => {
+                const checked = interviewTypes.includes(opt.id)
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setInterviewTypes(prev => {
+                        if (prev.includes(opt.id)) {
+                          if (prev.length === 1) return prev
+                          return prev.filter(t => t !== opt.id)
+                        }
+                        return [...prev, opt.id]
+                      })
+                    }}
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
+                  >
+                    <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-black bg-black' : 'border-border'}`}>
+                      {checked && (
+                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-charcoal">{opt.title}</p>
+                      <p className="text-[11px] text-mid mt-0.5 leading-snug">{opt.desc}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -213,34 +291,6 @@ export default function Step5Launch() {
         <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
       )}
 
-      {/* Phase 4 - Finalise. Single-track exit: hand the approved ad
-          to the CV Scoring Agent. The previous "Launch campaign"
-          action created a Shortlist Agent prescreen_session at this
-          point, which surfaced the role in Shortlist BEFORE the
-          recruiter had used CV Scoring Agent (feedback #14 from
-          Rav/James). The Shortlist session is now created only when
-          the recruiter explicitly clicks "Send to Shortlist Agent"
-          inside the CV Scoring Agent after reviewing candidates.
-          Job-board publishing is parked until that feature ships;
-          the /api/campaign/launch endpoint stays in code so we can
-          re-enable it without a rebuild. */}
-      <div className="bg-light rounded-2xl px-5 py-4">
-        <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
-          Phase 4 - Finalise
-        </p>
-        <p className="text-xs text-mid leading-relaxed mb-3 max-w-2xl">
-          Hand the approved ad to your CV Scoring Agent. The agent will create scoring criteria from this brief, ready for your review and edits before you upload CVs.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 justify-end">
-          <button
-            type="button"
-            onClick={handoffToResumeAgent}
-            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
-          >
-            Finalise Campaign (Move to CV Scoring Agent) →
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
