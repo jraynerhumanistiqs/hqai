@@ -23,6 +23,7 @@ import { ShareDialog } from './ShareDialog'
 import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
 import { ProcessFlowTracker } from './ProcessFlowTracker'
+import { RoleStepperRail, type RoleStep } from './RoleStepperRail'
 import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
@@ -87,6 +88,9 @@ function initials(name: string) {
 
 export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse, onSessionUpdated }: Props) {
   const [copied, setCopied]               = useState(false)
+  // Stepper state - default to Step 2 (Shortlist) so today's behaviour
+  // is unchanged. Steps 1, 3, 4 are scaffold-only in this preview.
+  const [currentStep, setCurrentStep]     = useState<RoleStep>(2)
   const [phoneRecorderOpen, setPhoneRecorderOpen] = useState(false)
   const [filter, setFilter]               = useState<Filter>('all')
   const [expanded, setExpanded]           = useState<string | null>(null)
@@ -527,7 +531,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-row">
+      <RoleStepperRail currentStep={currentStep} onStepChange={setCurrentStep} />
+      <div className="flex-1 flex flex-col min-w-0">
       <div className="border-b border-border bg-bg-elevated px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
         {/* On mobile this stacks: title on its own row, action buttons
             wrap to a second row underneath. On sm+ the original
@@ -1344,6 +1350,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           />
         )
       })()}
+    </div>
     </div>
   )
 }
