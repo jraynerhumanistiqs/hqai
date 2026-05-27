@@ -113,3 +113,48 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'Update failed', detail }, { status: 500 })
   }
 }
+
+// Hard-delete a CV screening row. Used by the "Delete candidate"
+// affordance in CandidateScorecardPanel. Ownership is verified via
+// business_id match before the delete fires.
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('businesses(id)')
+      .eq('id', user.id)
+      .single()
+    const businessId = (profile?.businesses as unknown as { id: string } | null)?.id ?? null
+    if (!businessId) return NextResponse.json({ error: 'No business profile' }, { status: 400 })
+
+    // Verify ownership before delete; otherwise a 404 leaks existence.
+    const { data: existing, error: findErr } = await supabaseAdmin
+      .from('cv_screenings')
+      .select('id, business_id')
+      .eq('id', id)
+      .maybeSingle()
+    if (findErr) return NextResponse.json({ error: findErr.message }, { status: 500 })
+    if (!existing) return NextResponse.json({ error: 'Screening not found' }, { status: 404 })
+    if (existing.business_id !== businessId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { error } = await supabaseAdmin
+      .from('cv_screenings')
+      .delete()
+      .eq('id', id)
+      .eq('business_id', businessId)
+    if (error) {
+      console.error('[screenings/DELETE]', error.message)
+      return NextResponse.json({ error: 'Delete failed', detail: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true, id })
+  } catch (err) {
+    console.error('[screenings/DELETE]', err)
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Delete failed', detail }, { status: 500 })
+  }
+}

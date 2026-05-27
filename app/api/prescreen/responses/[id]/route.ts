@@ -63,3 +63,37 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to update response' }, { status: 500 })
   }
 }
+
+// Hard-delete a prescreen response row. Scoped via the response's
+// parent session -> business; cross-tenant deletes get 403. Derivative
+// rows (transcript, evaluation, notes, scoring_audit) cascade or are
+// cleaned up by their own FK ON DELETE rules where present.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  try {
+    const scope = await resolveBusinessScope(user.id)
+    if (!(await assertResponseInScope(scope, id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    const { error } = await supabaseAdmin
+      .from('candidate_responses')
+      .delete()
+      .eq('id', id)
+    if (error) {
+      console.error('[DELETE /api/prescreen/responses/:id]', error.message)
+      return NextResponse.json({ error: 'Delete failed', detail: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true, id })
+  } catch (err) {
+    console.error('[DELETE /api/prescreen/responses/:id]', err)
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Delete failed', detail }, { status: 500 })
+  }
+}

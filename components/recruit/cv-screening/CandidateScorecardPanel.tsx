@@ -24,6 +24,9 @@ interface Props {
    *  (CvScreeningClient) update its screenings[] state so the list +
    *  panel header stay in sync. */
   onRenameCandidate?: (next: string) => void
+  /** Called when the recruiter deletes the candidate. The parent
+   *  removes the row from screenings[] state and the drawer closes. */
+  onDeleteCandidate?: (id: string) => void
 }
 
 interface HandoffResult {
@@ -39,7 +42,27 @@ interface ProbeResult {
   verdict: string
 }
 
-export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate }: Props) {
+export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate, onDeleteCandidate }: Props) {
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function deleteCandidate() {
+    const candidateLabel = screening.candidate_label ?? 'this candidate'
+    if (!window.confirm(`Delete ${candidateLabel}? This cannot be undone.`)) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/cv-screening/screenings/${screening.id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((data as { error?: string; detail?: string })?.error || (data as { detail?: string })?.detail || `HTTP ${res.status}`)
+      onDeleteCandidate?.(screening.id)
+      onClose()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Delete failed')
+    } finally {
+      setDeleting(false)
+    }
+  }
   const rubric = useMemo(() => {
     const standard = getRubric(screening.rubric_id)
     if (standard) return standard
@@ -447,6 +470,23 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               {screening.cv_text}
             </pre>
           </details>
+
+          {/* Delete candidate - footer-low-emphasis. Confirmation via
+              native window.confirm; on success the row is removed from
+              the parent's screenings[] state and the drawer closes. */}
+          <div className="pt-4 border-t border-border flex items-center justify-between gap-3">
+            {deleteError && (
+              <p className="text-[11px] text-danger flex-1">{deleteError}</p>
+            )}
+            <button
+              type="button"
+              onClick={deleteCandidate}
+              disabled={deleting}
+              className="ml-auto text-xs font-bold text-mid hover:text-danger transition-colors disabled:opacity-50"
+            >
+              {deleting ? 'Deleting...' : 'Delete candidate'}
+            </button>
+          </div>
         </div>
 
         {handoffOpen && (
