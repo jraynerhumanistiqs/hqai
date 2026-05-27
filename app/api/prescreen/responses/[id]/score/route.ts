@@ -69,17 +69,44 @@ export async function POST(
     const promptHash = sha256(SYSTEM_PROMPT + '\n' + JSON.stringify(rubric))
     const inputHash = sha256((transcript.text ?? '') + '\n' + questionText)
 
-    const { error: evalErr } = await supabaseAdmin
-      .from('prescreen_evaluations')
-      .insert({
-        response_id: id,
-        rubric: result.rubric,
-        overall_summary: result.overall_summary,
-        recommendation_action: result.recommendation_action,
-        recommendation_rationale: result.recommendation_rationale,
-        model: SCORING_MODEL,
-      })
-    if (evalErr) throw evalErr
+    // Defensive insert: prescreen_evaluations gained `recommendation_action`
+    // and `recommendation_rationale` via the optional migration
+    // `prescreen_recommendations.sql`. If that migration is not yet
+    // applied on this Supabase instance, the full INSERT errors and
+    // the whole pipeline silently halts at status='evaluating' (the
+    // AI Suggestion card spins forever). Retry without the optional
+    // columns so the pipeline completes; founder can apply the
+    // migration later to unlock recommendation rendering.
+    const fullPayload = {
+      response_id: id,
+      rubric: result.rubric,
+      overall_summary: result.overall_summary,
+      recommendation_action: result.recommendation_action,
+      recommendation_rationale: result.recommendation_rationale,
+      model: SCORING_MODEL,
+    }
+    const corePayload = {
+      response_id: id,
+      rubric: result.rubric,
+      overall_summary: result.overall_summary,
+      model: SCORING_MODEL,
+    }
+    const tryFull = await supabaseAdmin.from('prescreen_evaluations').insert(fullPayload)
+    if (tryFull.error) {
+      const msg = tryFull.error.message?.toLowerCase() ?? ''
+      const isMissingCol = msg.includes('recommendation_action') || msg.includes('recommendation_rationale') || msg.includes('schema cache')
+      if (isMissingCol) {
+        console.warn('[score] prescreen_recommendations migration not applied - inserting core payload only:', tryFull.error.message)
+        const retry = await supabaseAdmin.from('prescreen_evaluations').insert(corePayload)
+        if (retry.error) {
+          console.error('[score] evaluations insert (core retry) failed:', retry.error.message)
+          throw retry.error
+        }
+      } else {
+        console.error('[score] evaluations insert failed:', tryFull.error.message)
+        throw tryFull.error
+      }
+    }
 
     const { error: auditErr } = await supabaseAdmin
       .from('prescreen_scoring_audit')
