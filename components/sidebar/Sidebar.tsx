@@ -334,11 +334,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Campaign Coach
             </Link>
-            <Link href="/dashboard/recruit/cv-screening"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              CV Scoring Agent
-            </Link>
+            {/* CV Scoring Agent sidebar entry hidden during the
+                Shortlist Agent Step 1 merge build. Standalone route at
+                /dashboard/recruit/cv-screening remains live for direct
+                access during testing. */}
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>

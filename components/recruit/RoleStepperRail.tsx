@@ -18,10 +18,10 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { id: 1, label: 'Score CVs',    hint: 'Upload and rank CVs',         status: 'soon' },
-  { id: 2, label: 'Shortlist',    hint: 'Candidate responses',         status: 'live' },
-  { id: 3, label: 'Phone screen', hint: 'Quick calls + notes',         status: 'soon' },
-  { id: 4, label: 'Decision',     hint: 'Final picks + handoff',       status: 'soon' },
+  { id: 1, label: 'Score CVs',  hint: 'Upload and rank CVs',         status: 'soon' },
+  { id: 2, label: 'Prescreen',  hint: 'Video + phone responses',     status: 'live' },
+  { id: 3, label: 'Shortlist',  hint: 'Top picks for decision maker', status: 'soon' },
+  { id: 4, label: 'Decision',   hint: 'Hire outcome + handoff',      status: 'soon' },
 ]
 
 interface Props {
