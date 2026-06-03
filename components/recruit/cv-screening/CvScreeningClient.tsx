@@ -460,8 +460,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
 
-      {/* -- Left panel: rubric list -- */}
-      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${showListPanel ? 'flex' : 'hidden lg:flex'}`}>
+      {/* -- Left panel: rubric list. Hidden entirely when the component
+           is hosted inside Step 1 of the role workflow stepper. The
+           left rail of the role already does the navigating; showing
+           the rubric library here makes the screen feel like three
+           stacked sidebars. The role's own criteria are still surfaced
+           in the detail panel header. -- */}
+      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${prescreenSessionId ? 'hidden' : (showListPanel ? 'flex' : 'hidden lg:flex')}`}>
 
         {/* Header - AI Administrator pattern (eyebrow + sans h1 + body). */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -513,23 +518,46 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         </div>
       </div>
 
-      {/* -- Right panel: rubric detail (upload + candidates + DI) -- */}
-      <div className={`flex-1 overflow-hidden ${showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'}`}>
+      {/* -- Right panel: rubric detail (upload + candidates + DI). In
+           role context the left panel is hidden, so we always show the
+           right panel as the full-width detail surface. -- */}
+      <div className={`flex-1 overflow-hidden ${prescreenSessionId ? 'flex flex-col' : (showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col')}`}>
         {activeRubricKind ? (
           <>
-            {/* Mobile back bar */}
-            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
-              <button
-                onClick={() => setMobileShowList(true)}
-                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
-                aria-label="Back to scoring criteria"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
-                </svg>
-                Back to scoring criteria
-              </button>
-            </div>
+            {/* Mobile back bar - only meaningful when the left panel
+                exists. In-role mode hides the left panel entirely so
+                the back bar would point to nothing. */}
+            {!prescreenSessionId && (
+              <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
+                <button
+                  onClick={() => setMobileShowList(true)}
+                  className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
+                  aria-label="Back to scoring criteria"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+                  </svg>
+                  Back to scoring criteria
+                </button>
+              </div>
+            )}
+            {/* In-role context header - tells the recruiter which role
+                this scoring run belongs to, plus the active criteria
+                name (so it's clear what the CVs are being judged
+                against without the left rubric library). */}
+            {prescreenSessionId && (
+              <div className="hidden lg:block px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+                  Step 1 - Score CVs
+                </p>
+                <h1 className="font-sans text-lg font-bold text-ink tracking-tight">
+                  {roleContextLabel ?? 'Role'}
+                </h1>
+                <p className="text-xs text-mid mt-1">
+                  CVs uploaded here only count toward this role. Use the left rail to move to Step 2 once you&apos;ve promoted your picks.
+                </p>
+              </div>
+            )}
 
             {/* Detail content (scrollable) */}
             <div className="flex-1 overflow-y-auto">
