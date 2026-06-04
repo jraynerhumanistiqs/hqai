@@ -474,10 +474,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             HQ Recruit
           </p>
           <h1 className="font-sans text-lg font-bold text-ink tracking-tight mb-1">
-            CV Scoring Agent
+            Quick CV score
           </h1>
           <p className="text-xs text-ink-soft mb-2">
-            {customCount} saved criteria. Score CVs against your criteria, then send the shortlist to video pre-screen.
+            {customCount} saved criteria. Score CVs ad-hoc with no role attached. To build a shortlist, select scored CVs and send them across - that spins up a Shortlist Agent role with Step 1 already done.
           </p>
           <button
             onClick={() => setShowNewRubric(true)}
@@ -542,20 +542,63 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               </div>
             )}
             {/* In-role context header - tells the recruiter which role
-                this scoring run belongs to, plus the active criteria
-                name (so it's clear what the CVs are being judged
-                against without the left rubric library). */}
+                this scoring run belongs to, and surfaces a compact
+                criteria selector + manage affordances (because the full
+                rubric library panel is hidden in role context). */}
             {prescreenSessionId && (
-              <div className="hidden lg:block px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
+              <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
                   Step 1 - Score CVs
                 </p>
                 <h1 className="font-sans text-lg font-bold text-ink tracking-tight">
                   {roleContextLabel ?? 'Role'}
                 </h1>
-                <p className="text-xs text-mid mt-1">
+                <p className="text-xs text-mid mt-1 mb-3">
                   CVs uploaded here only count toward this role. Use the left rail to move to Step 2 once you&apos;ve promoted your picks.
                 </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                    Scoring criteria
+                  </label>
+                  <select
+                    value={rubricId}
+                    onChange={(e) => setRubricId(e.target.value)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-ink min-w-[200px]"
+                  >
+                    {customFamilies.length > 0 && (
+                      <optgroup label="Saved criteria">
+                        {customFamilies.flatMap(fam =>
+                          fam.versions.map(v => (
+                            <option key={v.id} value={v.id}>
+                              {fam.familyLabel}{fam.versions.length > 1 ? ` (v${v.version_number ?? 1})` : ''}
+                            </option>
+                          )),
+                        )}
+                      </optgroup>
+                    )}
+                    <optgroup label="Standard rubrics">
+                      {ALL_RUBRICS.map(r => (
+                        <option key={r.rubric_id} value={r.rubric_id}>{r.role}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  {activeCustom && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingRubric(activeCustom)}
+                      className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-mid hover:text-ink transition-colors"
+                    >
+                      Edit criteria
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowNewRubric(true)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
+                  >
+                    + New criteria
+                  </button>
+                </div>
               </div>
             )}
 
