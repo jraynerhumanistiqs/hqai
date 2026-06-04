@@ -119,12 +119,26 @@ export function RecruitDashboard() {
   }
 
   async function handlePatchResponse(id: string, patch: Partial<CandidateResponse>) {
-    await fetch(`/api/prescreen/responses/${id}`, {
+    const res = await fetch(`/api/prescreen/responses/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     })
-    setResponses(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+    // Prefer the server's returned row. The patch we send can contain
+    // virtual verbs (e.g. shortlist_action: 'promote') that the route
+    // translates into real columns (shortlisted_at + shortlisted_by) -
+    // merging the raw patch would never reflect those, so the Shortlist
+    // and Decision steps wouldn't update. Fall back to the optimistic
+    // patch only if the response body is unusable.
+    let merged: Partial<CandidateResponse> | null = null
+    try {
+      const data = await res.json()
+      if (data && data.response) merged = data.response as Partial<CandidateResponse>
+    } catch {
+      // ignore - fall back below
+    }
+    const applied = merged ?? patch
+    setResponses(prev => prev.map(r => r.id === id ? { ...r, ...applied } : r))
   }
 
   async function handleShareResponse(id: string): Promise<string> {

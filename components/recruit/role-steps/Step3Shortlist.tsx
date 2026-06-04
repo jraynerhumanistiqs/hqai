@@ -27,7 +27,27 @@ interface Props {
 // timestamp. We treat the existing 'shortlisted' stage as a soft signal
 // only (for backward compat with the Kanban). The explicit column wins.
 function isShortlisted(r: CandidateResponse): boolean {
-  return Boolean((r as unknown as { shortlisted_at?: string | null }).shortlisted_at)
+  return Boolean(r.shortlisted_at)
+}
+
+// Human-friendly status for the Shortlist view. Internal pipeline
+// states (evaluating / transcribing) are noise here - what the recruiter
+// cares about is whether the candidate has been prescreened yet. CV-only
+// imports (no video, came from a CV screening) are surfaced as "CV
+// scored - awaiting prescreen" so they never look stuck mid-pipeline.
+function friendlyStatus(r: CandidateResponse): string {
+  const isCvOnly = (!r.video_ids || r.video_ids.length === 0) && Boolean(r.cv_screening_id)
+  if (isCvOnly) return 'CV scored - awaiting prescreen'
+  switch (String(r.status)) {
+    case 'submitted': return 'Prescreen submitted'
+    case 'transcribing': return 'Processing'
+    case 'transcribed': return 'Prescreen submitted'
+    case 'evaluating': return 'Processing'
+    case 'scored': return 'Prescreen scored'
+    case 'staff_reviewed': return 'Reviewed'
+    case 'shared': return 'Shared'
+    default: return 'In progress'
+  }
 }
 
 export function Step3Shortlist({ session, responses, onPatchResponse, onShareResponse }: Props) {
@@ -136,7 +156,7 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink truncate">{r.candidate_name || 'Unnamed candidate'}</p>
                   <p className="text-xs text-mid truncate">
-                    {String(r.status)}{r.rating ? ` - ${r.rating}/5` : ''}
+                    {friendlyStatus(r)}{r.rating ? ` - ${r.rating}/5` : ''}
                   </p>
                 </div>
                 <button
