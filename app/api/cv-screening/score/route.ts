@@ -21,7 +21,18 @@ import {
 } from '@/lib/cv-screening/score'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+// Bumped from 120s. Bianca (2026-06-04) hit FUNCTION_INVOCATION_TIMEOUT
+// on three CVs. A single CV scoring is one Claude call plus text
+// extraction; 300s gives generous headroom for a slow model response or
+// a heavy PDF parse without the request being killed mid-flight. (Vercel
+// honours this up to the plan ceiling.)
+export const maxDuration = 300
+
+// Hard cap on the characters we feed the model. A genuine CV is well
+// under this; anything larger is usually a merged/scanned dump that
+// both slows the model down (toward the timeout) and adds no signal.
+// Trimming keeps scoring fast and predictable.
+const MAX_CV_CHARS = 24000
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-20250514'
@@ -61,10 +72,15 @@ export async function POST(req: NextRequest) {
     const arrayBuf = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuf)
 
-    const cvText = await extractText(buffer, ext)
-    if (!cvText || cvText.length < 50) {
+    const cvTextRaw = await extractText(buffer, ext)
+    if (!cvTextRaw || cvTextRaw.length < 50) {
       return NextResponse.json({ error: 'Could not read enough text from this file' }, { status: 400 })
     }
+    // Trim pathologically large extractions so a single oversized CV
+    // can't push the request toward the function timeout. Name + email
+    // extraction below run on the (already top-weighted) trimmed text;
+    // the candidate's identifying details sit in the first page anyway.
+    const cvText = cvTextRaw.length > MAX_CV_CHARS ? cvTextRaw.slice(0, MAX_CV_CHARS) : cvTextRaw
 
     // Mask common PII before sending to model. Belt-and-braces with the prompt
     // instruction below telling the model to score on substance only.
@@ -258,7 +274,7 @@ async function extractText(buffer: Buffer, ext: string): Promise<string> {
 // Lines we explicitly never treat as a name even if they pass the
 // capitalisation heuristic. Covers AU CV headers and work-rights banners
 // that are the classic false positives (e.g. "Australian Citizen").
-const NON_NAME_HEADERS = /^(curriculum vitae|resume|cv|profile|professional profile|career profile|summary|career summary|professional summary|objective|career objective|contact|contact details|personal details|personal information|address|phone|mobile|email|linkedin|github|portfolio|skills|core skills|key skills|experience|work experience|professional experience|employment|employment history|education|qualifications|certifications|references|australian citizen|permanent resident|new zealand citizen|nz citizen|working holiday|work rights|right to work|visa holder|tfn holder)\b/i
+const NON_NAME_HEADERS = /^(curriculum vitae|resume|cv|profile|professional profile|career profile|summary|career summary|professional summary|executive summary|overview|career overview|professional overview|personal overview|about|about me|personal statement|personal profile|introduction|bio|biography|objective|career objective|contact|contact details|personal details|personal information|address|phone|mobile|email|linkedin|github|portfolio|skills|core skills|key skills|technical skills|areas of expertise|expertise|competencies|key competencies|achievements|key achievements|accomplishments|experience|work experience|professional experience|career history|work history|employment|employment history|education|education history|academic background|qualifications|certifications|licences|licenses|references|referees|interests|hobbies|languages|projects|key projects|volunteer experience|professional development|australian citizen|permanent resident|new zealand citizen|nz citizen|working holiday|work rights|right to work|visa holder|tfn holder)\b/i
 
 // Title-case a name that may have arrived as ALL CAPS. Keep particles like
 // "de", "van", "von", "of" lowercase and recognise common Mc/Mac/O' patterns

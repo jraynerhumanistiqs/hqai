@@ -47,9 +47,12 @@ interface PendingUpload {
 
 export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics, prescreenSessionId, roleContextLabel }: Props) {
   const [customRubrics, setCustomRubrics] = useState<CustomRubricRow[]>(initialCustomRubrics)
-  const [rubricId, setRubricId] = useState<string>(
-    initialCustomRubrics[0]?.id ?? ALL_RUBRICS[0].rubric_id,
-  )
+  // Start with NO rubric selected so a fresh landing shows the explicit
+  // "choose or create criteria" empty state rather than silently
+  // auto-selecting a saved or standard rubric. Bianca (2026-06-04) read
+  // the auto-selected rubric as "I must have picked the wrong role". The
+  // user now deliberately picks criteria before anything is scored.
+  const [rubricId, setRubricId] = useState<string>('')
   const [screenings, setScreenings] = useState<CandidateScreening[]>(initialScreenings)
   const [pending, setPending] = useState<PendingUpload[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -420,6 +423,12 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         })
         if (!res.ok) {
           const text = await res.text().catch(() => '')
+          // Vercel returns an opaque FUNCTION_INVOCATION_TIMEOUT body when
+          // a CV takes too long to score. Translate it into something a
+          // recruiter can act on rather than a raw platform error string.
+          if (res.status === 504 || /FUNCTION_INVOCATION_TIMEOUT/i.test(text)) {
+            throw new Error('Scoring timed out on this CV - it may be very large or image-heavy. Try re-uploading it on its own, or export it to a text-based PDF first.')
+          }
           throw new Error(text || `HTTP ${res.status}`)
         }
         const data = (await res.json()) as { screening: CandidateScreening; persistence_warning?: string | null }
@@ -569,6 +578,68 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
            role context the left panel is hidden, so we always show the
            right panel as the full-width detail surface. -- */}
       <div className={`flex-1 overflow-hidden ${prescreenSessionId ? 'flex flex-col' : (showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col')}`}>
+        {/* In-role context header - always visible in role context (even
+            before a rubric is chosen) so the criteria selector + manage
+            affordances are reachable. The full rubric library panel is
+            hidden in role context, so this is the only place to pick or
+            edit criteria. */}
+        {prescreenSessionId && (
+          <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+              Step 1 - Score CVs
+            </p>
+            <h1 className="font-sans text-lg font-bold text-ink tracking-tight">
+              {roleContextLabel ?? 'Role'}
+            </h1>
+            <p className="text-xs text-mid mt-1 mb-3">
+              CVs uploaded here only count toward this role. Use the left rail to move to Step 2 once you&apos;ve promoted your picks.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                Scoring criteria
+              </label>
+              <select
+                value={rubricId}
+                onChange={(e) => setRubricId(e.target.value)}
+                className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-ink min-w-[200px]"
+              >
+                <option value="">Choose criteria...</option>
+                {customFamilies.length > 0 && (
+                  <optgroup label="Saved criteria">
+                    {customFamilies.flatMap(fam =>
+                      fam.versions.map(v => (
+                        <option key={v.id} value={v.id}>
+                          {fam.familyLabel}{fam.versions.length > 1 ? ` (v${v.version_number ?? 1})` : ''}
+                        </option>
+                      )),
+                    )}
+                  </optgroup>
+                )}
+                <optgroup label="Standard rubrics">
+                  {ALL_RUBRICS.map(r => (
+                    <option key={r.rubric_id} value={r.rubric_id}>{r.role}</option>
+                  ))}
+                </optgroup>
+              </select>
+              {activeCustom && (
+                <button
+                  type="button"
+                  onClick={() => setEditingRubric(activeCustom)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-mid hover:text-ink transition-colors"
+                >
+                  Edit criteria
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowNewRubric(true)}
+                className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
+              >
+                + New criteria
+              </button>
+            </div>
+          </div>
+        )}
         {activeRubricKind ? (
           <>
             {/* Mobile back bar - only meaningful when the left panel
@@ -588,67 +659,6 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 </button>
               </div>
             )}
-            {/* In-role context header - tells the recruiter which role
-                this scoring run belongs to, and surfaces a compact
-                criteria selector + manage affordances (because the full
-                rubric library panel is hidden in role context). */}
-            {prescreenSessionId && (
-              <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
-                  Step 1 - Score CVs
-                </p>
-                <h1 className="font-sans text-lg font-bold text-ink tracking-tight">
-                  {roleContextLabel ?? 'Role'}
-                </h1>
-                <p className="text-xs text-mid mt-1 mb-3">
-                  CVs uploaded here only count toward this role. Use the left rail to move to Step 2 once you&apos;ve promoted your picks.
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                    Scoring criteria
-                  </label>
-                  <select
-                    value={rubricId}
-                    onChange={(e) => setRubricId(e.target.value)}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-ink min-w-[200px]"
-                  >
-                    {customFamilies.length > 0 && (
-                      <optgroup label="Saved criteria">
-                        {customFamilies.flatMap(fam =>
-                          fam.versions.map(v => (
-                            <option key={v.id} value={v.id}>
-                              {fam.familyLabel}{fam.versions.length > 1 ? ` (v${v.version_number ?? 1})` : ''}
-                            </option>
-                          )),
-                        )}
-                      </optgroup>
-                    )}
-                    <optgroup label="Standard rubrics">
-                      {ALL_RUBRICS.map(r => (
-                        <option key={r.rubric_id} value={r.rubric_id}>{r.role}</option>
-                      ))}
-                    </optgroup>
-                  </select>
-                  {activeCustom && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingRubric(activeCustom)}
-                      className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-mid hover:text-ink transition-colors"
-                    >
-                      Edit criteria
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowNewRubric(true)}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
-                  >
-                    + New criteria
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Detail content (scrollable) */}
             <div className="flex-1 overflow-y-auto">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
@@ -1020,13 +1030,17 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full px-4 py-10">
+          <div className="flex items-center justify-center flex-1 min-h-0 overflow-y-auto px-4 py-10">
             <div className="max-w-md w-full">
               <h2 className="font-display text-xl font-bold text-charcoal mb-2 uppercase tracking-wider text-center">
-                Get started in two steps
+                Choose your scoring criteria
               </h2>
               <p className="text-sm text-mid mb-6 text-center">
-                Set up the scoring criteria first, then upload CVs to score against them.
+                {prescreenSessionId
+                  ? 'Pick the criteria for this role from the dropdown above, or create new criteria from a job ad. Then upload CVs to score against them.'
+                  : customCount > 0
+                    ? 'Select a saved set of criteria from the left, or create a new one. Then upload CVs to score against them.'
+                    : 'Set up the scoring criteria first, then upload CVs to score against them.'}
               </p>
 
               {/* Numbered onboarding. Explicit "1 -> 2" so SMEs who
@@ -1099,11 +1113,11 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
         return (
           <div
-            className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 px-4"
+            className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 px-4"
             onClick={() => setCriteriaModalOpen(false)}
           >
             <div
-              className="bg-bg-elevated rounded-3xl shadow-card max-w-lg w-full max-h-[85vh] overflow-y-auto"
+              className="bg-bg-elevated rounded-3xl border border-border ring-1 ring-black/5 shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="px-6 pt-5 pb-4 border-b border-border">

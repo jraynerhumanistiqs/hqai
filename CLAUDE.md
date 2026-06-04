@@ -197,6 +197,23 @@ KNOWN ISSUES:
 4. Candidate submits → POST /api/prescreen/sessions/[id]/responses
 5. Staff gets email notification, views videos in RoleDetail
 
+### Shortlist Agent role workflow (4-step stepper, May 2026)
+CV Scoring Agent is no longer a standalone tool - it merged into the
+Shortlist Agent as Step 1. A role now runs as a left-rail stepper inside
+RoleDetail (components/recruit/RoleStepperRail.tsx + role-steps/):
+1. Score CVs   - Step1ScoreCvs wraps CvScreeningClient scoped to the
+                 role's prescreen_session_id; uploads anchor to the role.
+2. Prescreen   - existing video + phone responses (RoleDetail default).
+3. Shortlist   - Step3Shortlist: promote candidates (shortlisted_at gate),
+                 share with the decision maker.
+4. Decision    - Step4Decision: reject / interview_1 / interview_2 / offer
+                 (decision column on prescreen_responses).
+Standalone /dashboard/recruit/cv-screening survives as "Quick CV score"
+(sidebar entry) for the no-role-yet case - same CvScreeningClient with no
+prescreenSessionId prop. Bridge columns: cv_screenings.prescreen_session_id,
+prescreen_responses.cv_screening_id. Migration for steps 3/4:
+prescreen_responses_shortlist_decision.sql.
+
 ## Brand positioning
 "The operating system for people, compliance, and hiring -
 powered by human-centred AI."

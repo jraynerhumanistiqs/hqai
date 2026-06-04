@@ -81,29 +81,71 @@ export async function POST(req: NextRequest) {
     const empTypes = Array.isArray(body.empTypes) ? body.empTypes.join(', ') : ''
 
     // 4. Create the business row.
-    const { data: business, error: bizError } = await supabaseAdmin
-      .from('businesses')
-      .insert({
-        name: bizName,
-        industry,
-        country,
-        state: stateVal,
-        award: awards,
-        headcount,
-        // Comma-separated string for backward compatibility with the AI
-        // prompts that interpolate employment_types verbatim. Settings
-        // UI reads and writes the same shape.
-        employment_types: empTypes,
-        advisor_name: advisorName,
-        plan,
-      })
-      .select('id')
-      .single()
+    //
+    // Defensive insert: the full payload references columns that arrived
+    // via later migrations (e.g. `country` from add_country_to_businesses).
+    // If a target environment hasn't applied one of those migrations, a
+    // rigid single insert hard-fails the WHOLE onboarding with a generic
+    // "Could not save business details" - which is exactly the
+    // show-stopper Bianca hit (2026-06-04). So we try the full shape
+    // first, then progressively drop any column the database complains
+    // about and retry. `name` is the only truly required column.
+    const fullBiz: Record<string, unknown> = {
+      name: bizName,
+      industry,
+      country,
+      state: stateVal,
+      award: awards,
+      headcount,
+      // Comma-separated string for backward compatibility with the AI
+      // prompts that interpolate employment_types verbatim. Settings
+      // UI reads and writes the same shape.
+      employment_types: empTypes,
+      advisor_name: advisorName,
+      plan,
+    }
+    // Order matters - least-essential first so we shed the most
+    // expendable columns before the ones the app actually leans on.
+    const BIZ_OPTIONAL_DROP_ORDER = [
+      'country', 'headcount', 'employment_types', 'award', 'state',
+      'industry', 'advisor_name', 'plan',
+    ]
+    const active = new Set(Object.keys(fullBiz))
+    let business: { id: string } | null = null
+    let lastBizError: { message?: string; details?: string; hint?: string; code?: string } | null = null
 
-    if (bizError || !business) {
-      console.error('[onboarding/POST] business insert failed', bizError)
+    for (let attempt = 0; attempt <= BIZ_OPTIONAL_DROP_ORDER.length; attempt++) {
+      const payload: Record<string, unknown> = {}
+      for (const k of active) payload[k] = fullBiz[k]
+      const { data, error } = await supabaseAdmin
+        .from('businesses')
+        .insert(payload)
+        .select('id')
+        .single()
+      if (!error && data) { business = data; break }
+      lastBizError = error
+      // Find an optional column named in the error (message / details /
+      // hint often name the missing column) and drop it, then retry.
+      const haystack = `${error?.message ?? ''} ${error?.details ?? ''} ${error?.hint ?? ''}`.toLowerCase()
+      const drop = BIZ_OPTIONAL_DROP_ORDER.find(col => active.has(col) && haystack.includes(col.toLowerCase()))
+      if (drop) {
+        console.warn(`[onboarding/POST] business insert failed on column ${drop}, retrying without it. (${error?.message})`)
+        active.delete(drop)
+        continue
+      }
+      // Schema-cache staleness (PGRST204) names the column generically -
+      // shed the next optional column blindly so a fresh DB still works.
+      if ((error?.code === 'PGRST204' || haystack.includes('schema cache')) ) {
+        const next = BIZ_OPTIONAL_DROP_ORDER.find(col => active.has(col))
+        if (next) { active.delete(next); continue }
+      }
+      break
+    }
+
+    if (!business) {
+      console.error('[onboarding/POST] business insert failed', lastBizError)
       return NextResponse.json(
-        { error: 'Could not save business details.', detail: bizError?.message ?? 'unknown' },
+        { error: 'Could not save business details.', detail: lastBizError?.message ?? 'unknown' },
         { status: 500 },
       )
     }

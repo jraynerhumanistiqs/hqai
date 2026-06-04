@@ -144,7 +144,11 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
   const primaryCtaLabel = (() => {
     switch (state.step) {
       case 1:
-        return isReturningToStep1 ? 'Ask Coach to Try Again' : 'Brief the coach →'
+        // After a successful brief we no longer auto-advance (Bianca,
+        // 2026-06-04, found being thrown to the next page without
+        // approving disorienting). The primary action becomes an
+        // explicit "review the details" that the user chooses to click.
+        return isReturningToStep1 ? 'Review the details →' : 'Brief the coach →'
       case 2: return 'Looks good - draft it →'
       case 3: return 'All approved - continue →'
       case 4: return 'Get prefilled links →'
@@ -152,22 +156,35 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
     }
   })()
 
+  // Re-run the Step 1 brief from the current brief text. Surfaced as a
+  // secondary action once the coach has already extracted a profile, so
+  // the user can correct the brief instead of being forced forward.
+  const onReBrief = async () => {
+    if (state.streaming || !state.briefText.trim()) return
+    const out = await callDraft(1, { brief: { raw_text: state.briefText } })
+    if (out?.role_profile) dispatch({ type: 'MARK_BRIEFED' })
+  }
+
   const onPrimary = async () => {
     if (state.streaming) return
     switch (state.step) {
       case 1: {
+        // Two modes on Step 1:
+        //  - Already briefed + have a profile: the primary action is now
+        //    "Review the details" - advance to Step 2 on an explicit
+        //    click. We never auto-advance off the back of the brief.
+        //  - Not yet briefed: run the brief, mark briefed, and STAY on
+        //    Step 1 so the user chooses when to move forward.
+        if (isReturningToStep1) {
+          dispatch({ type: 'SET_STEP', step: 2 })
+          break
+        }
         if (!state.briefText.trim()) return
         const out = await callDraft(1, { brief: { raw_text: state.briefText } })
-        // eslint-disable-next-line no-console
-        console.log('[campaign-coach] step 1 response:', out)
         if (out?.role_profile) {
           dispatch({ type: 'MARK_BRIEFED' })
-          // If this is a "Try Again" run from Step 1 (user already
-          // briefed and came back), stay on Step 1 so they can confirm
-          // the new extract before moving forward. Otherwise advance.
-          if (!isReturningToStep1) {
-            dispatch({ type: 'SET_STEP', step: 2 })
-          }
+          // Intentionally no SET_STEP here - the user advances via the
+          // "Review the details" CTA once they're ready.
         } else {
           const dump = (() => {
             try { return JSON.stringify(out, null, 2).slice(0, 1500) }
@@ -282,6 +299,16 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
               >
                 {coachOpenMobile ? 'Hide coach' : 'Show coach'}
               </button>
+              {isReturningToStep1 && (
+                <button
+                  onClick={onReBrief}
+                  disabled={state.streaming || !state.briefText.trim()}
+                  className="bg-light text-charcoal text-sm font-bold px-4 py-2.5 rounded-full hover:bg-border disabled:opacity-50 transition-colors"
+                  title="Re-run the brief if the extracted details aren't right"
+                >
+                  Ask coach to try again
+                </button>
+              )}
               <button
                 onClick={onPrimary}
                 disabled={!stepCanAdvance}

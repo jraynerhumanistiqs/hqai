@@ -151,7 +151,11 @@ async function suggestRubricFromJd(jd: string, label: string): Promise<Rubric> {
     max_tokens: 2048,
     system: `You design CV-scoring rubrics for Australian SMEs. You are given a job ad and you produce a 6-8 criterion weighted rubric tuned to that role. Rules:
 - Total weight across criteria must sum to exactly 1.00.
-- Always include exactly one binary hard_gate criterion called "location_eligibility" with weight 0.10 covering AU work rights and location requirements.
+- Include exactly one binary hard_gate criterion called "work_eligibility" with weight 0.10 covering the candidate's legal right to work in Australia (citizen, permanent resident, or valid working visa). This is about work rights ONLY.
+- Read the ad's location intent carefully before adding any physical-location requirement:
+  - If the ad says the role is remote, work from home, work from anywhere, or distributed, DO NOT penalise candidates for where they live. The work_eligibility gate must NOT reference a city, state, or commuting distance for these roles.
+  - Only add a physical-location requirement when the ad clearly requires on-site or hybrid attendance at a specific location, and make it an ordinal_5 criterion (not a hard gate) unless the ad states attendance is mandatory.
+  - When in doubt about location, leave it out rather than hard-passing a candidate.
 - Other criteria are ordinal_5 with anchors at 1, 3, and 5 levels written as one-line discriminators.
 - Pick the 5-7 things from the ad that actually matter. Don't pad.
 - Use Australian English (organise, behaviour, recognise). No em-dashes or en-dashes - plain hyphens only.

@@ -127,8 +127,8 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4" {...backdrop}>
-      <div className="bg-bg-elevated rounded-3xl shadow-modal w-full max-w-3xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center p-4" {...backdrop}>
+      <div className="bg-bg-elevated rounded-3xl border border-border ring-1 ring-black/5 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="flex items-start justify-between px-6 py-5 border-b border-border">
           <div>
             <h2 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">

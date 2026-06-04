@@ -520,31 +520,40 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
           {screening.fairness_checks && (
             <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-bold text-charcoal text-sm">Fairness checks</p>
+                <p className="font-bold text-charcoal text-sm">Bias checks</p>
                 <button
                   onClick={runCounterfactual}
                   disabled={probeBusy}
+                  title="Re-scores this CV with a few different names to check the AI's score doesn't change based on the candidate's name."
                   className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
                 >
-                  {probeBusy ? 'Probing...' : 'Run name probe'}
+                  {probeBusy ? 'Checking...' : 'Check for name bias'}
                 </button>
               </div>
-              <p>Name blinded from scorer: {screening.fairness_checks.name_blinded ? 'yes' : 'no'}</p>
-              <p>Demographic inference suppressed: {screening.fairness_checks.demographic_inference_suppressed ? 'yes' : 'no'}</p>
+              <p>Candidate name hidden from the scorer: {screening.fairness_checks.name_blinded ? 'yes' : 'no'}</p>
+              <p>Age, gender and background ignored: {screening.fairness_checks.demographic_inference_suppressed ? 'yes' : 'no'}</p>
               {screening.fairness_checks.tenure_gap_explained && (
-                <p>Tenure gap noted: {screening.fairness_checks.tenure_gap_explained}</p>
+                <p>Career gap noted: {screening.fairness_checks.tenure_gap_explained}</p>
               )}
 
               {probeError && (
-                <p className="text-danger">Probe failed: {probeError}</p>
+                <p className="text-danger">Bias check failed: {probeError}</p>
               )}
 
               {probeResult && (
                 <div className="mt-2 pt-2 border-t border-border space-y-1.5">
                   <p className={`font-bold text-sm ${probeResult.flagged ? 'text-warning' : 'text-success'}`}>
-                    {probeResult.flagged ? 'Flagged' : 'Stable'} - max delta {probeResult.max_delta}
+                    {probeResult.flagged
+                      ? 'Possible name bias detected'
+                      : 'No name bias detected'}
                   </p>
-                  <p>{probeResult.verdict}</p>
+                  <p className="leading-relaxed">
+                    We re-scored this CV with different names. The biggest change to the overall score was{' '}
+                    <strong className="text-charcoal">{probeResult.max_delta.toFixed(2)} out of 5</strong>
+                    {probeResult.flagged
+                      ? ' - large enough to be worth a manual look.'
+                      : ' - small enough that the name is not swaying the score.'}
+                  </p>
                   <ul className="space-y-0.5 mt-1.5">
                     <li className="flex justify-between">
                       <span className="text-charcoal font-bold">{probeResult.original.name} (original)</span>
