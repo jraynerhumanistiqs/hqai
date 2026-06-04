@@ -27,6 +27,17 @@ interface Props {
   /** Called when the recruiter deletes the candidate. The parent
    *  removes the row from screenings[] state and the drawer closes. */
   onDeleteCandidate?: (id: string) => void
+  /** True when this panel is hosted inside a role (Step 1 of the
+   *  Shortlist Agent workflow). Swaps the legacy "Send to Shortlist
+   *  Agent" handoff for the in-role action set (Send to Prescreen /
+   *  Reject Candidate). */
+  inRole?: boolean
+  /** Attach this candidate to the role's prescreen session (Step 2).
+   *  Only provided in role context. */
+  onSendToPrescreen?: (screeningId: string) => Promise<void>
+  /** Move this candidate to the rejected ("No") grouping. Only provided
+   *  in role context. */
+  onRejectCandidate?: (screeningId: string) => Promise<void>
 }
 
 interface HandoffResult {
@@ -42,9 +53,42 @@ interface ProbeResult {
   verdict: string
 }
 
-export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate, onDeleteCandidate }: Props) {
+export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate, onDeleteCandidate, inRole, onSendToPrescreen, onRejectCandidate }: Props) {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  // In-role action state (Send to Prescreen / Reject).
+  const [roleActionBusy, setRoleActionBusy] = useState<null | 'prescreen' | 'reject'>(null)
+  const [roleActionError, setRoleActionError] = useState<string | null>(null)
+  const [roleActionDone, setRoleActionDone] = useState<null | 'prescreen' | 'reject'>(null)
+
+  async function handleSendToPrescreen() {
+    if (!onSendToPrescreen) return
+    setRoleActionBusy('prescreen')
+    setRoleActionError(null)
+    try {
+      await onSendToPrescreen(screening.id)
+      setRoleActionDone('prescreen')
+    } catch (err) {
+      setRoleActionError(err instanceof Error ? err.message : 'Send to prescreen failed')
+    } finally {
+      setRoleActionBusy(null)
+    }
+  }
+
+  async function handleReject() {
+    if (!onRejectCandidate) return
+    if (!window.confirm(`Reject ${screening.candidate_label ?? 'this candidate'}? They move to the No category. You can still find them in the list.`)) return
+    setRoleActionBusy('reject')
+    setRoleActionError(null)
+    try {
+      await onRejectCandidate(screening.id)
+      setRoleActionDone('reject')
+    } catch (err) {
+      setRoleActionError(err instanceof Error ? err.message : 'Reject failed')
+    } finally {
+      setRoleActionBusy(null)
+    }
+  }
 
   async function deleteCandidate() {
     const candidateLabel = screening.candidate_label ?? 'this candidate'
@@ -314,17 +358,22 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 ${BAND_COLOURS[screening.band as keyof typeof BAND_COLOURS] ?? ''}`}>
               {BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band}
             </span>
-            {canSendVideo ? (
-              <button
-                onClick={startHandoff}
-                className="ml-auto bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
-              >
-                Send to Shortlist Agent
-              </button>
-            ) : (
-              <span className="ml-auto text-xs font-bold text-mid">
-                {ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}
-              </span>
+            {/* In-role: the legacy single "Send to Shortlist Agent"
+                handoff is replaced by the in-role action set rendered
+                below the score. Standalone keeps the original button. */}
+            {!inRole && (
+              canSendVideo ? (
+                <button
+                  onClick={startHandoff}
+                  className="ml-auto bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+                >
+                  Send to Shortlist Agent
+                </button>
+              ) : (
+                <span className="ml-auto text-xs font-bold text-mid">
+                  {ACTION_LABELS[screening.next_action as keyof typeof ACTION_LABELS] ?? screening.next_action}
+                </span>
+              )
             )}
           </div>
 
@@ -332,6 +381,57 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             <p className="text-sm text-charcoal leading-relaxed">
               {screening.rationale_short}
             </p>
+          )}
+
+          {/* In-role decision actions. Replaces the standalone "Send to
+              Shortlist Agent" handoff with the three outcomes the
+              recruiter actually needs at Step 1: keep the candidate by
+              sending them to prescreen, or reject them. The CV report
+              download lives in the Download block below, so here we
+              point to it rather than duplicate it. */}
+          {inRole && (
+            <div className="bg-light rounded-2xl px-4 py-3 space-y-3">
+              <p className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                Next step for this candidate
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSendToPrescreen}
+                  disabled={roleActionBusy !== null || roleActionDone === 'prescreen'}
+                  className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal disabled:opacity-60"
+                >
+                  {roleActionBusy === 'prescreen'
+                    ? 'Sending...'
+                    : roleActionDone === 'prescreen'
+                      ? 'Sent to prescreen ✓'
+                      : 'Send to prescreen'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReject}
+                  disabled={roleActionBusy !== null || roleActionDone === 'reject'}
+                  className="bg-bg-elevated border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-danger/10 hover:text-danger hover:border-danger/30 disabled:opacity-60"
+                >
+                  {roleActionBusy === 'reject'
+                    ? 'Rejecting...'
+                    : roleActionDone === 'reject'
+                      ? 'Rejected ✓'
+                      : 'Reject candidate'}
+                </button>
+                <span className="text-[11px] text-muted">
+                  Download the CV report below.
+                </span>
+              </div>
+              {roleActionError && (
+                <p className="text-xs text-danger">{roleActionError}</p>
+              )}
+              {roleActionDone === 'prescreen' && (
+                <p className="text-xs text-mid">
+                  This candidate now appears in Step 2 (Prescreen). Switch to the Prescreen step to send their invite.
+                </p>
+              )}
+            </div>
           )}
 
           {/* CV Scoring Agent download options. Three exports off the same

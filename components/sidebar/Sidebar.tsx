@@ -334,15 +334,20 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Campaign Coach
             </Link>
-            <Link href="/dashboard/recruit/cv-screening"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              CV Scoring Agent
-            </Link>
+            {/* The standalone CV Scoring Agent has merged into the
+                Shortlist Agent as Step 1. CV scoring now lives inside a
+                role. This entry stays for the ad-hoc "I just want to
+                score a CV, no role yet" use case and points at the same
+                /cv-screening route running without a role anchor. */}
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Shortlist Agent
+            </Link>
+            <Link href="/dashboard/recruit/cv-screening"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
+              Quick CV score
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all

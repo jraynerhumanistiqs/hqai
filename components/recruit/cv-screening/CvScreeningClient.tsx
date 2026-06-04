@@ -29,6 +29,13 @@ interface Props {
   businessName: string
   initialScreenings: CandidateScreening[]
   initialCustomRubrics: CustomRubricRow[]
+  // Optional role anchor. When set, uploads carry the prescreen_session_id
+  // through to the API so each new cv_screening row is scoped to the
+  // role's Step 1, and the list view shows only role-scoped screenings.
+  // Standalone /dashboard/recruit/cv-screening continues to render
+  // without these props - behaviour is unchanged.
+  prescreenSessionId?: string
+  roleContextLabel?: string
 }
 
 interface PendingUpload {
@@ -38,7 +45,7 @@ interface PendingUpload {
   error?: string
 }
 
-export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics }: Props) {
+export default function CvScreeningClient({ businessName, initialScreenings, initialCustomRubrics, prescreenSessionId, roleContextLabel }: Props) {
   const [customRubrics, setCustomRubrics] = useState<CustomRubricRow[]>(initialCustomRubrics)
   const [rubricId, setRubricId] = useState<string>(
     initialCustomRubrics[0]?.id ?? ALL_RUBRICS[0].rubric_id,
@@ -229,23 +236,74 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       const res = await fetch('/api/cv-screening/batch-handoff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ screening_ids: Array.from(selectedIds) }),
+        body: JSON.stringify({
+          screening_ids: Array.from(selectedIds),
+          // When this surface is hosted inside Step 1 of an existing role,
+          // attach the CVs to that role's session instead of spawning a
+          // new one. The role's Step 2 (Prescreen) view picks them up
+          // immediately.
+          ...(prescreenSessionId ? { target_session_id: prescreenSessionId } : {}),
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Taking you there now...`)
-      try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
-      clearSelected()
-      // Auto-navigate to the new Shortlist Agent role so the user sees the
-      // candidates that flowed through. Short delay so the success toast is
-      // readable.
-      setTimeout(() => {
-        window.location.href = `/dashboard/recruit/shortlist?session=${data.session_id}`
-      }, 800)
+      if (prescreenSessionId) {
+        // In-role flow: stay on the page so the recruiter can keep
+        // promoting CVs. Step 2 fetches its responses again on focus.
+        setBatchHandoffResult(`Attached ${data.candidates_attached} candidate${data.candidates_attached === 1 ? '' : 's'} to this role. Switch to Step 2 (Prescreen) to send their invites.`)
+        clearSelected()
+      } else {
+        setBatchHandoffResult(`Created Shortlist role "${data.role_title}" with ${data.candidates_attached} candidates. Taking you there now...`)
+        try { await navigator.clipboard.writeText(data.candidate_url) } catch {}
+        clearSelected()
+        // Auto-navigate to the new Shortlist Agent role so the user sees
+        // the candidates that flowed through. Short delay so the success
+        // toast is readable.
+        setTimeout(() => {
+          window.location.href = `/dashboard/recruit/shortlist?session=${data.session_id}`
+        }, 800)
+      }
     } catch (err) {
       setBatchHandoffResult(`Failed: ${err instanceof Error ? err.message : 'unknown'}`)
     }
     setBatchHandoffBusy(false)
+  }
+
+  // Single-candidate "Send to Prescreen" - used by the scorecard drawer
+  // when this surface is hosted inside a role (Step 1). Attaches the one
+  // CV to the role's prescreen session so it appears in Step 2. Throws on
+  // failure so the drawer can surface the error inline.
+  async function sendCandidateToPrescreen(screeningId: string): Promise<void> {
+    const res = await fetch('/api/cv-screening/batch-handoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        screening_ids: [screeningId],
+        ...(prescreenSessionId ? { target_session_id: prescreenSessionId } : {}),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error((data as { error?: string })?.error || `HTTP ${res.status}`)
+  }
+
+  // "Reject candidate" - records an override band of 'reject' on the CV
+  // screening so the candidate drops into the rejected ("No") grouping.
+  // Updates local state so the list reflects it without a refetch.
+  async function rejectScreening(screeningId: string): Promise<void> {
+    const res = await fetch(`/api/cv-screening/screenings/${screeningId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ override_band: 'reject' }),
+    })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      throw new Error((d as { error?: string })?.error || `HTTP ${res.status}`)
+    }
+    setScreenings(prev => prev.map(row =>
+      row.id === screeningId
+        ? { ...row, override_band: 'reject' } as CandidateScreening
+        : row,
+    ))
   }
 
   // Include screenings scored against ANY version of the active rubric
@@ -352,6 +410,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         const fd = new FormData()
         fd.append('file', f)
         fd.append('rubricId', rubricId)
+        // When the screen is hosted inside Step 1 of a role, the role's
+        // prescreen_session_id rides along so the new row is scoped to
+        // the role instead of landing in the standalone pool.
+        if (prescreenSessionId) fd.append('prescreenSessionId', prescreenSessionId)
         const res = await fetch('/api/cv-screening/score', {
           method: 'POST',
           body: fd,
@@ -404,6 +466,16 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [mobileShowList, setMobileShowList] = useState(false)
   const showListPanel = mobileShowList || !rubricId
 
+  // Criteria confirmation gate. Before the first CV is uploaded against
+  // a given rubric, the recruiter confirms the scoring criteria in a
+  // modal ("Yes, use this criteria" / "Change criteria"). Keyed by
+  // rubricId so switching to a different rubric re-prompts. This keeps
+  // the criteria preview out of the main Score CVs surface (it used to
+  // take up space) and forces a deliberate check before scoring.
+  const [criteriaModalOpen, setCriteriaModalOpen] = useState(false)
+  const [confirmedCriteria, setConfirmedCriteria] = useState<Record<string, boolean>>({})
+  const criteriaConfirmed = Boolean(confirmedCriteria[rubricId])
+
   const customCount = customRubrics.length
   const standardCount = ALL_RUBRICS.length
 
@@ -435,8 +507,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
 
-      {/* -- Left panel: rubric list -- */}
-      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${showListPanel ? 'flex' : 'hidden lg:flex'}`}>
+      {/* -- Left panel: rubric list. Hidden entirely when the component
+           is hosted inside Step 1 of the role workflow stepper. The
+           left rail of the role already does the navigating; showing
+           the rubric library here makes the screen feel like three
+           stacked sidebars. The role's own criteria are still surfaced
+           in the detail panel header. -- */}
+      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${prescreenSessionId ? 'hidden' : (showListPanel ? 'flex' : 'hidden lg:flex')}`}>
 
         {/* Header - AI Administrator pattern (eyebrow + sans h1 + body). */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -444,10 +521,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             HQ Recruit
           </p>
           <h1 className="font-sans text-lg font-bold text-ink tracking-tight mb-1">
-            CV Scoring Agent
+            Quick CV score
           </h1>
           <p className="text-xs text-ink-soft mb-2">
-            {customCount} saved criteria. Score CVs against your criteria, then send the shortlist to video pre-screen.
+            {customCount} saved criteria. Score CVs ad-hoc with no role attached. To build a shortlist, select scored CVs and send them across - that spins up a Shortlist Agent role with Step 1 already done.
           </p>
           <button
             onClick={() => setShowNewRubric(true)}
@@ -488,23 +565,89 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         </div>
       </div>
 
-      {/* -- Right panel: rubric detail (upload + candidates + DI) -- */}
-      <div className={`flex-1 overflow-hidden ${showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'}`}>
+      {/* -- Right panel: rubric detail (upload + candidates + DI). In
+           role context the left panel is hidden, so we always show the
+           right panel as the full-width detail surface. -- */}
+      <div className={`flex-1 overflow-hidden ${prescreenSessionId ? 'flex flex-col' : (showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col')}`}>
         {activeRubricKind ? (
           <>
-            {/* Mobile back bar */}
-            <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
-              <button
-                onClick={() => setMobileShowList(true)}
-                className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
-                aria-label="Back to scoring criteria"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
-                </svg>
-                Back to scoring criteria
-              </button>
-            </div>
+            {/* Mobile back bar - only meaningful when the left panel
+                exists. In-role mode hides the left panel entirely so
+                the back bar would point to nothing. */}
+            {!prescreenSessionId && (
+              <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
+                <button
+                  onClick={() => setMobileShowList(true)}
+                  className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
+                  aria-label="Back to scoring criteria"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+                  </svg>
+                  Back to scoring criteria
+                </button>
+              </div>
+            )}
+            {/* In-role context header - tells the recruiter which role
+                this scoring run belongs to, and surfaces a compact
+                criteria selector + manage affordances (because the full
+                rubric library panel is hidden in role context). */}
+            {prescreenSessionId && (
+              <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-border bg-bg-elevated flex-shrink-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+                  Step 1 - Score CVs
+                </p>
+                <h1 className="font-sans text-lg font-bold text-ink tracking-tight">
+                  {roleContextLabel ?? 'Role'}
+                </h1>
+                <p className="text-xs text-mid mt-1 mb-3">
+                  CVs uploaded here only count toward this role. Use the left rail to move to Step 2 once you&apos;ve promoted your picks.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                    Scoring criteria
+                  </label>
+                  <select
+                    value={rubricId}
+                    onChange={(e) => setRubricId(e.target.value)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-ink min-w-[200px]"
+                  >
+                    {customFamilies.length > 0 && (
+                      <optgroup label="Saved criteria">
+                        {customFamilies.flatMap(fam =>
+                          fam.versions.map(v => (
+                            <option key={v.id} value={v.id}>
+                              {fam.familyLabel}{fam.versions.length > 1 ? ` (v${v.version_number ?? 1})` : ''}
+                            </option>
+                          )),
+                        )}
+                      </optgroup>
+                    )}
+                    <optgroup label="Standard rubrics">
+                      {ALL_RUBRICS.map(r => (
+                        <option key={r.rubric_id} value={r.rubric_id}>{r.role}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  {activeCustom && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingRubric(activeCustom)}
+                      className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-mid hover:text-ink transition-colors"
+                    >
+                      Edit criteria
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowNewRubric(true)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
+                  >
+                    + New criteria
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Detail content (scrollable) */}
             <div className="flex-1 overflow-y-auto">
@@ -536,12 +679,18 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         Edit criteria
                       </button>
                     )}
-                    <a
-                      href="/dashboard/recruit/shortlist"
-                      className="bg-bg-elevated border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
-                    >
-                      Move to Shortlist Agent →
-                    </a>
+                    {/* Standalone-only. Inside a role this CV scoring
+                        surface IS Step 1 of the Shortlist Agent, so a
+                        "Move to Shortlist Agent" link would point at
+                        itself. Hidden when prescreenSessionId is set. */}
+                    {!prescreenSessionId && (
+                      <a
+                        href="/dashboard/recruit/shortlist"
+                        className="bg-bg-elevated border border-border text-charcoal text-xs font-bold px-3 py-1.5 rounded-full hover:bg-light hidden sm:inline-flex items-center"
+                      >
+                        Move to Shortlist Agent →
+                      </a>
+                    )}
                   </div>
                 </header>
 
@@ -576,92 +725,66 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
 
                 {/* Upload area */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl p-6 space-y-5">
-                  {/* Pre-flight nudge when no candidates yet - reminds the
-                      recruiter to sanity-check the criteria match the PD
-                      before they pour CVs in. Same scoring criteria seed
-                      the video pre-screen questions, so getting the rubric
-                      right pays off twice. */}
-                  {filtered.length === 0 && (
-                    <>
-                      <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-charcoal leading-relaxed">
-                        <strong className="text-warning">Before you upload:</strong> double-check the scoring criteria on the left match your PD. They shape both the CV scores AND the video pre-screen questions, so editing them later means rescoring.
-                      </div>
-                      {/* Live preview of the active rubric's criteria + their
-                          relative weighting. Gives the recruiter a quick
-                          visual of where the AI will spend its attention
-                          BEFORE the first CV lands - cheaper to spot a
-                          mis-weighted rubric here than after scoring 20
-                          CVs and having to rebuild. */}
-                      {(() => {
-                        const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
-                        if (criteria.length === 0) return null
-                        const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
-                        return (
-                          <div className="bg-light/60 border border-border rounded-2xl px-4 py-4">
-                            <div className="flex items-baseline justify-between mb-3">
-                              <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
-                                How the score is weighted
-                              </p>
-                              <p className="text-[10px] text-muted">
-                                {criteria.length} criteria
-                              </p>
-                            </div>
-                            <ul className="space-y-2">
-                              {criteria.map(c => {
-                                const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
-                                return (
-                                  <li key={c.id}>
-                                    <div className="flex items-baseline justify-between gap-3 mb-1">
-                                      <span className="text-xs text-charcoal font-medium truncate">{c.label}</span>
-                                      <span className="text-xs font-bold text-charcoal tabular-nums shrink-0">{pct}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full bg-accent rounded-full transition-all"
-                                        style={{ width: `${pct}%` }}
-                                      />
-                                    </div>
-                                  </li>
-                                )
-                              })}
-                            </ul>
-                            <p className="text-[10px] text-muted mt-3 leading-snug">
-                              Percentages show how each criterion is weighted in the overall CV score. Edit the criteria on the left to change the weighting.
-                            </p>
-                          </div>
-                        )
-                      })()}
-                    </>
-                  )}
-                  <label
-                    onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={e => {
-                      e.preventDefault()
-                      setDragOver(false)
-                      if (e.dataTransfer.files) handleFiles(e.dataTransfer.files)
-                    }}
-                    className={`block border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer transition-colors ${
-                      dragOver ? 'border-charcoal bg-light' : 'border-border hover:border-mid hover:bg-light'
-                    }`}
-                  >
-                    <input
-                      type="file"
-                      accept=".pdf,.docx,.txt"
-                      multiple
-                      className="hidden"
-                      onChange={e => {
-                        if (e.target.files) handleFiles(e.target.files)
-                        e.target.value = ''
+                  {/* Criteria confirmation gate. Until the recruiter has
+                      confirmed the scoring criteria for this rubric (in
+                      the modal), the dropzone is replaced by a review
+                      prompt. The note + weighting visual that used to sit
+                      inline here now live inside that modal so the Score
+                      CVs surface stays clean. */}
+                  {!criteriaConfirmed ? (
+                    <div className="border-2 border-dashed border-border rounded-2xl px-6 py-10 text-center">
+                      <p className="text-sm font-bold text-charcoal mb-1">
+                        Confirm your scoring criteria before uploading
+                      </p>
+                      <p className="text-xs text-muted mb-4 max-w-md mx-auto">
+                        The criteria shape both the CV scores and the prescreen questions. Take a quick look before any CV lands - editing them later means rescoring.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setCriteriaModalOpen(true)}
+                        className="bg-black text-white text-xs font-bold rounded-full px-5 py-2.5 hover:bg-charcoal"
+                      >
+                        Review scoring criteria
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={e => {
+                        e.preventDefault()
+                        setDragOver(false)
+                        if (e.dataTransfer.files) handleFiles(e.dataTransfer.files)
                       }}
-                    />
-                    <p className="text-sm font-bold text-charcoal mb-1">
-                      Drop CVs here or click to upload
-                    </p>
-                    <p className="text-xs text-muted">
-                      PDF, DOCX or plain text. Up to 20 at a time. Scored against <strong>{activeRubricLabel}</strong>.
-                    </p>
-                  </label>
+                      className={`block border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer transition-colors ${
+                        dragOver ? 'border-charcoal bg-light' : 'border-border hover:border-mid hover:bg-light'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.txt"
+                        multiple
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files) handleFiles(e.target.files)
+                          e.target.value = ''
+                        }}
+                      />
+                      <p className="text-sm font-bold text-charcoal mb-1">
+                        Drop CVs here or click to upload
+                      </p>
+                      <p className="text-xs text-muted">
+                        PDF, DOCX or plain text. Up to 20 at a time. Scored against <strong>{activeRubricLabel}</strong>.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setCriteriaModalOpen(true) }}
+                        className="mt-3 text-[11px] font-bold text-mid hover:text-ink underline"
+                      >
+                        Review criteria again
+                      </button>
+                    </label>
+                  )}
 
                   {pending.length > 0 && (
                     <>
@@ -949,6 +1072,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         <CandidateScorecardPanel
           screening={selected}
           customRubrics={customRubrics}
+          inRole={Boolean(prescreenSessionId)}
+          onSendToPrescreen={prescreenSessionId ? sendCandidateToPrescreen : undefined}
+          onRejectCandidate={prescreenSessionId ? rejectScreening : undefined}
           onClose={() => setSelectedId(null)}
           onRenameCandidate={(next) =>
             setScreenings(prev => prev.map(row => row.id === selected.id ? { ...row, candidate_label: next } : row))
@@ -964,6 +1090,91 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           }}
         />
       )}
+
+      {/* Criteria confirmation modal - gates CV upload. Holds the
+          "before you upload" note + the weighting visual that used to
+          sit inline on the Score CVs surface. */}
+      {criteriaModalOpen && (() => {
+        const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
+        const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
+        return (
+          <div
+            className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 px-4"
+            onClick={() => setCriteriaModalOpen(false)}
+          >
+            <div
+              className="bg-bg-elevated rounded-3xl shadow-card max-w-lg w-full max-h-[85vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="px-6 pt-5 pb-4 border-b border-border">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+                  Confirm scoring criteria
+                </p>
+                <h2 className="font-sans text-lg font-bold text-ink tracking-tight">
+                  {activeRubricLabel}
+                </h2>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-charcoal leading-relaxed">
+                  <strong className="text-warning">Before you upload:</strong> these criteria shape both the CV scores AND the prescreen questions, so editing them later means rescoring. Double-check they match your PD.
+                </div>
+                {criteria.length > 0 && (
+                  <div className="bg-light/60 border border-border rounded-2xl px-4 py-4">
+                    <div className="flex items-baseline justify-between mb-3">
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                        How the score is weighted
+                      </p>
+                      <p className="text-[10px] text-muted">{criteria.length} criteria</p>
+                    </div>
+                    <ul className="space-y-2">
+                      {criteria.map(c => {
+                        const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
+                        return (
+                          <li key={c.id}>
+                            <div className="flex items-baseline justify-between gap-3 mb-1">
+                              <span className="text-xs text-charcoal font-medium truncate">{c.label}</span>
+                              <span className="text-xs font-bold text-charcoal tabular-nums shrink-0">{pct}%</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                              <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                    <p className="text-[10px] text-muted mt-3 leading-snug">
+                      Percentages show how each criterion is weighted in the overall CV score.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="px-6 py-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCriteriaModalOpen(false)
+                    if (activeCustom) setEditingRubric(activeCustom)
+                    else setShowNewRubric(true)
+                  }}
+                  className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors"
+                >
+                  Change criteria
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmedCriteria(prev => ({ ...prev, [rubricId]: true }))
+                    setCriteriaModalOpen(false)
+                  }}
+                  className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
+                >
+                  Yes, use this criteria
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* New rubric modal */}
       {showNewRubric && (
@@ -1144,7 +1355,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-black text-white rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
             <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
             <span className="text-xs text-white/60 hidden md:inline">
-              Generate a client-ready summary or send to Shortlist Agent.
+              {prescreenSessionId
+                ? 'Send the selected candidates to prescreen, or download a CV report.'
+                : 'Generate a client-ready summary or send to Shortlist Agent.'}
             </span>
             <button
               onClick={clearSelected}
@@ -1156,9 +1369,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               onClick={batchSendToShortlist}
               disabled={batchHandoffBusy}
               className="bg-white/15 text-white text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
-              title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
+              title={prescreenSessionId
+                ? 'Attach the selected CVs to this role and move them to Step 2 (Prescreen)'
+                : 'Create one Shortlist Agent role with all selected CVs invited for video pre-screen'}
             >
-              {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
+              {batchHandoffBusy
+                ? (prescreenSessionId ? 'Sending...' : 'Creating...')
+                : (prescreenSessionId ? 'Send to Prescreen (Step 2)' : 'Send to Shortlist Agent')}
             </button>
             <button
               onClick={generateReport}

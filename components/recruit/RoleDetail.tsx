@@ -23,6 +23,10 @@ import { ShareDialog } from './ShareDialog'
 import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
 import { ProcessFlowTracker } from './ProcessFlowTracker'
+import { RoleStepperRail, type RoleStep } from './RoleStepperRail'
+import { Step1ScoreCvs } from './role-steps/Step1ScoreCvs'
+import { Step3Shortlist } from './role-steps/Step3Shortlist'
+import { Step4Decision } from './role-steps/Step4Decision'
 import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
@@ -87,6 +91,9 @@ function initials(name: string) {
 
 export function RoleDetail({ session, responses, loadingResponses, initialCandidateUrl, onPatchResponse, onShareResponse, onSessionUpdated }: Props) {
   const [copied, setCopied]               = useState(false)
+  // Stepper state - default to Step 2 (Shortlist) so today's behaviour
+  // is unchanged. Steps 1, 3, 4 are scaffold-only in this preview.
+  const [currentStep, setCurrentStep]     = useState<RoleStep>(2)
   const [phoneRecorderOpen, setPhoneRecorderOpen] = useState(false)
   const [filter, setFilter]               = useState<Filter>('all')
   const [expanded, setExpanded]           = useState<string | null>(null)
@@ -527,7 +534,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-row">
+      <RoleStepperRail currentStep={currentStep} onStepChange={setCurrentStep} />
+      <div className="flex-1 flex flex-col min-w-0">
       <div className="border-b border-border bg-bg-elevated px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
         {/* On mobile this stacks: title on its own row, action buttons
             wrap to a second row underneath. On sm+ the original
@@ -595,6 +604,25 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
       </div>
 
       <div className="flex-1 overflow-y-auto bg-bg">
+        {currentStep === 1 && (
+          <Step1ScoreCvs sessionId={session.id} roleTitle={session.role_title} />
+        )}
+        {currentStep === 3 && (
+          <Step3Shortlist
+            session={session}
+            responses={mergedResponses}
+            onPatchResponse={onPatchResponse}
+            onShareResponse={onShareResponse}
+          />
+        )}
+        {currentStep === 4 && (
+          <Step4Decision
+            session={session}
+            responses={mergedResponses}
+            onPatchResponse={onPatchResponse}
+          />
+        )}
+        {currentStep === 2 && (
         <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
 
           {/* Process flow tracker - visible state of the role's funnel */}
@@ -1269,6 +1297,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             )}
           </div>
         </div>
+        )}
       </div>
 
       {selectedIds.size >= 1 && (
@@ -1344,6 +1373,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           />
         )
       })()}
+    </div>
     </div>
   )
 }

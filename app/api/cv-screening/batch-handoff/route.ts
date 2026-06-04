@@ -19,6 +19,11 @@ const MODEL = 'claude-sonnet-4-20250514'
 interface BatchBody {
   screening_ids: string[]
   role_title?: string
+  // When set, the selected CVs are attached to an EXISTING prescreen
+  // session (Step 1 of the role workflow stepper). When omitted, the
+  // legacy behaviour kicks in: create a brand new prescreen session
+  // and redirect to it (standalone CV Scoring Agent flow).
+  target_session_id?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -62,35 +67,52 @@ export async function POST(req: NextRequest) {
     const rubric = await resolveRubric(rubricId)
     if (!rubric) return NextResponse.json({ error: `Rubric ${rubricId} not found` }, { status: 400 })
 
-    // Generate a single set of probe questions for the role using the
-    // population's weakest criteria (averaged across selected candidates).
-    const questions = await generatePopulationQuestions(screenings as CandidateScreening[], rubric)
+    // If the caller already has a target session (Step 1 of the role
+    // stepper), reuse it. Otherwise spin up a fresh session as before.
+    let session: { id: string; role_title: string; slug?: string | null } | null = null
+    if (body.target_session_id) {
+      const { data: existing, error: exErr } = await supabaseAdmin
+        .from('prescreen_sessions')
+        .select('id, role_title, slug')
+        .eq('id', body.target_session_id)
+        .single()
+      if (exErr || !existing) {
+        console.error('[batch-handoff] target session lookup', exErr)
+        return NextResponse.json({ error: 'Target Shortlist role not found' }, { status: 404 })
+      }
+      session = existing
+    } else {
+      // Generate a single set of probe questions for the role using the
+      // population's weakest criteria (averaged across selected candidates).
+      const questions = await generatePopulationQuestions(screenings as CandidateScreening[], rubric)
 
-    const customRubric = rubric.criteria
-      .filter(c => c.type === 'ordinal_5')
-      .slice(0, 6)
-      .map(c => ({
-        name: c.label,
-        description: c.anchors?.['3'] ? `${c.label} - benchmark: ${c.anchors['3']}` : c.label,
-      }))
+      const customRubric = rubric.criteria
+        .filter(c => c.type === 'ordinal_5')
+        .slice(0, 6)
+        .map(c => ({
+          name: c.label,
+          description: c.anchors?.['3'] ? `${c.label} - benchmark: ${c.anchors['3']}` : c.label,
+        }))
 
-    const { data: session, error: sessionErr } = await supabaseAdmin
-      .from('prescreen_sessions')
-      .insert({
-        company: business.name,
-        role_title: body.role_title || rubric.role,
-        questions,
-        time_limit_seconds: 90,
-        status: 'active',
-        created_by: user.id,
-        rubric_mode: 'custom',
-        custom_rubric: customRubric,
-      })
-      .select()
-      .single()
-    if (sessionErr || !session) {
-      console.error('[batch-handoff] session insert', sessionErr)
-      return NextResponse.json({ error: 'Failed to create Shortlist role' }, { status: 500 })
+      const { data: created, error: sessionErr } = await supabaseAdmin
+        .from('prescreen_sessions')
+        .insert({
+          company: business.name,
+          role_title: body.role_title || rubric.role,
+          questions,
+          time_limit_seconds: 90,
+          status: 'active',
+          created_by: user.id,
+          rubric_mode: 'custom',
+          custom_rubric: customRubric,
+        })
+        .select()
+        .single()
+      if (sessionErr || !created) {
+        console.error('[batch-handoff] session insert', sessionErr)
+        return NextResponse.json({ error: 'Failed to create Shortlist role' }, { status: 500 })
+      }
+      session = created
     }
 
     // Persist link from CV screenings to the new Shortlist session so the

@@ -100,6 +100,20 @@ export interface CandidateResponse {
   visual_diagnostics?: {
     per_question?: Array<{ q: number; in_frame_pct: number; at_camera_pct: number; face_brightness: number; frames_sampled: number }>
   } | null
+  // -- Shortlist + Decision steps of the role workflow stepper.
+  // shortlisted_at gates the Step 3 "On the shortlist" view; decision
+  // records the Step 4 outcome. Added by migration
+  // prescreen_responses_shortlist_decision.sql.
+  shortlisted_at?: string | null
+  shortlisted_by?: string | null
+  decision?: 'reject' | 'interview_1' | 'interview_2' | 'offer' | null
+  decision_reason?: string | null
+  decision_at?: string | null
+  decision_by?: string | null
+  // CV-import provenance - set when this response was created from a CV
+  // screening via batch handoff (no video yet).
+  cv_screening_id?: string | null
+  overall_score?: number | null
 }
 
 // -- Phase 3 ----------------------------------------------------------------
