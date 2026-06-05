@@ -7,14 +7,17 @@ const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Car
 const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) Award','Restaurant Industry Award','Pharmacy Industry Award 2020','Aged Care Award','SCHADS Award','Nurses Award','Building & Construction Award','Clerks Private Sector Award','Professional Employees Award','Award-free / Enterprise Agreement','Multiple awards apply','Not sure']
 const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 
-const PLAN_DETAILS: Record<string, { name: string; price: string; seats: number }> = {
-  free: { name: 'Free Trial', price: '$0', seats: 1 },
-  essentials: { name: 'Essentials', price: '$99 / month', seats: 3 },
-  growth: { name: 'Growth', price: '$199 / month', seats: 6 },
-  scale: { name: 'Scale', price: '$379 / month', seats: 12 },
+// v2 pricing (May 2026). Plan ids MUST match lib/pricing-config.ts +
+// the /api/stripe/checkout validator, which only accepts 'solo' and
+// 'business'. The retired essentials/growth/scale ids were what caused
+// the "Invalid planId. Expected one of: solo, business." error.
+const PLAN_DETAILS: Record<string, { name: string; priceMonthly: string; priceAnnual: string; seats: number }> = {
+  free:     { name: 'Free Trial', priceMonthly: '$0', priceAnnual: '$0', seats: 1 },
+  solo:     { name: 'Solo', priceMonthly: '$89 / month', priceAnnual: '$890 / year', seats: 3 },
+  business: { name: 'Business', priceMonthly: '$249 / month', priceAnnual: '$2,490 / year', seats: 15 },
 }
 
-type PaidPlanId = 'essentials' | 'growth' | 'scale'
+type PaidPlanId = 'solo' | 'business'
 
 // Premium-minimal underline for text inputs; selects keep a subtle
 // box because a bare underline + browser chevron renders inconsistently
@@ -133,15 +136,24 @@ export default function SettingsPage() {
   }
 
   const [checkoutBusyFor, setCheckoutBusyFor] = useState<PaidPlanId | null>(null)
+  // Billing cycle toggle. Annual is ~2 months free; the checkout route
+  // resolves the right Stripe price id from (planId, cycle).
+  const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
 
-  async function startCheckout(planId: PaidPlanId) {
+  async function startCheckout(planId: PaidPlanId, opts?: { foundation?: boolean }) {
     setBillingError('')
     setCheckoutBusyFor(planId)
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId }),
+        // Foundation 100 is a Business plan on an annual cycle at a
+        // locked price - force those when the foundation flag is set.
+        body: JSON.stringify(
+          opts?.foundation
+            ? { planId: 'business', cycle: 'annual', foundation: true }
+            : { planId, cycle },
+        ),
       })
       const data = await res.json().catch(() => ({} as { url?: string; error?: string }))
       if (res.ok && data.url) {
@@ -340,54 +352,84 @@ export default function SettingsPage() {
                 {subscriptionStatus === 'active' ? 'Active' :
                  subscriptionStatus === 'trialing' ? '14-day free trial' :
                  subscriptionStatus === 'cancelled' ? 'Cancelled' : subscriptionStatus}
-                {PLAN_DETAILS[plan] && ` · ${PLAN_DETAILS[plan].seats} seats · ${PLAN_DETAILS[plan].price}`}
+                {PLAN_DETAILS[plan] && plan !== 'free' && ` · ${PLAN_DETAILS[plan].seats} seats · ${PLAN_DETAILS[plan].priceMonthly}`}
               </p>
             </div>
-            {hasStripe ? (
+            {hasStripe && (
               <button onClick={openPortal} disabled={billingLoading}
                 className="bg-bg-elevated hover:bg-gray-200 text-ink text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading...' : 'Manage billing'}
               </button>
-            ) : (
-              <button
-                onClick={() => startCheckout('growth')}
-                disabled={checkoutBusyFor !== null}
-                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold px-4 py-2 rounded-full transition-colors disabled:opacity-60"
-              >
-                {checkoutBusyFor !== null ? 'Redirecting...' : 'Upgrade plan'}
-              </button>
             )}
           </div>
 
+          {/* Plan picker - shown to anyone not yet on a paid Stripe plan.
+              Sends the correct v2 plan ids (solo / business) so the
+              checkout route accepts them. */}
           {!hasStripe && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {(['essentials', 'growth', 'scale'] as const).map(pid => {
-                const p = PLAN_DETAILS[pid]
-                const busy = checkoutBusyFor === pid
-                const disabled = checkoutBusyFor !== null && !busy
-                return (
-                  <button
-                    type="button"
-                    key={pid}
-                    onClick={() => startCheckout(pid)}
-                    disabled={disabled}
-                    className={`text-left rounded-2xl border p-4 transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-ink bg-ink/5' : 'border-border'}`}
-                  >
-                    <p className="text-sm font-bold text-charcoal">{p.name}</p>
-                    <p className="text-lg font-bold text-charcoal mt-1">{p.price}</p>
-                    <p className="text-xs text-muted mt-1">{p.seats} seats</p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal">
-                        {busy ? 'Redirecting...' : `Choose ${p.name}`}
-                      </span>
-                      {pid === 'growth' && (
-                        <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+            <>
+              {/* Monthly / annual toggle */}
+              <div className="flex items-center justify-center gap-1 bg-light rounded-full p-1 w-fit mx-auto mb-4">
+                <button
+                  type="button"
+                  onClick={() => setCycle('monthly')}
+                  className={`text-xs font-bold px-4 py-1.5 rounded-full transition-colors ${cycle === 'monthly' ? 'bg-ink text-bg-elevated' : 'text-mid hover:text-ink'}`}
+                >Monthly</button>
+                <button
+                  type="button"
+                  onClick={() => setCycle('annual')}
+                  className={`text-xs font-bold px-4 py-1.5 rounded-full transition-colors ${cycle === 'annual' ? 'bg-ink text-bg-elevated' : 'text-mid hover:text-ink'}`}
+                >Annual <span className="text-accent">save ~2mo</span></button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(['solo', 'business'] as const).map(pid => {
+                  const p = PLAN_DETAILS[pid]
+                  const busy = checkoutBusyFor === pid
+                  const disabled = checkoutBusyFor !== null && !busy
+                  return (
+                    <button
+                      type="button"
+                      key={pid}
+                      onClick={() => startCheckout(pid)}
+                      disabled={disabled}
+                      className={`text-left rounded-2xl border p-4 transition-colors hover:border-ink focus:border-ink focus:outline-none disabled:opacity-60 ${plan === pid ? 'border-ink bg-ink/5' : 'border-border'}`}
+                    >
+                      <p className="text-sm font-bold text-charcoal">{p.name}</p>
+                      <p className="text-lg font-bold text-charcoal mt-1">{cycle === 'annual' ? p.priceAnnual : p.priceMonthly}</p>
+                      <p className="text-xs text-muted mt-1">{p.seats} seats</p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal">
+                          {busy ? 'Redirecting...' : `Choose ${p.name}`}
+                        </span>
+                        {pid === 'business' && (
+                          <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Foundation 100 - locked Business annual at $179/mo equiv
+                  for the first 100 customers. Only meaningful on annual. */}
+              <button
+                type="button"
+                onClick={() => startCheckout('business', { foundation: true })}
+                disabled={checkoutBusyFor !== null}
+                className="mt-3 w-full text-left rounded-2xl border border-accent/40 bg-accent-soft/40 p-4 transition-colors hover:border-accent focus:outline-none disabled:opacity-60"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-charcoal">Foundation 100</p>
+                  <span className="text-[10px] bg-accent text-ink-on-accent px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">First 100 only</span>
+                </div>
+                <p className="text-lg font-bold text-charcoal mt-1">$179 / month <span className="text-xs font-normal text-muted">locked for life</span></p>
+                <p className="text-xs text-muted mt-1">Business plan, 12-month annual commit. Founder Slack + first access to new modules.</p>
+                <span className="mt-3 inline-block text-[10px] font-bold uppercase tracking-wider text-accent">
+                  {checkoutBusyFor !== null ? 'Redirecting...' : 'Lock in Foundation pricing'}
+                </span>
+              </button>
+            </>
           )}
         </section>
       </div>

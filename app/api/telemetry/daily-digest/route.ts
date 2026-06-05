@@ -23,7 +23,9 @@ export async function GET(req: NextRequest) {
     if (process.env.RESEND_API_KEY) {
       const resend = new Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
-        from: 'HQ.ai <hq.ai@humanistiqs.com.au>',
+        // Verified sending domain (matches lib/email.ts). Was previously
+        // the unverified hq.ai@humanistiqs.com.au sender.
+        from: 'HQ.ai <noreply@hq.humanistiqs.ai>',
         to: RECIPIENTS,
         subject: `HQ.ai daily digest - ${new Date().toLocaleDateString('en-AU')}`,
         text: summary,

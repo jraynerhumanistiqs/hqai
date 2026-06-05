@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isPlanId(body.planId)) {
-    return NextResponse.json({ error: 'Invalid planId. Expected one of: solo, business.' }, { status: 400 })
+    return NextResponse.json({
+      error: `Invalid planId "${String(body.planId)}". Expected one of: solo, business (enterprise plans go through /enterprise).`,
+    }, { status: 400 })
   }
   const planId = body.planId
 

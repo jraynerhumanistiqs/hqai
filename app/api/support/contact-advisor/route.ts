@@ -45,17 +45,35 @@ export async function POST(req: NextRequest) {
       'Sent from HQ.ai sidebar - Contact HQ Advisor flow.',
     ].join('\n')
 
-    if (process.env.RESEND_API_KEY) {
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
-        from: 'HQ.ai <hq.ai@humanistiqs.com.au>',
-        to: [ADVISOR_INBOX],
-        replyTo: email || ADVISOR_INBOX,
-        subject,
-        text,
-      })
-    } else {
-      console.warn('[support/contact-advisor] no RESEND_API_KEY - request not sent', { subject, text })
+    // Honest delivery: previously this route returned { ok: true } even
+    // when RESEND_API_KEY was absent, so the sidebar reported "Sent to
+    // advisor" while nothing actually went out (the exact dead pathway
+    // the founder reported). Now a missing key or a failed send returns
+    // an error so the UI can tell the user to email directly.
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[support/contact-advisor] no RESEND_API_KEY - request NOT sent', { subject })
+      return NextResponse.json({
+        error: 'Advisor messaging is not configured yet. Please email your advisor directly while we switch this on.',
+      }, { status: 503 })
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const { error: sendErr } = await resend.emails.send({
+      // Verified sending domain (matches lib/email.ts). The previous
+      // hq.ai@humanistiqs.com.au sender was a different, unverified
+      // domain which Resend would reject / spam-bin.
+      from: 'HQ.ai <noreply@hq.humanistiqs.ai>',
+      to: [ADVISOR_INBOX],
+      replyTo: email || ADVISOR_INBOX,
+      subject,
+      text,
+    })
+    if (sendErr) {
+      console.error('[support/contact-advisor] resend send failed', sendErr)
+      return NextResponse.json({
+        error: 'We could not send your request right now. Please email your advisor directly.',
+        detail: sendErr.message,
+      }, { status: 502 })
     }
 
     return NextResponse.json({ ok: true })
