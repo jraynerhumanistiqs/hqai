@@ -53,6 +53,20 @@ export default function OnboardingPage() {
     })
   }, [])
 
+  // Pre-select the plan the user picked on the marketing pricing page
+  // (carried via /signup?plan=...&foundation=1 -> login -> here) so the
+  // funnel choice isn't lost. Foundation maps to the Business plan.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const q = new URLSearchParams(window.location.search)
+    const planParam = q.get('plan')
+    const foundation = q.get('foundation') === '1'
+    const wanted = foundation ? 'business' : planParam
+    if (wanted && ['free', 'solo', 'business'].includes(wanted)) {
+      setForm(f => ({ ...f, plan: wanted }))
+    }
+  }, [])
+
   const steps = [
     { label: 'Business' },
     { label: 'Employment' },
@@ -239,8 +253,18 @@ export default function OnboardingPage() {
           {/* Step 2 - Employment */}
           {step === 2 && (
             <div>
-              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Employment details</h2>
-              <p className="text-sm text-mid mb-6">HQ applies the right awards and compliance rules automatically.</p>
+              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Employment details <span className="text-ink-muted text-[20px] align-middle font-sans">(optional)</span></h2>
+              <p className="text-sm text-mid mb-4">HQ already detects the likely award from your industry. Add detail here only if you want to fine-tune it now - you can change all of this any time in Settings.</p>
+              <div className="bg-bg-soft border border-border rounded-xl px-4 py-2.5 mb-6 flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-xs text-ink-soft">In a hurry? Skip this and start using HQ in seconds.</p>
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="text-xs font-bold text-ink underline whitespace-nowrap"
+                >
+                  Skip for now →
+                </button>
+              </div>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Applicable Modern Awards (select all that apply)</label>
@@ -357,10 +381,13 @@ export default function OnboardingPage() {
             ) : (
               // Final celebratory CTA - the ONE Clay accent moment in
               // the whole wizard (rule 4 of the kit).
-              <button type="button" onClick={completeOnboarding} disabled={saving}
-                className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
-                {saving ? 'Setting up…' : 'Launch HQ.ai →'}
-              </button>
+              <div className="flex flex-col items-end gap-1.5">
+                <button type="button" onClick={completeOnboarding} disabled={saving}
+                  className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
+                  {saving ? 'Setting up…' : 'Launch HQ.ai →'}
+                </button>
+                <p className="text-[10px] text-ink-muted">14-day free trial. No card required.</p>
+              </div>
             )}
           </div>
         </div>

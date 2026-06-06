@@ -3,8 +3,28 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
+// Carry the plan choice from the marketing pages (/signup?plan=...&cycle=
+// ...&foundation=1) through signup into onboarding so the user's pick
+// isn't lost. Read once, client-side, to avoid a Suspense boundary.
+function readPlanQuery(): string {
+  if (typeof window === 'undefined') return ''
+  const p = new URLSearchParams(window.location.search)
+  const keep = ['plan', 'cycle', 'foundation']
+  const out = new URLSearchParams()
+  for (const k of keep) { const v = p.get(k); if (v) out.set(k, v) }
+  const s = out.toString()
+  return s ? `?${s}` : ''
+}
+
 export default function LoginPage() {
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  // Default to signup when the marketing CTAs link here as /signup (which
+  // redirects to /login?mode=signup). Falls back to login otherwise.
+  const [mode, setMode] = useState<'login' | 'signup'>(() => {
+    if (typeof window !== 'undefined') {
+      if (new URLSearchParams(window.location.search).get('mode') === 'signup') return 'signup'
+    }
+    return 'login'
+  })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -43,7 +63,7 @@ export default function LoginPage() {
           return
         }
 
-        window.location.href = '/onboarding'
+        window.location.href = `/onboarding${readPlanQuery()}`
         return
 
       } else {

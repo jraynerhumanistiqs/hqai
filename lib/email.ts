@@ -4,12 +4,101 @@
  * All functions fail gracefully if the key is missing (logged, not thrown).
  *
  * From address: noreply@hq.humanistiqs.ai
- * Add this domain in Resend → Domains before enabling in production.
+ * Add this domain in Resend -> Domains before enabling in production.
+ *
+ * BRANDING: every email renders through renderEmailShell() so member,
+ * recruit, onboarding and marketing emails share the exact look of the
+ * Supabase auth templates (docs/auth/*.html) - white card on #f5f5f4,
+ * "A Humanistiqs product" eyebrow, Clay (#D97757) pill CTA, system font.
  */
 
 import { Resend } from 'resend'
 
 const FROM = 'HQ.ai <noreply@hq.humanistiqs.ai>'
+
+// Shared brand tokens for email (mirrors the auth template palette).
+const BRAND = {
+  bg: '#f5f5f4',
+  card: '#ffffff',
+  ink: '#111111',
+  body: '#404040',
+  muted: '#737373',
+  faint: '#a3a3a3',
+  divider: '#e7e5e4',
+  accent: '#D97757',
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/**
+ * Renders the shared branded HTML shell. Pass pre-built (and already
+ * escaped where needed) bodyHtml. Keeps every HQ.ai email visually
+ * identical to the login / auth emails.
+ */
+function renderEmailShell(opts: {
+  heading: string
+  bodyHtml: string
+  cta?: { label: string; url: string }
+  footnoteHtml?: string
+  footerLine?: string
+}): string {
+  const { heading, bodyHtml, cta, footnoteHtml } = opts
+  const footerLine = opts.footerLine
+    ?? 'Sent by HQ.ai, a Humanistiqs product. Australian-built AI HR + Recruitment for SMEs.'
+  return `<!DOCTYPE html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body style="margin:0;padding:0;background-color:${BRAND.bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${BRAND.ink};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BRAND.bg};padding:40px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:${BRAND.card};border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:32px 40px 8px 40px;">
+                <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;color:${BRAND.ink};">HQ.ai</div>
+                <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.muted};margin-top:4px;">A Humanistiqs product</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 40px;">
+                <div style="height:1px;background-color:${BRAND.divider};margin:16px 0 24px 0;"></div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 40px 8px 40px;">
+                <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.3;font-weight:600;color:${BRAND.ink};letter-spacing:-0.01em;">${heading}</h1>
+                <div style="margin:0 0 ${cta ? '28px' : '8px'} 0;font-size:15px;line-height:1.55;color:${BRAND.body};">${bodyHtml}</div>
+              </td>
+            </tr>
+            ${cta ? `<tr>
+              <td style="padding:0 40px 32px 40px;" align="left">
+                <a href="${cta.url}" style="display:inline-block;background-color:${BRAND.accent};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;line-height:1;padding:14px 28px;border-radius:9999px;">${cta.label}</a>
+              </td>
+            </tr>` : ''}
+            ${footnoteHtml ? `<tr>
+              <td style="padding:0 40px 16px 40px;">
+                <p style="margin:0;font-size:13px;line-height:1.55;color:${BRAND.muted};">${footnoteHtml}</p>
+              </td>
+            </tr>` : ''}
+            <tr>
+              <td style="padding:0 40px 32px 40px;">
+                <div style="height:1px;background-color:${BRAND.divider};margin:24px 0 16px 0;"></div>
+                <p style="margin:0;font-size:12px;line-height:1.5;color:${BRAND.faint};">${footerLine}</p>
+              </td>
+            </tr>
+          </table>
+          <p style="font-size:11px;color:${BRAND.faint};margin:16px 0 0 0;">&copy; Rayner Consulting Group Pty Ltd, trading as Humanistiqs</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`
+}
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {
@@ -19,7 +108,7 @@ function getResend(): Resend | null {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
-// ── Candidate submitted a video pre-screen ──────────────────────────────────
+// -- Candidate submitted a video pre-screen --------------------------------
 
 export async function sendCandidateSubmittedEmail({
   staffEmail,
@@ -44,34 +133,21 @@ export async function sendCandidateSubmittedEmail({
       from: FROM,
       to: staffEmail,
       subject: `New pre-screen response: ${candidateName} for ${roleTitle}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #6F8F7A;">HQ.ai</span>
-          </div>
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">New Candidate Response</h2>
-          <p style="color: #6B6B6B; margin: 0 0 24px;">
-            ${staffName ? `Hi ${staffName},` : 'Hi,'}<br/><br/>
-            <strong>${candidateName}</strong> has submitted their video pre-screen for
-            <strong>${roleTitle}</strong> at ${company}.
-          </p>
-          <a href="${reviewUrl}"
-            style="display: inline-block; background: #6F8F7A; color: white; font-weight: 700;
-                   padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px;">
-            Review Response →
-          </a>
-          <p style="color: #6B6B6B; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            Humanistiqs · humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: 'New candidate response',
+        bodyHtml: `
+          <p style="margin:0 0 14px 0;">${staffName ? `Hi ${escapeHtml(staffName)},` : 'Hi,'}</p>
+          <p style="margin:0;"><strong>${escapeHtml(candidateName)}</strong> has submitted their video pre-screen for <strong>${escapeHtml(roleTitle)}</strong> at ${escapeHtml(company)}.</p>
+        `,
+        cta: { label: 'Review response', url: reviewUrl },
+      }),
     })
   } catch (err) {
     console.error('[email] sendCandidateSubmittedEmail failed:', err)
   }
 }
 
-// ── Send pre-screen invite link to candidate ────────────────────────────────
+// -- Send pre-screen invite link to candidate ------------------------------
 
 // Default subject and plain-text body templates the recruiter can preview and
 // edit before sending. Returned by buildInviteEmailDefaults so the UI can
@@ -137,24 +213,21 @@ export async function sendCandidateInviteEmail({
   // appended at the end if not already present so it's always reachable.
   if (customSubject && customBody) {
     const safeBody = customBody.includes(inviteUrl) ? customBody : `${customBody}\n\n${inviteUrl}`
-    const escaped = safeBody.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const escaped = escapeHtml(safeBody)
     const linked = escaped.replace(
       new RegExp(inviteUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-      `<a href="${inviteUrl}" style="color:#000;text-decoration:underline;">${inviteUrl}</a>`,
+      `<a href="${inviteUrl}" style="color:${BRAND.accent};text-decoration:underline;">${inviteUrl}</a>`,
     )
     try {
       await resend.emails.send({
         from: FROM,
         to: candidateEmail,
         subject: customSubject,
-        html: `
-          <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A; line-height: 1.6;">
-            <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-              <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-            </div>
-            <div style="white-space: pre-wrap; color: #1F1F1F;">${linked}</div>
-          </div>
-        `,
+        html: renderEmailShell({
+          heading: `Your pre-screen for ${escapeHtml(roleTitle)}`,
+          bodyHtml: `<div style="white-space:pre-wrap;">${linked}</div>`,
+          footerLine: `Sent by the Humanistiqs team on behalf of ${escapeHtml(company)}.`,
+        }),
       })
     } catch (err) {
       console.error('[email] sendCandidateInviteEmail (custom) failed:', err)
@@ -167,40 +240,24 @@ export async function sendCandidateInviteEmail({
       from: FROM,
       to: candidateEmail,
       subject: `Your video pre-screen for ${roleTitle} at ${company}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #6F8F7A;">HQ.ai</span>
-          </div>
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-            Video Pre-Screen Invitation
-          </h2>
-          <p style="color: #6B6B6B; margin: 0 0 16px;">
-            ${candidateName ? `Hi ${candidateName},` : 'Hi,'}<br/><br/>
-            You've been invited to complete a short video pre-screen for the
-            <strong>${roleTitle}</strong> role at <strong>${company}</strong>.
-          </p>
-          <div style="background: #F7F7F5; border: 1px solid #E4E4E2; border-radius: 10px;
-                      padding: 16px; margin: 0 0 24px;">
-            <p style="margin: 0 0 8px; font-size: 13px; color: #6B6B6B;">What to expect:</p>
-            <ul style="margin: 0; padding-left: 18px; font-size: 14px; color: #0A0A0A; line-height: 1.8;">
-              <li>${questionCount} pre-screen questions</li>
+      html: renderEmailShell({
+        heading: 'Video pre-screen invitation',
+        bodyHtml: `
+          <p style="margin:0 0 16px 0;">${candidateName ? `Hi ${escapeHtml(candidateName)},` : 'Hi,'}</p>
+          <p style="margin:0 0 16px 0;">You've been invited to complete a short video pre-screen for the <strong>${escapeHtml(roleTitle)}</strong> role at <strong>${escapeHtml(company)}</strong>.</p>
+          <div style="background:${BRAND.bg};border:1px solid ${BRAND.divider};border-radius:10px;padding:16px;">
+            <p style="margin:0 0 8px 0;font-size:13px;color:${BRAND.muted};">What to expect:</p>
+            <ul style="margin:0;padding-left:18px;font-size:14px;color:${BRAND.ink};line-height:1.8;">
+              <li>${questionCount} pre-screen question${questionCount === 1 ? '' : 's'}</li>
               <li>Up to ${timeLabel} per response</li>
               <li>Record directly in your browser - no downloads needed</li>
               <li>Link expires in 14 days</li>
             </ul>
           </div>
-          <a href="${inviteUrl}"
-            style="display: inline-block; background: #6F8F7A; color: white; font-weight: 700;
-                   padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px;">
-            Start Pre-Screen →
-          </a>
-          <p style="color: #6B6B6B; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            This invitation was sent by the Humanistiqs team on behalf of ${company}.<br/>
-            humanistiqs.com.au
-          </p>
-        </div>
-      `,
+        `,
+        cta: { label: 'Start pre-screen', url: inviteUrl },
+        footerLine: `This invitation was sent by the Humanistiqs team on behalf of ${escapeHtml(company)}.`,
+      }),
     })
   } catch (err) {
     console.error('[email] sendCandidateInviteEmail failed:', err)
@@ -233,25 +290,14 @@ export async function sendCandidateSubmissionConfirmation({
       from: FROM,
       to: candidateEmail,
       subject: `Interview received - ${company}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-          </div>
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">Thank you${candidateName ? `, ${candidateName}` : ''}.</h2>
-          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
-            We have received your video interview for the
-            <strong>${roleTitle}</strong> role at <strong>${company}</strong>.
-          </p>
-          <p style="color: #4b4b4b; margin: 0 0 24px; line-height: 1.6;">
-            The team will be in touch.
-          </p>
-          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            Sent on behalf of ${company} via Humanistiqs.<br/>
-            humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: `Thank you${candidateName ? `, ${escapeHtml(candidateName)}` : ''}.`,
+        bodyHtml: `
+          <p style="margin:0 0 16px 0;">We have received your video interview for the <strong>${escapeHtml(roleTitle)}</strong> role at <strong>${escapeHtml(company)}</strong>.</p>
+          <p style="margin:0;">The team will be in touch.</p>
+        `,
+        footerLine: `Sent on behalf of ${escapeHtml(company)} via Humanistiqs.`,
+      }),
     })
   } catch (err) {
     console.error('[email] sendCandidateSubmissionConfirmation failed:', err)
@@ -284,30 +330,14 @@ export async function sendMentionNotification({
       from: FROM,
       to,
       subject: `${mentionerName} mentioned you on ${candidateName}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-          </div>
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-            ${mentionerName} mentioned you
-          </h2>
-          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
-            On <strong>${candidateName}</strong>'s pre-screen for <strong>${roleTitle}</strong> at <strong>${company}</strong>.
-          </p>
-          <blockquote style="border-left: 3px solid #E4E4E2; margin: 0 0 24px; padding: 8px 12px; color: #4b4b4b; font-size: 14px;">
-            ${bodyExcerpt.replace(/</g, '&lt;')}
-          </blockquote>
-          <a href="${deepLink}"
-            style="display: inline-block; background: #000000; color: white; font-weight: 700;
-                   padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-size: 14px;">
-            Open in HQ.ai -&gt;
-          </a>
-          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            Humanistiqs - humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: `${escapeHtml(mentionerName)} mentioned you`,
+        bodyHtml: `
+          <p style="margin:0 0 16px 0;">On <strong>${escapeHtml(candidateName)}</strong>'s pre-screen for <strong>${escapeHtml(roleTitle)}</strong> at <strong>${escapeHtml(company)}</strong>.</p>
+          <blockquote style="border-left:3px solid ${BRAND.divider};margin:0;padding:8px 12px;color:${BRAND.body};font-size:14px;">${escapeHtml(bodyExcerpt)}</blockquote>
+        `,
+        cta: { label: 'Open in HQ.ai', url: deepLink },
+      }),
     })
   } catch (err) {
     console.error('[email] sendMentionNotification failed:', err)
@@ -343,29 +373,12 @@ export async function sendCandidateReviewLinkEmail({
       from: FROM,
       to,
       subject: `Candidate review: ${candidateName} - ${roleTitle}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-          </div>
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-            Candidate review
-          </h2>
-          <p style="color: #4b4b4b; margin: 0 0 16px; line-height: 1.6;">
-            ${senderName} has shared <strong>${candidateName}</strong>'s video pre-screen for
-            <strong>${roleTitle}</strong> at <strong>${company}</strong> with you.
-          </p>
-          <a href="${reviewUrl}"
-            style="display: inline-block; background: #000000; color: white; font-weight: 700;
-                   padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-size: 14px;">
-            Open review -&gt;
-          </a>
-          ${expiryLabel ? `<p style="color: #6B6B6B; margin-top: 16px; font-size: 13px;">Link expires ${expiryLabel}.</p>` : ''}
-          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            Humanistiqs - humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: 'Candidate review',
+        bodyHtml: `<p style="margin:0;">${escapeHtml(senderName)} has shared <strong>${escapeHtml(candidateName)}</strong>'s video pre-screen for <strong>${escapeHtml(roleTitle)}</strong> at <strong>${escapeHtml(company)}</strong> with you.</p>`,
+        cta: { label: 'Open review', url: reviewUrl },
+        footnoteHtml: expiryLabel ? `Link expires ${expiryLabel}.` : undefined,
+      }),
     })
   } catch (err) {
     console.error('[email] sendCandidateReviewLinkEmail failed:', err)
@@ -374,7 +387,7 @@ export async function sendCandidateReviewLinkEmail({
 
 // -- Candidate outcome email (Phase 4) -------------------------------------
 // Used for shortlisted / rejected outcome emails. Body is plain text
-// rendered inside the minimal HTML template. Reply-to can be set to the
+// rendered inside the branded HTML shell. Reply-to can be set to the
 // logged-in staff user's email so candidates can reply to a real person.
 
 // B10 - delivers the one-off Letter of Offer purchased through /offer.
@@ -408,40 +421,16 @@ export async function sendOneOffLetterOfOfferEmail({
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'letter-of-offer'
 
-  const html = `
-    <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #141413;">
-      <div style="border-bottom: 1px solid #D1CFC5; padding-bottom: 16px; margin-bottom: 24px;">
-        <span style="font-size: 18px; font-weight: 700; color: #141413;">HQ.ai</span>
-      </div>
-      <p style="font-size: 16px; line-height: 1.55;">
-        Here is the Letter of Offer for <strong>${candidateName}</strong>
-        joining ${employerName} as ${roleTitle}.
-      </p>
-      <p style="font-size: 15px; line-height: 1.55;">
-        Two files are attached: the editable Word doc and a PDF for
-        signing. The same letter is also available at the link below
-        if you want to forward a preview to the candidate.
-      </p>
-      <p style="margin: 24px 0;">
-        <a href="${shareUrl}" style="display: inline-block; background: #D97757; color: #FFFFFF; padding: 10px 20px; border-radius: 9999px; text-decoration: none; font-weight: 700;">
-          Open the shareable link
-        </a>
-      </p>
-      <p style="font-size: 14px; line-height: 1.55; color: #5E5D59;">
-        Every clause references the Fair Work Act, the NES, or the
-        relevant Modern Award. The footnotes at the end of the letter
-        list them so you and the candidate can both check the source.
-      </p>
-      <p style="font-size: 14px; line-height: 1.55; color: #5E5D59;">
-        If anything looks off, reply to this email - it goes to a
-        human, not a noreply queue.
-      </p>
-      <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #D1CFC5; padding-top: 16px;">
-        HQ.ai, operated by Rayner Consulting Group Pty Ltd<br/>
-        humanistiqs.com.au
-      </p>
-    </div>
-  `
+  const html = renderEmailShell({
+    heading: 'Your Letter of Offer is ready',
+    bodyHtml: `
+      <p style="margin:0 0 14px 0;">Here is the Letter of Offer for <strong>${escapeHtml(candidateName)}</strong> joining ${escapeHtml(employerName)} as ${escapeHtml(roleTitle)}.</p>
+      <p style="margin:0 0 14px 0;">Two files are attached: the editable Word doc and a PDF for signing. The same letter is also available at the button below if you want to forward a preview to the candidate.</p>
+      <p style="margin:0 0 14px 0;color:${BRAND.muted};font-size:14px;">Every clause references the Fair Work Act, the NES, or the relevant Modern Award. The footnotes at the end of the letter list them so you and the candidate can both check the source.</p>
+      <p style="margin:0;color:${BRAND.muted};font-size:14px;">If anything looks off, reply to this email - it goes to a human, not a noreply queue.</p>
+    `,
+    cta: { label: 'Open the shareable link', url: shareUrl },
+  })
 
   try {
     await resend.emails.send({
@@ -531,7 +520,27 @@ export async function sendEnterpriseInquiryEmail({
     'Action: review in Supabase, qualify, book discovery call within 48h.',
   ].join('\n')
 
-  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:6px 0;color:${BRAND.body};width:160px;">${label}</td><td style="padding:6px 0;">${value}</td></tr>`
+
+  const bodyHtml = `
+    ${belowThreshold ? `<p style="background:#FFF6E0;border:1px solid #C8850A;color:#7a5400;padding:10px 12px;border-radius:8px;font-size:13px;margin:0 0 16px 0;">Below qualifying threshold - recommend Business tier.</p>` : ''}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;line-height:1.55;">
+      ${row('Business', `<strong>${escapeHtml(businessName)}</strong>`)}
+      ${row('Contact', `${escapeHtml(fullName)} &lt;<a href="mailto:${escapeHtml(workEmail)}" style="color:${BRAND.accent};">${escapeHtml(workEmail)}</a>&gt;`)}
+      ${row('Staff size', escapeHtml(staffHeadcount))}
+      ${row('Variant', escapeHtml(variantInterest))}
+      ${row('Urgency', escapeHtml(urgency))}
+      ${row('Current spend', escapeHtml(currentSpend && currentSpend.trim() ? currentSpend : 'not stated'))}
+    </table>
+    <h3 style="margin:24px 0 8px;font-size:13px;color:${BRAND.body};text-transform:uppercase;letter-spacing:0.08em;">Pricing signals (for multiplier quote)</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;line-height:1.55;">
+      ${row('Entity count', escapeHtml(entityCount && entityCount.trim() ? entityCount : 'not stated'))}
+      ${row('Annual hiring volume', escapeHtml(annualHiringVolume && annualHiringVolume.trim() ? annualHiringVolume : 'not stated'))}
+    </table>
+    <h3 style="margin:24px 0 8px;font-size:13px;color:${BRAND.body};text-transform:uppercase;letter-spacing:0.08em;">Notes from inquirer</h3>
+    <p style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:${BRAND.ink};margin:0;">${escapeHtml(notes && notes.trim() ? notes : 'none')}</p>
+  `
 
   try {
     await resend.emails.send({
@@ -540,34 +549,11 @@ export async function sendEnterpriseInquiryEmail({
       replyTo: workEmail,
       subject,
       text,
-      html: `
-        <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #1F1F1F;">
-          <div style="border-bottom: 1px solid #e2e2e2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai - Enterprise inquiry</span>
-          </div>
-          ${belowThreshold ? '<p style="background:#FFF6E0; border:1px solid #C8850A; color:#7a5400; padding:10px 12px; border-radius:8px; font-size:13px;">Below qualifying threshold - recommend Business tier.</p>' : ''}
-          <table style="width:100%; border-collapse:collapse; font-size:14px; line-height:1.55;">
-            <tr><td style="padding:6px 0; color:#4b4b4b; width:140px;">Business</td><td style="padding:6px 0;"><strong>${escape(businessName)}</strong></td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Contact</td><td style="padding:6px 0;">${escape(fullName)} &lt;<a href="mailto:${escape(workEmail)}" style="color:#000;">${escape(workEmail)}</a>&gt;</td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Staff size</td><td style="padding:6px 0;">${escape(staffHeadcount)}</td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Variant</td><td style="padding:6px 0;">${escape(variantInterest)}</td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Urgency</td><td style="padding:6px 0;">${escape(urgency)}</td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Current spend</td><td style="padding:6px 0;">${escape(currentSpend && currentSpend.trim() ? currentSpend : 'not stated')}</td></tr>
-          </table>
-          <h3 style="margin:24px 0 8px; font-size:14px; color:#4b4b4b; text-transform:uppercase; letter-spacing:0.08em;">Pricing signals (for multiplier quote)</h3>
-          <table style="width:100%; border-collapse:collapse; font-size:14px; line-height:1.55;">
-            <tr><td style="padding:6px 0; color:#4b4b4b; width:180px;">Entity count</td><td style="padding:6px 0;">${escape(entityCount && entityCount.trim() ? entityCount : 'not stated')}</td></tr>
-            <tr><td style="padding:6px 0; color:#4b4b4b;">Annual hiring volume</td><td style="padding:6px 0;">${escape(annualHiringVolume && annualHiringVolume.trim() ? annualHiringVolume : 'not stated')}</td></tr>
-          </table>
-          <h3 style="margin:24px 0 8px; font-size:14px; color:#4b4b4b; text-transform:uppercase; letter-spacing:0.08em;">Notes from inquirer</h3>
-          <p style="white-space:pre-wrap; font-size:14px; line-height:1.6; color:#1F1F1F;">${escape(notes && notes.trim() ? notes : 'none')}</p>
-          <p style="color:#afafaf; font-size:11px; margin-top:24px; border-top:1px solid #e2e2e2; padding-top:12px;">
-            Submission id: ${escape(inquiryId)}<br/>
-            IP: ${escape(inquirerIp || 'unknown')}<br/>
-            Action: review in Supabase, qualify, book discovery call within 48h.
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: 'New Enterprise inquiry',
+        bodyHtml,
+        footerLine: `Submission id: ${escapeHtml(inquiryId)} - IP: ${escapeHtml(inquirerIp || 'unknown')} - review in Supabase, qualify, book discovery call within 48h.`,
+      }),
     })
     return { ok: true as const }
   } catch (err) {
@@ -605,8 +591,6 @@ export async function sendEnterpriseInquiryConfirmation({
     'Founder, Humanistiqs',
   ].join('\n')
 
-  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
   try {
     await resend.emails.send({
       from: FROM,
@@ -614,26 +598,15 @@ export async function sendEnterpriseInquiryConfirmation({
       replyTo: 'jrayner@humanistiqs.com.au',
       subject,
       text,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #1F1F1F; line-height: 1.6;">
-          <div style="border-bottom: 1px solid #e2e2e2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-          </div>
-          <p style="font-size: 15px; margin: 0 0 14px;">Hi ${escape(fullName)},</p>
-          <p style="font-size: 15px; margin: 0 0 14px;">
-            Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.
-          </p>
-          <p style="font-size: 15px; margin: 0 0 14px;">
-            I&apos;ll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at
-            <a href="https://humanistiqs.ai/enterprise" style="color:#000; text-decoration:underline;">humanistiqs.ai/enterprise</a>
-            so the call gets straight to the specifics for ${escape(businessName)}.
-          </p>
-          <p style="font-size: 15px; margin: 18px 0 0;">Speak soon,<br/>Jimmy Rayner<br/><span style="color:#4b4b4b;">Founder, Humanistiqs</span></p>
-          <p style="color:#afafaf; font-size:12px; margin-top:32px; border-top:1px solid #e2e2e2; padding-top:16px;">
-            Humanistiqs - humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: 'Thanks for reaching out',
+        bodyHtml: `
+          <p style="margin:0 0 14px 0;">Hi ${escapeHtml(fullName)},</p>
+          <p style="margin:0 0 14px 0;">Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.</p>
+          <p style="margin:0 0 14px 0;">I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at <a href="https://humanistiqs.ai/enterprise" style="color:${BRAND.accent};text-decoration:underline;">humanistiqs.ai/enterprise</a> so the call gets straight to the specifics for ${escapeHtml(businessName)}.</p>
+          <p style="margin:18px 0 0 0;">Speak soon,<br/>Jimmy Rayner<br/><span style="color:${BRAND.body};">Founder, Humanistiqs</span></p>
+        `,
+      }),
     })
     return { ok: true as const }
   } catch (err) {
@@ -660,14 +633,13 @@ export async function sendCandidateOutcomeEmail({
   const resend = getResend()
   if (!resend) return
 
-  // Escape-less: we accept plain text body; convert newlines to <br/> and
-  // linkify http(s) urls so the Calendly link is clickable. Angle brackets
-  // are HTML-escaped first to avoid injection.
-  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Accept a plain text body; convert newlines to <br/> and linkify
+  // http(s) urls so e.g. a Calendly link is clickable. Angle brackets are
+  // HTML-escaped first to avoid injection.
   const linkify = (s: string) =>
     s.replace(/(https?:\/\/[^\s<]+)/g, (url) =>
-      `<a href="${url}" style="color:#000000; text-decoration:underline;">${url}</a>`)
-  const htmlBody = linkify(escape(body)).replace(/\n/g, '<br/>')
+      `<a href="${url}" style="color:${BRAND.accent};text-decoration:underline;">${url}</a>`)
+  const htmlBody = linkify(escapeHtml(body)).replace(/\n/g, '<br/>')
 
   try {
     await resend.emails.send({
@@ -675,20 +647,11 @@ export async function sendCandidateOutcomeEmail({
       to: toEmail,
       replyTo: replyTo || undefined,
       subject,
-      html: `
-        <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; color: #0A0A0A;">
-          <div style="border-bottom: 1px solid #E4E4E2; padding-bottom: 16px; margin-bottom: 24px;">
-            <span style="font-size: 18px; font-weight: 700; color: #000000;">HQ.ai</span>
-          </div>
-          <div style="color: #1F1F1F; line-height: 1.6; font-size: 15px;">
-            ${htmlBody}
-          </div>
-          <p style="color: #afafaf; font-size: 12px; margin-top: 32px; border-top: 1px solid #E4E4E2; padding-top: 16px;">
-            Sent on behalf of ${company} via Humanistiqs.<br/>
-            humanistiqs.com.au
-          </p>
-        </div>
-      `,
+      html: renderEmailShell({
+        heading: subject,
+        bodyHtml: `<div style="line-height:1.6;">${htmlBody}</div>`,
+        footerLine: `Sent on behalf of ${escapeHtml(company)} via Humanistiqs.`,
+      }),
       text: body,
     })
     return { ok: true, toName }
