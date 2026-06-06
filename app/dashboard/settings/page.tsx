@@ -135,6 +135,13 @@ export default function SettingsPage() {
     setBillingLoading(false)
   }
 
+  // Whether the business is actually on a paid plan. Gate the plan
+  // picker on THIS, not on hasStripe - a stripe_customer_id gets created
+  // the moment checkout *starts* (before any payment), so gating on it
+  // made the picker vanish after one click without a subscription,
+  // stranding the user. Active subscription = hide picker, show portal.
+  const isSubscribed = subscriptionStatus === 'active'
+
   const [checkoutBusyFor, setCheckoutBusyFor] = useState<PaidPlanId | null>(null)
   // Billing cycle toggle. Annual is ~2 months free; the checkout route
   // resolves the right Stripe price id from (planId, cycle).
@@ -363,10 +370,12 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {/* Plan picker - shown to anyone not yet on a paid Stripe plan.
-              Sends the correct v2 plan ids (solo / business) so the
-              checkout route accepts them. */}
-          {!hasStripe && (
+          {/* Plan picker - shown to anyone not on an ACTIVE paid plan
+              (trial / none / cancelled). Gated on subscription status,
+              NOT on hasStripe, so starting checkout once (which creates a
+              Stripe customer) doesn't hide the picker. Sends the v2 plan
+              ids (solo / business) the checkout route accepts. */}
+          {!isSubscribed && (
             <>
               {/* Monthly / annual toggle */}
               <div className="flex items-center justify-center gap-1 bg-light rounded-full p-1 w-fit mx-auto mb-4">
