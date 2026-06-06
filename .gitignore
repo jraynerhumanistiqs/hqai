@@ -14,3 +14,4 @@ tests/eval/.cache/
 
 # Claude Flow internal scratch
 .claude-flow/agents/
+scripts/stripe-v2-price-ids.env
