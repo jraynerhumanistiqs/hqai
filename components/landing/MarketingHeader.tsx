@@ -58,7 +58,7 @@ export default function MarketingHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
         <Link href="/" aria-label="HQ.ai home" className="flex items-center">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="h-7 w-auto" priority />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="h-7 w-auto" priority />
         </Link>
 
         {/* Desktop nav */}
