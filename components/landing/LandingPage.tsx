@@ -11,6 +11,8 @@
 // tokens from app/globals.css :root apply.
 
 import { useEffect, useState } from 'react'
+import MarketingHeader from './MarketingHeader'
+import MarketingFooter from './MarketingFooter'
 import HeroSection from './HeroSection'
 import SocialProofRibbon from './SocialProofRibbon'
 import MetricsStrip from './MetricsStrip'
@@ -45,23 +47,27 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-bg text-ink antialiased">
-      <HeroSection />
-      <SocialProofRibbon />
-      <MetricsStrip />
-      <ProblemSection />
-      <ProductPillars />
-      <PeopleDeepDive />
-      <RecruitDeepDive />
-      <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
-      <CustomerStory />
-      <FounderNote />
-      <ComparisonSection />
-      <PricingSection onReserve={() => setReserveOpen(true)} />
-      <FaqSection />
-      <FooterCta />
-      <StickyMobileCta onReserve={() => setReserveOpen(true)} />
-      <ReserveSpotModal open={reserveOpen} onClose={() => setReserveOpen(false)} />
-    </main>
+    <>
+      <MarketingHeader />
+      <main className="min-h-screen bg-bg text-ink antialiased">
+        <HeroSection />
+        <SocialProofRibbon />
+        <MetricsStrip />
+        <ProblemSection />
+        <div id="product"><ProductPillars /></div>
+        <PeopleDeepDive />
+        <RecruitDeepDive />
+        <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
+        <CustomerStory />
+        <FounderNote />
+        <ComparisonSection />
+        <PricingSection onReserve={() => setReserveOpen(true)} />
+        <FaqSection />
+        <FooterCta />
+        <StickyMobileCta onReserve={() => setReserveOpen(true)} />
+        <ReserveSpotModal open={reserveOpen} onClose={() => setReserveOpen(false)} />
+      </main>
+      <MarketingFooter />
+    </>
   )
 }

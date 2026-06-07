@@ -13,6 +13,8 @@ import Link from 'next/link'
 import { PRICING, computeEnterprisePrice } from '@/lib/pricing-config'
 import EnterpriseVariantCard from '@/components/enterprise/EnterpriseVariantCard'
 import EnterpriseInquiryForm from '@/components/enterprise/EnterpriseInquiryForm'
+import MarketingHeader from '@/components/landing/MarketingHeader'
+import MarketingFooter from '@/components/landing/MarketingFooter'
 
 const PAGE_DESCRIPTION =
   'A Humanistiqs Advisor and Talent Partner embedded into your business, with HQ.ai as their leverage.'
@@ -407,30 +409,8 @@ export default function EnterprisePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
-        {/* Header - keeps marketing nav consistent with the landing page. */}
-        <header className="border-b border-border bg-bg">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-            <Link href="/landing-page" className="font-display text-lg font-bold tracking-tight text-ink">
-              HQ.ai
-            </Link>
-            <nav className="flex items-center gap-4 text-sm">
-              <Link href="/landing-page" className="hidden text-ink-soft hover:text-ink sm:inline">
-                Product
-              </Link>
-              <Link href="/login" className="text-ink-soft hover:text-ink">
-                Sign in
-              </Link>
-              <Link
-                href="#inquiry"
-                className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover"
-              >
-                Book a discovery call
-              </Link>
-            </nav>
-          </div>
-        </header>
-
         {/* Hero */}
         <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
           <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
@@ -629,26 +609,8 @@ export default function EnterprisePage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-bg-soft py-14 md:py-16">
-          <div className="mx-auto max-w-6xl px-6 text-sm text-ink-muted md:px-10">
-            <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-              <div>
-                <p className="font-display text-base font-bold text-ink">HQ.ai</p>
-                <p className="mt-1">A Humanistiqs (Rayner Consulting Group Pty Ltd) product. Built in Australia.</p>
-              </div>
-              <div className="flex flex-col gap-2 md:items-end">
-                <Link href="/landing-page" className="hover:text-ink">Product</Link>
-                <Link href="/enterprise" className="hover:text-ink">Enterprise</Link>
-                <Link href="/login" className="hover:text-ink">Sign in</Link>
-              </div>
-            </div>
-            <p className="mt-8 border-t border-border pt-6 text-xs">
-              Grounded in the Fair Work Act 2009 and 122 Modern Awards. Hosted in Sydney.
-            </p>
-          </div>
-        </footer>
       </main>
+      <MarketingFooter />
     </>
   )
 }

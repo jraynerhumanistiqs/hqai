@@ -42,7 +42,7 @@ export default function PricingSection({ onReserve }: Props) {
     .filter((s): s is (typeof oneOffs)[number] => Boolean(s))
 
   return (
-    <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="pricing-heading">
+    <section id="pricing" className="bg-bg-soft py-20 md:py-28" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <h2 id="pricing-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           Two ways to start.
