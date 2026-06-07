@@ -9,6 +9,7 @@
 // sibling pillars from the first scroll.
 
 import Link from 'next/link'
+import HeroChatPreview from './HeroChatPreview'
 
 export default function HeroSection() {
   return (
@@ -49,36 +50,8 @@ export default function HeroSection() {
         {/* Right: split-screen still life - HQ People + HQ Recruit, equal weight */}
         <div className="relative w-full">
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* HQ People preview */}
-            <div
-              className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float"
-              role="group"
-              aria-label="HQ People preview"
-            >
-              <div className="flex items-center gap-2 border-b border-border pb-3">
-                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
-                <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">HQ People</span>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="rounded-2xl border border-border bg-bg px-3 py-2 text-xs text-ink-soft">
-                  Can I fire someone in probation?
-                </div>
-                <div className="rounded-2xl border border-accent bg-accent-soft px-3 py-2 text-xs text-ink">
-                  What&apos;s the notice period for a casual?
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-2xl bg-bg p-3">
-                <p className="text-xs leading-relaxed text-ink">
-                  A true casual on an irregular basis is not entitled to notice under the NES. If they&apos;ve become regular and systematic, the Award may require notice.
-                </p>
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent bg-bg-elevated px-2.5 py-1 text-[10px] font-medium text-accent">
-                  <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3"><path fill="currentColor" d="M6 1l1.5 3 3.3.5-2.4 2.3.6 3.3L6 8.5l-3 1.6.6-3.3L1.2 4.5l3.3-.5z" /></svg>
-                  Cited: s 123 Fair Work Act 2009
-                </div>
-              </div>
-            </div>
+            {/* HQ People preview - animated cycling chat (signature moment) */}
+            <HeroChatPreview />
 
             {/* HQ Recruit preview - CV scorecard */}
             <div
