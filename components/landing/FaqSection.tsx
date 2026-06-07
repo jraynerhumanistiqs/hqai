@@ -41,7 +41,7 @@ const FAQS: Array<{ q: string; a: string }> = [
     a: 'In Sydney, on Supabase Australian infrastructure. Compliant with Australian Privacy Principles 1-13. We never sell it.',
   },
   {
-    q: 'Why would I trust an AU startup over Employment Hero or Employsure?',
+    q: 'Why would I trust an AU startup over the big HR platforms?',
     a: 'Because HQ.ai is built for decision-making, not payroll administration or panic-button advisory. Different problem, different tool. And the same human advisor is on the line when the AI hits its limit - not a fresh agent every call.',
   },
 ]

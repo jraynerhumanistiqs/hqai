@@ -20,6 +20,7 @@ import PeopleDeepDive from './PeopleDeepDive'
 import RecruitDeepDive from './RecruitDeepDive'
 import MarketplaceCarousel from './MarketplaceCarousel'
 import CustomerStory from './CustomerStory'
+import FounderNote from './FounderNote'
 import ComparisonSection from './ComparisonSection'
 import PricingSection from './PricingSection'
 import FaqSection from './FaqSection'
@@ -54,6 +55,7 @@ export default function LandingPage() {
       <RecruitDeepDive />
       <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
       <CustomerStory />
+      <FounderNote />
       <ComparisonSection />
       <PricingSection onReserve={() => setReserveOpen(true)} />
       <FaqSection />

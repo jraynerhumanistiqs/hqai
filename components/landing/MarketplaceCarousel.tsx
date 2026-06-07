@@ -112,10 +112,10 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-accent">Pay-as-you-go - launching soon</p>
         <h2 id="marketplace-heading" className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-          One letter, one warning, one ad - on tap.
+          Just need one letter today? From $25.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          Not every business needs a subscription. Buy a single HR document or recruitment deliverable, with your logo on the footer, without the monthly commitment. Reserve a spot below - first 100 get $10 off launch pricing.
+          Buy a single HR document without a subscription. Reserve yours now - first 100 reservations get $10 off launch pricing.
         </p>
         <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
           <button

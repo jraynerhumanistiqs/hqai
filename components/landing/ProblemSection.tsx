@@ -14,7 +14,7 @@ export default function ProblemSection() {
     },
     {
       title: 'Outside advice costs four figures.',
-      body: 'A 30-minute call with a workplace lawyer is $450. A retainer with Employsure is $850 a month, locked for 5 years. You used them twice.',
+      body: 'A 30-minute call with a workplace lawyer is $450. A traditional HR retainer runs about $850 a month, often locked in for years. You used it twice.',
     },
   ]
 
@@ -28,7 +28,7 @@ export default function ProblemSection() {
           id="problem-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          You shouldn&apos;t have to guess at this.
+          Modern Awards run to 600 pages. You&apos;ve got a business to run.
         </h2>
 
         <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-12">

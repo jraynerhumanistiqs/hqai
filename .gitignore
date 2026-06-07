@@ -16,3 +16,5 @@ tests/eval/.cache/
 .claude-flow/agents/
 scripts/stripe-v2-price-ids.env
 scripts/stripe-v2-price-ids.live.env
+
+.vercel

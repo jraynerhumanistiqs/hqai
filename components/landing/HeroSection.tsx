@@ -23,10 +23,10 @@ export default function HeroSection() {
             id="hero-heading"
             className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
           >
-            Make HR and hiring decisions you can stand behind.
+            Fair Work is complicated. Your HR doesn&apos;t have to be.
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
-            HQ.ai is the decision-making layer for people, compliance and hiring. Save the hours, skip the second-guessing, stop overpaying for advice.
+            The AI HR advisor built on the Fair Work Act, the NES, and your Modern Award - with a hiring suite alongside it. It cites every answer, and hands off to a real human when it matters.
           </p>
 
           <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
