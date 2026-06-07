@@ -8,7 +8,7 @@ export default function RecruitDeepDive() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[2fr_3fr] md:gap-16 md:px-10">
         {/* LEFT (40%): copy */}
         <div>
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
             HQ Recruit - decide the hiring stuff
           </p>
           <h2

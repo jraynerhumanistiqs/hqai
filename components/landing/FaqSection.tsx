@@ -51,7 +51,7 @@ export default function FaqSection() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="faq-heading">
       <div className="mx-auto max-w-3xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">Questions</p>
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Questions</p>
         <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           The things you&apos;re wondering.
         </h2>

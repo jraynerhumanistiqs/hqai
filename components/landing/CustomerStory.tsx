@@ -5,7 +5,7 @@ export default function CustomerStory() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="customer-story-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
           What this looks like for real
         </p>
         <h2

@@ -21,7 +21,7 @@ export default function ContactPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <section className="mx-auto max-w-3xl px-6 py-16 md:px-10 md:py-24">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">Contact</p>
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Contact</p>
           <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[48px]">
             Talk to the team behind HQ.ai.
           </h1>

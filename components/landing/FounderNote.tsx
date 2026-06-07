@@ -48,7 +48,7 @@ export default function FounderNote() {
   return (
     <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="founder-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
           Why we built this
         </p>
         <h2

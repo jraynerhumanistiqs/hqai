@@ -80,7 +80,7 @@ export default function PricingSection({ onReserve }: Props) {
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* LEFT: subscription tiers */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">If you have ongoing HR and hiring work</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">If you have ongoing HR and hiring work</p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {tiers.map((t) => {
                 const monthlyEquivalent = cycle === 'annual' ? t.priceAnnualMonthly : t.priceMonthly
@@ -108,13 +108,13 @@ export default function PricingSection({ onReserve }: Props) {
                       <span className="ml-1 text-sm font-normal text-ink-muted">/month</span>
                     </p>
                     {cycle === 'annual' && saving > 0 && (
-                      <p className="mt-1 text-xs font-semibold text-accent">Save ${saving}/yr</p>
+                      <p className="mt-1 text-xs font-semibold text-clay">Save ${saving}/yr</p>
                     )}
                     <p className="mt-2 text-sm text-ink-soft">{t.tagline}</p>
                     <ul className="mt-5 space-y-2 text-sm text-ink-soft">
                       {t.features.map((f) => (
                         <li key={f} className="flex items-start gap-2">
-                          <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden><path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" /></svg>
+                          <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-clay" aria-hidden><path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" /></svg>
                           {f}
                         </li>
                       ))}
@@ -147,7 +147,7 @@ export default function PricingSection({ onReserve }: Props) {
 
           {/* RIGHT: marketplace re-statement */}
           <aside className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">If you just need one thing today</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">If you just need one thing today</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               From ${cheapestOneOff.price}. No subscription. Pay once.
             </h3>
@@ -198,7 +198,7 @@ export default function PricingSection({ onReserve }: Props) {
         <div className="mt-6 rounded-3xl border border-border bg-bg-elevated p-7 shadow-card md:p-9">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Enterprise</p>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Enterprise</p>
               <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
                 AI plus human judgement.
               </h3>

@@ -30,7 +30,7 @@ export default function AboutPage() {
       <main className="min-h-screen bg-bg text-ink antialiased">
         {/* Hero */}
         <section className="mx-auto max-w-5xl px-6 pt-16 md:px-10 md:pt-24">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">About</p>
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">About</p>
           <h1 className="max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
             Unlocking human potential - with AI doing the heavy lifting.
           </h1>

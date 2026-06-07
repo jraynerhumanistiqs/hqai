@@ -14,10 +14,10 @@ import HeroChatPreview from './HeroChatPreview'
 export default function HeroSection() {
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-16 md:grid-cols-[1fr_1.1fr] md:gap-12 md:px-10 md:pb-28 md:pt-24 lg:gap-16">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.1fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
         {/* Left: copy block */}
         <div className="max-w-xl">
-          <p className="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+          <p className="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-clay">
             For Australian businesses under 250 staff
           </p>
           <h1
@@ -70,8 +70,8 @@ export default function HeroSection() {
                   <p className="font-display text-base font-bold tracking-tight text-ink">Sarah K.</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-2xl font-bold tracking-tight text-ink">4.2<span className="text-sm font-normal text-ink-muted"> / 5</span></p>
-                  <span className="mt-1 inline-flex rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">Strong yes</span>
+                  <p className="font-display text-2xl font-bold tracking-tight text-clay">4.2<span className="text-sm font-normal text-ink-muted"> / 5</span></p>
+                  <span className="mt-1 inline-flex rounded-full border border-clay bg-clay-soft/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-clay">Strong yes</span>
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ export default function HeroSection() {
                       <span className="tabular-nums">{row.score}</span>
                     </div>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-bg-soft">
-                      <div className="h-full rounded-full bg-accent" style={{ width: `${row.score}%` }} />
+                      <div className="h-full rounded-full bg-clay" style={{ width: `${row.score}%` }} />
                     </div>
                   </div>
                 ))}

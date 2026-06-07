@@ -49,7 +49,7 @@ export default function PeopleDeepDive() {
 
         {/* RIGHT (40%): copy */}
         <div className="order-1 md:order-2">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
             HQ People - decide the people stuff
           </p>
           <h2

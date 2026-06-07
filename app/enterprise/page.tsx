@@ -183,7 +183,7 @@ function PricingFlexesSection() {
   return (
     <section id="pricing-flexes" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-flexes-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">How pricing flexes</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">How pricing flexes</p>
         <h2
           id="pricing-flexes-heading"
           className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -414,7 +414,7 @@ export default function EnterprisePage() {
         {/* Hero */}
         <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
           <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
-            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-clay">
               HQ.ai Enterprise - for 30 to 250-staff Australian businesses
             </p>
             <h1
@@ -454,7 +454,7 @@ export default function EnterprisePage() {
         {/* Three variant cards */}
         <section id="variants" className="bg-bg-soft py-20 md:py-28" aria-labelledby="variants-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Three variants</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Three variants</p>
             <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               Pick the surface you need a partner on.
             </h2>
@@ -512,7 +512,7 @@ export default function EnterprisePage() {
         {/* Who this is for */}
         <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="who-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Who this is for</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Who this is for</p>
             <h2 id="who-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
               The qualifying band.
             </h2>
@@ -555,7 +555,7 @@ export default function EnterprisePage() {
         {/* How the partnership works */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="how-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">How it works</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">How it works</p>
             <h2 id="how-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
               From first call to first advisory session in under three weeks.
             </h2>
@@ -575,7 +575,7 @@ export default function EnterprisePage() {
         {/* Inquiry form */}
         <section id="inquiry" className="bg-bg-soft py-20 md:py-28" aria-labelledby="inquiry-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Discovery call</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Discovery call</p>
             <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               Send Jimmy the shape of your situation.
             </h2>
@@ -593,7 +593,7 @@ export default function EnterprisePage() {
         {/* FAQ */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-faq-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">Questions</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Questions</p>
             <h2 id="enterprise-faq-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               The things people ask before signing.
             </h2>

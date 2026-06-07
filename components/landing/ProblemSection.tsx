@@ -21,7 +21,7 @@ export default function ProblemSection() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="problem-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-ink-muted">
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
           Where small businesses burn hours and dollars
         </p>
         <h2
