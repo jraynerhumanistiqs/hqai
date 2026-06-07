@@ -124,8 +124,8 @@ export default function PricingSection({ onReserve }: Props) {
                       className={[
                         'mt-6 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors',
                         t.highlight
-                          ? 'bg-accent text-ink-on-accent hover:bg-accent-hover'
-                          : 'border border-border text-ink hover:bg-bg-soft',
+                          ? 'bg-clay text-white hover:opacity-90'
+                          : 'border border-ink text-ink hover:bg-bg-soft',
                       ].join(' ')}
                     >
                       {t.cta} -&gt;

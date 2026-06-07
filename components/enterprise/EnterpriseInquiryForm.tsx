@@ -277,7 +277,7 @@ export default function EnterpriseInquiryForm() {
         <button
           type="submit"
           disabled={status === 'submitting'}
-          className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === 'submitting' ? 'Sending...' : 'Send to Jimmy ->'}
         </button>

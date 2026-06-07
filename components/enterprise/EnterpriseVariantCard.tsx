@@ -119,7 +119,7 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
           className={[
             'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors',
             highlight
-              ? 'bg-accent text-ink-on-accent hover:bg-accent-hover'
+              ? 'bg-clay text-white hover:opacity-90'
               : 'border border-border text-ink hover:bg-bg-soft',
           ].join(' ')}
         >

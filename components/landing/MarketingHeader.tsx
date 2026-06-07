@@ -82,7 +82,7 @@ export default function MarketingHeader() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             Start the trial
           </Link>
@@ -138,7 +138,7 @@ export default function MarketingHeader() {
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-ink-on-accent hover:bg-accent-hover"
+              className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white hover:opacity-90"
             >
               Start the trial
             </Link>

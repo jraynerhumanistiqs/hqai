@@ -15,7 +15,7 @@ export default function FooterCta() {
         <div className="mt-8">
           <Link
             href="/signup"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-accent-hover"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90"
           >
             Start the trial - it&apos;s three minutes
           </Link>

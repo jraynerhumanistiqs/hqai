@@ -107,7 +107,7 @@ export default function ReserveSpotModal({ open, onClose }: Props) {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover disabled:opacity-60"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
             >
               {submitting ? 'Reserving...' : 'Reserve my spot'}
             </button>
