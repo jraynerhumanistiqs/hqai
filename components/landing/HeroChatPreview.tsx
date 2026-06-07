@@ -109,7 +109,7 @@ export default function HeroChatPreview() {
             {/* Answer bubble */}
             <div className="mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5">
               <p className="text-xs leading-relaxed text-ink">{ex.a}</p>
-              <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-accent bg-bg-elevated px-2.5 py-1 text-[10px] font-medium text-accent">
+              <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-2.5 py-1 text-[10px] font-medium text-clay">
                 <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
                   <path fill="currentColor" d="M6 1l1.5 3 3.3.5-2.4 2.3.6 3.3L6 8.5l-3 1.6.6-3.3L1.2 4.5l3.3-.5z" />
                 </svg>

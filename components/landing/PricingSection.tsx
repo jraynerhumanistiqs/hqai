@@ -135,9 +135,13 @@ export default function PricingSection({ onReserve }: Props) {
               })}
             </div>
 
-            {/* Decoy disqualifier (brief §7.1). Builds trust by saying who we are not for. */}
+            {/* Up-sell to Enterprise rather than disqualify. Larger or
+                more complex businesses are exactly who the Enterprise
+                tier (AI + a dedicated Humanistiqs advisor) is built for. */}
             <p className="mt-6 text-xs leading-relaxed text-ink-muted">
-              <strong className="text-ink-soft">Not for you if:</strong> you have over 250 staff, an in-house HR team, or you want a multi-year lock-in. Try Employment Hero or your HR retainer for that.
+              <strong className="text-ink-soft">Bigger or more complex?</strong> If you have over 250 staff, multiple entities, or you want a dedicated human advisor on call, that is exactly what our{' '}
+              <Link href="/enterprise" className="font-semibold text-accent hover:underline">Enterprise tier</Link>{' '}
+              is built for - HQ.ai paired with a Humanistiqs advisor or talent partner.
             </p>
           </div>
 
@@ -165,12 +169,14 @@ export default function PricingSection({ onReserve }: Props) {
           </aside>
         </div>
 
-        {/* Foundation 100 banner. Full-width below the two tiers. */}
+        {/* Foundation 100 banner. Full-width below the two tiers. This is
+            one of the two sparing Clay highlights on the public site - the
+            scarcity moment earns the warmth. */}
         {foundation.enabled && (
-          <div className="mt-10 rounded-3xl border border-accent bg-bg-elevated p-7 shadow-card md:p-9">
+          <div className="mt-10 rounded-3xl border border-clay bg-clay-soft/40 p-7 shadow-card md:p-9">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Foundation {foundation.cap}</p>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Foundation {foundation.cap}</p>
                 <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
                   First {foundation.cap} customers lock Business at ${foundation.lockedMonthly}/month forever.
                 </h3>
@@ -180,7 +186,7 @@ export default function PricingSection({ onReserve }: Props) {
               </div>
               <Link
                 href={`/signup?plan=business&cycle=annual&foundation=1`}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
                 Reserve a Foundation slot -&gt;
               </Link>

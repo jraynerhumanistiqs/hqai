@@ -36,10 +36,21 @@
     --ink-muted:         #9A9A99;
     --ink-on-accent:     #FFFFFF;
 
-    /* ── Accent (Clay - retained, used sparingly) ──────────── */
-    --accent:            #D97757;
-    --accent-hover:      #C6613F;
-    --accent-soft:       #F5E5DD;
+    /* ── Accent (PUBLIC / marketing surface) ───────────────────
+       June 2026: the public site (landing, enterprise, login,
+       onboarding, marketplace) moves OFF the Clay terracotta - which
+       read too close to the default Claude palette - and onto ink, to
+       match the dashboard's black-dominant feel. The dashboard itself
+       is unaffected: it overrides these in [data-app="product"] below
+       and keeps Clay. Clay survives on the public site only as a rare
+       signature highlight via the --accent-clay token. */
+    --accent:            #111111;
+    --accent-hover:      #2A2A2A;
+    --accent-soft:       #EDEDE8;
+
+    /* ── Clay (sparing brand highlight - citations, scarcity) ── */
+    --accent-clay:       #D97757;
+    --accent-clay-soft:  #F5E5DD;
 
     /* ── Border (hairlines) ────────────────────────────────── */
     --border:            #E6E5E0;

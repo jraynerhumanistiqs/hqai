@@ -36,10 +36,14 @@ const config: Config = {
         'ink-soft':       'var(--ink-soft)',
         'ink-muted':      'var(--ink-muted)',
         'ink-on-accent':  'var(--ink-on-accent)',
-        // Brand accent
+        // Brand accent (public = ink; product = Clay, via data-app scope)
         accent:           'var(--accent)',
         'accent-hover':   'var(--accent-hover)',
         'accent-soft':    'var(--accent-soft)',
+        // Clay - sparing brand highlight on the public site (citations,
+        // scarcity moments). Always terracotta regardless of scope.
+        clay:             'var(--accent-clay, #D97757)',
+        'clay-soft':      'var(--accent-clay-soft, #F5E5DD)',
         // Border + decoration
         border:           'var(--border)',
         'border-strong':  'var(--border-strong)',
