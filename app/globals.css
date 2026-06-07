@@ -89,6 +89,46 @@
     color-scheme: light;
   }
 
+  /* ── Marketing surface - INVERTED (dark) test, June 2026 ───
+     Switches the public marketing site (only pages that render
+     MarketingHeader: home, pricing, product, about, contact,
+     enterprise) to a dark palette using the existing dark brand
+     codes. Blacks <-> whites: white surfaces become near-black, ink
+     text becomes off-white, and the ink "secondary" accent flips to
+     light so secondary buttons stay visible. Clay (#D97757) is the
+     unchanged brand highlight and still carries the primary CTAs.
+     Login, onboarding, /offer and the dashboard are untouched. */
+  [data-app="marketing"] {
+    --bg:               #0A0A0B;
+    --bg-soft:          #131417;
+    --bg-elevated:      #1B1D21;
+    --surface-inverse:  #FFFFFF;
+
+    --ink:              #F5F5F4;
+    --ink-soft:         #A8A8A3;
+    --ink-muted:        #7C7C77;
+    --ink-on-accent:    #111111;
+
+    /* Secondary "black" accent inverts to light on dark. */
+    --accent:           #F5F5F4;
+    --accent-hover:     #E5E5E3;
+    --accent-soft:      #23262B;
+
+    /* Clay stays the brand highlight + primary CTA colour. */
+    --accent-clay:      #D97757;
+    --accent-clay-soft: rgba(217,119,87,0.20);
+
+    --border:           #2A2D32;
+    --border-strong:    #3D4148;
+
+    --shadow-hairline:  0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-card:      0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-float:     0 8px 24px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.06);
+    --shadow-modal:     0 24px 64px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.08);
+
+    color-scheme: dark;
+  }
+
   /* ── Product surface (premium-minimal light, May 2026) ─── */
   /* The product variant used to be 'Ink & Amber' with its own
      colour drift (#0A0A0B ink, #F7F7F6 bg-soft, slightly tighter

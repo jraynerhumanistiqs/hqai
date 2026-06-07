@@ -8,6 +8,24 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 
+// Every public marketing page renders this header, so it is the single
+// place that flags the marketing theme scope on <html>. The dark
+// (inverted) marketing palette lives under [data-app="marketing"] in
+// globals.css, so it applies only to pages with this nav - login,
+// onboarding, offer and the dashboard are unaffected.
+function useMarketingScope() {
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const html = document.documentElement
+    const prev = html.getAttribute('data-app')
+    html.setAttribute('data-app', 'marketing')
+    return () => {
+      if (prev) html.setAttribute('data-app', prev)
+      else html.removeAttribute('data-app')
+    }
+  }, [])
+}
+
 const PRODUCTS = [
   { label: 'HQ People', href: '/product/people', blurb: 'AI HR advisor that cites the law' },
   { label: 'HQ Recruit', href: '/product/recruit', blurb: 'Score CVs, pre-screen, shortlist' },
@@ -21,6 +39,7 @@ const NAV = [
 ]
 
 export default function MarketingHeader() {
+  useMarketingScope()
   const [open, setOpen] = useState(false)
   const [productOpen, setProductOpen] = useState(false)
   const productRef = useRef<HTMLDivElement | null>(null)

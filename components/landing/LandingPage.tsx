@@ -10,7 +10,7 @@
 // Renders inside the marketing data-app scope so the Ivory & Clay
 // tokens from app/globals.css :root apply.
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import MarketingHeader from './MarketingHeader'
 import MarketingFooter from './MarketingFooter'
 import HeroSection from './HeroSection'
@@ -33,18 +33,9 @@ import ReserveSpotModal from './ReserveSpotModal'
 export default function LandingPage() {
   const [reserveOpen, setReserveOpen] = useState(false)
 
-  // Apply the marketing palette scope. Done client-side so this page can
-  // sit at the public root without disturbing product surfaces.
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    const html = document.documentElement
-    const prev = html.getAttribute('data-app')
-    html.setAttribute('data-app', 'marketing')
-    return () => {
-      if (prev) html.setAttribute('data-app', prev)
-      else html.removeAttribute('data-app')
-    }
-  }, [])
+  // The marketing theme scope (data-app="marketing") is set by
+  // MarketingHeader, which this page renders - so it is managed in one
+  // place across the whole public site.
 
   return (
     <>
