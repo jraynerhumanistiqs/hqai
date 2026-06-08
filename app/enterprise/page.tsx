@@ -456,7 +456,7 @@ export default function EnterprisePage() {
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Three variants</p>
             <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-              Pick the surface you need a partner on.
+              Choose the surface you need covered.
             </h2>
             <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
               People for the hard 20% of HR. Recruit for the hiring funnel you don&apos;t have time to run.

@@ -17,10 +17,10 @@ export default function ComparisonSection() {
           id="comparison-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Don&apos;t lock into a multi-year contract for advice you barely use.
+          Don&apos;t lock into a multi-year contract for support you barely use.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-          Same Fair Work answers. A fraction of the price. Cancel any time.
+          The same HR and hiring support, grounded in Australian employment law. A fraction of the price. Cancel any time.
         </p>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
@@ -29,7 +29,7 @@ export default function ComparisonSection() {
               <tr>
                 <th scope="col" className="px-5 py-4">&nbsp;</th>
                 <th scope="col" className="px-5 py-4 text-accent">HQ.ai</th>
-                <th scope="col" className="px-5 py-4">Traditional HR retainer</th>
+                <th scope="col" className="px-5 py-4">Traditional HR &amp; recruitment retainer</th>
                 <th scope="col" className="px-5 py-4">DIY</th>
               </tr>
             </thead>
@@ -56,6 +56,12 @@ export default function ComparisonSection() {
                 <th scope="row" className="px-5 py-4 font-medium text-ink">Every answer cites the law</th>
                 <td className="px-5 py-4 font-semibold text-ink">Yes</td>
                 <td className="px-5 py-4 text-ink-soft">Sometimes</td>
+                <td className="px-5 py-4 text-ink-soft">No</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">Covers hiring too</th>
+                <td className="px-5 py-4 font-semibold text-ink">Yes - full recruit suite</td>
+                <td className="px-5 py-4 text-ink-soft">Usually extra</td>
                 <td className="px-5 py-4 text-ink-soft">No</td>
               </tr>
             </tbody>

@@ -190,7 +190,7 @@ export default function OnboardingPage() {
           {/* Step 1 - Business */}
           {step === 1 && (
             <div>
-              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Tell us about your business</h2>
+              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Tell us about your business</h2>
               <p className="text-sm text-mid mb-6">HQ uses this to tailor every response to your specific situation.</p>
               <div className="space-y-4">
                 <div>
@@ -253,18 +253,8 @@ export default function OnboardingPage() {
           {/* Step 2 - Employment */}
           {step === 2 && (
             <div>
-              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Employment details <span className="text-ink-muted text-[20px] align-middle font-sans">(optional)</span></h2>
-              <p className="text-sm text-mid mb-4">HQ already detects the likely award from your industry. Add detail here only if you want to fine-tune it now - you can change all of this any time in Settings.</p>
-              <div className="bg-bg-soft border border-border rounded-xl px-4 py-2.5 mb-6 flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-xs text-ink-soft">In a hurry? Skip this and start using HQ in seconds.</p>
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="text-xs font-bold text-ink underline whitespace-nowrap"
-                >
-                  Skip for now →
-                </button>
-              </div>
+              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Employment details</h2>
+              <p className="text-sm text-mid mb-6">HQ already detects the likely award from your industry. Confirm or fine-tune it here so every response is accurate from day one - you can change all of this any time in Settings.</p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Applicable Modern Awards (select all that apply)</label>
@@ -319,8 +309,21 @@ export default function OnboardingPage() {
           {/* Step 3 - Advisor */}
           {step === 3 && (
             <div>
-              <h2 className="font-display text-[40px] tracking-tight text-ink leading-[1.05] mb-1">Meet your AI Advisor</h2>
-              <p className="text-sm text-mid mb-6">Give your AI Advisor a name - it&apos;s the assistant that handles your day-to-day HR questions inside HQ.ai. When something complex comes up, your AI Advisor hands off to your real Humanistiqs human advisor automatically.</p>
+              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Meet your AI Advisor</h2>
+              <p className="text-sm text-mid mb-6">
+                Give your AI Advisor a name - it&apos;s the assistant that handles your day-to-day HR questions inside HQ.ai. When something complex comes up, your AI Advisor hands off to your real Humanistiqs human advisor automatically.
+                <span
+                  className="group relative ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-ink/30 align-middle text-[10px] font-bold text-ink-muted"
+                  tabIndex={0}
+                  role="note"
+                  aria-label="Human advisor handoff is available on eligible membership tiers"
+                >
+                  i
+                  <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-56 -translate-x-1/2 rounded-lg bg-ink px-3 py-2 text-left text-[11px] font-normal leading-snug text-bg-elevated opacity-0 shadow-float transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100">
+                    Live handoff to a human Humanistiqs advisor is available on eligible membership tiers.
+                  </span>
+                </span>
+              </p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Your name</label>

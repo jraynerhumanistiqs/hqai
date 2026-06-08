@@ -24,7 +24,7 @@ export default function HeroSection() {
             id="hero-heading"
             className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
           >
-            Fair Work is complicated. Your HR doesn&apos;t have to be.
+            Employment is complicated. Your HR &amp; Recruitment doesn&apos;t have to be.
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
             The AI HR advisor built on the Fair Work Act, the NES, and your Modern Award - with a hiring suite alongside it. It cites every answer, and hands off to a real human when it matters.
