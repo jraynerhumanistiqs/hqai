@@ -24,10 +24,10 @@ export default function HeroSection() {
             id="hero-heading"
             className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
           >
-            Employment is complicated. Your HR &amp; Recruitment doesn&apos;t have to be.
+            HR and hiring are complicated. With HQ.ai, they don&apos;t have to be.
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
-            The AI HR advisor built on the Fair Work Act, the NES, and your Modern Award - with a hiring suite alongside it. It cites every answer, and hands off to a real human when it matters.
+            AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $89/month. Cancel any time.
           </p>
 
           <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
