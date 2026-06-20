@@ -8,16 +8,16 @@ export default function ProductPillars() {
     <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="pillars-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
-          Two products. One operating system.
+          Two tools. One login.
         </p>
         <h2
           id="pillars-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Decisions, drafted, defended.
+          Answers, documents, and hiring - all sorted.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          HQ People covers the people side. HQ Recruit covers the hiring side. Both grounded in Australian employment law, both built to save you reading the small print.
+          HQ People handles your staff. HQ Recruit handles your hiring. Both know Australian workplace law, so you never have to read the fine print.
         </p>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -28,25 +28,25 @@ export default function ProductPillars() {
               Your HR brain, on tap.
             </h3>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-              Ask any HR question and get the right answer for your business in under a minute. Draft any HR document - contracts, warnings, letters - with the AI Administrator. Hand off to a human advisor on the calls that matter.
+              Ask any HR question and get the right answer for your business in under a minute. Need a letter or contract? It writes it for you. When a question gets tricky, a real human advisor steps in.
             </p>
 
             <ul className="mt-7 space-y-3 text-sm text-ink-soft">
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>AI Advisor grounded in Australian employment law</span>
+                <span>Answers built on Australian workplace law</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>33 best-practice HR document templates</span>
+                <span>33 ready-to-use HR documents</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>One-click PDF export with your logo</span>
+                <span>One-click PDF with your logo</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Same human advisor on every escalation - never repeat yourself</span>
+                <span>The same human advisor every time - never repeat yourself</span>
               </li>
             </ul>
           </article>
@@ -58,25 +58,25 @@ export default function ProductPillars() {
               Your hiring decisions, faster and fairer.
             </h3>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-              Score a stack of CVs against the role in minutes, not hours. Run video and phone screens with AI-scored answers. Write a SEEK-ready job ad in three steps. Bias-trigger anonymisation runs automatically.
+              Score a pile of CVs against the job in minutes, not hours. Run video and phone interviews with the answers scored for you. Write a SEEK-ready job ad in three steps. Names and photos can be hidden so you judge on merit.
             </p>
 
             <ul className="mt-7 space-y-3 text-sm text-ink-soft">
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>CV scoring against a role-specific rubric</span>
+                <span>Score every CV against what the job needs</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Video + phone screens with one shareable link</span>
+                <span>Video and phone interviews from one link</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Campaign Coach drafts SEEK-ready ads in 5 minutes</span>
+                <span>Write a SEEK-ready job ad in 5 minutes</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Auto-anonymises candidates when bias signals are detected</span>
+                <span>Hides names and photos to keep hiring fair</span>
               </li>
             </ul>
           </article>

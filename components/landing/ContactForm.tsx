@@ -31,7 +31,7 @@ export default function ContactForm() {
       }
       setStatus('sent')
     } catch {
-      setError('Could not reach the server. Please check your connection and try again.')
+      setError('We could not reach the server. Check your connection and try again.')
       setStatus('error')
     }
   }
@@ -44,8 +44,8 @@ export default function ContactForm() {
       <div className="rounded-3xl border border-border bg-bg-elevated p-8 shadow-card">
         <h2 className="font-display text-xl font-bold tracking-tight text-ink">Thanks - your message is on its way.</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-          We read every enquiry and will get back to you, usually within one business day. If it is urgent,
-          email us directly at{' '}
+          We read every message. We will reply soon, usually within one business day. In a hurry?
+          Email us at{' '}
           <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-accent hover:underline">
             jrayner@humanistiqs.com.au
           </a>.
@@ -72,7 +72,7 @@ export default function ContactForm() {
       </div>
       <div className="mt-4">
         <label htmlFor="c-message" className="mb-1.5 block text-xs font-bold text-ink-soft">How can we help?</label>
-        <textarea id="c-message" required rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className={`${inputCls} resize-y`} placeholder="Tell us a little about your business and what you are after." />
+        <textarea id="c-message" required rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className={`${inputCls} resize-y`} placeholder="Tell us about your business and what you need." />
       </div>
 
       {error && (
@@ -87,7 +87,7 @@ export default function ContactForm() {
         {status === 'sending' ? 'Sending...' : 'Send message'}
       </button>
       <p className="mt-3 text-xs text-ink-muted">
-        Prefer email? Reach us at{' '}
+        Prefer email? Write to us at{' '}
         <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink hover:underline">jrayner@humanistiqs.com.au</a>.
       </p>
     </form>

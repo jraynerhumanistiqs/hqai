@@ -18,7 +18,7 @@ export default function HeroSection() {
         {/* Left: copy block */}
         <div className="max-w-xl">
           <p className="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-clay">
-            For Australian businesses under 250 staff
+            Built for Australian small business
           </p>
           <h1
             id="hero-heading"
@@ -41,7 +41,7 @@ export default function HeroSection() {
               href="#marketplace"
               className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
-              See pay-as-you-go documents -&gt;
+              See one-off documents from $25 -&gt;
             </a>
           </div>
           <p className="mt-4 text-sm text-ink-muted">No card. Three minutes to first document.</p>

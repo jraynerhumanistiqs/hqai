@@ -10,7 +10,7 @@ import ContactForm from '@/components/landing/ContactForm'
 
 export const metadata: Metadata = {
   title: 'Contact HQ.ai',
-  description: 'Get in touch with the Humanistiqs team behind HQ.ai. We read every enquiry and reply, usually within one business day.',
+  description: 'Get in touch with the Humanistiqs team behind HQ.ai. We read every message and reply, usually within one business day.',
   alternates: { canonical: '/contact' },
   robots: { index: true, follow: true },
 }
@@ -26,15 +26,15 @@ export default function ContactPage() {
             Talk to the team behind HQ.ai.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
-            Questions about HQ People, HQ Recruit, pricing, or whether it fits your business? Send us a
-            note. A real person from Humanistiqs reads every enquiry.
+            Got a question about HQ People, HQ Recruit, or pricing? Not sure if it suits your business?
+            Send us a note. A real person reads every message.
           </p>
           <p className="mt-3 text-sm text-ink-muted">
-            Looking for a dedicated advisor or talent partner?{' '}
+            Want a dedicated advisor or talent partner?{' '}
             <Link href="/enterprise" className="font-semibold text-accent hover:underline">
               See HQ.ai Enterprise
             </Link>{' '}
-            and book a discovery call.
+            and book a call.
           </p>
 
           <div className="mt-10">

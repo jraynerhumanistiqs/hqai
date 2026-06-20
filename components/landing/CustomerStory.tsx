@@ -47,7 +47,7 @@ export default function CustomerStory() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Dot />
-                  <span>Filled two roles in three days via Campaign Coach + HQ Recruit</span>
+                  <span>Filled two roles in three days with HQ Recruit</span>
                 </li>
               </ul>
             </div>

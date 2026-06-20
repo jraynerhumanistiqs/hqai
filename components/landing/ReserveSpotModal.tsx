@@ -101,7 +101,7 @@ export default function ReserveSpotModal({ open, onClose }: Props) {
               />
             </label>
             <p className="text-xs text-ink-muted">
-              First 100 reservations get $10 off launch pricing. No card today.
+              First 100 people get $10 off at launch. No card today.
             </p>
             {error && <p className="text-sm text-danger" role="alert">{error}</p>}
             <button

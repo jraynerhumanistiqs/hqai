@@ -16,7 +16,7 @@ export default function MetricsStrip() {
     {
       figure: '33+',
       label: 'decisions made faster',
-      body: 'From offer letters to terminations to award checks.',
+      body: 'From offer letters to letting someone go to award checks.',
     },
   ]
 
@@ -48,7 +48,7 @@ export default function MetricsStrip() {
         </div>
 
         <p className="mt-6 text-center text-[11px] text-ink-muted">
-          Estimates based on internal modelling against typical AU SMB retainer pricing.
+          Estimates based on our own modelling against typical Australian retainer prices.
         </p>
       </div>
     </section>

@@ -13,7 +13,7 @@ export default function SocialProofRibbon() {
     <section className="border-y border-border bg-bg-soft" aria-label="Social proof">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-10 md:flex-row md:justify-between md:px-10">
         <p className="text-center text-sm font-medium text-ink-soft md:text-left">
-          Trusted by Australian SMEs from Penrith to Perth
+          Built for Australian small businesses, from Penrith to Perth
         </p>
         <ul className="flex flex-wrap items-center justify-center gap-6 text-ink-muted md:gap-9">
           {industries.map((it) => {

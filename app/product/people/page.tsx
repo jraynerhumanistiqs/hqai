@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 }
 
 const FEATURES = [
-  { t: 'Answers that cite the law', d: 'Every response points to the Fair Work Act, the NES, or your Modern Award section, so you can check the source.' },
-  { t: '33 HR documents, drafted', d: 'Letters of offer, warnings, PIPs, terminations and more - generated with your details, ready to send.' },
-  { t: 'Human handoff built in', d: 'When a question is too complex or too risky, the same Humanistiqs advisor picks it up - no repeating yourself.' },
-  { t: 'Australian law only', d: 'No US or UK noise. Grounded exclusively in Australian employment law.' },
+  { t: 'Answers you can check', d: 'Every answer points to the Fair Work Act or your award, so you can see exactly where it came from.' },
+  { t: '33 documents, written for you', d: 'Offer letters, warnings, performance plans, contracts and more - filled in with your details, ready to send.' },
+  { t: 'A real human when it counts', d: 'When a question is too tricky or too risky, the same Humanistiqs advisor steps in. No repeating yourself.' },
+  { t: 'Australian law only', d: 'No US or UK clutter. Built on Australian workplace law, nothing else.' },
 ]
 
 export default function ProductPeoplePage() {
@@ -33,8 +33,8 @@ export default function ProductPeoplePage() {
             An HR advisor that cites the law.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-            Ask anything about people, pay or compliance. HQ People answers in plain English, cites the
-            exact Fair Work section, drafts the document, and hands off to a real human when the stakes
+            Ask anything about your staff, pay or the rules. HQ People answers in plain English, shows you
+            the exact law it used, writes the document, and hands you to a real human when the stakes
             are high.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">

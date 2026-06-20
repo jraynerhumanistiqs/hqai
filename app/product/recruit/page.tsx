@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 }
 
 const FEATURES = [
-  { t: 'Campaign Coach writes the ad', d: 'Turn a rough brief into a compliant, well-structured job ad - award, salary and must-haves confirmed before it goes live.' },
-  { t: 'CV scoring with evidence', d: 'Every CV is scored against the criteria you set, with the reasoning quoted straight from the CV. No black box.' },
-  { t: 'Video + phone pre-screens', d: 'Invite candidates to a short pre-screen, then review and score responses in one place.' },
-  { t: 'Shortlist to decision maker', d: 'Promote your top picks and share a clean shortlist with the owner, client or hiring manager.' },
+  { t: 'It writes the job ad', d: 'Turn a rough brief into a clear, well-written job ad - award, salary and must-haves sorted before it goes live.' },
+  { t: 'Scores every CV with proof', d: 'Each CV is scored against what you asked for, with the reason quoted straight from the CV. Nothing hidden.' },
+  { t: 'Video and phone interviews', d: 'Invite people to a short interview, then watch and score the answers all in one place.' },
+  { t: 'A clean shortlist to share', d: 'Pick your top few and send a tidy shortlist to the owner, client or hiring manager.' },
 ]
 
 export default function ProductRecruitPage() {
@@ -33,8 +33,8 @@ export default function ProductRecruitPage() {
             From job ad to shortlist, without the chaos.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-            Write the ad, score every CV against your criteria, run quick pre-screens, and hand a
-            confident shortlist to whoever makes the call - all in one workflow.
+            Write the ad, score every CV against what you need, run quick interviews, and hand a
+            confident shortlist to whoever makes the call - all in one place.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90">

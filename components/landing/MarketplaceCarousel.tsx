@@ -12,15 +12,15 @@ interface Item {
 }
 
 const ITEMS: Item[] = [
-  { name: 'Letter of Offer',              price: 'from $25',    teaser: 'A signed-ready offer letter, Fair Work compliant, in 3 minutes.' },
-  { name: 'Employment Contract',          price: 'from $49',    teaser: 'A full contract with all NES + Award clauses, your details filled in.' },
-  { name: 'Termination Letter',           price: 'from $45',    teaser: 'A safe termination letter, with notice + final-pay maths done.' },
-  { name: 'First-and-Final Warning',      price: 'from $35',    teaser: 'A defensible warning letter that holds up at Fair Work.' },
-  { name: 'Position Description',         price: 'from $29',    teaser: 'A clean PD with duties, classification and award rate.' },
-  { name: 'Performance Improvement Plan', price: 'from $55',    teaser: 'A structured PIP with measurable goals and review dates.' },
-  { name: 'Single Job Ad (SEEK-ready)',   price: 'from $39',    teaser: 'A SEEK-ready ad in your voice, with the compliance checks.' },
-  { name: 'CV Reformatting',              price: 'from $19/CV', teaser: 'Candidate CVs reformatted into a clean, anonymised house layout.' },
-  { name: 'Single Reference Check',       price: 'from $15',    teaser: 'A structured reference-check script with the right questions.' },
+  { name: 'Letter of Offer',              price: 'from $25',    teaser: 'A ready-to-sign offer letter, done right, in 3 minutes.' },
+  { name: 'Employment Contract',          price: 'from $49',    teaser: 'A full contract with all the legal bits, your details filled in.' },
+  { name: 'Termination Letter',           price: 'from $45',    teaser: 'A safe letting-go letter, with the notice and final pay worked out.' },
+  { name: 'First-and-Final Warning',      price: 'from $35',    teaser: 'A warning letter that holds up if it is ever challenged.' },
+  { name: 'Position Description',         price: 'from $29',    teaser: 'A clean role description with the duties and pay set out.' },
+  { name: 'Performance Improvement Plan', price: 'from $55',    teaser: 'A performance plan with clear goals and review dates.' },
+  { name: 'Single Job Ad (SEEK-ready)',   price: 'from $39',    teaser: 'A SEEK-ready job ad in your voice, checks included.' },
+  { name: 'CV Reformatting',              price: 'from $19/CV', teaser: 'Candidate CVs tidied into one clean, name-free layout.' },
+  { name: 'Single Reference Check',       price: 'from $15',    teaser: 'A reference-check script with the right questions to ask.' },
 ]
 
 interface Props {

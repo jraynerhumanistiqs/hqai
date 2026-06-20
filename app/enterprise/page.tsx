@@ -17,15 +17,15 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 
 const PAGE_DESCRIPTION =
-  'A Humanistiqs Advisor and Talent Partner embedded into your business, with HQ.ai as their leverage.'
+  'A real Humanistiqs advisor or talent partner working inside your business, with HQ.ai doing the heavy lifting behind them.'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+  title: 'HQ.ai Enterprise - AI plus a real human for Australian small business',
   description: PAGE_DESCRIPTION,
   alternates: { canonical: '/enterprise' },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+    title: 'HQ.ai Enterprise - AI plus a real human for Australian small business',
     description: PAGE_DESCRIPTION,
     url: '/enterprise',
     siteName: 'HQ.ai',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HQ.ai Enterprise - AI plus human judgement for Australian SMEs',
+    title: 'HQ.ai Enterprise - AI plus a real human for Australian small business',
     description: PAGE_DESCRIPTION,
     images: ['/logo.svg'],
   },
@@ -68,32 +68,32 @@ const jsonLd = {
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
-    q: 'Annual contract or month-to-month?',
-    a: "Both. Annual gives you the headline rate and locks the slot in your advisor or talent partner's calendar for the year. Month-to-month carries a ~17% premium and runs on 30 days notice, which is the right fit if cash-flow flexibility matters more than the saving. Most customers staying 12+ months are better off on annual, but the choice is yours at signing.",
+    q: 'Annual or month-to-month?',
+    a: "Your call. Annual gets you the best price. It also books your advisor or talent partner's time for the whole year. Month-to-month costs a bit more, about 17%, and you can leave with 30 days notice. Pick it if you want the flexibility more than the saving. If you plan to stay a year or more, annual is the better deal. You choose when you sign.",
   },
   {
-    q: 'Who is my advisor and can I meet them first?',
-    a: 'Yes. Every Enterprise customer gets a named human with a photo, bio and direct mobile. You meet them on the scoping call before you sign, not after. If the fit is wrong, we re-pair you.',
+    q: 'Who is my advisor, and can I meet them first?',
+    a: 'Yes. Every Enterprise customer gets one named person, with a photo, a short bio and a direct mobile number. You meet them before you sign, not after. If they are not the right fit, we match you with someone else.',
   },
   {
-    q: 'What counts as an intensive month?',
-    a: 'A redundancy round, an investigation, or a hiring surge that pushes the partner above their usual hours for you. Each partner can flag this twice a year. The options are defer the non-urgent items, bring in a second partner at the overage rate, or refer the spike to a specialist.',
+    q: 'What counts as a busy month?',
+    a: 'A round of redundancies, a workplace investigation, or a hiring rush. Anything that needs a lot more of your partner\'s time than usual. Each partner can flag this twice a year. When it happens, you can push the less urgent work back, bring in a second partner at the extra-hours rate, or hand the big job to a specialist.',
   },
   {
-    q: 'How does overage work?',
-    a: 'Mechanical, never a renegotiation. Additional advisor time on People Enterprise is $250 an hour billed in 15-minute increments. A 5th concurrent role on Recruit Enterprise is $750 a month, pro-rata. Executive search is $8,500 fixed-fee. We surface the overage on your monthly statement before it bills.',
+    q: 'How do extra hours work?',
+    a: 'It is simple, and we never reopen the deal. Extra advisor time on People Enterprise is $250 an hour, billed in 15-minute blocks. A 5th role at once on Recruit Enterprise is $750 a month, pro-rata. Executive search is a fixed $8,500. You see any extra charge on your monthly statement before we bill it.',
   },
   {
     q: 'When can we start?',
-    a: 'The fastest path is a discovery call within 48 hours, a scoping doc within 5 business days, a signed engagement letter that week, and your 30-day onboarding sprint starting the next Monday. From first call to first advisory session in under three weeks is normal.',
+    a: 'Fast. A first call within 48 hours. A written scope within 5 business days. A signed agreement that same week. Your 30-day setup starts the next Monday. From first call to first session in under three weeks is normal.',
   },
 ]
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Discovery call', body: '30 minutes. We map your current state, the shape of the problem, and which variant fits. Jimmy runs this personally for the first 10 customers.' },
-  { step: '02', title: 'Scoping doc', body: 'Within 5 business days of the call. Written scope, hours, cadence, named partner. PDF plus a Stripe Invoice draft.' },
-  { step: '03', title: '30-day onboarding sprint', body: 'Tool walkthrough, knowledge ingestion, goal definition, first advisory call or role calibration. Cadence locked by day 21.' },
-  { step: '04', title: 'Ongoing partnership', body: 'Standing calls, async advisory, quarterly health checks, annual renewal. Same partner every time.' },
+  { step: '01', title: 'First call', body: '30 minutes. We work out where you are now, what the problem looks like, and which option fits. Jimmy runs this himself for the first 10 customers.' },
+  { step: '02', title: 'Written scope', body: 'Within 5 business days of the call. We put the work, the hours, the rhythm and your named partner in writing. A PDF plus a draft invoice.' },
+  { step: '03', title: '30-day setup', body: 'A tour of the tools, getting us up to speed on your business, setting your goals, and your first session. Everything settled by day 21.' },
+  { step: '04', title: 'Ongoing partnership', body: 'Regular calls, advice between them, quarterly check-ins, yearly renewal. The same partner every time.' },
 ]
 
 // -- "How pricing flexes" section ------------------------------------------
@@ -128,7 +128,7 @@ function PricingFlexesSection() {
     {
       id: 'customer-a',
       customerLabel: 'Customer A',
-      description: '200-staff single-entity allied health, wants People Enterprise.',
+      description: '200-staff allied health business, one entity, wants People Enterprise.',
       variantName: peopleName,
       inputs: {
         variantId: 'enterprise-people',
@@ -141,7 +141,7 @@ function PricingFlexesSection() {
     {
       id: 'customer-b',
       customerLabel: 'Customer B',
-      description: '75-staff franchise group of 4 cafes, wants Full Enterprise.',
+      description: '75-staff cafe franchise with 4 sites, wants Full Enterprise.',
       variantName: fullName,
       inputs: {
         variantId: 'enterprise-full',
@@ -154,7 +154,7 @@ function PricingFlexesSection() {
     {
       id: 'customer-c',
       customerLabel: 'Customer C',
-      description: '120-staff scaling tech business, ~75 roles/year, 6 concurrent, wants Recruit Enterprise.',
+      description: '120-staff growing tech business, about 75 hires a year, 6 roles open at once, wants Recruit Enterprise.',
       variantName: recruitName,
       inputs: {
         variantId: 'enterprise-recruit',
@@ -163,12 +163,12 @@ function PricingFlexesSection() {
         volumeBandIndex: 1,    // 5-6 concurrent
         entityBandIndex: 0,    // single entity
       },
-      vsAlternative: 'vs internal RPO recruiter at $150k/yr: still 3.3x cheaper.',
+      vsAlternative: 'An in-house recruiter costs about $150k a year. This is still 3.3x cheaper.',
     },
     {
       id: 'customer-d',
       customerLabel: 'Customer D',
-      description: '220-staff multi-state retail group with 3 entities, wants Full Enterprise, hires ~65 roles/year.',
+      description: '220-staff retail group across a few states, 3 entities, about 65 hires a year, wants Full Enterprise.',
       variantName: fullName,
       inputs: {
         variantId: 'enterprise-full',
@@ -183,30 +183,30 @@ function PricingFlexesSection() {
   return (
     <section id="pricing-flexes" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-flexes-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">How pricing flexes</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">How the price works</p>
         <h2
           id="pricing-flexes-heading"
           className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Three published multipliers. No surprises at signing.
+          Three simple add-ons. No surprises when you sign.
         </h2>
         <p className="mt-4 max-w-3xl text-base text-ink-soft md:text-lg">
-          Base price is the headline. Three multipliers - headcount, hiring volume, and entity count -
-          flex the price on the dimensions that actually drive advisor and talent-partner workload. The
-          schedule is published, the customer can self-calculate, no negotiation.
+          You start with a base price. Three things can add to it: your staff numbers, how much you
+          hire, and how many entities you run. These are the things that make the work bigger. The rates
+          are all shown below, so you can work out your own price. No haggling.
         </p>
 
         {/* Three multiplier tables, side-by-side on desktop, stacked on mobile. */}
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {/* Headcount band */}
           <div className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
-            <h3 className="font-display text-lg font-bold tracking-tight text-ink">Headcount band</h3>
-            <p className="mt-1 text-xs text-ink-muted">Per variant, in AUD/month uplift.</p>
+            <h3 className="font-display text-lg font-bold tracking-tight text-ink">Staff numbers</h3>
+            <p className="mt-1 text-xs text-ink-muted">Added per month, in AUD, for each option.</p>
             <div className="mt-4 overflow-hidden rounded-2xl border border-border">
               <table className="w-full text-left text-xs">
                 <thead className="bg-bg-soft text-[10px] uppercase tracking-[0.1em] text-ink-muted">
                   <tr>
-                    <th className="px-3 py-2 font-semibold">Band</th>
+                    <th className="px-3 py-2 font-semibold">Range</th>
                     <th className="px-3 py-2 font-semibold">People</th>
                     <th className="px-3 py-2 font-semibold">Recruit</th>
                     <th className="px-3 py-2 font-semibold">Full</th>
@@ -242,14 +242,14 @@ function PricingFlexesSection() {
 
           {/* Hiring volume */}
           <div className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
-            <h3 className="font-display text-lg font-bold tracking-tight text-ink">Hiring volume</h3>
-            <p className="mt-1 text-xs text-ink-muted">Recruit and Full only. People variant ignores volume.</p>
+            <h3 className="font-display text-lg font-bold tracking-tight text-ink">How much you hire</h3>
+            <p className="mt-1 text-xs text-ink-muted">Recruit and Full only. People does not use this.</p>
             <div className="mt-4 overflow-hidden rounded-2xl border border-border">
               <table className="w-full text-left text-xs">
                 <thead className="bg-bg-soft text-[10px] uppercase tracking-[0.1em] text-ink-muted">
                   <tr>
-                    <th className="px-3 py-2 font-semibold">Band</th>
-                    <th className="px-3 py-2 font-semibold">Uplift</th>
+                    <th className="px-3 py-2 font-semibold">Range</th>
+                    <th className="px-3 py-2 font-semibold">Added</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -258,7 +258,7 @@ function PricingFlexesSection() {
                       <td className="px-3 py-2 align-top text-ink-soft">{band.label}</td>
                       <td className="px-3 py-2 align-top text-ink">
                         {band.isQuotedSeparately
-                          ? <span className="italic text-ink-muted">Bulk Hiring quoted separately</span>
+                          ? <span className="italic text-ink-muted">Bulk hiring priced for you</span>
                           : band.uplift === 0
                             ? 'base'
                             : `+${fmtAud(band.uplift ?? 0)}`}
@@ -272,14 +272,14 @@ function PricingFlexesSection() {
 
           {/* Entity complexity */}
           <div className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
-            <h3 className="font-display text-lg font-bold tracking-tight text-ink">Entity complexity</h3>
-            <p className="mt-1 text-xs text-ink-muted">Applies to any variant. Percent of base price.</p>
+            <h3 className="font-display text-lg font-bold tracking-tight text-ink">Number of entities</h3>
+            <p className="mt-1 text-xs text-ink-muted">Applies to any option. A percentage of the base price.</p>
             <div className="mt-4 overflow-hidden rounded-2xl border border-border">
               <table className="w-full text-left text-xs">
                 <thead className="bg-bg-soft text-[10px] uppercase tracking-[0.1em] text-ink-muted">
                   <tr>
-                    <th className="px-3 py-2 font-semibold">Band</th>
-                    <th className="px-3 py-2 font-semibold">Uplift</th>
+                    <th className="px-3 py-2 font-semibold">Range</th>
+                    <th className="px-3 py-2 font-semibold">Added</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -304,11 +304,11 @@ function PricingFlexesSection() {
         {/* Worked examples - calculated dynamically from PRICING via the helper. */}
         <div className="mt-14">
           <h3 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
-            Worked examples
+            A few real examples
           </h3>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            Every figure below is calculated live from the schedule above. Edit the schedule and the
-            examples move with it.
+            Every number below is worked out straight from the rates above. Change the rates and these
+            examples change too.
           </p>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -329,7 +329,7 @@ function PricingFlexesSection() {
                     {ex.customerLabel}
                   </p>
                   <p className="mt-2 text-sm font-medium text-ink">{ex.description}</p>
-                  <p className="mt-1 text-xs text-ink-muted">{ex.variantName}, annual contract</p>
+                  <p className="mt-1 text-xs text-ink-muted">{ex.variantName}, paid annually</p>
 
                   <dl className="mt-5 space-y-1.5 text-sm">
                     <div className="flex items-baseline justify-between gap-3">
@@ -337,15 +337,15 @@ function PricingFlexesSection() {
                       <dd className="font-medium text-ink">{fmtAud(result.baseMonthly)}/mo</dd>
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-ink-soft">Headcount uplift ({hcBand.label})</dt>
+                      <dt className="text-ink-soft">Staff numbers ({hcBand.label})</dt>
                       <dd className="font-medium text-ink">
                         {result.headcountUplift === 0 ? fmtAud(0) : `+${fmtAud(result.headcountUplift)}`}/mo
                       </dd>
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="text-ink-soft">
-                        Volume uplift
-                        {volBand ? ` (${volBand.label})` : ' (not applicable)'}
+                        How much you hire
+                        {volBand ? ` (${volBand.label})` : ' (not used here)'}
                       </dt>
                       <dd className="font-medium text-ink">
                         {result.volumeUplift === 0 ? fmtAud(0) : `+${fmtAud(result.volumeUplift)}`}/mo
@@ -353,7 +353,7 @@ function PricingFlexesSection() {
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="text-ink-soft">
-                        Entity uplift ({entBand.label}
+                        Number of entities ({entBand.label}
                         {result.entityUpliftPercent > 0 ? `, +${result.entityUpliftPercent}% of base` : ''})
                       </dt>
                       <dd className="font-medium text-ink">
@@ -367,7 +367,7 @@ function PricingFlexesSection() {
 
                   <div className="mt-5 border-t border-border pt-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
-                      Effective price
+                      What you pay
                     </p>
                     <p className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">
                       {fmtAud(result.subtotalMonthlyAnnualBasis)}/mo
@@ -415,18 +415,18 @@ export default function EnterprisePage() {
         <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
           <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-clay">
-              HQ.ai Enterprise - for 30 to 250-staff Australian businesses
+              HQ.ai Enterprise - for Australian businesses with 30 to 250 staff
             </p>
             <h1
               id="enterprise-hero"
               className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[60px]"
             >
-              AI is the leverage. Human judgement is the partner.
+              AI does the heavy lifting. A real person makes the call.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-              Enterprise is where HQ.ai stops being a tool and starts being a partner. A Humanistiqs
-              Advisor or Talent Partner embeds into your business, with the AI as their leverage rather
-              than as the product itself. AI plus HQ - human intelligence and judgement.
+              This is where HQ.ai stops being a tool and becomes your partner. A real Humanistiqs advisor
+              or talent partner works inside your business. The AI does the heavy lifting behind them.
+              AI plus human judgement.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <a
@@ -439,14 +439,14 @@ export default function EnterprisePage() {
                 href="#variants"
                 className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent-soft"
               >
-                See the three variants -&gt;
+                See the three options -&gt;
               </a>
             </div>
             {/* Hero anchor price - both billing options shown. Sourced at
                 runtime from PRICING.enterprise.variants[0]. */}
             <p className="mt-4 text-sm text-ink-muted">
-              From ${minMonthly.toLocaleString('en-AU')}/mo on annual contract, or month-to-month at a {''}
-              ~17% premium with 30 days notice. Capped at {enterprise.capacityCapYear1} partnerships in 2026.
+              From ${minMonthly.toLocaleString('en-AU')}/mo when you pay annually. Or pay monthly for about {''}
+              17% more, with 30 days notice. We only take on {enterprise.capacityCapYear1} partnerships in 2026.
             </p>
           </div>
         </section>
@@ -454,13 +454,13 @@ export default function EnterprisePage() {
         {/* Three variant cards */}
         <section id="variants" className="bg-bg-soft py-20 md:py-28" aria-labelledby="variants-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Three variants</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Three options</p>
             <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               Choose the surface you need covered.
             </h2>
             <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-              People for the hard 20% of HR. Recruit for the hiring funnel you don&apos;t have time to run.
-              Full Enterprise when you want one partner team across both.
+              People for the tricky HR you dread. Recruit for the hiring you have no time to run.
+              Full Enterprise when you want one team across both.
             </p>
 
             <div className="mt-10 grid gap-6 lg:grid-cols-3">
@@ -486,22 +486,22 @@ export default function EnterprisePage() {
         <section className="bg-bg py-14 md:py-20" aria-labelledby="capacity-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
             <div className="rounded-3xl border border-accent bg-bg-elevated p-7 shadow-card md:p-9">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Capacity</p>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Limited spots</p>
               <h2 id="capacity-heading" className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
-                We&apos;re capping Enterprise at {enterprise.capacityCapYear1} partnerships in 2026. {slotsLeft} slots left.
+                We only take on {enterprise.capacityCapYear1} partnerships in 2026. {slotsLeft} spots left.
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
-                The cap is a service-quality protection, not a marketing trick. Each Enterprise customer reserves
-                a slot in their named partner&apos;s calendar for the year. When customer 9 lands, we hire the next
-                contract Advisor and Talent Partner ahead of capacity.
+                This is about keeping the service good, not a sales gimmick. Each customer books real time
+                in their partner&apos;s calendar for the year. When the 9th customer signs, we hire the next
+                advisor and talent partner before we run out of room.
               </p>
               {enterprise.inaugural.enabled && (
                 <div className="mt-5 rounded-2xl border border-border bg-bg-soft p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">Inaugural partners</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">Founding partners</p>
                   <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                    The first {enterprise.inaugural.slotsRemaining} Enterprise sign-ons join as inaugural partners
-                    at a ${enterprise.inaugural.discountPerMonth}/month discount in exchange for a public case study
-                    once we&apos;re 90 days into the partnership.
+                    The first {enterprise.inaugural.slotsRemaining} customers join as founding partners
+                    and save ${enterprise.inaugural.discountPerMonth} a month. In return, they let us share their
+                    story once we are 90 days in.
                   </p>
                 </div>
               )}
@@ -514,37 +514,37 @@ export default function EnterprisePage() {
           <div className="mx-auto max-w-5xl px-6 md:px-10">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Who this is for</p>
             <h2 id="who-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
-              The qualifying band.
+              Is this a fit for you?
             </h2>
             <p className="mt-4 max-w-2xl text-base text-ink-soft">
-              Enterprise is built for a specific shape of business. If you&apos;re below the band, the Business
-              tier is the right call and we&apos;ll say so on the call.
+              Enterprise suits a certain size of business. If you are smaller than this, our Business
+              plan is the better fit, and we will tell you so on the call.
             </p>
 
             <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
               <table className="w-full text-left text-sm">
                 <thead className="bg-bg-soft text-xs uppercase tracking-[0.12em] text-ink-muted">
                   <tr>
-                    <th className="px-5 py-4 font-semibold">Variant</th>
-                    <th className="px-5 py-4 font-semibold">Headcount</th>
-                    <th className="px-5 py-4 font-semibold">Best fit signal</th>
+                    <th className="px-5 py-4 font-semibold">Option</th>
+                    <th className="px-5 py-4 font-semibold">Staff</th>
+                    <th className="px-5 py-4 font-semibold">Sounds like you if</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-5 py-4 font-semibold text-ink">HQ People Enterprise</td>
                     <td className="px-5 py-4 text-ink-soft">40 to 150 staff</td>
-                    <td className="px-5 py-4 text-ink-soft">Office Manager or Operations Lead doing HR on the side, wants a named human for the hard 20%.</td>
+                    <td className="px-5 py-4 text-ink-soft">An office manager or ops lead does HR on the side and wants one named person for the tricky stuff.</td>
                   </tr>
                   <tr>
                     <td className="px-5 py-4 font-semibold text-ink">HQ Recruit Enterprise</td>
                     <td className="px-5 py-4 text-ink-soft">50 to 250 staff</td>
-                    <td className="px-5 py-4 text-ink-soft">Hires 12 to 60 roles a year, tired of agency fees, won&apos;t hire an internal recruiter.</td>
+                    <td className="px-5 py-4 text-ink-soft">You hire 12 to 60 roles a year, you are sick of agency fees, and you do not want an in-house recruiter.</td>
                   </tr>
                   <tr>
                     <td className="px-5 py-4 font-semibold text-ink">Full Enterprise</td>
                     <td className="px-5 py-4 text-ink-soft">80 to 250 staff</td>
-                    <td className="px-5 py-4 text-ink-soft">Both shapes of problem above. Wants one partner team across People and Recruit.</td>
+                    <td className="px-5 py-4 text-ink-soft">Both of the above. You want one team handling HR and hiring together.</td>
                   </tr>
                 </tbody>
               </table>
@@ -575,13 +575,13 @@ export default function EnterprisePage() {
         {/* Inquiry form */}
         <section id="inquiry" className="bg-bg-soft py-20 md:py-28" aria-labelledby="inquiry-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Discovery call</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Book a call</p>
             <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-              Send Jimmy the shape of your situation.
+              Tell Jimmy what is going on.
             </h2>
             <p className="mt-4 text-base text-ink-soft md:text-lg">
-              Two minutes to fill in. Jimmy personally reads every inquiry and replies within 48 hours to
-              book a 30-minute discovery call.
+              Two minutes to fill in. Jimmy reads every message himself and replies within 48 hours to
+              book a 30-minute call.
             </p>
 
             <div className="mt-8">
@@ -595,7 +595,7 @@ export default function EnterprisePage() {
           <div className="mx-auto max-w-3xl px-6 md:px-10">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Questions</p>
             <h2 id="enterprise-faq-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-              The things people ask before signing.
+              What people ask before they sign.
             </h2>
 
             <ul className="mt-10 divide-y divide-border border-y border-border">

@@ -10,39 +10,39 @@ import { useState } from 'react'
 const FAQS: Array<{ q: string; a: string }> = [
   {
     q: 'Will it actually save me time?',
-    a: "Yes - that's the whole pitch. Most decisions that used to take a half-day of Googling, calling an advisor, and drafting a document take three minutes inside HQ.ai. We track that for every customer in their first month.",
+    a: "Yes. That's the whole point. A job that used to eat half a day - Googling, calling an advisor, drafting a document - takes three minutes here. We track it for every customer in their first month.",
   },
   {
-    q: 'Why pay for this when I can just Google it?',
-    a: 'Google gives you 47 American answers and three Fair Work pages buried on page two. HQ.ai gives you the right answer for your business in 30 seconds, with the citation. Your hourly rate is worth more than $89 a month.',
+    q: 'Why pay when I can just Google it?',
+    a: 'Google gives you 47 American answers and a few Fair Work pages buried on page two. We give you the right answer for your business in 30 seconds, and show you where it comes from. Your time is worth more than $89 a month.',
   },
   {
     q: 'I only need one document. Do I have to subscribe?',
-    a: 'No. Reserve a spot on the pay-as-you-go marketplace - first 100 reservations get $10 off the $25 Letter of Offer when it launches. No subscription, no card today.',
+    a: 'No. Reserve a spot for pay-as-you-go. The first 100 people get $10 off the $25 Letter of Offer when it launches. No subscription. No card today.',
   },
   {
-    q: 'Is the AI good enough to trust on real decisions?',
-    a: 'Every answer cites the specific Fair Work Act section, NES standard, or Modern Award clause it is drawn from. When the question is too complex, you get handed off to the same human advisor every time - no repeating yourself.',
+    q: 'Can I trust the AI on real decisions?',
+    a: 'Every answer shows where it comes from - the exact Fair Work Act section or your award - so you can check it yourself. And when it gets tricky, the same real advisor steps in. You never repeat yourself.',
   },
   {
-    q: 'What does it actually cost?',
-    a: 'Two tiers. Solo $89 a month, 3 seats and 500 AI credits. Business $249 a month, 15 seats and 2,500 credits. Both come with a 14-day free trial - no card needed. Cancel any time. Single documents on the pay-as-you-go side start at $25 (Letter of Offer) with no signup.',
+    q: 'What does it cost?',
+    a: 'Two plans. Solo is $89 a month - 3 seats and 500 AI credits. Business is $249 a month - 15 seats and 2,500 credits. Both come with a 14-day free trial, no card needed. Cancel any time. One-off documents start at $25 for a Letter of Offer, with no signup.',
   },
   {
-    q: 'Do you offer Enterprise with a dedicated advisor?',
-    a: 'Yes - HQ People Enterprise pairs you with a named Humanistiqs Advisor, and HQ Recruit Enterprise pairs you with a Talent Partner running the hiring funnel on your behalf. Pricing starts at $1,495/month on an annual contract, or month-to-month at a ~17% premium with 30 days notice. Capped at 10 partnerships in 2026. See humanistiqs.ai/enterprise for the detail.',
+    q: 'Do you offer a dedicated advisor?',
+    a: 'Yes. HQ People Enterprise gives you your own Humanistiqs advisor. HQ Recruit Enterprise gives you a talent partner to run your hiring for you. From $1,495 a month on an annual plan, or a bit more month-to-month. We only take on 10 in 2026. See the Enterprise page for more.',
   },
   {
     q: 'How long does setup take?',
-    a: "Three minutes. You sign up, tell HQ.ai your industry, and it picks the right Modern Award and remembers it. There's nothing to install. The chat just works.",
+    a: "Three minutes. Sign up, tell us your industry, and we pick the right award for you and remember it. Nothing to install. The chat just works.",
   },
   {
     q: 'Where is my data stored?',
-    a: 'In Sydney, on Supabase Australian infrastructure. Compliant with Australian Privacy Principles 1-13. We never sell it.',
+    a: 'In Sydney, on Australian servers. We follow the Australian Privacy Principles 1-13. We never sell it.',
   },
   {
-    q: 'Why would I trust an AU startup over the big HR platforms?',
-    a: 'Because HQ.ai is built for decision-making, not payroll administration or panic-button advisory. Different problem, different tool. And the same human advisor is on the line when the AI hits its limit - not a fresh agent every call.',
+    q: 'Why trust an Aussie startup over the big HR platforms?',
+    a: "Because we are built to help you make decisions - not to run payroll or sell you a panic-button contract. Different problem, different tool. And the same real advisor is there when the AI hits its limit, not a new person every call.",
   },
 ]
 
@@ -53,7 +53,7 @@ export default function FaqSection() {
       <div className="mx-auto max-w-3xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Questions</p>
         <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-          The things you&apos;re wondering.
+          The stuff you&apos;re wondering.
         </h2>
 
         <ul className="mt-10 divide-y divide-border border-y border-border">

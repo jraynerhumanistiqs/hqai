@@ -139,9 +139,9 @@ export default function PricingSection({ onReserve }: Props) {
                 more complex businesses are exactly who the Enterprise
                 tier (AI + a dedicated Humanistiqs advisor) is built for. */}
             <p className="mt-6 text-xs leading-relaxed text-ink-muted">
-              <strong className="text-ink-soft">Bigger or more complex?</strong> If you have over 250 staff, multiple entities, or you want a dedicated human advisor on call, that is exactly what our{' '}
-              <Link href="/enterprise" className="font-semibold text-accent hover:underline">Enterprise tier</Link>{' '}
-              is built for - HQ.ai paired with a Humanistiqs advisor or talent partner.
+              <strong className="text-ink-soft">Bigger or more complex?</strong> If you have over 250 staff, more than one business, or you want a real advisor on call, that is exactly what our{' '}
+              <Link href="/enterprise" className="font-semibold text-accent hover:underline">Enterprise plan</Link>{' '}
+              is for - HQ.ai paired with a Humanistiqs advisor or talent partner.
             </p>
           </div>
 
@@ -203,8 +203,8 @@ export default function PricingSection({ onReserve }: Props) {
                 AI plus human judgement.
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                A Humanistiqs Advisor or Talent Partner embedded into your business. Three SKUs, annual contract or
-                month-to-month, capacity-capped at {PRICING.enterprise.capacityCapYear1} partnerships in 2026.
+                A real Humanistiqs advisor or talent partner working inside your business. Three options, annual or
+                month-to-month. We only take on {PRICING.enterprise.capacityCapYear1} in 2026.
               </p>
               {/* Anchor price sourced from PRICING.enterprise.variants[0] - both
                   annual-equiv and monthly-rolling shown so customers self-select. */}

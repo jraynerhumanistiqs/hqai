@@ -20,13 +20,13 @@ export default function RecruitDeepDive() {
 
           <div className="mt-6 space-y-4 text-base leading-relaxed text-ink-soft">
             <p>
-              Drop in a stack of CVs and score them against the role in minutes. The rubric is yours - the AI applies it consistently across every candidate, with evidence pulled from the CV.
+              Drop in a pile of CVs and score them against the job in minutes. You set what matters - the AI applies it the same way to every person, with the proof pulled straight from the CV.
             </p>
             <p>
-              Send a single link for video or phone screens. Watch the AI score the answers against the same rubric. Compare candidates side-by-side. Download a formatted CV plus a score summary, or both in one document.
+              Send one link for a video or phone interview. The AI scores the answers for you. Compare people side by side, and download a tidy CV with the scores attached.
             </p>
             <p>
-              Campaign Coach turns a rough role brief into a SEEK-ready ad in three steps. It also flags when a candidate&apos;s record carries bias signals and quietly switches everyone in the role to anonymous mode.
+              Turn a rough brief into a SEEK-ready job ad in three steps. And when bias could creep in, it quietly hides names and photos so everyone gets a fair go.
             </p>
           </div>
         </div>

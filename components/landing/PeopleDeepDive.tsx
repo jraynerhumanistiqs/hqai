@@ -32,7 +32,7 @@ export default function PeopleDeepDive() {
 
             <div className="mt-5 rounded-2xl bg-bg p-4">
               <p className="text-sm leading-relaxed text-ink">
-                After 6 months but under 1 year, the NES minimum notice is 1 week (plus an extra week if the employee is over 45 with 2+ years service - not your case). Check the contract for anything more generous.
+                After 6 months but under 1 year, the legal minimum notice is 1 week (plus an extra week if they are over 45 with 2+ years service - not your case). Check the contract in case it offers more.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-accent bg-bg-elevated px-2.5 py-1 text-[10px] font-medium text-accent">
                 <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
@@ -61,13 +61,13 @@ export default function PeopleDeepDive() {
 
           <div className="mt-6 space-y-4 text-base leading-relaxed text-ink-soft">
             <p>
-              Termination notice. Probation. Casual conversion. Flexible work refusals. Award classifications. The 30 questions a small-business owner has to answer in a year, answered in your office, in your tone.
+              Notice periods. Probation. Casual conversion. Flexible-work requests. The right award. The 30-odd questions every small-business owner faces in a year, answered in plain English.
             </p>
             <p>
-              Every answer cites the source - Fair Work Act section, NES standard, your Modern Award clause. You see the working. You decide.
+              Every answer shows where it comes from - the Fair Work Act or your award. You see the proof. You decide.
             </p>
             <p>
-              Need a document? The AI Administrator drafts contracts, warnings, PIPs, terminations, letters of offer, flexible-work refusals - 33 templates - with your logo on the footer and an editor that feels like a Word doc.
+              Need a document? It writes contracts, warnings, offer letters and more - 33 in all - with your logo on them, in an editor that feels just like Word.
             </p>
           </div>
         </div>

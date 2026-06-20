@@ -22,7 +22,7 @@ export default function FooterCta() {
         </div>
 
         <div className="mt-14 border-t border-border pt-6 text-sm text-ink-muted">
-          Grounded in the Fair Work Act 2009 + 122 Modern Awards. Hosted in Sydney. Built in Australia.
+          Built on the Fair Work Act and all 122 awards. Hosted in Sydney. Made in Australia.
         </div>
       </div>
     </section>
