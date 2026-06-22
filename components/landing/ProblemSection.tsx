@@ -1,45 +1,97 @@
-// Problem section - decision-making rewrite. Three text-only columns,
-// no icons, equal weight: People decisions, Hiring decisions, Cost of
-// getting it wrong.
+// Problem section - qase-modelled "Without -> With" comparison. Three
+// topics (people, hiring, cost), each shown as the painful old way next to
+// the HQ.ai way. Scannable, contrast-driven, plain language.
 
 export default function ProblemSection() {
-  const cards = [
+  const rows = [
     {
-      title: 'Every HR call feels like a coin flip.',
-      body: "A staff member resigns at 4pm Friday. You don't know what to write, what to pay out, or what counts as the right notice. The Award is 600 pages.",
+      topic: 'People decisions',
+      without: 'Googling for an hour, then second-guessing the answer anyway.',
+      with: 'The right answer in under a minute, with the law to back it up.',
     },
     {
-      title: "Hiring takes weeks you don't have.",
-      body: "You read 80 CVs, interview six, hire the wrong one. You wrote the ad on a Sunday night, in your second language as a tradie - not a copywriter.",
+      topic: 'Hiring',
+      without: '80 CVs, six interviews, and a hire you picked on gut feel.',
+      with: 'Every CV scored in minutes. Quick interviews. A clear shortlist.',
     },
     {
-      title: 'Outside advice costs four figures.',
-      body: 'A 30-minute call with a workplace lawyer is $450. A traditional HR retainer runs about $850 a month, often locked in for years. You used it twice.',
+      topic: 'The cost',
+      without: 'A retainer you pay every month and use twice a year.',
+      with: 'From $89 a month. No lock-in. Cancel any time.',
     },
   ]
 
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="problem-heading">
+    <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="problem-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
-          Where small businesses burn hours and dollars
-        </p>
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">The problem</p>
         <h2
           id="problem-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Modern Awards run to 600 pages. You&apos;ve got a business to run.
+          Business got busier. HR and hiring didn&apos;t get easier.
         </h2>
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
+          You did not start a business to become an HR manager. Here is the old way, next to the HQ.ai way.
+        </p>
 
-        <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-12">
-          {cards.map((c) => (
-            <article key={c.title} className="max-w-md">
-              <h3 className="font-display text-[22px] font-bold tracking-tight leading-snug text-ink">{c.title}</h3>
-              <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">{c.body}</p>
+        <div className="mt-12 grid gap-4 md:grid-cols-3 md:gap-6">
+          {rows.map((r) => (
+            <article
+              key={r.topic}
+              className="flex flex-col overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card"
+            >
+              <div className="border-b border-border px-6 py-4">
+                <h3 className="font-display text-lg font-bold tracking-tight text-ink">{r.topic}</h3>
+              </div>
+
+              {/* Without */}
+              <div className="flex items-start gap-3 px-6 py-5">
+                <CrossIcon />
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Without HQ.ai</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{r.without}</p>
+                </div>
+              </div>
+
+              {/* With - the warm, Clay-accented half */}
+              <div className="mt-auto flex items-start gap-3 border-t border-clay/30 bg-clay-soft/20 px-6 py-5">
+                <TickIcon />
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-clay">With HQ.ai</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink">{r.with}</p>
+                </div>
+              </div>
             </article>
           ))}
         </div>
       </div>
     </section>
+  )
+}
+
+function CrossIcon() {
+  return (
+    <span
+      aria-hidden
+      className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border text-ink-muted"
+    >
+      <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+        <path d="M3 3l6 6M9 3l-6 6" />
+      </svg>
+    </span>
+  )
+}
+
+function TickIcon() {
+  return (
+    <span
+      aria-hidden
+      className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-clay text-white"
+    >
+      <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
+        <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
+      </svg>
+    </span>
   )
 }

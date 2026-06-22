@@ -1,14 +1,16 @@
 'use client'
 
-// Top-level landing-page shell. Composes the sections in the
-// decision-making narrative order (May 2026 restructure):
+// Top-level landing-page shell. Qase-modelled narrative (June 2026 rebuild):
 //
-//   Hero -> SocialProof -> Metrics -> Problem -> ProductPillars ->
-//   PeopleDeepDive -> RecruitDeepDive -> Marketplace -> CustomerStory ->
-//   Comparison -> Pricing -> FAQ -> FooterCta -> StickyMobile -> ReserveModal
+//   Hero -> SocialProof -> Problem (Without/With) -> Metrics (deltas) ->
+//   ToolExplorer (animated tabbed centerpiece) -> Persona band ->
+//   Marketplace -> CustomerStory -> Comparison -> Pricing -> FAQ ->
+//   FooterCta -> StickyMobile -> ReserveModal
 //
-// Renders inside the marketing data-app scope so the Ivory & Clay
-// tokens from app/globals.css :root apply.
+// The single-tool deep-dives (ProductPillars / People / Recruit) now live
+// on the /product/* subpages; the homepage explains all three tools through
+// the interactive ToolExplorer instead. Renders inside the marketing
+// data-app scope (set by MarketingHeader) so the dark tokens apply.
 
 import { useState } from 'react'
 import MarketingHeader from './MarketingHeader'
@@ -17,12 +19,10 @@ import HeroSection from './HeroSection'
 import SocialProofRibbon from './SocialProofRibbon'
 import MetricsStrip from './MetricsStrip'
 import ProblemSection from './ProblemSection'
-import ProductPillars from './ProductPillars'
-import PeopleDeepDive from './PeopleDeepDive'
-import RecruitDeepDive from './RecruitDeepDive'
+import ToolExplorer from './ToolExplorer'
+import PersonaBand from './PersonaBand'
 import MarketplaceCarousel from './MarketplaceCarousel'
 import CustomerStory from './CustomerStory'
-import FounderNote from './FounderNote'
 import ComparisonSection from './ComparisonSection'
 import PricingSection from './PricingSection'
 import FaqSection from './FaqSection'
@@ -33,24 +33,18 @@ import ReserveSpotModal from './ReserveSpotModal'
 export default function LandingPage() {
   const [reserveOpen, setReserveOpen] = useState(false)
 
-  // The marketing theme scope (data-app="marketing") is set by
-  // MarketingHeader, which this page renders - so it is managed in one
-  // place across the whole public site.
-
   return (
     <>
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <HeroSection />
         <SocialProofRibbon />
-        <MetricsStrip />
         <ProblemSection />
-        <div id="product"><ProductPillars /></div>
-        <PeopleDeepDive />
-        <RecruitDeepDive />
+        <MetricsStrip />
+        <div id="product"><ToolExplorer /></div>
+        <PersonaBand />
         <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
         <CustomerStory />
-        <FounderNote />
         <ComparisonSection />
         <PricingSection onReserve={() => setReserveOpen(true)} />
         <FaqSection />
