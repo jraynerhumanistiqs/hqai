@@ -26,11 +26,11 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it cost?',
-    a: 'Two plans. Solo is $89 a month - 3 seats and 500 AI credits. Business is $249 a month - 15 seats and 2,500 credits. Both come with a 14-day free trial, no card needed. Cancel any time. One-off documents start at $25 for a Letter of Offer, with no signup.',
+    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the Complete bundle - $89 a month for a small team, $269 for a bigger one. Every plan has a 14-day free trial, no card, unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
   },
   {
     q: 'Do you offer a dedicated advisor?',
-    a: 'Yes. HQ People Enterprise gives you your own Humanistiqs advisor. HQ Recruit Enterprise gives you a talent partner to run your hiring for you. From $1,495 a month on an annual plan, or a bit more month-to-month. We only take on 10 in 2026. See the Enterprise page for more.',
+    a: 'Yes. HR365 gives you a named Humanistiqs HR advisor on call; Recruit365 is the recruitment equivalent. HR365 starts at $799 a month and includes 3 advisor hours, with extra time at $250 an hour. We only take on 10 in 2026. See the Enterprise page for more.',
   },
   {
     q: 'How long does setup take?',

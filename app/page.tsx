@@ -52,8 +52,8 @@ const jsonLd = {
       operatingSystem: 'Web',
       description: DESCRIPTION,
       offers: [
-        { '@type': 'Offer', name: 'Solo',     price: '89',  priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '89',  priceCurrency: 'AUD', unitText: 'MONTH' } },
-        { '@type': 'Offer', name: 'Business', price: '249', priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '249', priceCurrency: 'AUD', unitText: 'MONTH' } },
+        { '@type': 'Offer', name: 'HQ People', price: '59',  priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '59',  priceCurrency: 'AUD', unitText: 'MONTH' } },
+        { '@type': 'Offer', name: 'Complete (HR + hiring)', price: '89', priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '89', priceCurrency: 'AUD', unitText: 'MONTH' } },
       ],
     },
   ],

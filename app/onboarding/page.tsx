@@ -25,9 +25,9 @@ const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Indep
 // packaging). The /api/onboarding route stores `plan` as an opaque
 // string, so the new IDs flow through without a schema change.
 const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
-  { id: 'free',     label: 'Free Trial', price: 'Free for 14 days', desc: 'Full access to Business features, no card required' },
-  { id: 'solo',     label: 'Solo',       price: '$89/month',         desc: '3 seats, 500 AI credits/month, 1 active recruit role' },
-  { id: 'business', label: 'Business',   price: '$249/month',        desc: '15 seats, 2,500 credits/month, unlimited recruit roles, founder-led onboarding', recommended: true },
+  { id: 'free',     label: 'Free Trial',       price: 'Free for 14 days', desc: 'Full access for 14 days, no card required' },
+  { id: 'solo',     label: 'Solo Complete',    price: '$89/month',         desc: 'HR and hiring, for teams up to 25, unlimited logins' },
+  { id: 'business', label: 'Business Complete', price: '$269/month',        desc: 'HR and hiring, for teams up to 150, unlimited logins, founder-led onboarding', recommended: true },
 ]
 
 export default function OnboardingPage() {

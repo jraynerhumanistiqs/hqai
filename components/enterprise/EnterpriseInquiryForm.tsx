@@ -175,7 +175,7 @@ export default function EnterpriseInquiryForm() {
             value={state.current_spend}
             onChange={(e) => update('current_spend', e.target.value)}
             className={fieldCls}
-            placeholder="e.g. Employsure $850/mo + occasional agency"
+            placeholder="e.g. an HR retainer at $850/mo + occasional agency"
           />
         </label>
 

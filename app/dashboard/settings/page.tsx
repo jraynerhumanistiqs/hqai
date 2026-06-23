@@ -13,8 +13,8 @@ const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 // the "Invalid planId. Expected one of: solo, business." error.
 const PLAN_DETAILS: Record<string, { name: string; priceMonthly: string; priceAnnual: string; seats: number }> = {
   free:     { name: 'Free Trial', priceMonthly: '$0', priceAnnual: '$0', seats: 1 },
-  solo:     { name: 'Solo', priceMonthly: '$89 / month', priceAnnual: '$890 / year', seats: 3 },
-  business: { name: 'Business', priceMonthly: '$249 / month', priceAnnual: '$2,490 / year', seats: 15 },
+  solo:     { name: 'Solo Complete', priceMonthly: '$89 / month', priceAnnual: '$890 / year', seats: 3 },
+  business: { name: 'Business Complete', priceMonthly: '$269 / month', priceAnnual: '$2,690 / year', seats: 15 },
 }
 
 type PaidPlanId = 'solo' | 'business'
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-bold text-charcoal">Foundation 100</p>
                   <span className="text-[10px] bg-accent text-ink-on-accent px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">First 100 only</span>
                 </div>
-                <p className="text-lg font-bold text-charcoal mt-1">$179 / month <span className="text-xs font-normal text-muted">locked for life</span></p>
+                <p className="text-lg font-bold text-charcoal mt-1">$189 / month <span className="text-xs font-normal text-muted">locked for life</span></p>
                 <p className="text-xs text-muted mt-1">Business plan, 12-month annual commit. Founder Slack + first access to new modules.</p>
                 <span className="mt-3 inline-block text-[10px] font-bold uppercase tracking-wider text-accent">
                   {checkoutBusyFor !== null ? 'Redirecting...' : 'Lock in Foundation pricing'}
