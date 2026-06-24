@@ -141,7 +141,7 @@ export default function ToolExplorer() {
           id={`tool-panel-${tab.id}`}
           role="tabpanel"
           aria-labelledby={`tool-tab-${tab.id}`}
-          className="mt-8 grid items-center gap-10 rounded-3xl border border-border bg-bg-soft p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
+          className="mt-8 grid items-center gap-10 rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}

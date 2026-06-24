@@ -30,7 +30,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Do you offer a dedicated advisor?',
-    a: 'Yes. HR365 gives you a named Humanistiqs HR advisor on call; Recruit365 is the recruitment equivalent. HR365 starts at $799 a month and includes 3 advisor hours, with extra time at $250 an hour. We only take on 10 in 2026. See the Enterprise page for more.',
+    a: 'Yes. HR365 gives you a dedicated Humanistiqs HR advisor on call; Recruit365 is the recruitment equivalent. HR365 starts at $799 a month and includes 3 advisor hours, with extra time at $250 an hour. We only take on 10 in 2026. See the Enterprise page for more.',
   },
   {
     q: 'How long does setup take?',

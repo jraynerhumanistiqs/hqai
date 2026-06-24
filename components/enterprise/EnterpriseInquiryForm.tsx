@@ -199,7 +199,7 @@ export default function EnterpriseInquiryForm() {
             schedule in lib/pricing-config.ts (PRICING.enterprise.enterpriseMultipliers).
             Capturing these pre-call lets the founder quote the effective
             price on the discovery call, not after. */}
-        <div className="md:col-span-2 mt-2 rounded-2xl border border-border bg-bg-soft p-5">
+        <div className="md:col-span-2 mt-2 rounded-2xl border border-border bg-bg-elevated p-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
             Optional - helps us quote your exact price before the call
           </p>

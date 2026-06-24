@@ -29,7 +29,7 @@ interface Props {
 
 export default function MarketplaceCarousel({ onReserve }: Props) {
   return (
-    <section id="marketplace" className="bg-bg-soft py-20 md:py-28" aria-labelledby="marketplace-heading">
+    <section id="marketplace" className="bg-bg py-20 md:py-28" aria-labelledby="marketplace-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Pay-as-you-go - launching soon</p>
         <h2 id="marketplace-heading" className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">

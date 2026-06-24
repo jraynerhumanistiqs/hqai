@@ -335,7 +335,7 @@ export const PRICING: PricingShape = {
     lockedMonthly: 189,
     requiresAnnualCommit: true,
     perks: [
-      'Lifetime-locked $189/mo (saving over $950/yr)',
+      '$189/mo held for your first 12 months (saving over $950)',
       'Founder Slack and monthly cohort call',
       'First access to all new modules',
       'Named on the Foundation 100 wall',
@@ -401,7 +401,7 @@ export const PRICING: PricingShape = {
       {
         id: 'enterprise-people',
         name: 'HR365',
-        tagline: 'A named Humanistiqs HR advisor on call. Preset on-call advice; the AI does the admin.',
+        tagline: 'You are assigned a dedicated Humanistiqs HR advisor on call. The AI does the admin.',
         priceMonthlyDisplay: 799,
         priceAnnualTotal: 9588,
         priceMonthlyRolling: 950,
@@ -412,9 +412,9 @@ export const PRICING: PricingShape = {
         stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL',
         stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY',
         includedSummary: [
-          'Everything in Business (15 seats, 2,500 credits, unlimited recruit roles)',
-          'Named Humanistiqs Advisor - same person every time, photo and direct mobile',
-          'Two scheduled 45-minute advisory calls per month',
+          'Everything in the Complete bundle',
+          'A dedicated Humanistiqs advisor - the same person every time, with a photo and direct mobile',
+          '3 advisor hours a month (on-call advice); extra time at $250/hour',
           'Same-business-day SLA on Slack and email advisory queries',
           'Quarterly compliance health check, 90 minutes, recorded deliverable',
           'Quarterly roadmap-influence call direct with the founder',
@@ -432,7 +432,7 @@ export const PRICING: PricingShape = {
       {
         id: 'enterprise-recruit',
         name: 'Recruit365',
-        tagline: 'A named Humanistiqs talent advisor on call for your hiring. The AI does the admin.',
+        tagline: 'You are assigned a dedicated Humanistiqs talent advisor on call for your hiring. The AI does the admin.',
         priceMonthlyDisplay: 899,
         priceAnnualTotal: 10788,
         priceMonthlyRolling: 1070,
@@ -443,8 +443,8 @@ export const PRICING: PricingShape = {
         stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_ANNUAL',
         stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_MONTHLY',
         includedSummary: [
-          'Everything in Business tier',
-          'Named Humanistiqs Talent Partner running HQ Recruit on your behalf',
+          'Everything in the Complete bundle',
+          'A dedicated Humanistiqs talent advisor running your hiring',
           'Up to 4 active roles concurrent (typical throughput 50 closures/year)',
           'Weekly role-status calls with the hiring manager (30 min per role)',
           'Calibration sessions at role kickoff and after first shortlist',

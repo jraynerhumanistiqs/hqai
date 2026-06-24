@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export default function FooterCta() {
   return (
-    <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="footer-cta-heading">
+    <section className="bg-bg py-20 md:py-28" aria-labelledby="footer-cta-heading">
       <div className="mx-auto max-w-4xl px-6 text-center md:px-10">
         <h2 id="footer-cta-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[44px]">
           Three minutes. No credit card. Better decisions today.

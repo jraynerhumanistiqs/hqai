@@ -96,7 +96,7 @@ export default function AboutPage() {
         </section>
 
         {/* What we stand for - values grid with icon-in-rounded-square + tick */}
-        <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="values-heading">
+        <section className="bg-bg py-20 md:py-28" aria-labelledby="values-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
               What we stand for

@@ -87,7 +87,7 @@ function SocialIcon({ icon }: { icon: 'linkedin' | 'x' }) {
 
 export default function MarketingFooter() {
   return (
-    <footer className="border-t border-border bg-bg-soft">
+    <footer className="border-t border-border bg-bg">
       <div className="mx-auto max-w-7xl px-6 py-14 md:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_3fr]">
           {/* Brand block */}

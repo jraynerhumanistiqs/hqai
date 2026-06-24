@@ -4,7 +4,7 @@
 
 export default function RecruitDeepDive() {
   return (
-    <section className="bg-bg-soft py-20 md:py-28" aria-labelledby="recruit-deepdive-heading">
+    <section className="bg-bg py-20 md:py-28" aria-labelledby="recruit-deepdive-heading">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[2fr_3fr] md:gap-16 md:px-10">
         {/* LEFT (40%): copy */}
         <div>

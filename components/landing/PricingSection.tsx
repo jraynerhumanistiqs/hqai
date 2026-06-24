@@ -4,8 +4,8 @@
 // Three self-serve choices: HQ People (HR-only base), HQ Recruit (metered
 // add-on), and Complete (the bundle, which reuses the existing solo/business
 // plan ids + Stripe prices and keeps the $89 / $269 anchors). Below: the
-// one-off marketplace, the Foundation 100 banner, and the HR365 / Recruit365
-// done-for-you teaser.
+// on-demand document library (carousel), the Foundation 100 banner, and the
+// HR365 / RECRUIT365 done-for-you teaser.
 //
 // All prices source from lib/pricing-config.ts - never duplicate inline.
 
@@ -17,10 +17,50 @@ interface Props {
   onReserve: () => void
 }
 
+// On-demand document library - grouped by the most commonly requested HR
+// categories. No per-document pricing here; this is the self-service AI
+// Administrator surface ("starting at" the cheapest one-off).
+const DOC_CATEGORIES: { title: string; docs: { name: string; desc: string }[] }[] = [
+  {
+    title: 'Hiring and onboarding',
+    docs: [
+      { name: 'Job descriptions', desc: 'Set out the role, responsibilities and the must-haves.' },
+      { name: 'Employment contracts', desc: 'Pay, hours and conditions, tailored to full-time, part-time or casual.' },
+      { name: 'Onboarding checklists', desc: 'Every form, tax declaration and system set-up, in order.' },
+      { name: 'Workplace policies', desc: 'Conduct, leave, anti-discrimination and internet use - the ground rules.' },
+    ],
+  },
+  {
+    title: 'Performance management',
+    docs: [
+      { name: 'Probation reviews', desc: 'Check a new hire is the right fit in their first weeks.' },
+      { name: 'Performance plans and reviews', desc: 'Set goals and track progress across the year.' },
+      { name: 'Performance improvement plans (PIPs)', desc: 'A fair, clear path to fix underperformance.' },
+    ],
+  },
+  {
+    title: 'Employee relations and leave',
+    docs: [
+      { name: 'Leave request forms', desc: 'Annual, sick or parental leave, captured cleanly for payroll.' },
+      { name: 'Flexible work agreements', desc: 'Request, review and approve arrangements like working from home.' },
+      { name: 'Warning and disciplinary letters', desc: 'Worded properly to address conduct, with procedural fairness.' },
+    ],
+  },
+  {
+    title: 'Offboarding',
+    docs: [
+      { name: 'Resignation acknowledgements', desc: 'A clean, formal acceptance of a resignation.' },
+      { name: 'Exit checklists', desc: 'Return equipment, revoke access and handle final pay.' },
+      { name: 'Exit interview forms', desc: 'Capture why someone is leaving and what to learn from it.' },
+    ],
+  },
+]
+
 export default function PricingSection({ onReserve }: Props) {
   // Team size sets the band shared by HQ People and the Complete bundle.
   const [size, setSize] = useState<0 | 1>(1) // 0 = up to 25, 1 = up to 150
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [cat, setCat] = useState(0) // active document category
 
   const { people, recruit, bundle } = C10_SELF_SERVE
   const foundation = PRICING.foundation
@@ -30,21 +70,19 @@ export default function PricingSection({ onReserve }: Props) {
     () => oneOffs.reduce((min, sku) => (sku.price < min.price ? sku : min), oneOffs[0]),
     [oneOffs],
   )
-  const marqueeIds = ['letter-of-offer', 'termination-letter', 'first-and-final-warning', 'position-description']
-  const marqueeSkus = marqueeIds
-    .map((id) => oneOffs.find((s) => s.id === id))
-    .filter((s): s is (typeof oneOffs)[number] => Boolean(s))
 
   const peopleBand = people.bands[size]
   const bundlePlan = size === 0 ? bundle.solo : bundle.business
   const annual = cycle === 'annual'
 
-  // Display the monthly figure (annual shows the monthly-equivalent).
   const peoplePrice = annual && peopleBand.annualTotal ? Math.round(peopleBand.annualTotal / 12) : peopleBand.monthly
   const bundlePrice = annual ? Math.round(bundlePlan.annualTotal / 12) : bundlePlan.monthly
 
+  const activeCat = DOC_CATEGORIES[cat]
+  const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
+
   return (
-    <section id="pricing" className="bg-bg-soft py-20 md:py-28" aria-labelledby="pricing-heading">
+    <section id="pricing" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-clay">Plans</p>
         <h2 id="pricing-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
@@ -57,7 +95,7 @@ export default function PricingSection({ onReserve }: Props) {
         {/* Toggles */}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Toggle
-            options={[{ k: 0, label: people.bands[0].label }, { k: 1, label: people.bands[1].label }]}
+            options={[{ k: 0, label: 'Team up to 25' }, { k: 1, label: 'Team up to 150' }]}
             value={size}
             onChange={(k) => setSize(k as 0 | 1)}
             ariaLabel="Team size"
@@ -72,35 +110,30 @@ export default function PricingSection({ onReserve }: Props) {
 
         {/* Three self-serve choices */}
         <div className="mt-10 grid gap-4 lg:grid-cols-3 md:gap-6">
-          {/* HQ People */}
           <PlanCard
             kicker={people.kicker}
             name={people.name}
             desc={people.desc}
             price={`$${peoplePrice}`}
             priceSuffix="/mo"
-            sub={`${peopleBand.label} - ${peopleBand.credits.toLocaleString('en-AU')} AI actions/mo`}
+            sub={`For a team of ${peopleBand.label.replace('up to ', 'up to ')} people, ${peopleBand.credits.toLocaleString('en-AU')} AI actions a month`}
             features={people.features}
             cta="Start the 14-day trial"
             href="/signup"
             ctaStyle="ghost"
           />
-
-          {/* HQ Recruit add-on */}
           <PlanCard
             kicker={recruit.kicker}
             name={recruit.name}
             desc={recruit.desc}
             price={`from $${recruit.bands[0].monthly}`}
             priceSuffix="/mo"
-            sub={`Light $${recruit.bands[0].monthly} (1 role) - Pro $${recruit.bands[1].monthly} (unlimited)`}
+            sub={`Light $${recruit.bands[0].monthly} for 1 open role, Pro $${recruit.bands[1].monthly} for unlimited roles`}
             features={recruit.features}
             cta="Add to any plan"
             href="/signup"
             ctaStyle="ghost"
           />
-
-          {/* Complete bundle - highlighted */}
           <PlanCard
             highlight
             badge="Most popular"
@@ -109,7 +142,7 @@ export default function PricingSection({ onReserve }: Props) {
             desc={bundle.desc}
             price={`$${bundlePrice}`}
             priceSuffix="/mo"
-            sub={`${bundlePlan.label}${annual ? `  -  $${bundlePlan.annualTotal.toLocaleString('en-AU')}/yr` : ''}`}
+            sub={`For a team of ${bundlePlan.label.replace('up to ', 'up to ')} people${annual ? `, billed $${bundlePlan.annualTotal.toLocaleString('en-AU')}/yr` : ''}`}
             features={bundle.features}
             cta="Start the 14-day trial"
             href={`/signup?plan=${bundlePlan.planId}&cycle=${cycle}`}
@@ -121,44 +154,90 @@ export default function PricingSection({ onReserve }: Props) {
           One question at sign-up: HR help, hiring help, or both? Unlimited logins on every plan - you are never charged per person.
         </p>
 
-        {/* One-off marketplace */}
+        {/* Bottom row: on-demand document library (carousel) + HR365/RECRUIT365 teaser */}
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+          {/* On-demand documents - AI Administrator */}
           <div className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card md:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">If you just need one thing today</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">On-demand documents</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
-              From ${cheapestOneOff.price}. No subscription. Pay once.
+              Your self-service AI Administrator
             </h3>
-            <ul className="mt-5 grid grid-cols-1 gap-2 text-sm text-ink-soft sm:grid-cols-2">
-              {marqueeSkus.map((sku) => (
-                <li key={sku.id} className="rounded-xl bg-bg-soft px-3 py-2">
-                  <strong className="text-ink">{sku.name}</strong> - from ${sku.price}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+              Need a document right now? Your AI Administrator drafts it on demand - always current, always
+              compliant with Australian workplace law. The HR and recruitment templates businesses ask for
+              most, ready the moment you are. No subscription needed.
+            </p>
+            <p className="mt-3 text-sm font-semibold text-clay">Starting at ${cheapestOneOff.price}.</p>
+
+            {/* Category carousel */}
+            <div className="mt-6 rounded-2xl border border-border bg-bg p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                  Most commonly requested document types
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <CarouselBtn dir="prev" onClick={() => moveCat(-1)} />
+                  <CarouselBtn dir="next" onClick={() => moveCat(1)} />
+                </div>
+              </div>
+
+              <div key={cat} className="cat-fade mt-4 min-h-[188px]">
+                <h4 className="font-display text-lg font-bold tracking-tight text-ink">{activeCat.title}</h4>
+                <ul className="mt-3 space-y-2.5">
+                  {activeCat.docs.map((d) => (
+                    <li key={d.name} className="flex items-start gap-2.5">
+                      <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-clay" aria-hidden>
+                        <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
+                      </svg>
+                      <span className="text-sm leading-snug text-ink-soft">
+                        <strong className="font-semibold text-ink">{d.name}.</strong> {d.desc}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Dots */}
+              <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-3" role="tablist" aria-label="Document categories">
+                {DOC_CATEGORIES.map((c, i) => (
+                  <button
+                    key={c.title}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === cat}
+                    aria-label={c.title}
+                    onClick={() => setCat(i)}
+                    className={`h-1.5 rounded-full transition-all ${i === cat ? 'w-6 bg-clay' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={onReserve}
               className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-clay bg-transparent px-5 text-sm font-semibold text-clay transition-colors hover:bg-clay-soft/20"
             >
-              Reserve the ${cheapestOneOff.price} {cheapestOneOff.name} -&gt;
+              Reserve early access -&gt;
             </button>
-            <p className="mt-3 text-xs text-ink-muted">First 100 reservations get $10 off launch pricing.</p>
+            <p className="mt-3 text-xs text-ink-muted">Launching soon. First 100 reservations get $10 off.</p>
           </div>
 
-          {/* HR365 / Recruit365 teaser */}
+          {/* HR365 / RECRUIT365 teaser */}
           <aside className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Want a human on call?</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
-              HR365 and Recruit365
+              HR365 and RECRUIT365
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              A named Humanistiqs advisor handles the hard 20% of HR or your hiring, with the AI doing the admin. From ${PRICING.enterprise.variants[0].priceMonthlyDisplay}/month.
+              You will be assigned a dedicated advisor who handles the hard 20% of HR or your hiring, while the
+              AI does the admin. From ${PRICING.enterprise.variants[0].priceMonthlyDisplay}/month.
             </p>
             <Link
               href="/enterprise"
               className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
             >
-              See HR365 and Recruit365 -&gt;
+              See HR365 and RECRUIT365 -&gt;
             </Link>
           </aside>
         </div>
@@ -170,10 +249,10 @@ export default function PricingSection({ onReserve }: Props) {
               <div className="max-w-2xl">
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Foundation {foundation.cap}</p>
                 <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
-                  First {foundation.cap} customers lock Complete at ${foundation.lockedMonthly}/month forever.
+                  Be one of our first {foundation.cap} customers and lock Complete at ${foundation.lockedMonthly}/month for your first 12 months.
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  Lifetime-locked rate, founder Slack, first access to new modules. 12-month commit required.
+                  Your rate held for the first year, plus founder Slack and first access to every new module. A 12-month sign-up.
                 </p>
               </div>
               <Link
@@ -186,7 +265,28 @@ export default function PricingSection({ onReserve }: Props) {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .cat-fade { animation: catFade 320ms ease-out both; }
+        @keyframes catFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { .cat-fade { animation: none; } }
+      `}</style>
     </section>
+  )
+}
+
+function CarouselBtn({ dir, onClick }: { dir: 'prev' | 'next'; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={dir === 'prev' ? 'Previous category' : 'Next category'}
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-ink-soft transition-colors hover:border-ink hover:text-ink"
+    >
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        {dir === 'prev' ? <path d="M10 3 5 8l5 5" /> : <path d="M6 3l5 5-5 5" />}
+      </svg>
+    </button>
   )
 }
 

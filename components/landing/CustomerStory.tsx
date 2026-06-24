@@ -15,7 +15,7 @@ export default function CustomerStory() {
           Pat ran an HR team of one. Now he has HQ.ai.
         </h2>
 
-        <div className="mt-12 rounded-3xl border border-border bg-bg-soft p-8 shadow-card md:p-12">
+        <div className="mt-12 rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
           <div className="grid items-center gap-10 md:grid-cols-[2fr_3fr] md:gap-14">
             {/* LEFT (40%): placeholder avatar */}
             <div className="flex justify-center md:justify-start">
