@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Modal from '@/components/ui/Modal'
 
 type AppRole = 'owner' | 'test_admin' | 'member'
 
@@ -545,7 +546,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <button
               type="button"
               onClick={handleContactPartner}
-              className="block w-full text-center h-9 rounded-full bg-ink text-bg-elevated text-[12px] font-semibold px-4 hover:bg-accent transition-colors"
+              className="block w-full text-center h-9 rounded-full bg-accent text-ink-on-accent text-[12px] font-semibold px-4 hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
               Contact HQ Advisor
             </button>
@@ -565,89 +566,118 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       </div>
 
       {/* Contact HQ Advisor - HR / Recruitment decision-tree modal */}
-      {showPartnerPopup && (
-        <div className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4" onClick={() => !supportSending && setShowPartnerPopup(false)}>
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-h3 font-bold text-charcoal mb-1">Contact HQ Advisor</h3>
-            <p className="text-sm text-mid mb-5">
-              Your Humanistiqs advisor handles complex matters where AI shouldn't.
-            </p>
+      <Modal
+        open={showPartnerPopup}
+        onClose={() => !supportSending && setShowPartnerPopup(false)}
+        title="Contact HQ Advisor"
+        eyebrow="Human support"
+        size="max-w-md"
+        dismissable={!supportSending}
+      >
+        <p className="text-sm text-ink-soft mb-5 -mt-2">
+          Your Humanistiqs advisor handles complex matters where AI shouldn't.
+        </p>
 
-            {supportSent ? (
-              <div className="text-center py-4">
-                <div className="text-4xl mb-3">✅</div>
-                <p className="font-bold text-charcoal text-base mb-2">Request sent</p>
-                <p className="text-sm text-mid">Your Humanistiqs advisor will be in touch within their next available slot.</p>
-                <button onClick={() => setShowPartnerPopup(false)}
-                  className="mt-5 bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal">
-                  Done
-                </button>
-              </div>
-            ) : !supportType ? (
-              <div className="space-y-3">
-                <p className="text-[11px] font-bold text-muted uppercase tracking-wider">Which area do you need support in?</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => setSupportType('hr')}
-                    className="bg-light hover:bg-border rounded-2xl px-4 py-5 text-center">
-                    <div className="text-2xl mb-1">👥</div>
-                    <p className="text-sm font-bold text-charcoal">HR Support</p>
-                    <p className="text-xs text-mid mt-0.5">Compliance, performance, complex cases</p>
-                  </button>
-                  <button onClick={() => setSupportType('recruitment')}
-                    className="bg-light hover:bg-border rounded-2xl px-4 py-5 text-center">
-                    <div className="text-2xl mb-1">🎯</div>
-                    <p className="text-sm font-bold text-charcoal">Recruitment Support</p>
-                    <p className="text-xs text-mid mt-0.5">Search, executive hires, retained briefs</p>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-light rounded-2xl px-4 py-3 flex items-center justify-between">
-                  <p className="text-sm font-bold text-charcoal">
-                    {supportType === 'hr' ? '👥 HR Support' : '🎯 Recruitment Support'}
-                  </p>
-                  <button onClick={() => setSupportType(null)}
-                    className="text-xs text-mid hover:text-charcoal underline">
-                    Change
-                  </button>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
-                    Quick summary
-                  </label>
-                  <textarea
-                    value={supportSummary}
-                    onChange={e => setSupportSummary(e.target.value)}
-                    rows={5}
-                    placeholder={
-                      supportType === 'hr'
-                        ? 'e.g. Need help with a performance management process for an underperforming senior staff member.'
-                        : 'e.g. Need help recruiting an Operations Manager. Brisbane-based, $120-140k, urgent.'
-                    }
-                    className="w-full bg-light rounded-2xl px-4 py-3 text-sm text-charcoal outline-none focus:bg-white focus:ring-1 focus:ring-charcoal resize-none leading-relaxed"
-                  />
-                </div>
-                {supportError && (
-                  <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{supportError}</div>
-                )}
-                <div className="flex gap-2 pt-1">
-                  <button onClick={() => setShowPartnerPopup(false)}
-                    disabled={supportSending}
-                    className="flex-1 bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50">
-                    Cancel
-                  </button>
-                  <button onClick={submitSupportRequest}
-                    disabled={supportSending || !supportSummary.trim()}
-                    className="flex-1 bg-black text-white text-sm font-bold rounded-full px-4 py-2.5 hover:bg-charcoal disabled:opacity-50">
-                    {supportSending ? 'Sending...' : 'Send to advisor'}
-                  </button>
-                </div>
-              </div>
-            )}
+        {supportSent ? (
+          <div className="text-center py-4">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-success/10 text-success flex items-center justify-center">
+              <svg className="w-6 h-6" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <path d="M5 10.5l3.5 3.5L15 6.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="font-sans font-bold text-ink text-base mb-2">Request sent</p>
+            <p className="text-sm text-ink-soft">Your Humanistiqs advisor will be in touch within their next available slot.</p>
+            <button onClick={() => setShowPartnerPopup(false)}
+              className="mt-5 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2 hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+              Done
+            </button>
           </div>
-        </div>
-      )}
+        ) : !supportType ? (
+          <div className="space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Which area do you need support in?</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setSupportType('hr')}
+                className="bg-bg-soft hover:bg-border rounded-2xl px-4 py-5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                <div className="w-9 h-9 mx-auto mb-2 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                  </svg>
+                </div>
+                <p className="text-sm font-bold text-ink">HR Support</p>
+                <p className="text-xs text-ink-soft mt-0.5">Compliance, performance, complex cases</p>
+              </button>
+              <button onClick={() => setSupportType('recruitment')}
+                className="bg-bg-soft hover:bg-border rounded-2xl px-4 py-5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                <div className="w-9 h-9 mx-auto mb-2 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+                  </svg>
+                </div>
+                <p className="text-sm font-bold text-ink">Recruitment Support</p>
+                <p className="text-xs text-ink-soft mt-0.5">Search, executive hires, retained briefs</p>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-bg-soft rounded-2xl px-4 py-3 flex items-center justify-between">
+              <p className="text-sm font-bold text-ink flex items-center gap-2">
+                <span className={`w-6 h-6 rounded-md flex items-center justify-center ${supportType === 'hr' ? 'bg-warning/10 text-warning' : 'bg-info/10 text-info'}`}>
+                  {supportType === 'hr' ? (
+                    <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+                    </svg>
+                  )}
+                </span>
+                {supportType === 'hr' ? 'HR Support' : 'Recruitment Support'}
+              </p>
+              <button onClick={() => setSupportType(null)}
+                className="text-xs text-ink-soft hover:text-ink underline">
+                Change
+              </button>
+            </div>
+            <div>
+              <label className="block font-sans text-xs font-bold text-ink-soft mb-1.5">
+                Quick summary
+              </label>
+              <textarea
+                value={supportSummary}
+                onChange={e => setSupportSummary(e.target.value)}
+                rows={5}
+                placeholder={
+                  supportType === 'hr'
+                    ? 'e.g. Need help with a performance management process for an underperforming senior staff member.'
+                    : 'e.g. Need help recruiting an Operations Manager. Brisbane-based, $120-140k, urgent.'
+                }
+                className="w-full bg-bg-soft rounded-2xl px-4 py-3 text-sm text-ink outline-none focus:bg-bg-elevated focus:ring-2 focus:ring-accent/30 resize-none leading-relaxed transition-colors"
+              />
+            </div>
+            {supportError && (
+              <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{supportError}</div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setShowPartnerPopup(false)}
+                disabled={supportSending}
+                className="flex-1 bg-bg-elevated border border-border text-ink text-sm font-bold rounded-full px-4 py-2.5 hover:bg-bg-soft disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                Cancel
+              </button>
+              <button onClick={submitSupportRequest}
+                disabled={supportSending || !supportSummary.trim()}
+                className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                {supportSending ? 'Sending...' : 'Send to advisor'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </aside>
   )
 }

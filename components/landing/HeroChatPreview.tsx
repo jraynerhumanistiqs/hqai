@@ -84,7 +84,7 @@ export default function HeroChatPreview() {
     >
       <div className="flex items-center gap-2 border-b border-border pb-3">
         <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">HQ People</span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HQ People</span>
         <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-ink-muted">
           <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />
           Live

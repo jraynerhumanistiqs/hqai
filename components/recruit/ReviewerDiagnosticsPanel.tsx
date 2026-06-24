@@ -28,13 +28,13 @@ export function ReviewerDiagnosticsPanel({ perQuestion, density = 'roomy' }: Pro
   if (overall.frames_sampled === 0) return null
 
   return (
-    <div className={density === 'tight' ? 'px-3 py-2 border-t border-border bg-blue-50/40' : 'bg-bg-elevated rounded-2xl border border-blue-200 shadow-card px-4 py-3'}>
+    <div className={density === 'tight' ? 'px-3 py-2 border-t border-border bg-info/10' : 'bg-bg-elevated rounded-2xl border border-info/20 shadow-card px-4 py-3'}>
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-blue-700 flex items-center gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-info flex items-center gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-info" />
           Reviewer diagnostics
         </p>
-        <span className="text-[10px] uppercase font-bold tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] uppercase font-bold tracking-wider bg-info/10 text-info px-2 py-0.5 rounded-full">
           Diagnostic only
         </span>
       </div>

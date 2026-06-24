@@ -752,7 +752,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       <button
                         type="button"
                         onClick={() => setCriteriaModalOpen(true)}
-                        className="bg-black text-white text-xs font-bold rounded-full px-5 py-2.5 hover:bg-charcoal"
+                        className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-5 py-2.5 hover:bg-accent-hover"
                       >
                         Review scoring criteria
                       </button>
@@ -994,7 +994,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     user should take). */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-black" />
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-ink" />
                     <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
                   </div>
 
@@ -1049,7 +1049,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   waited; this stops that. */}
               <ol className="space-y-3 mb-6">
                 <li className="flex items-start gap-3 bg-bg-elevated shadow-card rounded-2xl px-4 py-3">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-black text-white text-sm font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-accent text-ink-on-accent text-sm font-bold flex items-center justify-center">1</span>
                   <div className="flex-1">
                     <p className="text-sm font-bold text-charcoal">Create scoring criteria</p>
                     <p className="text-xs text-mid leading-relaxed">
@@ -1366,7 +1366,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* Sticky selection bar - single line, scales width with content */}
       {selectedCount > 0 && (
         <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
-          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-black text-white rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-white rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
             <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
             <span className="text-xs text-white/60 hidden md:inline">
               {prescreenSessionId
@@ -1417,7 +1417,7 @@ function RubricGroupHeader({
       className="w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-light/60 border-b border-border text-left"
     >
       <span className="flex items-center gap-2">
-        <span className={`w-1.5 h-1.5 rounded-full ${tone === 'active' ? 'bg-black' : 'bg-mid'}`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${tone === 'active' ? 'bg-ink' : 'bg-mid'}`} />
         <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal">
           {label} <span className="text-mid font-normal">({count})</span>
         </span>
@@ -1594,7 +1594,7 @@ function RubricRow({
         selected ? 'bg-light' : ''
       }`}
     >
-      {selected && <span className="absolute left-0 top-0 bottom-0 w-1 bg-black" />}
+      {selected && <span className="absolute left-0 top-0 bottom-0 w-1 bg-ink" />}
       {renaming ? (
         <input
           autoFocus

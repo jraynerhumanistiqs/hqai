@@ -6,11 +6,14 @@
 // + no name keeps this safe to publish. Founder should still get their
 // own legal comfort on tone before launch.
 
+import Cited from './Cited'
+
 export default function ComparisonSection() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="comparison-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-accent">
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
           The retainer trap
         </p>
         <h2
@@ -53,7 +56,9 @@ export default function ComparisonSection() {
                 <td className="px-5 py-4 text-ink-soft">n/a</td>
               </tr>
               <tr>
-                <th scope="row" className="px-5 py-4 font-medium text-ink">Every answer cites the law</th>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">
+                  Every answer <Cited statute="s 117 Fair Work Act 2009">cites the law</Cited>
+                </th>
                 <td className="px-5 py-4 font-semibold text-ink">Yes</td>
                 <td className="px-5 py-4 text-ink-soft">Sometimes</td>
                 <td className="px-5 py-4 text-ink-soft">No</td>

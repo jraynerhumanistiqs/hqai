@@ -56,7 +56,7 @@ export default function StickyMobileCta({ onReserve }: Props) {
         <div className="mx-auto flex max-w-md items-center gap-2">
           <Link
             href="/signup"
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-white hover:opacity-90"
+            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover"
           >
             Start the trial
           </Link>

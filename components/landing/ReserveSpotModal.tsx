@@ -70,7 +70,7 @@ export default function ReserveSpotModal({ open, onClose }: Props) {
       <div className="w-full max-w-md rounded-3xl border border-border bg-bg-elevated p-7 shadow-modal">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Reserve your spot</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Reserve your spot</p>
             <h2 id="reserve-title" className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               Get the $25 Letter of Offer first.
             </h2>
@@ -107,7 +107,7 @@ export default function ReserveSpotModal({ open, onClose }: Props) {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60"
             >
               {submitting ? 'Reserving...' : 'Reserve my spot'}
             </button>

@@ -325,12 +325,25 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         </div>
 
         {coachOpenMobile && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-ink/40" onClick={() => setCoachOpenMobile(false)}>
+          <div
+            className="lg:hidden fixed inset-0 z-40 flex flex-col justify-end bg-ink/40 motion-safe:animate-[fadeIn_150ms_ease-out]"
+            onClick={() => setCoachOpenMobile(false)}
+          >
             <div
-              className="absolute right-0 top-0 bottom-0 w-[88%] max-w-sm bg-white shadow-card"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Campaign Coach"
+              className="relative bg-bg-elevated rounded-t-panel shadow-modal max-h-[80vh] flex flex-col motion-safe:animate-[slideUp_220ms_ease-out]"
               onClick={e => e.stopPropagation()}
             >
-              <CoachPanel onClose={() => setCoachOpenMobile(false)} />
+              {/* Grab handle - signals the sheet can be dismissed by tapping
+                  the backdrop or the close control inside CoachPanel. */}
+              <div className="flex-shrink-0 flex justify-center pt-2.5 pb-1">
+                <span aria-hidden="true" className="h-1.5 w-10 rounded-full bg-border" />
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
+                <CoachPanel onClose={() => setCoachOpenMobile(false)} />
+              </div>
             </div>
           </div>
         )}

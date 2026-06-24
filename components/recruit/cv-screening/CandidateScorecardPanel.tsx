@@ -365,7 +365,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               canSendVideo ? (
                 <button
                   onClick={startHandoff}
-                  className="ml-auto bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+                  className="ml-auto bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2 hover:bg-accent-hover"
                 >
                   Send to Shortlist Agent
                 </button>

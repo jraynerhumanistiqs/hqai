@@ -244,10 +244,12 @@ function DiffView({
 }) {
   return (
     <div className="space-y-3">
-      <div className="bg-bg rounded-2xl p-3.5 text-sm text-muted line-through whitespace-pre-wrap">
+      <del className="block bg-danger/10 text-danger no-underline line-through rounded-2xl p-3.5 text-sm whitespace-pre-wrap">
         {old}
-      </div>
-      <div className="bg-bg rounded-2xl p-3.5 text-sm text-charcoal whitespace-pre-wrap">{next}</div>
+      </del>
+      <ins className="block bg-success/10 text-success no-underline rounded-2xl p-3.5 text-sm whitespace-pre-wrap">
+        {next}
+      </ins>
       <div className="flex gap-2">
         <button
           onClick={onAccept}

@@ -29,7 +29,10 @@ export default function PersonaBand() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="persona-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Who it&apos;s for</p>
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          Who it&apos;s for
+        </p>
         <h2
           id="persona-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -46,9 +49,9 @@ export default function PersonaBand() {
             return (
               <article
                 key={p.label}
-                className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-6 shadow-card transition-colors hover:border-clay/50"
+                className="flex flex-col rounded-2xl border border-border bg-bg-soft p-6 transition-colors hover:border-border-strong"
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-soft/30 text-clay">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border text-ink-soft">
                   <Icon />
                 </span>
                 <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-ink">{p.label}</h3>

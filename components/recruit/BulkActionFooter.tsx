@@ -90,7 +90,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-black text-white rounded-full shadow-card px-4 py-2 flex items-center gap-3">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white rounded-full shadow-card px-4 py-2 flex items-center gap-3">
         <span className="text-xs font-bold">{selectedCount} selected</span>
 
         <button
@@ -150,7 +150,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-black text-white rounded-2xl shadow-card px-4 py-3 text-xs font-bold max-w-md">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-ink text-white rounded-2xl shadow-card px-4 py-3 text-xs font-bold max-w-md">
           {toast}
         </div>
       )}

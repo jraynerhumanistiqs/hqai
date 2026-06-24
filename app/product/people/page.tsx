@@ -6,6 +6,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 import PeopleDeepDive from '@/components/landing/PeopleDeepDive'
 import FooterCta from '@/components/landing/FooterCta'
+import Cited from '@/components/landing/Cited'
 
 export const metadata: Metadata = {
   title: 'HQ People - the AI HR advisor that cites the Fair Work Act',
@@ -18,7 +19,13 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     t: 'Answers you can check',
-    d: 'Every answer points to the Fair Work Act or your award, so you can see exactly where it came from.',
+    d: (
+      <>
+        Every answer points to{' '}
+        <Cited statute="s 117 Fair Work Act 2009">the Fair Work Act</Cited> or your award, so you can
+        see exactly where it came from.
+      </>
+    ),
     icon: CheckIcon,
   },
   {
@@ -51,7 +58,10 @@ export default function ProductPeoplePage() {
       <main className="min-h-screen bg-bg text-ink antialiased">
         {/* Hero */}
         <section className="mx-auto max-w-5xl px-6 pt-16 text-center md:px-10 md:pt-24">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">HQ People</p>
+          <p className="mb-4 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            HQ People
+          </p>
           <h1 className="mx-auto max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
             An HR advisor that cites the law.
           </h1>
@@ -61,7 +71,7 @@ export default function ProductPeoplePage() {
             are high.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90">
+            <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
               Start the 14-day trial
             </Link>
             <Link href="/pricing" className="inline-flex h-12 items-center justify-center rounded-full border border-ink px-6 text-sm font-medium text-ink transition-colors hover:bg-bg-soft">
@@ -74,9 +84,9 @@ export default function ProductPeoplePage() {
             {STATS.map((s) => (
               <div
                 key={s.label}
-                className="rounded-3xl border border-border bg-bg-elevated p-6 text-center shadow-card"
+                className="rounded-2xl border border-border bg-bg-soft p-6 text-center"
               >
-                <p className="font-display text-[28px] font-bold leading-none tracking-tight text-clay md:text-[32px]">
+                <p className="font-display text-[28px] font-semibold leading-none tracking-[-0.02em] text-ink md:text-[32px]">
                   {s.value}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">{s.label}</p>
@@ -90,7 +100,10 @@ export default function ProductPeoplePage() {
         {/* Feature grid */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="people-features-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">What you get</p>
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              What you get
+            </p>
             <h2
               id="people-features-heading"
               className="max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -107,9 +120,9 @@ export default function ProductPeoplePage() {
                 return (
                   <article
                     key={f.t}
-                    className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-6 shadow-card transition-colors hover:border-clay/50 md:p-8"
+                    className="flex flex-col rounded-2xl border border-border bg-bg-soft p-6 transition-colors hover:border-border-strong md:p-8"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-soft/30 text-clay">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border text-ink-soft">
                       <Icon />
                     </span>
                     <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-ink">{f.t}</h3>

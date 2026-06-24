@@ -180,7 +180,7 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
           <button
             onClick={downloadDocx}
             disabled={downloading}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-black text-white hover:bg-charcoal transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
+            className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
           >
             {downloading ? (
               <>

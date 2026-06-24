@@ -361,7 +361,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, initialQue
             <button
               onClick={submitRecording}
               disabled={state === 'uploading' || state === 'submitting'}
-              className="bg-black text-white text-sm font-bold rounded-full px-5 py-2.5 hover:bg-charcoal disabled:opacity-60"
+              className="bg-accent text-ink-on-accent text-sm font-bold rounded-full px-5 py-2.5 hover:bg-accent-hover disabled:opacity-60"
             >
               {state === 'uploading' ? 'Uploading...' : state === 'submitting' ? 'Submitting...' : 'Submit for AI scoring'}
             </button>

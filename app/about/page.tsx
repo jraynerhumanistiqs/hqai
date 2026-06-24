@@ -10,6 +10,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 import FounderNote from '@/components/landing/FounderNote'
 import FooterCta from '@/components/landing/FooterCta'
+import Cited from '@/components/landing/Cited'
 
 export const metadata: Metadata = {
   title: 'About HQ.ai - the Humanistiqs team behind the AI HR advisor',
@@ -33,7 +34,13 @@ const VALUES = [
   },
   {
     t: 'Cite the source',
-    d: 'Every answer shows where it comes from. The Fair Work Act or your award. No guessing, no fine print.',
+    d: (
+      <>
+        Every answer shows where it comes from -{' '}
+        <Cited statute="s 117 Fair Work Act 2009">the Fair Work Act</Cited> or your award. No guessing,
+        no fine print.
+      </>
+    ),
     icon: SourceIcon,
   },
   {
@@ -56,7 +63,10 @@ export default function AboutPage() {
         {/* Hero */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="about-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">About</p>
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              About
+            </p>
             <h1
               id="about-heading"
               className="max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]"
@@ -72,7 +82,7 @@ export default function AboutPage() {
             <div className="mt-8">
               <Link
                 href="/signup"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Start the trial - it's three minutes
               </Link>
@@ -83,9 +93,9 @@ export default function AboutPage() {
               {STATS.map((s) => (
                 <article
                   key={s.label}
-                  className="rounded-3xl border border-border bg-bg-elevated p-7 text-center shadow-card md:p-8"
+                  className="rounded-2xl border border-border bg-bg-soft p-7 text-center md:p-8"
                 >
-                  <p className="font-display text-[36px] font-bold leading-none tracking-tight text-clay md:text-[44px]">
+                  <p className="font-display text-[36px] font-semibold leading-none tracking-[-0.02em] text-ink md:text-[44px]">
                     {s.figure}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-ink-soft">{s.label}</p>
@@ -98,7 +108,8 @@ export default function AboutPage() {
         {/* What we stand for - values grid with icon-in-rounded-square + tick */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="values-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
               What we stand for
             </p>
             <h2
@@ -118,9 +129,9 @@ export default function AboutPage() {
                 return (
                   <article
                     key={v.t}
-                    className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-6 shadow-card transition-colors hover:border-clay/50 md:p-8"
+                    className="flex flex-col rounded-2xl border border-border bg-bg-soft p-6 transition-colors hover:border-border-strong md:p-8"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-soft/30 text-clay">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border text-ink-soft">
                       <Icon />
                     </span>
                     <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-ink">{v.t}</h3>
@@ -139,7 +150,7 @@ export default function AboutPage() {
         <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <article className="rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">HR365 &amp; Recruit365</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HR365 &amp; Recruit365</p>
               <h2
                 id="enterprise-heading"
                 className="mt-3 max-w-2xl font-display text-[26px] font-bold leading-snug tracking-tight text-ink md:text-[32px]"
@@ -153,7 +164,7 @@ export default function AboutPage() {
               <div className="mt-7">
                 <Link
                   href="/enterprise"
-                  className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent transition-opacity hover:opacity-90"
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   Explore outsourced HR &amp; recruitment
                 </Link>

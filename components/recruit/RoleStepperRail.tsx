@@ -32,7 +32,9 @@ interface Props {
 
 export function RoleStepperRail({ currentStep, onStepChange }: Props) {
   return (
-    <aside
+    <>
+      <RoleStepperBar currentStep={currentStep} onStepChange={onStepChange} />
+      <aside
       aria-label="Role workflow steps"
       className="hidden md:flex md:flex-col md:w-56 lg:w-60 flex-shrink-0 border-r border-border bg-bg-elevated"
     >
@@ -96,5 +98,51 @@ export function RoleStepperRail({ currentStep, onStepChange }: Props) {
         </p>
       </div>
     </aside>
+    </>
+  )
+}
+
+// Mobile-only horizontal segmented stepper. The desktop rail is
+// `hidden md:flex`, so below md users had no way to switch steps.
+// Reuses the same STEPS data + onStepChange handler as the rail.
+function RoleStepperBar({ currentStep, onStepChange }: Props) {
+  return (
+    <nav
+      aria-label="Role workflow steps"
+      className="md:hidden flex-shrink-0 border-b border-border bg-bg-elevated"
+    >
+      <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-2.5">
+        {STEPS.map((step) => {
+          const active = step.id === currentStep
+          const live = step.status === 'live'
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => live && onStepChange(step.id)}
+              disabled={!live}
+              aria-current={active ? 'step' : undefined}
+              title={live ? step.hint : 'Coming soon - the bigger merge build wires this up'}
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
+                active
+                  ? 'bg-accent text-ink-on-accent'
+                  : live
+                    ? 'bg-bg-soft text-ink-soft hover:text-ink'
+                    : 'bg-bg-soft text-ink-muted cursor-not-allowed opacity-60'
+              }`}
+            >
+              <span
+                className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${
+                  active ? 'bg-white/20 text-ink-on-accent' : 'bg-bg-elevated text-ink-soft'
+                }`}
+              >
+                {step.id}
+              </span>
+              <span className="whitespace-nowrap">{step.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </nav>
   )
 }

@@ -296,7 +296,7 @@ export function NotesPanel({ responseId }: Props) {
           <button
             onClick={submit}
             disabled={saving || !text.trim()}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-black text-white disabled:opacity-40"
+            className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-40"
           >
             {saving ? 'Posting...' : 'Post note'}
           </button>

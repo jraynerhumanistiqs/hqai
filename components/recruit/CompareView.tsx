@@ -119,7 +119,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
       <div className="flex-1 overflow-auto px-6 py-6">
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <div className="w-6 h-6 border-2 border-border border-t-black rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-border border-t-ink rounded-full animate-spin" />
           </div>
         )}
         {!loading && error && (
@@ -162,7 +162,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                         {q && <p className="text-[11px] text-mid mb-1 italic">"{q}"</p>}
                         {uid ? (
                           <details>
-                            <summary className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-black text-white cursor-pointer">
+                            <summary className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover cursor-pointer">
                               Play
                             </summary>
                             <div className="mt-2">
@@ -201,7 +201,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                             <div className="flex items-center gap-2">
                               <div className="text-xs font-bold text-ink flex-shrink-0">{d.score}/5</div>
                               <div className="flex-1 h-1.5 bg-light rounded-full overflow-hidden">
-                                <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
+                                <div className="h-full bg-ink" style={{ width: `${(d.score / 5) * 100}%` }} />
                               </div>
                             </div>
                             {d.evidence_quote && (

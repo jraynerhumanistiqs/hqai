@@ -397,9 +397,9 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
     return (
       <div className="max-w-md mx-auto px-4 py-12">
         <div className="bg-bg-elevated rounded-2xl shadow-modal border border-border p-6 sm:p-8 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-mid mb-3">Before we start</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-3">Would you like to see yourself while recording?</h2>
-          <p className="text-sm text-mid mb-6 leading-relaxed">
+          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted mb-3">Before we start</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-ink mb-3">Would you like to see yourself while recording?</h2>
+          <p className="text-sm text-ink-soft mb-6 leading-relaxed">
             Some candidates prefer to hide their own video preview to avoid the
             anxiety of watching themselves on camera. Your answers will still
             be recorded either way - this only changes whether the live preview
@@ -408,13 +408,13 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-center">
             <button
               onClick={() => { setShowSelfView(true); setSelfViewPrompted(true) }}
-              className="bg-black text-white font-bold rounded-full px-6 py-3 hover:bg-charcoal text-sm transition-colors"
+              className="bg-accent text-ink-on-accent font-bold rounded-full px-6 py-3 hover:bg-accent-hover text-sm transition-colors focus-visible:ring-2 focus-visible:ring-accent/30"
             >
               Yes, show me
             </button>
             <button
               onClick={() => { setShowSelfView(false); setSelfViewPrompted(true) }}
-              className="bg-bg-elevated text-charcoal font-bold rounded-full px-6 py-3 border border-border hover:bg-light text-sm transition-colors"
+              className="bg-bg-elevated text-ink font-bold rounded-full px-6 py-3 border border-border hover:bg-bg-soft text-sm transition-colors focus-visible:ring-2 focus-visible:ring-accent/30"
             >
               No, hide the preview
             </button>
@@ -431,7 +431,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
       <div className="flex items-center gap-2 mb-8 justify-center">
         {questions.map((_, i) => (
           <div key={i} className={`h-1.5 rounded-full flex-1 max-w-[60px] transition-colors ${
-            i < currentQ ? 'bg-green-500' : i === currentQ ? 'bg-black' : 'bg-gray-200'
+            i < currentQ ? 'bg-success' : i === currentQ ? 'bg-accent' : 'bg-border'
           }`} />
         ))}
       </div>

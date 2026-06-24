@@ -7,7 +7,8 @@ export default function ProductPillars() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="pillars-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
           Two tools. One login.
         </p>
         <h2
@@ -23,7 +24,7 @@ export default function ProductPillars() {
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
           {/* CARD A - HQ PEOPLE */}
           <article className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">HQ People</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HQ People</p>
             <h3 className="mt-3 font-display text-[26px] font-bold tracking-tight leading-snug text-ink">
               Your HR brain, on tap.
             </h3>
@@ -53,7 +54,7 @@ export default function ProductPillars() {
 
           {/* CARD B - HQ RECRUIT */}
           <article className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">HQ Recruit</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HQ Recruit</p>
             <h3 className="mt-3 font-display text-[26px] font-bold tracking-tight leading-snug text-ink">
               Your hiring decisions, faster and fairer.
             </h3>

@@ -102,7 +102,7 @@ export function VideoPlayer({ cloudflareUid, chapters = [], onTimeUpdate, seekTo
 
   if (sdkFailed) {
     return (
-      <div className="aspect-video bg-black rounded-2xl overflow-hidden">
+      <div className="aspect-video bg-ink rounded-2xl overflow-hidden">
         <iframe
           src={baseSrc}
           className="w-full h-full"
@@ -116,7 +116,7 @@ export function VideoPlayer({ cloudflareUid, chapters = [], onTimeUpdate, seekTo
 
   return (
     <div>
-      <div className="aspect-video bg-black rounded-2xl overflow-hidden">
+      <div className="aspect-video bg-ink rounded-2xl overflow-hidden">
         <iframe
           ref={iframeRef}
           src={baseSrc}
@@ -141,7 +141,7 @@ export function VideoPlayer({ cloudflareUid, chapters = [], onTimeUpdate, seekTo
                   style={{ left: `${pct}%` }}
                   title={`${c.label} - jump`}
                 >
-                  <span className="w-[2px] h-4 bg-black group-hover:bg-accent transition-colors" />
+                  <span className="w-[2px] h-4 bg-ink group-hover:bg-accent transition-colors" />
                   <span className="text-[10px] font-bold text-mid group-hover:text-ink transition-colors whitespace-nowrap">
                     {c.label}
                   </span>

@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Spinner } from '@/components/ui/Spinner'
 
 // Magic link / OAuth callback. Handles three flows in one place:
 //   1. Implicit flow - tokens in the URL fragment (#access_token=&refresh_token=)
@@ -92,8 +93,9 @@ function CallbackInner() {
 
   if (!failed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg">
-        <div className="text-sm text-mid">Signing you in...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-bg">
+        <Spinner size="md" label="Signing you in" />
+        <div className="text-sm text-ink-soft">Signing you in...</div>
       </div>
     )
   }
@@ -101,14 +103,14 @@ function CallbackInner() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg p-6">
       <div className="bg-white shadow-card rounded-2xl p-6 max-w-md text-center">
-        <p className="font-bold text-charcoal text-base mb-2">Sign-in link didn't work</p>
-        <p className="text-sm text-mid mb-4">
+        <p className="font-bold text-ink text-base mb-2">Sign-in link didn't work</p>
+        <p className="text-sm text-ink-soft mb-4">
           Most common reason: the link expired or was already used. Get a fresh one.
         </p>
-        {detail && <p className="text-xs text-muted mb-4 break-all">Details: {detail}</p>}
+        {detail && <p className="text-xs text-ink-muted mb-4 break-all">Details: {detail}</p>}
         <a
           href="/login"
-          className="inline-block bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+          className="inline-block bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2 hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent/30"
         >
           Back to sign in
         </a>
@@ -119,7 +121,7 @@ function CallbackInner() {
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-bg"><div className="text-sm text-mid">Signing you in...</div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-bg"><Spinner size="md" label="Signing you in" /><div className="text-sm text-ink-soft">Signing you in...</div></div>}>
       <CallbackInner />
     </Suspense>
   )

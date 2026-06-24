@@ -121,7 +121,8 @@ export default function EnterprisePage() {
         {/* Hero */}
         <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
           <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
-            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+            <p className="mb-5 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
               HR365 + Recruit365
             </p>
             <h1
@@ -137,7 +138,7 @@ export default function EnterprisePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <a
                 href="#inquiry"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-opacity hover:opacity-90"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Book a discovery call
               </a>
@@ -159,7 +160,10 @@ export default function EnterprisePage() {
         {/* Plan cards */}
         <section id="variants" className="bg-bg py-20 md:py-28" aria-labelledby="variants-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">The plans</p>
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              The plans
+            </p>
             <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               Choose the surface you need covered.
             </h2>
@@ -169,7 +173,7 @@ export default function EnterprisePage() {
               call, with advisor hours each month and the AI doing the admin.
             </p>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            <div className="mt-10 grid items-end gap-6 lg:grid-cols-3">
               {variants.map((v) => (
                 <EnterpriseVariantCard
                   key={v.id}
@@ -190,8 +194,11 @@ export default function EnterprisePage() {
         {/* Capacity cap signal */}
         <section className="bg-bg py-14 md:py-20" aria-labelledby="capacity-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
-            <div className="rounded-3xl border border-accent bg-bg-elevated p-7 shadow-card md:p-9">
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Limited spots</p>
+            <div className="rounded-3xl border border-clay bg-bg-elevated p-7 shadow-card md:p-9">
+              <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                <span aria-hidden className="h-px w-5 bg-clay" />
+                Limited spots
+              </p>
               <h2 id="capacity-heading" className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
                 We only take on {enterprise.capacityCapYear1} partnerships in 2026. {slotsLeft} spots left.
               </h2>
@@ -217,7 +224,10 @@ export default function EnterprisePage() {
         {/* Who this is for */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="who-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Who this is for</p>
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              Who this is for
+            </p>
             <h2 id="who-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
               Is this a fit for you?
             </h2>
@@ -257,17 +267,30 @@ export default function EnterprisePage() {
         {/* How it works */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="how-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">How it works</p>
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              How it works
+            </p>
             <h2 id="how-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
               From first call to first advisory session in under three weeks.
             </h2>
 
-            <ol className="mt-10 grid gap-5 md:grid-cols-4">
+            {/* Connected vertical timeline - a real 2px line links the
+                four steps, more distinctive than four identical cards. */}
+            <ol className="relative mt-10 max-w-2xl">
+              <span
+                aria-hidden
+                className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-border"
+              />
               {HOW_IT_WORKS.map((item) => (
-                <li key={item.step} className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
-                  <p className="font-display text-3xl font-bold tracking-tight text-accent">{item.step}</p>
-                  <h3 className="mt-3 font-display text-lg font-bold tracking-tight text-ink">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
+                <li key={item.step} className="relative flex gap-5 pb-10 last:pb-0">
+                  <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-bg font-mono text-[11px] font-semibold text-ink-soft">
+                    {item.step}
+                  </span>
+                  <div className="pt-0.5">
+                    <h3 className="font-display text-lg font-bold tracking-tight text-ink">{item.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{item.body}</p>
+                  </div>
                 </li>
               ))}
             </ol>
@@ -277,7 +300,10 @@ export default function EnterprisePage() {
         {/* Inquiry form */}
         <section id="inquiry" className="bg-bg py-20 md:py-28" aria-labelledby="inquiry-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Book a call</p>
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              Book a call
+            </p>
             <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               Tell Jimmy what is going on.
             </h2>
@@ -295,7 +321,10 @@ export default function EnterprisePage() {
         {/* FAQ */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-faq-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Questions</p>
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              Questions
+            </p>
             <h2 id="enterprise-faq-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
               What people ask before they sign.
             </h2>

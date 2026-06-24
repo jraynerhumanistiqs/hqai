@@ -1,39 +1,104 @@
 'use client'
 
-// Section 1: hero. Decision-making narrative pass (May 2026 rewrite).
+// Section 1: hero. June 2026 frontend-design pass.
 //
-// Layout: copy block on the left, split-screen STATIC two-product mock
-// on the right - HQ People chat-preview card AND HQ Recruit CV-scoring
-// scorecard card visible together above the fold. No animation cycle.
-// Both products get equal pixel real estate so the page treats them as
-// sibling pillars from the first scroll.
+// The HQ People chat preview is the star: one orchestrated load reveal
+// runs on mount (eyebrow + headline, then subhead + CTAs, then the chat
+// types a question, the cited answer fades in, the gold citation chip
+// pops, and the headline citation underline draws last). The HQ Recruit
+// scorecard is demoted to a small, quiet secondary tile beneath it.
+//
+// A very faint Fair Work s.117 watermark sits behind the copy so the
+// near-black hero is not a flat slab. prefers-reduced-motion renders the
+// final state instantly (no reveal, no typing).
+//
+// Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import HeroChatPreview from './HeroChatPreview'
+import Cited from './Cited'
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener?.('change', handler)
+    return () => mq.removeEventListener?.('change', handler)
+  }, [])
+  return reduced
+}
+
+// Faint legislative watermark - real s.117 text at ~3% opacity, mono.
+const WATERMARK =
+  "An employer must not terminate an employee's employment unless the employer has given the employee written notice of the day of the termination. The notice period is worked out under subsection (3). s 117 Fair Work Act 2009 (Cth). National Employment Standards."
 
 export default function HeroSection() {
+  const reduced = usePrefersReducedMotion()
+  // Reveal stage: 0 nothing, 1 eyebrow+headline, 2 subhead+CTAs,
+  // 3 headline underline draws. The chat preview runs its own reveal.
+  const [stage, setStage] = useState(reduced ? 3 : 0)
+
+  useEffect(() => {
+    if (reduced) {
+      setStage(3)
+      return
+    }
+    const t1 = setTimeout(() => setStage(1), 80)
+    const t2 = setTimeout(() => setStage(2), 480)
+    const t3 = setTimeout(() => setStage(3), 1600)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [reduced])
+
+  const reveal = (active: boolean) =>
+    reduced
+      ? ''
+      : `transition-all duration-700 ease-smooth ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`
+
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.1fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
+      {/* Faint legislative atmosphere - real s.117 text, ~3% opacity mono. */}
+      <p
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 select-none px-6 pt-10 font-mono text-[13px] uppercase leading-[2.2] tracking-[0.18em] text-ink opacity-[0.03] md:px-10"
+      >
+        {WATERMARK} {WATERMARK}
+      </p>
+
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
         {/* Left: copy block */}
         <div className="max-w-xl">
-          <p className="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+          <p className={`mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted ${reveal(stage >= 1)}`}>
+            <span aria-hidden className="h-px w-5 bg-ink-muted" />
             Built for Australian small business
           </p>
           <h1
             id="hero-heading"
-            className="font-display text-[40px] font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-[56px]"
+            className={`font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px] ${reveal(stage >= 1)}`}
           >
-            HR and hiring are complicated. With HQ.ai, they don&apos;t have to be.
+            HR and hiring are complicated. With HQ.ai, every{' '}
+            {stage >= 3 ? (
+              <Cited statute="s 117 Fair Work Act 2009">answer cites the law</Cited>
+            ) : (
+              <span className="text-clay">answer cites the law</span>
+            )}
+            .
           </h1>
-          <p className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
+          <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
             AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $59/month. Cancel any time.
           </p>
 
-          <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className={`mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 ${reveal(stage >= 2)}`}>
             <Link
               href="/signup"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Start the 14-day trial
             </Link>
@@ -44,54 +109,45 @@ export default function HeroSection() {
               See one-off documents from $25 -&gt;
             </a>
           </div>
-          <p className="mt-4 text-sm text-ink-muted">No card. Three minutes to first document.</p>
+          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>No card. Three minutes to first document.</p>
         </div>
 
-        {/* Right: split-screen still life - HQ People + HQ Recruit, equal weight */}
-        <div className="relative w-full">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* HQ People preview - animated cycling chat (signature moment) */}
-            <HeroChatPreview />
+        {/* Right: HQ People is the star; HQ Recruit is a quiet secondary tile. */}
+        <div className={`relative w-full ${reveal(stage >= 1)}`}>
+          {/* Feature surface (Tier B) - the signature live preview. */}
+          <HeroChatPreview />
 
-            {/* HQ Recruit preview - CV scorecard */}
-            <div
-              className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float"
-              role="group"
-              aria-label="HQ Recruit preview"
-            >
-              <div className="flex items-center gap-2 border-b border-border pb-3">
-                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
-                <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">HQ Recruit</span>
+          {/* HQ Recruit - quiet tile (Tier A), secondary + smaller. */}
+          <div
+            className="mt-4 rounded-2xl border border-border bg-bg-soft p-4"
+            role="group"
+            aria-label="HQ Recruit preview"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span aria-hidden className="h-2 w-2 rounded-full bg-ink-muted" />
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HQ Recruit</span>
               </div>
-
-              <div className="mt-4 flex items-baseline justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-ink-muted">Candidate</p>
-                  <p className="font-display text-base font-bold tracking-tight text-ink">Sarah K.</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-display text-2xl font-bold tracking-tight text-clay">4.2<span className="text-sm font-normal text-ink-muted"> / 5</span></p>
-                  <span className="mt-1 inline-flex rounded-full border border-clay bg-clay-soft/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-clay">Strong yes</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="font-display text-base font-semibold tracking-tight text-ink">Sarah K.</span>
+                <span className="font-display text-base font-semibold tracking-tight text-ink">
+                  4.2<span className="text-xs font-normal text-ink-muted"> / 5</span>
+                </span>
               </div>
-
-              <div className="mt-4 space-y-2.5">
-                {[
-                  { label: 'Experience', score: 88 },
-                  { label: 'Communication', score: 82 },
-                  { label: 'Role fit', score: 74 },
-                ].map((row) => (
-                  <div key={row.label}>
-                    <div className="flex items-center justify-between text-[11px] text-ink-soft">
-                      <span>{row.label}</span>
-                      <span className="tabular-nums">{row.score}</span>
-                    </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-bg-soft">
-                      <div className="h-full rounded-full bg-clay" style={{ width: `${row.score}%` }} />
-                    </div>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              {[
+                { label: 'Experience', score: 88 },
+                { label: 'Communication', score: 82 },
+                { label: 'Role fit', score: 74 },
+              ].map((row) => (
+                <div key={row.label} className="flex-1">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-border">
+                    <div className="h-full rounded-full bg-ink-muted" style={{ width: `${row.score}%` }} />
                   </div>
-                ))}
-              </div>
+                  <p className="mt-1 text-[10px] text-ink-muted">{row.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

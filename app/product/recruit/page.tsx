@@ -50,7 +50,10 @@ export default function ProductRecruitPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <section className="mx-auto max-w-5xl px-6 pt-16 text-center md:px-10 md:pt-24">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">HQ Recruit</p>
+          <p className="mb-4 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            HQ Recruit
+          </p>
           <h1 className="mx-auto max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
             From job ad to shortlist, without the chaos.
           </h1>
@@ -59,7 +62,7 @@ export default function ProductRecruitPage() {
             confident shortlist to whoever makes the call - all in one place.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90">
+            <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
               Start the 14-day trial
             </Link>
             <Link href="/pricing" className="inline-flex h-12 items-center justify-center rounded-full border border-border px-6 text-sm font-medium text-ink transition-colors hover:bg-bg-soft">
@@ -72,9 +75,9 @@ export default function ProductRecruitPage() {
             {STATS.map((s) => (
               <div
                 key={s.figure}
-                className="rounded-3xl border border-border bg-bg-elevated p-6 text-center shadow-card"
+                className="rounded-2xl border border-border bg-bg-soft p-6 text-center"
               >
-                <p className="font-display text-xl font-bold tracking-tight text-clay">{s.figure}</p>
+                <p className="font-display text-xl font-bold tracking-tight text-ink">{s.figure}</p>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">{s.label}</p>
               </div>
             ))}
@@ -86,7 +89,10 @@ export default function ProductRecruitPage() {
         {/* Feature grid */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="features-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">What you get</p>
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+              What you get
+            </p>
             <h2
               id="features-heading"
               className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -103,9 +109,9 @@ export default function ProductRecruitPage() {
                 return (
                   <article
                     key={f.t}
-                    className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-6 shadow-card transition-colors hover:border-clay/50 md:p-8"
+                    className="flex flex-col rounded-2xl border border-border bg-bg-soft p-6 transition-colors hover:border-border-strong md:p-8"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-soft/30 text-clay">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border text-ink-soft">
                       <Icon />
                     </span>
                     <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-ink">{f.t}</h3>

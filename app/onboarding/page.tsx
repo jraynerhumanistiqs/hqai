@@ -3,37 +3,53 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
 const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) Award','Restaurant Industry Award','Pharmacy Industry Award 2020','Aged Care Award','SCHADS Award','Nurses Award','Building & Construction Award','Clerks Private Sector Award','Professional Employees Award','Award-free / Enterprise Agreement','Multiple awards apply','Not sure']
-const COUNTRIES = ['Australia','New Zealand','United Kingdom','United States','Canada','Singapore','Other']
-const STATES_BY_COUNTRY: Record<string, string[]> = {
-  Australia: ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT'],
-  'New Zealand': ['Auckland','Wellington','Canterbury','Waikato','Bay of Plenty','Manawatū-Whanganui','Otago','Northland','Hawke’s Bay','Taranaki','Southland','Tasman','Nelson','Marlborough','West Coast','Gisborne'],
-  'United Kingdom': ['England','Scotland','Wales','Northern Ireland'],
-  'United States': ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'],
-  Canada: ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT'],
-  Singapore: ['Singapore'],
-  Other: [],
-}
+// HQ.ai is Australia-only - Fair Work Act, NES and Modern Awards. The
+// onboarding only ever needs AU states, so there is no country toggle.
+const AU_STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 // Multi-select. A business can run any mix of employment types in
 // parallel - many SMEs have a few FT employees, a couple of PT, and a
 // pool of casuals or contractors all at once. Mirror that reality at
 // onboarding so the AI prompts can target the right awards for each.
 const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
-// Plan IDs and copy mirror lib/pricing-config.ts (the brief's §2.3
-// packaging). The /api/onboarding route stores `plan` as an opaque
-// string, so the new IDs flow through without a schema change.
+// Plans are derived from lib/pricing-config.ts (the single source of
+// truth) - never hardcode prices here. The two paid tiers reuse the C10
+// self-serve bundle (which carries the 'solo'/'business' plan ids the
+// /api/onboarding route stores), and the free option reads the trial
+// config. The route stores `plan` as an opaque string, so these ids flow
+// through without a schema change.
+const { bundle } = C10_SELF_SERVE
 const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
-  { id: 'free',     label: 'Free Trial',       price: 'Free for 14 days', desc: 'Full access for 14 days, no card required' },
-  { id: 'solo',     label: 'HQ Business (up to 25)',  price: '$89/month',         desc: 'HR and hiring, for teams up to 25, unlimited logins' },
-  { id: 'business', label: 'HQ Business (up to 150)', price: '$269/month',        desc: 'HR and hiring, for teams up to 150, unlimited logins, founder-led onboarding', recommended: true },
+  {
+    id: 'free',
+    label: 'Free Trial',
+    price: `Free for ${PRICING.trial.days} days`,
+    desc: `Full access for ${PRICING.trial.days} days${PRICING.trial.cardRequired ? '' : ', no card required'}`,
+  },
+  {
+    id: bundle.solo.planId,
+    label: `${bundle.name} (${bundle.solo.label})`,
+    price: `$${bundle.solo.monthly}/month`,
+    desc: `HR and hiring, for teams ${bundle.solo.label}, unlimited logins`,
+  },
+  {
+    id: bundle.business.planId,
+    label: `${bundle.name} (${bundle.business.label})`,
+    price: `$${bundle.business.monthly}/month`,
+    desc: `HR and hiring, for teams ${bundle.business.label}, unlimited logins, founder-led onboarding`,
+    recommended: true,
+  },
 ]
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // country is fixed to Australia (HQ.ai is AU-only) but kept in form
+  // state so the /api/onboarding payload contract is unchanged.
   const [form, setForm] = useState({
     bizName: '', industry: '', country: 'Australia', state: [] as string[], awards: [] as string[], headcount: '',
     empTypes: [] as string[],
@@ -151,13 +167,13 @@ export default function OnboardingPage() {
   // Text inputs use the underline pattern; selects keep a subtle box
   // because a bare underline + browser chevron reads inconsistently
   // across OSes.
-  const inputCls = "w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
-  const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-ink transition-colors appearance-none"
+  const inputCls = "w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-ink focus:ring-2 focus:ring-accent/30"
+  const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus:border-ink focus:ring-2 focus:ring-accent/30"
 
   if (!authReady) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-sm text-muted">Loading...</div>
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-sm text-ink-muted">Loading...</div>
       </div>
     )
   }
@@ -173,18 +189,39 @@ export default function OnboardingPage() {
 
         <div className="bg-bg-elevated rounded-3xl border border-border p-8">
 
-          {/* Progress - hairline connector + ink-pill active state. */}
-          <div className="flex items-center gap-2 mb-8">
-            {steps.map((s, i) => (
-              <div key={i} className="flex items-center gap-2 flex-1">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 transition-colors
-                  ${step > i + 1 ? 'bg-ink text-bg-elevated' : step === i + 1 ? 'bg-ink text-bg-elevated' : 'bg-bg-soft text-ink-muted border border-border'}`}>
-                  {step > i + 1 ? '✓' : i + 1}
-                </div>
-                <span className={`text-xs font-semibold ${step === i + 1 ? 'text-ink' : 'text-ink-muted'}`}>{s.label}</span>
-                {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-ink' : 'bg-border'}`} />}
+          {/* Progress.
+              Below sm: a plain "Step N of 3" label + thin linear bar -
+              the per-step dot/segment indicator compresses badly on
+              narrow screens. At sm and up: the richer hairline-connector
+              + ink-pill indicator. */}
+          <div className="mb-8">
+            {/* Mobile: text label + linear progress bar */}
+            <div className="sm:hidden">
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Step {step} of {steps.length}</span>
+                <span className="text-xs font-semibold text-ink">{steps[step - 1].label}</span>
               </div>
-            ))}
+              <div className="h-1 w-full rounded-full bg-bg-soft overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-base ease-smooth motion-reduce:transition-none"
+                  style={{ width: `${(step / steps.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* sm and up: hairline connector + ink-pill active state */}
+            <div className="hidden sm:flex items-center gap-2">
+              {steps.map((s, i) => (
+                <div key={i} className="flex items-center gap-2 flex-1">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 transition-colors
+                    ${step > i + 1 ? 'bg-ink text-bg-elevated' : step === i + 1 ? 'bg-ink text-bg-elevated' : 'bg-bg-soft text-ink-muted border border-border'}`}>
+                    {step > i + 1 ? '✓' : i + 1}
+                  </div>
+                  <span className={`text-xs font-semibold ${step === i + 1 ? 'text-ink' : 'text-ink-muted'}`}>{s.label}</span>
+                  {i < steps.length - 1 && <div className={`flex-1 h-px ${step > i + 1 ? 'bg-ink' : 'bg-border'}`} />}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Step 1 - Business */}
@@ -205,36 +242,21 @@ export default function OnboardingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">Country</label>
-                  <select
-                    className={selectCls}
-                    value={form.country}
-                    onChange={e => {
-                      const next = e.target.value
-                      setForm(f => ({ ...f, country: next, state: [] }))
-                    }}
-                  >
-                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                {STATES_BY_COUNTRY[form.country]?.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
-                    <div className="flex flex-wrap gap-2">
-                      {STATES_BY_COUNTRY[form.country].map(s => (
-                        <button key={s} type="button" onClick={() => toggleState(s)}
-                          className={`px-4 py-2 rounded-full text-sm border font-semibold transition-colors
-                            ${form.state.includes(s) ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-muted mt-2">Select all states your business operates in (multiple selections OK).</p>
-                    {form.state.length > 0 && (
-                      <p className="text-[10px] text-ink font-bold mt-1">{form.state.length} location{form.state.length > 1 ? 's' : ''} selected</p>
-                    )}
+                  <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
+                  <div className="flex flex-wrap gap-2">
+                    {AU_STATES.map(s => (
+                      <button key={s} type="button" onClick={() => toggleState(s)}
+                        className={`px-4 py-2 rounded-full text-sm border font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30
+                          ${form.state.includes(s) ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                        {s}
+                      </button>
+                    ))}
                   </div>
-                )}
+                  <p className="text-[10px] text-ink-muted mt-2">Select all states your business operates in (multiple selections OK).</p>
+                  {form.state.length > 0 && (
+                    <p className="text-[10px] text-ink font-bold mt-1">{form.state.length} location{form.state.length > 1 ? 's' : ''} selected</p>
+                  )}
+                </div>
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Number of employees</label>
                   <input

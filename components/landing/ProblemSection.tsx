@@ -24,7 +24,10 @@ export default function ProblemSection() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="problem-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">The problem</p>
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          The problem
+        </p>
         <h2
           id="problem-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -49,16 +52,16 @@ export default function ProblemSection() {
               <div className="flex items-start gap-3 px-6 py-5">
                 <CrossIcon />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Without HQ.ai</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Without HQ.ai</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{r.without}</p>
                 </div>
               </div>
 
-              {/* With - the warm, Clay-accented half */}
-              <div className="mt-auto flex items-start gap-3 border-t border-clay/30 bg-clay-soft/20 px-6 py-5">
+              {/* With - the resolved half, on the soft surface (neutral). */}
+              <div className="mt-auto flex items-start gap-3 border-t border-border bg-bg-soft px-6 py-5">
                 <TickIcon />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-clay">With HQ.ai</p>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">With HQ.ai</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-ink">{r.with}</p>
                 </div>
               </div>
@@ -87,7 +90,7 @@ function TickIcon() {
   return (
     <span
       aria-hidden
-      className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-clay text-white"
+      className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border text-ink"
     >
       <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
         <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />

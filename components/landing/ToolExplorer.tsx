@@ -95,7 +95,10 @@ export default function ToolExplorer() {
   return (
     <section id="tools" className="bg-bg py-20 md:py-28" aria-labelledby="tools-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Explore the tools</p>
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          Explore the tools
+        </p>
         <h2
           id="tools-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
@@ -149,7 +152,7 @@ export default function ToolExplorer() {
         >
           {/* LEFT: copy (re-keys per tab so it fades on switch) */}
           <div key={tab.id} className="tool-fade">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">{tab.tag}</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{tab.tag}</p>
             <h3 className="mt-3 font-display text-[26px] font-bold leading-snug tracking-tight text-ink md:text-[30px]">
               {tab.title}
             </h3>
@@ -164,7 +167,7 @@ export default function ToolExplorer() {
             </ul>
             <Link
               href={tab.cta.href}
-              className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               {tab.cta.label} -&gt;
             </Link>
@@ -285,7 +288,7 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
           </p>
           <span
             className={[
-              'mt-1 inline-flex rounded-full border border-clay bg-clay-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-clay transition-opacity duration-700',
+              'mt-1 inline-flex rounded-full border border-border bg-bg-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft transition-opacity duration-700',
               fill ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
           >
@@ -302,7 +305,7 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-bg-soft">
               <div
-                className="h-full rounded-full bg-clay transition-[width] duration-[900ms] ease-out"
+                className="h-full rounded-full bg-ink-muted transition-[width] duration-[900ms] ease-out"
                 style={{ width: fill ? `${row.score}%` : '0%' }}
               />
             </div>
@@ -348,7 +351,7 @@ function DocPreview({ reduced }: { reduced: boolean }) {
       <div className="flex items-center gap-2 border-b border-border pb-3">
         <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
         <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Letter of Offer</span>
-        <span className="ml-auto text-[11px] font-semibold text-clay">from $25</span>
+        <span className="ml-auto text-[11px] font-semibold text-ink-soft">from $25</span>
       </div>
 
       {/* Document sheet */}
@@ -371,7 +374,7 @@ function DocPreview({ reduced }: { reduced: boolean }) {
       {/* Ready stamp */}
       <div
         className={[
-          'mt-4 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-3 py-1 text-[11px] font-semibold text-clay transition-all duration-500',
+          'mt-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-soft px-3 py-1 text-[11px] font-semibold text-ink-soft transition-all duration-500',
           stamp ? 'opacity-100' : 'translate-y-1 opacity-0',
         ].join(' ')}
       >
@@ -386,7 +389,7 @@ function DocPreview({ reduced }: { reduced: boolean }) {
 
 function Tick() {
   return (
-    <svg viewBox="0 0 16 16" className="mt-1 h-3.5 w-3.5 shrink-0 text-clay" aria-hidden>
+    <svg viewBox="0 0 16 16" className="mt-1 h-3.5 w-3.5 shrink-0 text-ink-soft" aria-hidden>
       <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
     </svg>
   )

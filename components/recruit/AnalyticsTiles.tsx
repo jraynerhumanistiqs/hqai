@@ -42,7 +42,7 @@ export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-6 h-6 border-2 border-border border-t-black rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-border border-t-ink rounded-full animate-spin" />
       </div>
     )
   }
@@ -96,7 +96,7 @@ function FunnelTile({ funnel }: { funnel: FunnelData }) {
             <div key={r.key} className="flex items-center gap-3">
               <span className="text-xs text-mid w-36 flex-shrink-0">{r.label}</span>
               <div className="flex-1 h-4 bg-light rounded-full overflow-hidden">
-                <div className="h-full bg-black rounded-full" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-ink rounded-full" style={{ width: `${pct}%` }} />
               </div>
               <span className="text-xs font-bold text-ink w-8 text-right">{r.value}</span>
             </div>
@@ -161,7 +161,7 @@ function DimensionRow({ stat }: { stat: DimStat }) {
       </div>
       <div className="flex items-center gap-2">
         <div className="flex-1 h-2 bg-light rounded-full overflow-hidden relative">
-          <div className="h-full bg-black rounded-full" style={{ width: `${meanPct}%` }} />
+          <div className="h-full bg-ink rounded-full" style={{ width: `${meanPct}%` }} />
         </div>
         <svg width={W} height={H} className="flex-shrink-0" aria-label={`${stat.name} distribution`}>
           <line x1={padX} x2={W - padX} y1={H / 2} y2={H / 2} stroke="#e2e2e2" strokeWidth={1} />

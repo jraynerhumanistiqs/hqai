@@ -41,7 +41,7 @@ export function AiSuggestionCard({
   if (!evaluation) {
     return (
       <div className="bg-white rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
-        <span className="w-4 h-4 border-2 border-border border-t-black rounded-full animate-spin" />
+        <span className="w-4 h-4 border-2 border-border border-t-ink rounded-full animate-spin" />
         <p className="text-sm text-mid">Loading AI suggestion...</p>
       </div>
     )
@@ -59,7 +59,7 @@ export function AiSuggestionCard({
           </span>
         </div>
         {alreadyReviewed && (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
             reviewed
           </span>
         )}
@@ -74,7 +74,7 @@ export function AiSuggestionCard({
                 {d.confidence < 0.6 && (
                   <span
                     title="Low confidence - review manually"
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20"
                   >
                     low confidence
                   </span>
@@ -83,7 +83,7 @@ export function AiSuggestionCard({
               <div className="text-xs font-bold text-ink flex-shrink-0">{d.score}/5</div>
             </div>
             <div className="w-full h-1.5 bg-light rounded-full overflow-hidden">
-              <div className="h-full bg-black" style={{ width: `${(d.score / 5) * 100}%` }} />
+              <div className="h-full bg-ink" style={{ width: `${(d.score / 5) * 100}%` }} />
             </div>
             {d.evidence_quote && (
               <p
@@ -154,7 +154,7 @@ export function AiSuggestionCard({
         <button
           onClick={() => onDecision(evaluation.id, 'accept')}
           disabled={busy === evaluation.id}
-          className="text-xs font-bold px-4 py-2 rounded-full bg-black text-white hover:bg-[#1a1a1a] transition-colors disabled:opacity-50"
+          className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors disabled:opacity-50"
         >
           {busy === evaluation.id ? 'Saving...' : 'Accept'}
         </button>

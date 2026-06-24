@@ -572,7 +572,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
         <div className="min-w-0">
-          <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
+          <h1 className="font-sans text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
           <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
@@ -641,7 +641,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} group`}>
               {/* User messages: contained bg-black bubble, right-aligned */}
               {msg.role === 'user' && (
-                <div className="bg-black text-white text-sm leading-relaxed px-4 py-2.5 rounded-2xl rounded-tr-md max-w-[85%]">
+                <div className="bg-ink text-bg-elevated text-sm leading-relaxed px-4 py-2.5 rounded-2xl rounded-tr-md max-w-[85%]">
                   <MessageContent content={msg.content} isUser />
                 </div>
               )}
@@ -760,7 +760,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.escalate && (
                     <>
                       <div className="mt-3 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                        <span className="text-lg flex-shrink-0">⚠️</span>
+                        <span className="w-8 h-8 flex-shrink-0 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                          </svg>
+                        </span>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
                           <p className="text-xs text-mid leading-relaxed mb-2.5">
@@ -768,7 +772,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           </p>
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => setShowAdvisorModal(true)}
-                              className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors">
+                              className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
                               Book a call with an HQ Advisor
                             </button>
                             <button
@@ -778,7 +782,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                                   idx === i ? { ...m, escalate: false } : m
                                 ))
                               }}
-                              className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors">
+                              className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
                               Continue talking with the AI Advisor
                             </button>
                           </div>
@@ -802,7 +806,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             />
                             <button onClick={handleSendContext}
                               disabled={!extraContext.trim()}
-                              className="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors">
+                              className="bg-accent text-ink-on-accent text-xs font-bold px-4 py-1.5 rounded-full hover:bg-accent-hover disabled:opacity-40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
                               Send context
                             </button>
                           </div>
@@ -815,7 +819,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   {msg.docType && msg.content.length > 200 && (
                     <div className="mt-3 bg-light rounded-xl px-3.5 py-2.5">
                       <div className="flex items-center gap-2.5 mb-2">
-                        <span className="text-sm">{savedDocId ? '✅' : '📄'}</span>
+                        <span className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center ${savedDocId ? 'bg-success/10 text-success' : 'bg-info/10 text-info'}`}>
+                          {savedDocId ? (
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                              <path d="M5 10.5l3.5 3.5L15 6.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </span>
                         <p className="text-xs text-charcoal flex-1">
                           <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
                         </p>
@@ -866,7 +880,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <button
                 onClick={stopGeneration}
                 title="Stop generating"
-                className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1a1a1a] transition-all"
+                className="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 <span className="w-3 h-3 bg-bg-elevated rounded-sm" />
               </button>
@@ -899,7 +913,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       {historyOpen && (
         <div className="w-full sm:w-[280px] md:w-[320px] border-l border-border bg-bg-elevated flex flex-col flex-shrink-0 h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <h2 className="font-display text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
+            <h2 className="font-sans text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
             <button
               onClick={() => setHistoryOpen(false)}
               className="w-7 h-7 rounded-full hover:bg-light flex items-center justify-center text-mid hover:text-charcoal transition-colors"
@@ -923,7 +937,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 {historyItems.map(c => (
                   <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors group">
                     <div className="flex items-start gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-black'}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-ink'}`} />
                       <div className="min-w-0 flex-1">
                         {renamingId === c.id ? (
                           <input
@@ -935,7 +949,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                               if (e.key === 'Escape') setRenamingId(null)
                             }}
                             onBlur={() => commitRename(c.id)}
-                            className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-black rounded-md px-2 py-1 outline-none"
+                            className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-ink rounded-md px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                             maxLength={120}
                           />
                         ) : (
@@ -1187,7 +1201,7 @@ function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onS
       <button
         onClick={handleSend}
         disabled={!value.trim()}
-        className="bg-black text-white text-xs font-bold px-3 py-2 rounded-full hover:bg-[#1a1a1a] disabled:opacity-40 transition-colors"
+        className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-2 rounded-full hover:bg-accent-hover disabled:opacity-40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
       >
         Send
       </button>
@@ -1257,7 +1271,7 @@ function DocumentFormCard({
             </svg>
           </div>
           <div>
-            <h3 className="font-display text-base font-bold text-charcoal uppercase tracking-wider">{formDef.title}</h3>
+            <h3 className="font-sans text-base font-bold text-charcoal uppercase tracking-wider">{formDef.title}</h3>
             <p className="text-xs text-muted mt-0.5">{bizName}</p>
           </div>
         </div>
@@ -1377,7 +1391,7 @@ function DownloadDocxButton({ content, title, docType, docId }: { content: strin
     <button
       onClick={handleDownload}
       disabled={downloading}
-      className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-[#1a1a1a] transition-colors inline-flex items-center gap-1 disabled:opacity-60"
+      className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors inline-flex items-center gap-1 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
     >
       <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>

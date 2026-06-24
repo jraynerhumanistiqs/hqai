@@ -31,7 +31,10 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
   return (
     <section id="marketplace" className="bg-bg py-20 md:py-28" aria-labelledby="marketplace-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Pay-as-you-go - launching soon</p>
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          Pay-as-you-go - launching soon
+        </p>
         <h2 id="marketplace-heading" className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           Just need one letter today? From $25.
         </h2>
@@ -44,16 +47,16 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
           {ITEMS.map((item, i) => (
             <li
               key={item.name}
-              className="group relative flex flex-col rounded-3xl border border-border bg-bg-elevated p-5 shadow-card transition-colors hover:border-clay/50"
+              className="group relative flex flex-col rounded-2xl border border-border bg-bg-soft p-5 transition-colors hover:border-border-strong"
             >
-              <span className="absolute right-4 top-4 rounded-full border border-border bg-bg-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              <span className="absolute right-4 top-4 rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                 Coming soon
               </span>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay-soft/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border">
                 <DocIcon n={i} />
               </div>
               <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-ink">{item.name}</h3>
-              <p className="mt-1 text-sm font-semibold text-clay">{item.price}</p>
+              <p className="mt-1 text-sm font-semibold text-ink">{item.price}</p>
               <p className="mt-2 text-sm leading-snug text-ink-soft">{item.teaser}</p>
             </li>
           ))}
@@ -63,7 +66,7 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
           <button
             type="button"
             onClick={onReserve}
-            className="inline-flex h-12 items-center justify-center rounded-full border border-clay bg-transparent px-6 text-sm font-semibold text-clay transition-colors hover:bg-clay-soft/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Reserve your spot -&gt;
           </button>
@@ -87,7 +90,7 @@ function DocIcon({ n }: { n: number }) {
     <path key="8" d="M12 10h26v30H12z M20 22h10 M20 28h10 M25 16v18" />,
   ]
   return (
-    <svg viewBox="0 0 50 50" className="h-6 w-6 text-clay" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg viewBox="0 0 50 50" className="h-6 w-6 text-ink-soft" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       {variants[n] ?? variants[0]}
     </svg>
   )

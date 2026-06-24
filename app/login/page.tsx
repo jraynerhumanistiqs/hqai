@@ -123,7 +123,7 @@ export default function LoginPage() {
   // Premium-minimal underline input. Replaces the boxed input pattern
   // per the kit's rule 6 - keeps the field calm on a clean white page
   // and lets the focus state read as a confident black underline.
-  const inputCls = "w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
+  const inputCls = "w-full border-b border-ink/30 focus:border-ink focus:ring-2 focus:ring-accent/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -135,30 +135,35 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl p-8">
-          <h1 className="font-display text-2xl font-bold text-charcoal uppercase tracking-wider mb-1">
+          <h1 className="font-display text-2xl font-bold text-ink uppercase tracking-wider mb-1">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-sm text-mid mb-6">
+          <p className="text-sm text-ink-soft mb-6">
             {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Start your free trial - no credit card required'}
           </p>
 
           {magicSent ? (
             <div className="text-center py-4">
-              <div className="text-4xl mb-4">📬</div>
-              <p className="font-bold text-charcoal text-base mb-2">Check your email</p>
-              <p className="text-sm text-mid">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-clay-soft text-clay-ink">
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+              </div>
+              <p className="font-bold text-ink text-base mb-2">Check your email</p>
+              <p className="text-sm text-ink-soft">
                 We sent a sign-in link to{' '}
-                <strong className="text-charcoal break-all">
+                <strong className="text-ink break-all">
                   {sentToEmail || email || 'your inbox'}
                 </strong>
                 .
               </p>
-              <p className="text-xs text-muted mt-3">
+              <p className="text-xs text-ink-muted mt-3">
                 The link expires in 60 minutes. If it doesn't arrive within a couple of minutes, check your spam folder or try again.
               </p>
               <button
                 onClick={() => { setMagicSent(false); setSentToEmail('') }}
-                className="text-xs text-mid hover:text-charcoal underline underline-offset-2 mt-4"
+                className="text-xs text-ink-soft hover:text-ink underline underline-offset-2 mt-4"
               >
                 Use a different email
               </button>
@@ -167,7 +172,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5">Full name</label>
+                  <label className="block text-xs font-bold text-ink-muted mb-1.5">Full name</label>
                   <input
                     type="text" value={name} onChange={e => setName(e.target.value)}
                     placeholder="James Smith"
@@ -177,7 +182,7 @@ export default function LoginPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1.5">Work email</label>
+                <label className="block text-xs font-bold text-ink-muted mb-1.5">Work email</label>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="james@yourbusiness.com.au"
@@ -186,7 +191,7 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-ink-muted mb-1.5">Password</label>
                 <input
                   type="password" value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -214,20 +219,24 @@ export default function LoginPage() {
                   <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative text-center">
-                  <span className="bg-white px-3 text-xs text-muted">or</span>
+                  <span className="bg-white px-3 text-xs text-ink-muted">or</span>
                 </div>
               </div>
 
               <button
                 type="button" onClick={handleMagicLink} disabled={loading}
-                className="w-full bg-white hover:bg-light text-charcoal font-bold py-2.5 rounded-full text-sm transition-colors border border-border"
+                className="w-full bg-white hover:bg-bg-soft text-ink font-bold py-2.5 rounded-full text-sm transition-colors border border-border focus-visible:ring-2 focus-visible:ring-accent/30 inline-flex items-center justify-center gap-2"
               >
-                ✉️ Send magic link instead
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+                Send magic link instead
               </button>
             </form>
           )}
 
-          <p className="text-center text-xs text-muted mt-6">
+          <p className="text-center text-xs text-ink-muted mt-6">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
@@ -238,10 +247,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="text-center text-xs text-muted mt-6">
+        <p className="text-center text-xs text-ink-muted mt-6">
           By signing in you agree to Humanistiqs{' '}
-          <a href="/terms" className="underline hover:text-gray-400">Terms of Service</a> and{' '}
-          <a href="/privacy" className="underline hover:text-gray-400">Privacy Policy</a>
+          <a href="/terms" className="underline hover:text-ink">Terms of Service</a> and{' '}
+          <a href="/privacy" className="underline hover:text-ink">Privacy Policy</a>
         </p>
       </div>
     </div>

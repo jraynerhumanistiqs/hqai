@@ -5,7 +5,8 @@ export default function CustomerStory() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="customer-story-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
           What this looks like for real
         </p>
         <h2
@@ -17,14 +18,21 @@ export default function CustomerStory() {
 
         <div className="mt-12 rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
           <div className="grid items-center gap-10 md:grid-cols-[2fr_3fr] md:gap-14">
-            {/* LEFT (40%): placeholder avatar */}
+            {/* LEFT (40%): abstract quote mark - reads as an editorial
+                pull-quote device, not a missing customer headshot. */}
             <div className="flex justify-center md:justify-start">
-              <div
+              <svg
                 aria-hidden
-                className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-accent-soft text-accent"
+                viewBox="0 0 96 96"
+                className="h-20 w-20 text-ink-muted md:h-24 md:w-24"
+                fill="none"
               >
-                <span className="font-display text-5xl font-bold">P</span>
-              </div>
+                <path
+                  fill="currentColor"
+                  opacity="0.9"
+                  d="M22 54c0-13 8-22 20-25l3 6c-7 2-11 7-11 13h8v18H22V54Zm32 0c0-13 8-22 20-25l3 6c-7 2-11 7-11 13h8v18H54V54Z"
+                />
+              </svg>
             </div>
 
             {/* RIGHT (60%): quote + attribution + bullets */}

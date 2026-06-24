@@ -44,12 +44,12 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
   return (
     <div className="max-w-lg mx-auto px-6 py-10">
       <div className="mb-8 text-center">
-        <p className="text-sm font-semibold text-ink uppercase tracking-widest mb-2">You&apos;re applying for</p>
-        <h1 className="text-3xl font-bold text-gray-900 mb-1">{roleTitle}</h1>
-        <p className="text-gray-500 text-lg">{company}</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted mb-2">You&apos;re applying for</p>
+        <h1 className="font-display text-3xl font-bold text-ink mb-1">{roleTitle}</h1>
+        <p className="text-ink-soft text-lg">{company}</p>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-800">
+      <div className="bg-warning/10 border border-warning/20 rounded-xl p-4 mb-8 text-sm text-ink-soft">
         You&apos;ll answer <strong>{questionCount} question{questionCount !== 1 ? 's' : ''}</strong> on video.{' '}
         Each response has a <strong>{timeLabel}</strong>{' '}time limit.{' '}
         You can re-record before moving on. When you&apos;re ready, fill in your details and press Start.
@@ -57,27 +57,27 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">Full Name</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Your full name"
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-ink"
+            className="w-full px-4 py-2.5 rounded-lg border border-border text-ink placeholder-ink-muted focus:outline-none focus:border-ink focus:ring-2 focus:ring-accent/30"
           />
-          {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+          {errors.name && <p className="mt-1 text-xs text-danger">{errors.name}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+          <label className="block text-sm font-semibold text-ink-soft mb-1">Email Address</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-ink"
+            className="w-full px-4 py-2.5 rounded-lg border border-border text-ink placeholder-ink-muted focus:outline-none focus:border-ink focus:ring-2 focus:ring-accent/30"
           />
-          {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+          {errors.email && <p className="mt-1 text-xs text-danger">{errors.email}</p>}
         </div>
 
         <div className="flex items-start gap-3 pt-2">
@@ -86,26 +86,26 @@ export function CandidateGate({ roleTitle, company, timeLimitSeconds, questionCo
             id="consent"
             checked={consent}
             onChange={e => setConsent(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-black"
+            className="mt-0.5 h-4 w-4 rounded border-border accent-accent"
           />
-          <label htmlFor="consent" className="text-sm text-gray-600 leading-snug cursor-pointer">
+          <label htmlFor="consent" className="text-sm text-ink-soft leading-snug cursor-pointer">
             I consent to my video responses being recorded, transcribed (by Deepgram), scored by AI against
             the hiring rubric (by Anthropic), and securely stored (by Cloudflare Stream and Supabase).
             My browser will also compute three aggregate visual signals (in-frame %, head roughly
             facing the camera %, approximate lighting) which the reviewer sees as supporting context
-            only - my video frames never leave my device for that step, and these signals are <strong className="font-semibold text-gray-800">not</strong> fed
+            only - my video frames never leave my device for that step, and these signals are <strong className="font-semibold text-ink">not</strong> fed
             into the AI scoring. Recordings are retained for up to 80 days after the role closes.
             I can withdraw consent and request deletion at any time by emailing{' '}
-            <a href="mailto:privacy@humanistiqs.com.au" className="underline font-semibold text-gray-800">privacy@humanistiqs.com.au</a>.
+            <a href="mailto:privacy@humanistiqs.com.au" className="underline font-semibold text-ink">privacy@humanistiqs.com.au</a>.
             Full detail in our{' '}
-            <a href="/privacy" target="_blank" rel="noreferrer" className="underline font-semibold text-gray-800">privacy policy</a>.
+            <a href="/privacy" target="_blank" rel="noreferrer" className="underline font-semibold text-ink">privacy policy</a>.
           </label>
         </div>
-        {errors.consent && <p className="text-xs text-red-600">{errors.consent}</p>}
+        {errors.consent && <p className="text-xs text-danger">{errors.consent}</p>}
 
         <button
           onClick={handleSubmit}
-          className="w-full mt-2 bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-3 rounded-full transition-colors text-sm"
+          className="w-full mt-2 bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-3 rounded-full transition-colors text-sm focus-visible:ring-2 focus-visible:ring-accent/30"
         >
           Start Pre-Screen →
         </button>

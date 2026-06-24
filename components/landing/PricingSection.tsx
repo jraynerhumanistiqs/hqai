@@ -84,7 +84,10 @@ export default function PricingSection({ onReserve }: Props) {
   return (
     <section id="pricing" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-clay">Plans</p>
+        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          Plans
+        </p>
         <h2 id="pricing-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
           Pick what you need: HR, hiring, or both.
         </h2>
@@ -108,8 +111,10 @@ export default function PricingSection({ onReserve }: Props) {
           />
         </div>
 
-        {/* Three self-serve choices */}
-        <div className="mt-10 grid gap-4 lg:grid-cols-3 md:gap-6">
+        {/* Three self-serve choices. The bundle is structurally lifted -
+            a feature surface that scales up and rises above the other two
+            (lg:-mt-4) so it leads on shape, not just a badge. */}
+        <div className="mt-10 grid items-end gap-4 lg:grid-cols-3 md:gap-6">
           <PlanCard
             kicker={people.kicker}
             name={people.name}
@@ -157,8 +162,8 @@ export default function PricingSection({ onReserve }: Props) {
         {/* Bottom row: on-demand document library (carousel) + HR365/RECRUIT365 teaser */}
         <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* On-demand documents - AI Administrator */}
-          <div className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card md:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">On-demand documents</p>
+          <div className="rounded-2xl border border-border bg-bg-soft p-7 md:p-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">On-demand documents</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               Your self-service AI Administrator
             </h3>
@@ -167,7 +172,7 @@ export default function PricingSection({ onReserve }: Props) {
               compliant with Australian workplace law. The HR and recruitment templates that employers ask
               for most - ready the moment you are. No subscription needed.
             </p>
-            <p className="mt-3 text-sm font-semibold text-clay">Starting at ${cheapestOneOff.price}.</p>
+            <p className="mt-3 text-sm font-semibold text-ink">Starting at ${cheapestOneOff.price}.</p>
 
             {/* Category carousel */}
             <div className="mt-6 rounded-2xl border border-border bg-bg p-5">
@@ -186,7 +191,7 @@ export default function PricingSection({ onReserve }: Props) {
                 <ul className="mt-3 space-y-2.5">
                   {activeCat.docs.map((d) => (
                     <li key={d.name} className="flex items-start gap-2.5">
-                      <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-clay" aria-hidden>
+                      <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-soft" aria-hidden>
                         <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
                       </svg>
                       <span className="text-sm leading-snug text-ink-soft">
@@ -207,7 +212,7 @@ export default function PricingSection({ onReserve }: Props) {
                     aria-selected={i === cat}
                     aria-label={c.title}
                     onClick={() => setCat(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === cat ? 'w-6 bg-clay' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
+                    className={`h-1.5 rounded-full transition-all ${i === cat ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
                   />
                 ))}
               </div>
@@ -216,7 +221,7 @@ export default function PricingSection({ onReserve }: Props) {
             <button
               type="button"
               onClick={onReserve}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-clay bg-transparent px-5 text-sm font-semibold text-clay transition-colors hover:bg-clay-soft/20"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Reserve early access -&gt;
             </button>
@@ -224,8 +229,8 @@ export default function PricingSection({ onReserve }: Props) {
           </div>
 
           {/* HR365 / RECRUIT365 teaser */}
-          <aside className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-7 shadow-card">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Want a human on call?</p>
+          <aside className="flex flex-col rounded-2xl border border-border bg-bg-soft p-7">
+            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Want a human on call?</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               HR365 and RECRUIT365
             </h3>
@@ -277,7 +282,7 @@ export default function PricingSection({ onReserve }: Props) {
           <div className="mt-10 rounded-3xl border border-clay bg-clay-soft/40 p-7 shadow-card md:p-9">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Foundation {foundation.cap}</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-clay">Foundation {foundation.cap}</p>
                 <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
                   Be one of our first {foundation.cap} customers and lock HQ Business at ${foundation.lockedMonthly}/month for your first 12 months.
                 </h3>
@@ -287,7 +292,7 @@ export default function PricingSection({ onReserve }: Props) {
               </div>
               <Link
                 href={`/signup?plan=business&cycle=annual&foundation=1`}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Reserve a Foundation slot -&gt;
               </Link>
@@ -370,14 +375,18 @@ function PlanCard({
   return (
     <article
       className={[
-        'flex flex-col rounded-3xl border p-6 shadow-card md:p-7',
-        highlight ? 'border-clay bg-clay-soft/15' : 'border-border bg-bg-elevated',
+        'flex flex-col p-6 md:p-7',
+        highlight
+          // Tier B feature surface: elevated, shadowed, lifted + scaled.
+          ? 'rounded-3xl border border-clay bg-bg-elevated shadow-float lg:-mt-4 lg:scale-[1.03]'
+          // Tier A quiet tile: soft surface, hairline, no shadow.
+          : 'rounded-2xl border border-border bg-bg-soft',
       ].join(' ')}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-clay">{kicker}</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{kicker}</p>
         {badge && (
-          <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+          <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-accent">
             {badge}
           </span>
         )}
@@ -392,7 +401,7 @@ function PlanCard({
       <ul className="mt-5 space-y-2 text-sm text-ink-soft">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
-            <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-clay" aria-hidden>
+            <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-soft" aria-hidden>
               <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
             </svg>
             {f}
@@ -402,10 +411,10 @@ function PlanCard({
       <Link
         href={href}
         className={[
-          'mt-6 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors',
+          'mt-6 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
           ctaStyle === 'solid'
-            ? 'bg-clay text-white hover:opacity-90'
-            : 'border border-ink text-ink hover:bg-bg-soft',
+            ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
+            : 'border border-ink text-ink hover:bg-bg-soft focus-visible:outline-accent',
         ].join(' ')}
       >
         {cta} -&gt;

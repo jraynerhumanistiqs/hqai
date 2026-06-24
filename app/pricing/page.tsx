@@ -19,7 +19,10 @@ export default function PricingPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <section className="mx-auto max-w-6xl px-6 pt-16 md:px-10 md:pt-24">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">Pricing</p>
+          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            Pricing
+          </p>
           <h1 className="max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[52px]">
             Simple pricing. No surprises.
           </h1>

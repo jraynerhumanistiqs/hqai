@@ -31,6 +31,7 @@ import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
 import { ReviewerDiagnosticsPanel } from './ReviewerDiagnosticsPanel'
+import { EmptyState } from '@/components/ui/EmptyState'
 import Link from 'next/link'
 
 interface Booking {
@@ -534,7 +535,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
   return (
-    <div className="h-full flex flex-row">
+    <div className="h-full flex flex-col md:flex-row">
       <RoleStepperRail currentStep={currentStep} onStepChange={setCurrentStep} />
       <div className="flex-1 flex flex-col min-w-0">
       <div className="border-b border-border bg-bg-elevated px-4 sm:px-6 py-4 sm:py-5 flex-shrink-0">
@@ -570,7 +571,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               onClick={() => setAnonymise(v => !v)}
               className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${
                 anonymise
-                  ? 'bg-black text-white border-black'
+                  ? 'bg-accent text-ink-on-accent border-accent'
                   : 'bg-bg-elevated text-mid border-border hover:text-ink'
               }`}
               title="Hide candidate names + emails. Quotes from transcript are not anonymised."
@@ -584,7 +585,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             >?</button>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
               session.status === 'active'
-                ? 'bg-green-50 text-green-600 border-green-200'
+                ? 'bg-success/10 text-success border-success/20'
                 : 'bg-light text-mid border-border'
             }`}>
               {session.status}
@@ -790,7 +791,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                     className={`text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                       inviteSent
                         ? 'bg-success/10 text-success border border-success/20'
-                        : 'bg-black hover:bg-charcoal disabled:opacity-40 text-white'
+                        : 'bg-accent hover:bg-accent-hover disabled:opacity-40 text-ink-on-accent'
                     }`}
                   >
                     {inviteSent ? 'Sent' : sendingInvite ? 'Sending...' : showEmailEditor ? 'Send custom email' : 'Send default email'}
@@ -860,14 +861,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             )}
 
             {!loadingResponses && filtered.length === 0 && (
-              <div className="py-12 text-center px-6">
-                <p className="text-sm text-mid mb-1">
-                  {filter === 'all' ? 'No candidates yet' : `No ${STATUS_LABEL[filter] ?? filter} candidates`}
-                </p>
-                {filter === 'all' && (
-                  <p className="text-xs text-mid/70">Share the invite link above to start receiving video responses</p>
-                )}
-              </div>
+              <EmptyState
+                tone="bg-clay-soft text-clay-ink"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                }
+                title={filter === 'all' ? 'No candidates yet' : `No ${STATUS_LABEL[filter] ?? filter} candidates`}
+                description={
+                  filter === 'all'
+                    ? 'Share the invite link above to start receiving video responses.'
+                    : undefined
+                }
+              />
             )}
 
             {!loadingResponses && filtered.length > 0 && viewMode === 'kanban' && (
@@ -1060,7 +1070,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             <button
                               onClick={() => sendRowInvite(r.id)}
                               disabled={rowInviteBusy || !rowInviteEmail.trim()}
-                              className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
+                              className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-3 py-1.5 hover:bg-accent-hover disabled:opacity-50"
                             >
                               {rowInviteBusy ? 'Sending...' : 'Send invite email'}
                             </button>
@@ -1228,7 +1238,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                   <div className="flex flex-wrap items-center gap-2">
                                     <button
                                       onClick={() => setTranscriptModal({ responseId: r.id, question: 'all' })}
-                                      className="text-xs font-bold px-3 py-1.5 rounded-full bg-black text-white hover:bg-charcoal transition-colors"
+                                      className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
                                     >
                                       View full transcript
                                     </button>
@@ -1420,7 +1430,7 @@ function CandidateSummaryButton({ responses }: { responses: CandidateResponse[] 
       onClick={download}
       disabled={busy}
       title="Download combined CV + Video Candidate Summary report"
-      className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-charcoal disabled:opacity-50"
+      className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover disabled:opacity-50"
     >
       {busy ? 'Generating...' : `Candidate Summary (${eligible.length})`}
     </button>

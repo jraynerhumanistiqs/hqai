@@ -15,11 +15,11 @@ const STAGE_LABEL: Record<KanbanStage, string> = {
 }
 
 const STAGE_CLS: Record<KanbanStage, string> = {
-  new: 'bg-light text-mid border-border',
-  in_review: 'bg-blue-50 text-blue-600 border-blue-200',
-  video_interview: 'bg-amber-50 text-amber-700 border-amber-200',
-  shortlisted: 'bg-green-50 text-green-600 border-green-200',
-  rejected: 'bg-red-50 text-red-600 border-red-200',
+  new: 'bg-bg-soft text-ink-soft border-border',
+  in_review: 'bg-info/10 text-info border-info/20',
+  video_interview: 'bg-warning/10 text-warning border-warning/20',
+  shortlisted: 'bg-success/10 text-success border-success/20',
+  rejected: 'bg-danger/10 text-danger border-danger/20',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -34,14 +34,14 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_PILL: Record<string, string> = {
-  submitted: 'bg-light text-mid border-border',
-  transcribing: 'bg-blue-50 text-blue-600 border-blue-200',
-  evaluating: 'bg-blue-50 text-blue-600 border-blue-200',
-  scored: 'bg-amber-50 text-amber-700 border-amber-200',
-  staff_reviewed: 'bg-green-50 text-green-600 border-green-200',
-  shared: 'bg-purple-50 text-purple-600 border-purple-200',
-  new: 'bg-light text-mid border-border',
-  reviewed: 'bg-green-50 text-green-600 border-green-200',
+  submitted: 'bg-bg-soft text-ink-soft border-border',
+  transcribing: 'bg-info/10 text-info border-info/20',
+  evaluating: 'bg-info/10 text-info border-info/20',
+  scored: 'bg-warning/10 text-warning border-warning/20',
+  staff_reviewed: 'bg-success/10 text-success border-success/20',
+  shared: 'bg-clay-soft text-clay-ink border-clay/30',
+  new: 'bg-bg-soft text-ink-soft border-border',
+  reviewed: 'bg-success/10 text-success border-success/20',
 }
 
 interface Props {
@@ -77,7 +77,7 @@ export function ResponsesKanban({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {STAGE_ORDER.map(stage => {
         const cards = byStage[stage]
         const isOver = overStage === stage
@@ -101,7 +101,7 @@ export function ResponsesKanban({
               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${STAGE_CLS[stage]}`}>
                 {STAGE_LABEL[stage]}
               </span>
-              <span className="text-xs text-mid">{cards.length}</span>
+              <span className="text-xs text-ink-soft">{cards.length}</span>
             </div>
             <div className="space-y-2">
               {cards.map(r => {
@@ -124,10 +124,21 @@ export function ResponsesKanban({
                     }}
                     onDragEnd={() => { setDraggingId(null); setOverStage(null) }}
                     onClick={() => onSelect?.(r.id)}
-                    className={`bg-white rounded-2xl border border-border shadow-card px-3 py-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow relative ${
+                    className={`bg-bg-elevated rounded-lg border border-border shadow-card px-3 py-2 cursor-grab active:cursor-grabbing hover:shadow-float transition-shadow relative ${
                       draggingId === r.id ? 'opacity-40' : ''
-                    } ${checked ? 'ring-2 ring-black' : ''}`}
+                    } ${checked ? 'ring-2 ring-accent' : ''}`}
                   >
+                    {/* Drag-handle affordance */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-1 top-1/2 -translate-y-1/2 text-ink-muted/50 leading-none select-none pointer-events-none"
+                    >
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
+                        <circle cx="2" cy="2" r="1" /><circle cx="6" cy="2" r="1" />
+                        <circle cx="2" cy="7" r="1" /><circle cx="6" cy="7" r="1" />
+                        <circle cx="2" cy="12" r="1" /><circle cx="6" cy="12" r="1" />
+                      </svg>
+                    </span>
                     {onToggleSelect && (
                       <label
                         onClick={e => e.stopPropagation()}
@@ -136,23 +147,23 @@ export function ResponsesKanban({
                       >
                         <input
                           type="checkbox"
-                          className="w-4 h-4 accent-black cursor-pointer"
+                          className="w-4 h-4 accent-accent cursor-pointer"
                           checked={checked}
                           disabled={disabled}
                           onChange={() => onToggleSelect(r.id)}
                         />
                       </label>
                     )}
-                    <div className="flex items-center gap-2 pr-6">
+                    <div className="flex items-center gap-2 pr-6 pl-2.5">
                       {!anonymise && (
-                        <div className="w-7 h-7 rounded-full bg-light flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-bg-soft flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
                           {displayNameFor(r).split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-ink truncate">{displayNameFor(r)}</p>
                         {!anonymise && (
-                          <p className="text-[11px] text-mid truncate">{r.candidate_email}</p>
+                          <p className="text-[11px] text-ink-soft truncate">{r.candidate_email}</p>
                         )}
                       </div>
                     </div>
@@ -164,14 +175,14 @@ export function ResponsesKanban({
                         <span className="text-[10px] font-bold text-warning">{r.rating}/5</span>
                       )}
                       {suggestion && (
-                        <span className="text-[10px] font-bold text-mid">AI {suggestion}</span>
+                        <span className="text-[10px] font-bold text-ink-soft">AI {suggestion}</span>
                       )}
                     </div>
                   </div>
                 )
               })}
               {cards.length === 0 && (
-                <p className="text-[11px] text-mid/60 text-center py-6">Drop candidates here</p>
+                <p className="text-[11px] text-ink-muted text-center py-6">Drop candidates here</p>
               )}
             </div>
           </div>

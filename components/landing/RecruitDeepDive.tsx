@@ -8,7 +8,8 @@ export default function RecruitDeepDive() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[2fr_3fr] md:gap-16 md:px-10">
         {/* LEFT (40%): copy */}
         <div>
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-hidden className="h-px w-5 bg-ink-muted" />
             HQ Recruit - decide the hiring stuff
           </p>
           <h2

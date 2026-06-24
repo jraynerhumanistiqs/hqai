@@ -48,7 +48,8 @@ export default function FounderNote() {
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="founder-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-clay">
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+          <span aria-hidden className="h-px w-5 bg-ink-muted" />
           Why we built this
         </p>
         <h2
@@ -76,23 +77,22 @@ export default function FounderNote() {
           </p>
         </div>
 
-        {/* The directors */}
-        <div className="mt-12 grid grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-4">
+        {/* The directors - editorial masthead. Larger photos, names in
+            Fraunces, roles in mono, a top hairline rule per person. No
+            shadowed tiles - the faces are the brand's strongest asset. */}
+        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
           {TEAM.map((p) => (
-            <div
-              key={p.name}
-              className="flex flex-col items-start rounded-3xl border border-border bg-bg-elevated p-5 shadow-card"
-            >
+            <div key={p.name} className="flex flex-col items-start border-t border-border pt-5">
               <Image
                 src={p.photoUrl}
                 alt={p.name}
-                width={96}
-                height={96}
-                className="h-20 w-20 rounded-full object-cover"
+                width={144}
+                height={144}
+                className="h-24 w-24 rounded-full object-cover md:h-28 md:w-28"
                 style={{ objectPosition: '50% 22%' }}
               />
-              <p className="mt-4 font-display text-base font-bold tracking-tight text-ink">{p.name}</p>
-              <p className="mt-0.5 text-sm text-ink-muted">{p.role}</p>
+              <p className="mt-5 font-display text-xl font-semibold tracking-[-0.01em] text-ink">{p.name}</p>
+              <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{p.role}</p>
               <a
                 href={p.linkedin}
                 target="_blank"

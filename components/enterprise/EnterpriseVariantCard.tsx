@@ -27,10 +27,10 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
   return (
     <article
       className={[
-        'flex h-full flex-col rounded-3xl border p-6 transition-shadow md:p-7',
+        'flex h-full flex-col rounded-3xl border p-6 transition-colors md:p-7',
         highlight
-          ? 'border-accent bg-bg-elevated shadow-float'
-          : 'border-border bg-bg-elevated shadow-card',
+          ? 'border-clay bg-bg-elevated shadow-float lg:-mt-3 lg:scale-[1.02]'
+          : 'border-border bg-bg-soft hover:border-border-strong',
       ].join(' ')}
     >
       <div className="flex items-baseline justify-between gap-3">
@@ -114,10 +114,10 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
         <a
           href="#inquiry"
           className={[
-            'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors',
+            'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
             highlight
-              ? 'bg-clay text-ink-on-accent hover:opacity-90'
-              : 'border border-border text-ink hover:bg-bg-soft',
+              ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
+              : 'border border-border text-ink hover:bg-bg-soft focus-visible:outline-accent',
           ].join(' ')}
         >
           Book a discovery call -&gt;

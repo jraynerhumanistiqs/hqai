@@ -79,14 +79,26 @@ export default function Step1Brief() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-1.5">
-          Step 1 - Tell me about the role
-        </h2>
-        <p className="text-sm text-mid leading-relaxed max-w-xl">
-          Just rough notes are fine. I'll classify the role, recommend the right Modern Award, and
-          draft an ad you can react to.
-        </p>
+      <div className="flex items-start gap-3">
+        <div
+          aria-hidden="true"
+          className="flex-shrink-0 w-10 h-10 rounded-2xl bg-clay-soft text-clay-ink flex items-center justify-center"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2c.8-.8.9-2.2.1-3a2 2 0 0 0-3.1 0Z" />
+            <path d="M14.5 9.5 9 15l-3-3 5.5-5.5C13.5 4 17 3 20 3c0 3-1 6.5-3.5 9Z" />
+            <path d="M14 6.5 17.5 10" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-charcoal mb-1.5">
+            Step 1 - Tell me about the role
+          </h2>
+          <p className="text-sm text-mid leading-relaxed max-w-xl">
+            Just rough notes are fine. I'll classify the role, recommend the right Modern Award, and
+            draft an ad you can react to.
+          </p>
+        </div>
       </div>
 
       <div className="bg-bg-elevated shadow-card rounded-2xl p-4 sm:p-5 relative">
