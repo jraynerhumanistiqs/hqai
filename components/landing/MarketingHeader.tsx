@@ -29,11 +29,11 @@ function useMarketingScope() {
 const PRODUCTS = [
   { label: 'HQ People', href: '/product/people', blurb: 'AI HR advisor that cites the law' },
   { label: 'HQ Recruit', href: '/product/recruit', blurb: 'Score CVs, pre-screen, shortlist' },
+  { label: 'Outsourced HR & Recruitment', href: '/enterprise', blurb: 'A dedicated advisor on call - HR365 & Recruit365' },
 ]
 
 const NAV = [
   { label: 'Pricing', href: '/pricing' },
-  { label: 'Enterprise', href: '/enterprise' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -70,13 +70,13 @@ export default function MarketingHeader() {
               aria-expanded={productOpen}
               className="inline-flex items-center gap-1 text-sm text-ink-soft transition-colors hover:text-ink"
             >
-              Product
+              Products
               <svg viewBox="0 0 12 12" className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 4.5L6 7.5L9 4.5" />
               </svg>
             </button>
             {productOpen && (
-              <div className="absolute left-0 top-9 w-64 rounded-2xl border border-border bg-bg-elevated p-2 shadow-float">
+              <div className="absolute left-0 top-9 w-72 rounded-2xl border border-border bg-bg-elevated p-2 shadow-float">
                 {PRODUCTS.map((p) => (
                   <Link
                     key={p.href}
@@ -103,7 +103,7 @@ export default function MarketingHeader() {
             href="/signup"
             className="inline-flex h-10 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
-            Start the trial
+            Start free trial
           </Link>
         </nav>
 
@@ -125,7 +125,7 @@ export default function MarketingHeader() {
       {open && (
         <nav className="border-t border-border bg-bg px-6 py-4 md:hidden">
           <div className="flex flex-col gap-1">
-            <p className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Product</p>
+            <p className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Products</p>
             {PRODUCTS.map((p) => (
               <Link
                 key={p.href}
@@ -159,7 +159,7 @@ export default function MarketingHeader() {
               onClick={() => setOpen(false)}
               className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-white hover:opacity-90"
             >
-              Start the trial
+              Start free trial
             </Link>
           </div>
         </nav>

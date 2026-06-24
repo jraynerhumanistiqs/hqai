@@ -27,7 +27,7 @@ export default function HeroSection() {
             HR and hiring are complicated. With HQ.ai, they don&apos;t have to be.
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
-            AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $89/month. Cancel any time.
+            AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $59/month. Cancel any time.
           </p>
 
           <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">

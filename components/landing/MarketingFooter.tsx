@@ -6,10 +6,11 @@ import Link from 'next/link'
 
 const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] = [
   {
-    heading: 'Product',
+    heading: 'Products',
     links: [
       { label: 'HQ People', href: '/product/people' },
       { label: 'HQ Recruit', href: '/product/recruit' },
+      { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Pay-as-you-go documents', href: '/#marketplace' },
     ],
@@ -28,7 +29,7 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     heading: 'Resources',
     links: [
       { label: 'Pricing', href: '/pricing' },
-      { label: 'Enterprise', href: '/enterprise' },
+      { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Contact', href: '/contact' },
       { label: 'Sign in', href: '/login' },
     ],
@@ -37,7 +38,7 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     heading: 'Company',
     links: [
       { label: 'About', href: '/about' },
-      { label: 'Enterprise', href: '/enterprise' },
+      { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Contact', href: '/contact' },
     ],
   },

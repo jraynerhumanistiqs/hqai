@@ -475,7 +475,7 @@ export const PRICING: PricingShape = {
         stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL',
         stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY',
         includedSummary: [
-          'Everything in HQ People Enterprise AND HQ Recruit Enterprise',
+          'Everything in HR365 AND Recruit365',
           'Single dedicated partner team - one Advisor and one Talent Partner who coordinate',
           'Monthly Executive Review across workforce posture, hiring pipeline and compliance risk',
           'Founder check-in twice yearly (Jimmy Rayner personally)',

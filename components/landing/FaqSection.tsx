@@ -14,7 +14,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Why pay when I can just Google it?',
-    a: 'Google gives you 47 American answers and a few Fair Work pages buried on page two. We give you the right answer for your business in 30 seconds, and show you where it comes from. Your time is worth more than $89 a month.',
+    a: 'Google gives you 47 American answers and a few Fair Work pages buried on page two. We give you the right answer for your business in 30 seconds, and show you where it comes from. Your time is worth more than $59 a month.',
   },
   {
     q: 'I only need one document. Do I have to subscribe?',
@@ -30,7 +30,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Do you offer a dedicated advisor?',
-    a: 'Yes. HR365 gives you a dedicated Humanistiqs HR advisor on call; Recruit365 is the recruitment equivalent. HR365 starts at $799 a month and includes 3 advisor hours, with extra time at $250 an hour. We only take on 10 in 2026. See the Enterprise page for more.',
+    a: 'Yes. HR365 gives you a dedicated Humanistiqs HR advisor on call; Recruit365 is the recruitment equivalent. HR365 starts at $799 a month and includes 3 advisor hours, with extra time at $250 an hour. We only take on 10 in 2026. See our outsourced HR & recruitment page for more.',
   },
   {
     q: 'How long does setup take?',

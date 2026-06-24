@@ -30,9 +30,9 @@ export default function ContactPage() {
             Send us a note. A real person reads every message.
           </p>
           <p className="mt-3 text-sm text-ink-muted">
-            Want a dedicated advisor or talent partner?{' '}
+            Want a dedicated advisor on call?{' '}
             <Link href="/enterprise" className="font-semibold text-accent hover:underline">
-              See HQ.ai Enterprise
+              See outsourced HR &amp; recruitment
             </Link>{' '}
             and book a call.
           </p>

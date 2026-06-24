@@ -36,7 +36,7 @@ export default function ComparisonSection() {
             <tbody className="divide-y divide-border">
               <tr>
                 <th scope="row" className="px-5 py-4 font-medium text-ink">Average monthly cost</th>
-                <td className="px-5 py-4 font-semibold text-ink">From $89</td>
+                <td className="px-5 py-4 font-semibold text-ink">From $59</td>
                 <td className="px-5 py-4 text-ink-soft">~$850/mo</td>
                 <td className="px-5 py-4 text-ink-soft">$0 (with risk)</td>
               </tr>

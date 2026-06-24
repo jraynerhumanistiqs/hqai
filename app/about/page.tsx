@@ -139,7 +139,7 @@ export default function AboutPage() {
         <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <article className="rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">HR365</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">HR365 &amp; Recruit365</p>
               <h2
                 id="enterprise-heading"
                 className="mt-3 max-w-2xl font-display text-[26px] font-bold leading-snug tracking-tight text-ink md:text-[32px]"
@@ -147,7 +147,7 @@ export default function AboutPage() {
                 Want a real person on your side too?
               </h2>
               <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-soft md:text-base">
-                HQ.ai Enterprise pairs you with your own Humanistiqs advisor or talent partner, backed
+                Our outsourced HR and recruitment pairs you with a dedicated Humanistiqs advisor, backed
                 by the AI. The same human every time, for the calls where the stakes are high.
               </p>
               <div className="mt-7">
@@ -155,7 +155,7 @@ export default function AboutPage() {
                   href="/enterprise"
                   className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent transition-opacity hover:opacity-90"
                 >
-                  Explore HQ.ai Enterprise
+                  Explore outsourced HR &amp; recruitment
                 </Link>
               </div>
             </article>

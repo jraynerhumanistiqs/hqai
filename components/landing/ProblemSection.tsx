@@ -17,7 +17,7 @@ export default function ProblemSection() {
     {
       topic: 'The cost',
       without: 'A retainer you pay every month and use twice a year.',
-      with: 'From $89 a month. No lock-in. Cancel any time.',
+      with: 'From $59 a month. No lock-in. Cancel any time.',
     },
   ]
 

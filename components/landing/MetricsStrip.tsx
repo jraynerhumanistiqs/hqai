@@ -5,7 +5,7 @@
 export default function MetricsStrip() {
   const deltas = [
     { from: 'Half a day', to: '3 minutes', label: 'to sort a typical HR question' },
-    { from: '$850/mo', to: 'from $89', label: 'for everyday HR and hiring help' },
+    { from: '$850/mo', to: 'from $59', label: 'for everyday HR help' },
     { from: '80 CVs by hand', to: 'minutes', label: 'to score a stack of applicants' },
   ]
 

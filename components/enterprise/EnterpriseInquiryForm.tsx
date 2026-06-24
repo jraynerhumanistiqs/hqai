@@ -153,7 +153,7 @@ export default function EnterpriseInquiryForm() {
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className={labelCls}>Which variant interests you?</span>
+          <span className={labelCls}>Which plan interests you?</span>
           <select
             required
             value={state.variant_interest}
@@ -161,9 +161,9 @@ export default function EnterpriseInquiryForm() {
             className={selectCls}
           >
             <option value="" disabled>Choose one</option>
-            <option value="people">HQ People Enterprise</option>
-            <option value="recruit">HQ Recruit Enterprise</option>
-            <option value="full">Full Enterprise</option>
+            <option value="people">HR365 - dedicated HR advisor</option>
+            <option value="recruit">Recruit365 - dedicated talent advisor</option>
+            <option value="full">HR365 + Recruit365 - both</option>
             <option value="unsure">Not sure - want to talk it through</option>
           </select>
         </label>
@@ -262,7 +262,7 @@ export default function EnterpriseInquiryForm() {
             className="mt-1 h-4 w-4 rounded border-border text-accent focus:ring-accent"
           />
           <span className="text-sm leading-relaxed text-ink-soft">
-            I agree to be contacted by Humanistiqs about HQ.ai Enterprise.
+            I agree to be contacted by Humanistiqs about HR365 and Recruit365.
           </span>
         </label>
       </div>
@@ -282,7 +282,7 @@ export default function EnterpriseInquiryForm() {
           {status === 'submitting' ? 'Sending...' : 'Send to Jimmy ->'}
         </button>
         <p className="text-[11px] leading-relaxed text-ink-muted">
-          We use this only to contact you about Enterprise. No marketing emails.
+          We use this only to contact you about HR365 and Recruit365. No marketing emails.
         </p>
       </div>
     </form>

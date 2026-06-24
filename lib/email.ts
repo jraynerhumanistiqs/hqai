@@ -578,13 +578,13 @@ export async function sendEnterpriseInquiryConfirmation({
   const resend = getResend()
   if (!resend) return { ok: false, reason: 'no_resend_key' as const }
 
-  const subject = 'Thanks for reaching out about HQ.ai Enterprise'
+  const subject = 'Thanks for reaching out about HR365 and Recruit365'
   const text = [
     `Hi ${fullName},`,
     '',
-    'Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.',
+    'Thanks for reaching out. I personally read every inquiry, so this has landed with me.',
     '',
-    `I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at humanistiqs.ai/enterprise so the call gets straight to the specifics for ${businessName}.`,
+    `I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the plan detail at humanistiqs.ai/enterprise so the call gets straight to the specifics for ${businessName}.`,
     '',
     'Speak soon,',
     'Jimmy Rayner',
