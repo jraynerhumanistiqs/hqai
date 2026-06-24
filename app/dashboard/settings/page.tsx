@@ -13,8 +13,8 @@ const STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 // the "Invalid planId. Expected one of: solo, business." error.
 const PLAN_DETAILS: Record<string, { name: string; priceMonthly: string; priceAnnual: string; seats: number }> = {
   free:     { name: 'Free Trial', priceMonthly: '$0', priceAnnual: '$0', seats: 1 },
-  solo:     { name: 'Solo Complete', priceMonthly: '$89 / month', priceAnnual: '$890 / year', seats: 3 },
-  business: { name: 'Business Complete', priceMonthly: '$269 / month', priceAnnual: '$2,690 / year', seats: 15 },
+  solo:     { name: 'HQ Business (up to 25)', priceMonthly: '$89 / month', priceAnnual: '$890 / year', seats: 3 },
+  business: { name: 'HQ Business (up to 150)', priceMonthly: '$269 / month', priceAnnual: '$2,690 / year', seats: 15 },
 }
 
 type PaidPlanId = 'solo' | 'business'

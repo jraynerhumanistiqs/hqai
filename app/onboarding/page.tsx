@@ -26,8 +26,8 @@ const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Indep
 // string, so the new IDs flow through without a schema change.
 const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
   { id: 'free',     label: 'Free Trial',       price: 'Free for 14 days', desc: 'Full access for 14 days, no card required' },
-  { id: 'solo',     label: 'Solo Complete',    price: '$89/month',         desc: 'HR and hiring, for teams up to 25, unlimited logins' },
-  { id: 'business', label: 'Business Complete', price: '$269/month',        desc: 'HR and hiring, for teams up to 150, unlimited logins, founder-led onboarding', recommended: true },
+  { id: 'solo',     label: 'HQ Business (up to 25)',  price: '$89/month',         desc: 'HR and hiring, for teams up to 25, unlimited logins' },
+  { id: 'business', label: 'HQ Business (up to 150)', price: '$269/month',        desc: 'HR and hiring, for teams up to 150, unlimited logins, founder-led onboarding', recommended: true },
 ]
 
 export default function OnboardingPage() {

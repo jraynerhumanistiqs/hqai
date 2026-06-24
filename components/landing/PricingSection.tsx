@@ -126,17 +126,17 @@ export default function PricingSection({ onReserve }: Props) {
             kicker={recruit.kicker}
             name={recruit.name}
             desc={recruit.desc}
-            price={`from $${recruit.bands[0].monthly}`}
-            priceSuffix="/mo"
-            sub={`Light $${recruit.bands[0].monthly} for 1 open role, Pro $${recruit.bands[1].monthly} for unlimited roles`}
+            price={`+$${recruit.bands[0].monthly}`}
+            priceSuffix="/mo on top"
+            sub={`Added to a plan. Light +$${recruit.bands[0].monthly} (1 open role) or Pro +$${recruit.bands[1].monthly} (unlimited). Already included in HQ Business.`}
             features={recruit.features}
-            cta="Add to any plan"
+            cta="Add to a plan"
             href="/signup"
             ctaStyle="ghost"
           />
           <PlanCard
             highlight
-            badge="Most popular"
+            badge="Best value"
             kicker={bundle.kicker}
             name={bundle.name}
             desc={bundle.desc}
@@ -164,8 +164,8 @@ export default function PricingSection({ onReserve }: Props) {
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
               Need a document right now? Your AI Administrator drafts it on demand - always current, always
-              compliant with Australian workplace law. The HR and recruitment templates businesses ask for
-              most, ready the moment you are. No subscription needed.
+              compliant with Australian workplace law. The HR and recruitment templates that employers ask
+              for most - ready the moment you are. No subscription needed.
             </p>
             <p className="mt-3 text-sm font-semibold text-clay">Starting at ${cheapestOneOff.price}.</p>
 
@@ -224,7 +224,7 @@ export default function PricingSection({ onReserve }: Props) {
           </div>
 
           {/* HR365 / RECRUIT365 teaser */}
-          <aside className="rounded-3xl border border-border bg-bg-elevated p-7 shadow-card">
+          <aside className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-7 shadow-card">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Want a human on call?</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               HR365 and RECRUIT365
@@ -239,6 +239,37 @@ export default function PricingSection({ onReserve }: Props) {
             >
               See HR365 and RECRUIT365 -&gt;
             </Link>
+
+            {/* Conceptual graphic - a dedicated human advisor on call, backed by AI */}
+            <div className="mt-auto pt-8">
+              <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden role="img">
+                {/* advisor with headset */}
+                <g className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="70" cy="56" r="19" />
+                  <path d="M40 102c0-16.5 13.5-30 30-30s30 13.5 30 30" />
+                  <path d="M49 56a21 21 0 0 1 42 0" />
+                  <rect x="44" y="54" width="8" height="15" rx="3.5" />
+                  <rect x="88" y="54" width="8" height="15" rx="3.5" />
+                  <path d="M92 69v5a9 9 0 0 1-9 9h-7" />
+                </g>
+                {/* on-call signal waves */}
+                <g className="text-clay" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none">
+                  <path d="M108 46a16 16 0 0 1 0 22" />
+                  <path d="M117 39a27 27 0 0 1 0 36" opacity="0.5" />
+                </g>
+                {/* connection */}
+                <path d="M150 92h52" className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 9" />
+                {/* AI node */}
+                <g className="text-clay">
+                  <rect x="200" y="64" width="56" height="56" rx="15" stroke="currentColor" strokeWidth="2.2" fill="none" />
+                  <path d="M228 76l4.5 10 10 4.5-10 4.5-4.5 10-4.5-10-10-4.5 10-4.5z" fill="currentColor" />
+                  <circle cx="246" cy="74" r="2.5" fill="currentColor" opacity="0.6" />
+                </g>
+              </svg>
+              <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
+                A dedicated advisor, on call - with the AI doing the admin.
+              </p>
+            </div>
           </aside>
         </div>
 

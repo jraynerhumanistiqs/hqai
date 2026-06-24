@@ -209,7 +209,7 @@ export const PRICING: PricingShape = {
     },
     {
       id: 'business',
-      name: 'Business Complete',
+      name: 'HQ Business',
       tagline: 'HR and hiring together - the everything plan',
       priceMonthly: 269,
       priceAnnualMonthly: 224,
@@ -667,8 +667,8 @@ export const C10_SELF_SERVE = {
   },
   recruit: {
     name: 'HQ Recruit',
-    kicker: 'Hiring help - add-on',
-    desc: 'Score CVs, run video and phone interviews, build a shortlist. A metered add-on, paid when you hire.',
+    kicker: 'Hiring add-on',
+    desc: 'Add hiring on top of HQ People - or get it included in HQ Business.',
     bands: [
       { label: 'Light - 1 role', monthly: 40, credits: 500 },
       { label: 'Pro - unlimited roles', monthly: 120, credits: 2000 },
@@ -681,9 +681,9 @@ export const C10_SELF_SERVE = {
     ],
   },
   bundle: {
-    name: 'Complete',
-    kicker: 'HR + hiring, best value',
-    desc: 'Everything in HQ People and HQ Recruit together, at a discount. Most popular.',
+    name: 'HQ Business',
+    kicker: 'HR + hiring',
+    desc: 'HQ People and HQ Recruit together, at a saving. The best-value way to get both.',
     // Reuses the existing solo/business plan ids + Stripe prices.
     solo: { planId: 'solo' as const, label: 'up to 25', monthly: 89, annualTotal: 890 },
     business: { planId: 'business' as const, label: 'up to 150', monthly: 269, annualTotal: 2690 },
