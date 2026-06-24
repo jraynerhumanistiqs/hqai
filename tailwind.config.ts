@@ -40,10 +40,14 @@ const config: Config = {
         accent:           'var(--accent)',
         'accent-hover':   'var(--accent-hover)',
         'accent-soft':    'var(--accent-soft)',
-        // Clay - sparing brand highlight on the public site (citations,
-        // scarcity moments). Always terracotta regardless of scope.
-        clay:             'var(--accent-clay, #D97757)',
-        'clay-soft':      'var(--accent-clay-soft, #F5E5DD)',
+        // Brand accent (Wattle Gold). Token name "clay" kept for the
+        // existing callsites; value repointed in globals.css. Rationed:
+        // CTAs, links, focus, citation signature. `clay-ink` = AA gold
+        // text on light surfaces; `clay-hover` = pill hover.
+        clay:             'var(--accent-clay, #E8B23A)',
+        'clay-hover':     'var(--accent-clay-hover, #D9A52E)',
+        'clay-soft':      'var(--accent-clay-soft, #F7EBCB)',
+        'clay-ink':       'var(--accent-clay-ink, #8A6D12)',
         // Border + decoration
         border:           'var(--border)',
         'border-strong':  'var(--border-strong)',
@@ -75,33 +79,25 @@ const config: Config = {
       },
 
       fontFamily: {
-        sans:    ['var(--font-inter)', 'Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        // Founder reverted Bebas Neue (May 2026 v2). Inter is now used
-        // for EVERYTHING - body, labels, and editorial headlines alike.
-        // The `font-display` and `font-serif` Tailwind tokens both
-        // resolve to Inter so the hundreds of existing
-        // className="font-serif" / className="font-display" callsites
-        // automatically render in Inter at whatever px size they're
-        // already targeting.
-        // The Bebas + Fraunces fonts stay loaded under their --font-bebas
-        // and --font-fraunces variables so a future direction shift
-        // doesn't require re-importing; but no Tailwind token currently
-        // points at them.
-        serif:    ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        display:  ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        bebas:    ['var(--font-bebas)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        // June 2026 frontend-design pass. Geist = body/UI sans (replaces
+        // Inter). Fraunces = editorial display serif, mapped to both the
+        // `display` and `serif` Tailwind tokens so the existing
+        // className="font-display" / "font-serif" headlines upgrade to
+        // the serif automatically. Geist Mono = citations + eyebrows.
+        sans:     ['var(--font-geist-sans)', 'Geist', 'system-ui', 'sans-serif'],
+        serif:    ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
+        display:  ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
         fraunces: ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
         mono:     ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
 
       fontSize: {
-        // Mid-point between Option 2 (marketing) and Option 3 (product)
-        // sizes. Per-theme overrides happen via CSS vars on display/h1
-        // utilities; this base scale is shared.
-        'display': ['56px', { lineHeight: '1.07', letterSpacing: '-0.025em' }],
-        'h1':      ['40px', { lineHeight: '1.10', letterSpacing: '-0.02em' }],
-        'h2':      ['28px', { lineHeight: '1.20', letterSpacing: '-0.015em' }],
-        'h3':      ['20px', { lineHeight: '1.30', letterSpacing: '-0.01em' }],
+        // Serif display scale (Fraunces). Slightly larger + tighter than
+        // the old grotesk scale so the editorial headline carries.
+        'display': ['60px', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
+        'h1':      ['44px', { lineHeight: '1.08', letterSpacing: '-0.018em' }],
+        'h2':      ['32px', { lineHeight: '1.15', letterSpacing: '-0.012em' }],
+        'h3':      ['22px', { lineHeight: '1.30', letterSpacing: '-0.006em' }],
         'body':    ['16px', { lineHeight: '1.55' }],
         'small':   ['14px', { lineHeight: '1.50' }],
         'xs':      ['12px', { lineHeight: '1.45' }],

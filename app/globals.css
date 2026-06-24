@@ -48,9 +48,17 @@
     --accent-hover:      #2A2A2A;
     --accent-soft:       #EDEDE8;
 
-    /* ── Clay (sparing brand highlight - citations, scarcity) ── */
-    --accent-clay:       #D97757;
-    --accent-clay-soft:  #F5E5DD;
+    /* ── Brand accent: Wattle Gold (June 2026 frontend-design pass) ──
+       Replaces the Clay terracotta (which read as the default Claude/
+       Anthropic palette). Wattle = Australia's national colour: warm,
+       optimistic, premium when rare. Token name kept (--accent-clay /
+       Tailwind `clay`) so the existing callsites repaint for free.
+       Rationed hard: CTAs, links, focus, and the citation signature
+       only. `-ink` is the AA-on-light variant for gold TEXT on white. */
+    --accent-clay:       #E8B23A;
+    --accent-clay-hover: #D9A52E;
+    --accent-clay-soft:  #F7EBCB;
+    --accent-clay-ink:   #8A6D12;
 
     /* ── Border (hairlines) ────────────────────────────────── */
     --border:            #E6E5E0;
@@ -114,9 +122,13 @@
     --accent-hover:     #E5E5E3;
     --accent-soft:      #23262B;
 
-    /* Clay stays the brand highlight + primary CTA colour. */
-    --accent-clay:      #D97757;
-    --accent-clay-soft: rgba(217,119,87,0.20);
+    /* Wattle Gold is the brand highlight + primary CTA colour on dark.
+       ~10.8:1 on the near-black bg; pills carry near-black labels
+       (--ink-on-accent above is #111111). */
+    --accent-clay:      #E8B23A;
+    --accent-clay-hover: #F0C44E;
+    --accent-clay-soft: rgba(232,178,58,0.16);
+    --accent-clay-ink:  #0A0A0B;
 
     --border:           #2A2D32;
     --border-strong:    #3D4148;
@@ -148,17 +160,30 @@
     --ink-muted:        #9A9A99;
     --ink-on-accent:    #FFFFFF;
 
-    --accent:           #D97757;
-    --accent-hover:     #C6613F;
-    --accent-soft:      #F5E5DD;
+    /* Primary CTA on the light dashboard is near-black (the intended
+       "Uber" look) - Wattle Gold cannot carry a label legibly on white.
+       Gold lives here as the brand highlight (--accent-clay), mainly on
+       the dark sidebar where it pops, plus tints; gold TEXT on white
+       uses --accent-clay-ink for AA. */
+    --accent:           #111111;
+    --accent-hover:     #2A2A2A;
+    --accent-soft:      #F2F2EF;
+
+    --accent-clay:      #E8B23A;
+    --accent-clay-hover: #D9A52E;
+    --accent-clay-soft: rgba(232,178,58,0.14);
+    --accent-clay-ink:  #8A6D12;
 
     --border:           #E6E5E0;
     --border-strong:    #C9C8C0;
 
-    --danger:           #EF4444;
-    --warning:          #F59E0B;
-    --success:          #22C55E;
-    --info:             #3B82F6;
+    /* Refined semantics (was generic Tailwind #EF4444 / #F59E0B /
+       #22C55E / #3B82F6 - an AI-default tell). Matched to the brand
+       palette. */
+    --danger:           #C5483A;
+    --warning:          #B8770F;
+    --success:          #3D8A5E;
+    --info:             #6A9BCC;
 
     --radius-sm:    4px;
     --radius-md:    6px;
@@ -184,11 +209,17 @@
     --ink-muted:        #6B6B66;
     --ink-on-accent:    #FFFFFF;
 
-    /* Dark variant of product also uses the unified Clay accent so
-       CTAs stay consistent if/when dark mode is enabled. */
-    --accent:           #D97757;
-    --accent-hover:     #C6613F;
-    --accent-soft:      rgba(217,119,87,0.18);
+    /* Dark variant: Wattle Gold carries CTAs (with near-black labels)
+       to stay consistent with the marketing dark theme. */
+    --accent:           #E8B23A;
+    --accent-hover:     #F0C44E;
+    --accent-soft:      rgba(232,178,58,0.18);
+    --ink-on-accent:    #0A0A0B;
+
+    --accent-clay:      #E8B23A;
+    --accent-clay-hover: #F0C44E;
+    --accent-clay-soft: rgba(232,178,58,0.18);
+    --accent-clay-ink:  #0A0A0B;
 
     --border:           #2A2D32;
     --border-strong:    #3D4148;
@@ -206,7 +237,7 @@
     height: 100%;
     background: var(--bg);
     color: var(--ink);
-    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-geist-sans), 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
 }
