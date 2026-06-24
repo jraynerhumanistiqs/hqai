@@ -279,7 +279,7 @@ export default function PricingSection({ onReserve }: Props) {
               <div className="max-w-2xl">
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-clay">Foundation {foundation.cap}</p>
                 <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
-                  Be one of our first {foundation.cap} customers and lock Complete at ${foundation.lockedMonthly}/month for your first 12 months.
+                  Be one of our first {foundation.cap} customers and lock HQ Business at ${foundation.lockedMonthly}/month for your first 12 months.
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-ink-soft">
                   Your rate held for the first year, plus founder Slack and first access to every new module. A 12-month sign-up.

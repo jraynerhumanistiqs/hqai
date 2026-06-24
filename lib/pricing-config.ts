@@ -412,7 +412,7 @@ export const PRICING: PricingShape = {
         stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL',
         stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY',
         includedSummary: [
-          'Everything in the Complete bundle',
+          'Everything in the HQ Business bundle',
           'A dedicated Humanistiqs advisor - the same person every time, with a photo and direct mobile',
           '3 advisor hours a month (on-call advice); extra time at $250/hour',
           'Same-business-day SLA on Slack and email advisory queries',
@@ -443,7 +443,7 @@ export const PRICING: PricingShape = {
         stripePriceIdEnvKeyAnnual: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_ANNUAL',
         stripePriceIdEnvKeyMonthly: 'STRIPE_PRICE_ID_ENTERPRISE_RECRUIT_MONTHLY',
         includedSummary: [
-          'Everything in the Complete bundle',
+          'Everything in the HQ Business bundle',
           'A dedicated Humanistiqs talent advisor running your hiring',
           'Up to 4 active roles concurrent (typical throughput 50 closures/year)',
           'Weekly role-status calls with the hiring manager (30 min per role)',

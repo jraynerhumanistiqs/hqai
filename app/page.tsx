@@ -53,7 +53,7 @@ const jsonLd = {
       description: DESCRIPTION,
       offers: [
         { '@type': 'Offer', name: 'HQ People', price: '59',  priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '59',  priceCurrency: 'AUD', unitText: 'MONTH' } },
-        { '@type': 'Offer', name: 'Complete (HR + hiring)', price: '89', priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '89', priceCurrency: 'AUD', unitText: 'MONTH' } },
+        { '@type': 'Offer', name: 'HQ Business (HR + hiring)', price: '89', priceCurrency: 'AUD', priceSpecification: { '@type': 'UnitPriceSpecification', price: '89', priceCurrency: 'AUD', unitText: 'MONTH' } },
       ],
     },
   ],

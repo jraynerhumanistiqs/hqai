@@ -26,7 +26,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it cost?',
-    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the Complete bundle - $89 a month for a small team, $269 for a bigger one. Every plan has a 14-day free trial, no card, unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
+    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has a 14-day free trial, no card, unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
   },
   {
     q: 'Do you offer a dedicated advisor?',
