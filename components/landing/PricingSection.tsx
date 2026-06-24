@@ -292,7 +292,7 @@ export default function PricingSection({ onReserve }: Props) {
               </div>
               <Link
                 href={`/signup?plan=business&cycle=annual&foundation=1`}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Reserve a Foundation slot -&gt;
               </Link>

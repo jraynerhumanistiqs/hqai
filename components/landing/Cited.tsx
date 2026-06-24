@@ -52,8 +52,13 @@ export default function Cited({ statute, children }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // Wrapper is `inline` (not inline-block) so the phrase flows with the
+  // sentence and trailing punctuation stays attached - an inline-block
+  // here orphans a following "." onto its own line. `relative` still
+  // anchors the popover. The gold underline alone marks the citation; the
+  // old superscript glyph scaled badly at display sizes, so it is gone.
   return (
-    <span ref={wrapRef} className="relative inline-block whitespace-nowrap">
+    <span ref={wrapRef} className="relative inline">
       <button
         type="button"
         aria-describedby={open ? id : undefined}
@@ -63,12 +68,9 @@ export default function Cited({ statute, children }: Props) {
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
-        className="group cursor-help whitespace-normal rounded-sm font-[inherit] text-[inherit] leading-[inherit] text-clay underline decoration-clay decoration-2 underline-offset-[6px] transition-colors hover:text-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+        className="group cursor-help rounded-sm font-[inherit] text-[inherit] leading-[inherit] text-clay underline decoration-clay decoration-2 underline-offset-[6px] transition-colors hover:text-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
       >
         {children}
-        <sup aria-hidden className="ml-0.5 align-super font-mono text-[0.6em] text-clay">
-          &dagger;
-        </sup>
       </button>
 
       {/* Citation popover - styled like the product citation chip. */}

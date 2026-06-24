@@ -85,11 +85,10 @@ export default function HeroSection() {
           >
             HR and hiring are complicated. With HQ.ai, every{' '}
             {stage >= 3 ? (
-              <Cited statute="s 117 Fair Work Act 2009">answer cites the law</Cited>
+              <Cited statute="s 117 Fair Work Act 2009">answer cites the law.</Cited>
             ) : (
-              <span className="text-clay">answer cites the law</span>
+              <span className="text-clay">answer cites the law.</span>
             )}
-            .
           </h1>
           <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
             AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $59/month. Cancel any time.
