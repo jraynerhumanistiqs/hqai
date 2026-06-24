@@ -240,34 +240,33 @@ export default function PricingSection({ onReserve }: Props) {
               See HR365 and RECRUIT365 -&gt;
             </Link>
 
-            {/* Conceptual graphic - a dedicated human advisor on call, backed by AI */}
+            {/* Conceptual graphic - a real one-to-one between your advisor and you, AI quietly doing the admin */}
             <div className="mt-auto pt-8">
               <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden role="img">
-                {/* advisor with headset */}
+                {/* the two people, leaning in toward each other - a genuine conversation */}
                 <g className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="70" cy="56" r="19" />
-                  <path d="M40 102c0-16.5 13.5-30 30-30s30 13.5 30 30" />
-                  <path d="M49 56a21 21 0 0 1 42 0" />
-                  <rect x="44" y="54" width="8" height="15" rx="3.5" />
-                  <rect x="88" y="54" width="8" height="15" rx="3.5" />
-                  <path d="M92 69v5a9 9 0 0 1-9 9h-7" />
+                  {/* your dedicated advisor (left) */}
+                  <circle cx="64" cy="74" r="16" />
+                  <path d="M40 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
+                  {/* you (right), turned toward them */}
+                  <circle cx="150" cy="74" r="16" />
+                  <path d="M126 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
                 </g>
-                {/* on-call signal waves */}
-                <g className="text-clay" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none">
-                  <path d="M108 46a16 16 0 0 1 0 22" />
-                  <path d="M117 39a27 27 0 0 1 0 36" opacity="0.5" />
+                {/* warmth between them - a shared speech bubble with a heart, personal and approachable */}
+                <g className="text-clay" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                  <path d="M88 38h38a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8h-19l-9 8v-8h-1a8 8 0 0 1-8-8V46a8 8 0 0 1 8-8z" />
                 </g>
-                {/* connection */}
-                <path d="M150 92h52" className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 9" />
-                {/* AI node */}
-                <g className="text-clay">
-                  <rect x="200" y="64" width="56" height="56" rx="15" stroke="currentColor" strokeWidth="2.2" fill="none" />
-                  <path d="M228 76l4.5 10 10 4.5-10 4.5-4.5 10-4.5-10-10-4.5 10-4.5z" fill="currentColor" />
-                  <circle cx="246" cy="74" r="2.5" fill="currentColor" opacity="0.6" />
+                {/* a small heart inside the bubble - approachable, personal */}
+                <path d="M107 49c-2.6-3.6-9-3-9 2 0 3.5 4.6 6.4 9 9.4 4.4-3 9-5.9 9-9.4 0-5-6.4-5.6-9-2z" className="text-clay" fill="currentColor" stroke="none" />
+                {/* AI, off to the side, quietly handling the admin */}
+                <g className="text-ink-muted">
+                  <rect x="218" y="92" width="40" height="40" rx="11" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7" />
+                  <path d="M238 100l3.2 7 7 3.2-7 3.2-3.2 7-3.2-7-7-3.2 7-3.2z" fill="currentColor" opacity="0.7" />
                 </g>
+                <path d="M180 112h32" className="text-ink-muted" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="1 8" opacity="0.7" />
               </svg>
               <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-                A dedicated advisor, on call - with the AI doing the admin.
+                One advisor who knows you - the AI just does the admin.
               </p>
             </div>
           </aside>
