@@ -209,11 +209,11 @@ export const PRICING: PricingShape = {
     },
     {
       id: 'business',
-      name: 'Business',
-      tagline: 'Replace your $850/mo Employsure retainer',
-      priceMonthly: 249,
-      priceAnnualMonthly: 207,
-      priceAnnualTotal: 2490,
+      name: 'Business Complete',
+      tagline: 'HR and hiring together - the everything plan',
+      priceMonthly: 269,
+      priceAnnualMonthly: 224,
+      priceAnnualTotal: 2690,
       currency: 'AUD',
       seats: 15,
       includedCredits: 2500,
@@ -332,10 +332,10 @@ export const PRICING: PricingShape = {
     enabled: true,
     cap: 100,
     tierId: 'business',
-    lockedMonthly: 179,
+    lockedMonthly: 189,
     requiresAnnualCommit: true,
     perks: [
-      'Lifetime-locked $179/mo (saving $840/yr)',
+      'Lifetime-locked $189/mo (saving over $950/yr)',
       'Founder Slack and monthly cohort call',
       'First access to all new modules',
       'Named on the Foundation 100 wall',
@@ -400,11 +400,11 @@ export const PRICING: PricingShape = {
     variants: [
       {
         id: 'enterprise-people',
-        name: 'HQ People Enterprise',
-        tagline: 'A named Humanistiqs Advisor on the line for the hard 20% of HR.',
-        priceMonthlyDisplay: 1495,
-        priceAnnualTotal: 17940,
-        priceMonthlyRolling: 1795,
+        name: 'HR365',
+        tagline: 'A named Humanistiqs HR advisor on call. Preset on-call advice; the AI does the admin.',
+        priceMonthlyDisplay: 799,
+        priceAnnualTotal: 9588,
+        priceMonthlyRolling: 950,
         monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
@@ -431,11 +431,11 @@ export const PRICING: PricingShape = {
       },
       {
         id: 'enterprise-recruit',
-        name: 'HQ Recruit Enterprise',
-        tagline: 'A Talent Partner running your hiring funnel. Not a recruiter, not an agency.',
-        priceMonthlyDisplay: 2995,
-        priceAnnualTotal: 35940,
-        priceMonthlyRolling: 3495,
+        name: 'Recruit365',
+        tagline: 'A named Humanistiqs talent advisor on call for your hiring. The AI does the admin.',
+        priceMonthlyDisplay: 899,
+        priceAnnualTotal: 10788,
+        priceMonthlyRolling: 1070,
         monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
@@ -463,11 +463,11 @@ export const PRICING: PricingShape = {
       },
       {
         id: 'enterprise-full',
-        name: 'Full Enterprise',
-        tagline: 'People and Recruit. One partner team. The operating layer for both functions.',
-        priceMonthlyDisplay: 3995,
-        priceAnnualTotal: 47940,
-        priceMonthlyRolling: 4495,
+        name: 'HR365 + Recruit365',
+        tagline: 'Both advisors, one team. HR and hiring on call, with the AI doing the admin.',
+        priceMonthlyDisplay: 1599,
+        priceAnnualTotal: 19188,
+        priceMonthlyRolling: 1899,
         monthlyRollingNoticePeriodDays: 30,
         currency: 'AUD',
         contractTermMonths: 12,
@@ -635,3 +635,63 @@ export function computeEnterprisePrice(inputs: EnterpriseQuoteInputs): Enterpris
 }
 
 export type PricingTierId = PricingTier['id']
+
+// -------------------------------------------------------------------------
+// C10 self-serve model (June 2026). Source: docs/research/2026-06-23_pricing-
+// deep-analysis.md Section 12. Splits the self-serve products so the
+// HR-only buyer gets a cheaper door and the expensive hiring usage is a
+// metered add-on. The BUNDLE reproduces today's $89 / $269 anchors and
+// reuses the existing 'solo' / 'business' plan ids for checkout (so the
+// Stripe/webhook/settings plumbing is unchanged). Standalone HQ People and
+// HQ Recruit checkout SKUs are a follow-up - until those Stripe products
+// exist, all three start on the same no-card 14-day trial.
+// -------------------------------------------------------------------------
+
+export interface C10Band { label: string; monthly: number; annualTotal?: number; credits: number }
+
+export const C10_SELF_SERVE = {
+  people: {
+    name: 'HQ People',
+    kicker: 'HR help',
+    desc: 'The AI HR advisor, 33 documents and award help. The everyday HR product, used all year.',
+    bands: [
+      { label: 'up to 25', monthly: 59, annualTotal: 590, credits: 400 },
+      { label: 'up to 150', monthly: 179, annualTotal: 1790, credits: 1500 },
+    ] as C10Band[],
+    features: [
+      'AI HR advisor with Fair Work citations',
+      '33 HR document templates',
+      'Award interpreter',
+      'Unlimited logins',
+    ],
+  },
+  recruit: {
+    name: 'HQ Recruit',
+    kicker: 'Hiring help - add-on',
+    desc: 'Score CVs, run video and phone interviews, build a shortlist. A metered add-on, paid when you hire.',
+    bands: [
+      { label: 'Light - 1 role', monthly: 40, credits: 500 },
+      { label: 'Pro - unlimited roles', monthly: 120, credits: 2000 },
+    ] as C10Band[],
+    features: [
+      'CV scoring with evidence',
+      'Video + phone interviews',
+      'Campaign Coach job ads',
+      'Pay only when you hire',
+    ],
+  },
+  bundle: {
+    name: 'Complete',
+    kicker: 'HR + hiring, best value',
+    desc: 'Everything in HQ People and HQ Recruit together, at a discount. Most popular.',
+    // Reuses the existing solo/business plan ids + Stripe prices.
+    solo: { planId: 'solo' as const, label: 'up to 25', monthly: 89, annualTotal: 890 },
+    business: { planId: 'business' as const, label: 'up to 150', monthly: 269, annualTotal: 2690 },
+    features: [
+      'Everything in HQ People',
+      'Everything in HQ Recruit',
+      'Unlimited recruit roles (Business)',
+      'Founder-led onboarding (Business)',
+    ],
+  },
+}

@@ -6,9 +6,9 @@ import MarketingFooter from '@/components/landing/MarketingFooter'
 import PricingPageClient from '@/components/landing/PricingPageClient'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai pricing - from $89/month, or one document from $25',
+  title: 'HQ.ai pricing - HR from $89/mo, or one document from $25',
   description:
-    'Simple Australian pricing for small business HR and recruitment. Solo $89/mo, Business $249/mo, Foundation 100 lock-in, or buy one HR document from $25 with no subscription. 14-day free trial, no card.',
+    'Simple Australian pricing for small business HR and recruitment. Pick HR help, hiring help, or both: HQ People from $59/mo, the Complete bundle $89-$269/mo, or buy one HR document from $25 with no subscription. 14-day free trial, no card.',
   alternates: { canonical: '/pricing' },
   robots: { index: true, follow: true },
 }

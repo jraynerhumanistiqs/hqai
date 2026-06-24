@@ -65,10 +65,7 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
           Annual saves ${annualSavingVsMonthly}/yr over month-to-month
         </p>
         <p className="text-[11px] text-ink-muted">
-          Plus uplifts for headcount / volume / entity complexity.{' '}
-          <a href="#pricing-flexes" className="font-medium text-ink underline hover:text-accent">
-            See How pricing flexes below.
-          </a>
+          Extra advisor time $250/hour. Need more hours? Tailored to your needs - book a call.
         </p>
       </div>
 
@@ -119,7 +116,7 @@ export default function EnterpriseVariantCard({ variant, highlight = false, high
           className={[
             'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors',
             highlight
-              ? 'bg-clay text-white hover:opacity-90'
+              ? 'bg-clay text-ink-on-accent hover:opacity-90'
               : 'border border-border text-ink hover:bg-bg-soft',
           ].join(' ')}
         >
