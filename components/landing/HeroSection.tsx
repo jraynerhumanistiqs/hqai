@@ -3,14 +3,12 @@
 // Section 1: hero. June 2026 frontend-design pass.
 //
 // The HQ People chat preview is the star: one orchestrated load reveal
-// runs on mount (eyebrow + headline, then subhead + CTAs, then the chat
-// types a question, the cited answer fades in, the gold citation chip
-// pops, and the headline citation underline draws last). The HQ Recruit
-// scorecard is demoted to a small, quiet secondary tile beneath it.
+// runs on mount (eyebrow + headline, then subhead + CTAs, then the
+// headline outcome underline draws last). The HQ Recruit scorecard is
+// demoted to a small, quiet secondary tile beneath it. The hero surface
+// is a clean dark slab - no watermark texture.
 //
-// A very faint Fair Work s.117 watermark sits behind the copy so the
-// near-black hero is not a flat slab. prefers-reduced-motion renders the
-// final state instantly (no reveal, no typing).
+// prefers-reduced-motion renders the final state instantly (no reveal).
 //
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
@@ -31,10 +29,6 @@ function usePrefersReducedMotion(): boolean {
   }, [])
   return reduced
 }
-
-// Faint legislative watermark - real s.117 text at ~3% opacity, mono.
-const WATERMARK =
-  "An employer must not terminate an employee's employment unless the employer has given the employee written notice of the day of the termination. The notice period is worked out under subsection (3). s 117 Fair Work Act 2009 (Cth). National Employment Standards."
 
 export default function HeroSection() {
   const reduced = usePrefersReducedMotion()
@@ -64,14 +58,6 @@ export default function HeroSection() {
 
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      {/* Faint legislative atmosphere - real s.117 text, ~3% opacity mono. */}
-      <p
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 select-none px-6 pt-10 font-mono text-[13px] uppercase leading-[2.2] tracking-[0.18em] text-ink opacity-[0.03] md:px-10"
-      >
-        {WATERMARK} {WATERMARK}
-      </p>
-
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
         {/* Left: copy block */}
         <div className="max-w-xl">
@@ -83,15 +69,15 @@ export default function HeroSection() {
             id="hero-heading"
             className={`font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px] ${reveal(stage >= 1)}`}
           >
-            HR and hiring are complicated. With HQ.ai, every{' '}
+            HR and hiring are complicated. HQ.ai takes the{' '}
             {stage >= 3 ? (
-              <Cited statute="s 117 Fair Work Act 2009">answer cites the law.</Cited>
+              <Cited note="From question to finished document in about three minutes.">busywork off your plate.</Cited>
             ) : (
-              <span className="text-clay">answer cites the law.</span>
+              <span className="text-clay">busywork off your plate.</span>
             )}
           </h1>
           <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
-            AI for the everyday HR and hiring questions, grounded in the Fair Work Act and your award - and a real advisor when you need one. From $59/month. Cancel any time.
+            AI that handles the everyday people and hiring jobs - the questions, the admin, the documents - so the work that used to eat half a day takes three minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
           </p>
 
           <div className={`mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 ${reveal(stage >= 2)}`}>

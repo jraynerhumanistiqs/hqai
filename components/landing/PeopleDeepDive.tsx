@@ -11,7 +11,7 @@ export default function PeopleDeepDive() {
             <div className="flex items-center gap-2 border-b border-border pb-3">
               <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
               <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">
-                HQ People - AI Advisor
+                HQ People - AI Assistant
               </span>
             </div>
 
@@ -36,12 +36,10 @@ export default function PeopleDeepDive() {
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-accent bg-bg-elevated px-2.5 py-1 text-[10px] font-medium text-accent">
                 <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
-                  <path
-                    fill="currentColor"
-                    d="M6 1l1.5 3 3.3.5-2.4 2.3.6 3.3L6 8.5l-3 1.6.6-3.3L1.2 4.5l3.3-.5z"
-                  />
+                  <circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M6 3.4V6l1.7 1" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Cited: s 117 Fair Work Act 2009
+                Answered in seconds
               </div>
             </div>
           </div>
@@ -65,10 +63,10 @@ export default function PeopleDeepDive() {
               Notice periods. Probation. Casual conversion. Flexible-work requests. The right award. The 30-odd questions every small-business owner faces in a year, answered in plain English.
             </p>
             <p>
-              Every answer shows where it comes from - the Fair Work Act or your award. You see the proof. You decide.
+              Every answer is in plain English with the working shown - so you can see how it got there and decide with confidence.
             </p>
             <p>
-              Need a document? It writes contracts, warnings, offer letters and more - 33 in all - with your logo on them, in an editor that feels just like Word.
+              Need a document? It writes contracts, warnings, offer letters and more - every HR document you are likely to need - with your logo on them, in an editor that feels just like Word.
             </p>
           </div>
         </div>

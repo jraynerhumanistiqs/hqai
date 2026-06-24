@@ -10,7 +10,7 @@ export default function FooterCta() {
           Three minutes. No credit card. Better decisions today.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base text-ink-soft md:text-lg">
-          You&apos;ll have your first HR answer cited, your first document drafted, and your team set up before the kettle boils.
+          You&apos;ll have your first HR question answered, your first document drafted, and your team set up before the kettle boils.
         </p>
         <div className="mt-8">
           <Link
@@ -22,7 +22,7 @@ export default function FooterCta() {
         </div>
 
         <div className="mt-14 border-t border-border pt-6 text-sm text-ink-muted">
-          Built on the Fair Work Act and all 122 awards. Hosted in Sydney. Made in Australia.
+          Built for Australian workplaces. Hosted in Sydney. Made in Australia.
         </div>
       </div>
     </section>

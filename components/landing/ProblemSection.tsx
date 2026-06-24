@@ -7,7 +7,7 @@ export default function ProblemSection() {
     {
       topic: 'People decisions',
       without: 'Googling for an hour, then second-guessing the answer anyway.',
-      with: 'The right answer in under a minute, with the law to back it up.',
+      with: 'The right answer in under a minute, in plain English.',
     },
     {
       topic: 'Hiring',

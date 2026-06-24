@@ -66,11 +66,11 @@ export default function FounderNote() {
             recruitment and business performance.
           </p>
           <p>
-            For years we answered the same Fair Work questions for small businesses - and watched them
-            either overpay for a locked-in retainer or guess their way through a 600-page Award. So we
-            built the tool we wished they had: AI grounded in the actual legislation that cites its
-            sources, with a real advisor on hand when the stakes are high. We only do Australian
-            employment law - the Fair Work Act, the NES, and the Modern Awards.
+            For years we answered the same questions for small businesses - and watched them either
+            overpay for a locked-in retainer or guess their way through a 600-page Award. So we built
+            the tool we wished they had: AI that handles the everyday people work in minutes, with a
+            real advisor on hand when the stakes are high. We only do Australian workplaces - no
+            overseas clutter.
           </p>
           <p className="text-ink">
             If the AI ever gets something wrong, you reply to a human - not a ticket queue.

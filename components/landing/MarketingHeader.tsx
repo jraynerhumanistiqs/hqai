@@ -27,8 +27,9 @@ function useMarketingScope() {
 }
 
 const PRODUCTS = [
-  { label: 'HQ People', href: '/product/people', blurb: 'AI HR advisor that cites the law' },
+  { label: 'HQ People', href: '/product/people', blurb: 'AI HR help for the everyday people questions' },
   { label: 'HQ Recruit', href: '/product/recruit', blurb: 'Score CVs, pre-screen, shortlist' },
+  { label: 'Document Marketplace', href: '/marketplace', blurb: 'Buy individual HR documents, pay as you go' },
   { label: 'Outsourced HR & Recruitment', href: '/enterprise', blurb: 'A dedicated advisor on call - HR365 & Recruit365' },
 ]
 

@@ -18,7 +18,7 @@ export default function ProductPillars() {
           Answers, documents, and hiring - all sorted.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          HQ People handles your staff. HQ Recruit handles your hiring. Both know Australian workplace law, so you never have to read the fine print.
+          HQ People handles your staff. HQ Recruit handles your hiring. Both built for Australian workplaces, so you never have to wade through the fine print yourself.
         </p>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -35,11 +35,11 @@ export default function ProductPillars() {
             <ul className="mt-7 space-y-3 text-sm text-ink-soft">
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Answers built on Australian workplace law</span>
+                <span>Clear answers to your everyday HR questions</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>33 ready-to-use HR documents</span>
+                <span>A full library of ready-to-use HR documents</span>
               </li>
               <li className="flex items-start gap-3">
                 <Tick />

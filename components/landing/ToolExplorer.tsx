@@ -24,12 +24,18 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
+interface ToolItem {
+  name: string
+  desc: string
+}
+
 interface Tab {
   id: string
   tag: string
   title: string
   desc: string
   bullets: string[]
+  tools: ToolItem[]
   cta: { label: string; href: string }
 }
 
@@ -38,11 +44,16 @@ const TABS: Tab[] = [
     id: 'people',
     tag: 'HQ People',
     title: 'Answers to any HR question, in plain English.',
-    desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute - and it shows you the law it used.',
+    desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute, in plain English.',
     bullets: [
-      'Built on the Fair Work Act and your award',
-      'Writes 33 HR documents, filled in with your details',
+      'Clear answers to your everyday HR questions',
+      'Drafts every HR document you are likely to need',
       'A real human advisor steps in when it gets tricky',
+    ],
+    tools: [
+      { name: 'AI Assistant chat', desc: 'Plain-English answers to your everyday people questions.' },
+      { name: 'AI Administrator', desc: 'Drafts the documents you need - offer letters, contracts, warnings, performance plans, policies - filled in with your details.' },
+      { name: 'A real advisor on call', desc: 'HR365 steps in for the hard calls, with the same person every time.' },
     ],
     cta: { label: 'See HQ People', href: '/product/people' },
   },
@@ -50,11 +61,17 @@ const TABS: Tab[] = [
     id: 'recruit',
     tag: 'HQ Recruit',
     title: 'Score a pile of CVs in minutes, not hours.',
-    desc: 'Set what the job needs and the AI scores every CV the same way, with the proof pulled straight from the page. Then run quick interviews and share a clean shortlist.',
+    desc: 'Set what the job needs and the AI scores every CV the same way. Then run quick interviews and share a clean shortlist.',
     bullets: [
       'Score every CV against what the job needs',
       'Video and phone interviews from one link',
       'Hides names and photos to keep hiring fair',
+    ],
+    tools: [
+      { name: 'CV scoring', desc: 'Rank every applicant against the role, the same way.' },
+      { name: 'Video + phone pre-screen', desc: 'Candidates answer on their own time, from one link.' },
+      { name: 'Shortlist + share', desc: 'Send a clean shortlist straight to the decision maker.' },
+      { name: 'Campaign Coach', desc: 'Writes the job ad for you, ready for SEEK.' },
     ],
     cta: { label: 'See HQ Recruit', href: '/product/recruit' },
   },
@@ -64,11 +81,16 @@ const TABS: Tab[] = [
     title: 'Just need one document today? From $25.',
     desc: 'No subscription. Pick the document you need, answer a few questions, and it is ready to sign in three minutes.',
     bullets: [
-      'One-off HR documents from $25',
+      'One-off documents from $25',
       'Done right, with your details filled in',
-      'No card needed until it launches',
+      'No subscription needed',
     ],
-    cta: { label: 'See the documents', href: '#marketplace' },
+    tools: [
+      { name: 'One-off documents from $25', desc: 'Offer letters, contracts, warnings and more, no subscription.' },
+      { name: 'Answer a few questions', desc: 'We fill in your details and have it ready in three minutes.' },
+      { name: 'Pay only for what you need', desc: 'Buy a single document today, come back whenever.' },
+    ],
+    cta: { label: 'Browse the document marketplace', href: '/marketplace' },
   },
 ]
 
@@ -165,6 +187,25 @@ export default function ToolExplorer() {
                 </li>
               ))}
             </ul>
+
+            {/* The key tools in this product, one line each - a lighter
+                version of the product page. */}
+            <div className="mt-7 rounded-2xl border border-border bg-bg-soft p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                What is inside
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {tab.tools.map((t) => (
+                  <li key={t.name} className="flex items-start gap-2.5">
+                    <Tick />
+                    <span className="text-sm leading-snug text-ink-soft">
+                      <strong className="font-semibold text-ink">{t.name}.</strong> {t.desc}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <Link
               href={tab.cta.href}
               className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
@@ -242,7 +283,7 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
           ].join(' ')}
         >
           <p className="text-xs leading-relaxed text-ink">
-            Yes, with notice. Usually one week if they have been with you under a year. Check your award for anything extra.
+            Yes, with notice. Usually one week if they have been with you under a year. Your award may add to that - we will flag it.
           </p>
           <div
             className={[
@@ -251,9 +292,10 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
             ].join(' ')}
           >
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
-              <path fill="currentColor" d="M6 1l1.5 3 3.3.5-2.4 2.3.6 3.3L6 8.5l-3 1.6.6-3.3L1.2 4.5l3.3-.5z" />
+              <circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" strokeWidth="1" />
+              <path d="M6 3.4V6l1.7 1" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Cited: s 117 Fair Work Act 2009
+            Answered in seconds
           </div>
         </div>
       </div>

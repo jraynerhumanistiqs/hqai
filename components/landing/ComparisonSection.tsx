@@ -23,7 +23,7 @@ export default function ComparisonSection() {
           Don&apos;t lock into a multi-year contract for support you barely use.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-          The same HR and hiring support, grounded in Australian employment law. A fraction of the price. Cancel any time.
+          The same everyday HR and hiring support, minus the lock-in and the wait. A fraction of the price. Cancel any time.
         </p>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
@@ -57,7 +57,7 @@ export default function ComparisonSection() {
               </tr>
               <tr>
                 <th scope="row" className="px-5 py-4 font-medium text-ink">
-                  Every answer <Cited statute="s 117 Fair Work Act 2009">cites the law</Cited>
+                  <Cited note="The admin and the documents, done for you - not just pointed at.">Handles the admin and the documents</Cited>
                 </th>
                 <td className="px-5 py-4 font-semibold text-ink">Yes</td>
                 <td className="px-5 py-4 text-ink-soft">Sometimes</td>

@@ -14,15 +14,15 @@ import LandingPage from '@/components/landing/LandingPage'
 export const dynamic = 'force-dynamic'
 
 const DESCRIPTION =
-  'The AI HR advisor built on the Fair Work Act, the NES, and your Modern Award. Cites every answer, helps you hire, and hands off to a human when it matters. For Australian businesses under 250 staff.'
+  'AI that takes the busywork out of HR and hiring for Australian small business. Answers the everyday questions, drafts the documents, and hands off to a real advisor when it matters. For businesses under 250 staff.'
 
 export const metadata = {
-  title: 'HQ.ai - AI HR and hiring, built on the Fair Work Act',
+  title: 'HQ.ai - AI that takes the grunt work out of HR and hiring',
   description: DESCRIPTION,
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'HQ.ai - AI HR and hiring, built on the Fair Work Act',
+    title: 'HQ.ai - AI that takes the grunt work out of HR and hiring',
     description: DESCRIPTION,
     url: '/',
     siteName: 'HQ.ai',

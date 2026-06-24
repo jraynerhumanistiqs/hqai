@@ -22,7 +22,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Can I trust the AI on real decisions?',
-    a: 'Every answer shows where it comes from - the exact Fair Work Act section or your award - so you can check it yourself. And when it gets tricky, the same real advisor steps in. You never repeat yourself.',
+    a: 'Every answer is in plain English with the working shown, so you can sanity-check it yourself. And when it gets tricky, the same real advisor steps in - you never repeat yourself.',
   },
   {
     q: 'What does it cost?',

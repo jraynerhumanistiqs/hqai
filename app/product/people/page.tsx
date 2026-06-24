@@ -9,27 +9,27 @@ import FooterCta from '@/components/landing/FooterCta'
 import Cited from '@/components/landing/Cited'
 
 export const metadata: Metadata = {
-  title: 'HQ People - the AI HR advisor that cites the Fair Work Act',
+  title: 'HQ People - AI that handles your everyday HR work',
   description:
-    'Ask any HR question and get an answer grounded in the Fair Work Act, the NES, and your Modern Award - with the section cited. Draft 33 HR documents, and hand off to a real advisor when it matters.',
+    'Ask any HR question and get a clear answer in plain English, draft the documents you need, and hand off to a real advisor when it matters.',
   alternates: { canonical: '/product/people' },
   robots: { index: true, follow: true },
 }
 
 const FEATURES = [
   {
-    t: 'Answers you can check',
+    t: 'Answers in plain English',
     d: (
       <>
-        Every answer points to{' '}
-        <Cited statute="s 117 Fair Work Act 2009">the Fair Work Act</Cited> or your award, so you can
-        see exactly where it came from.
+        Ask the everyday people question and get{' '}
+        <Cited note="A clear answer to the everyday people question, ready to act on.">a clear answer you can act on</Cited>, with the working shown
+        so you know how it got there.
       </>
     ),
     icon: CheckIcon,
   },
   {
-    t: '33 documents, written for you',
+    t: 'The documents, written for you',
     d: 'Offer letters, warnings, performance plans, contracts and more - filled in with your details, ready to send.',
     icon: DocumentIcon,
   },
@@ -46,9 +46,9 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '33', label: 'HR documents drafted for you' },
-  { value: '30 sec', label: 'to a cited answer' },
-  { value: '122', label: 'Australian awards covered' },
+  { value: '3 min', label: 'to a finished HR document' },
+  { value: '30 sec', label: 'to a clear answer' },
+  { value: 'Every', label: 'Australian industry covered' },
 ]
 
 export default function ProductPeoplePage() {
@@ -63,12 +63,11 @@ export default function ProductPeoplePage() {
             HQ People
           </p>
           <h1 className="mx-auto max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
-            An HR advisor that cites the law.
+            An HR assistant that does the everyday work for you.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-            Ask anything about your staff, pay or the rules. HQ People answers in plain English, shows you
-            the exact law it used, writes the document, and hands you to a real human when the stakes
-            are high.
+            Ask anything about your staff, pay or the rules. HQ People answers in plain English, drafts
+            the document, and hands you to a real human when the stakes are high.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
@@ -111,7 +110,7 @@ export default function ProductPeoplePage() {
               Everything HQ People does for you.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-              The everyday HR work, taken off your plate - with the law to back up every call.
+              The everyday HR work, taken off your plate - the questions answered, the documents drafted.
             </p>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-2 md:gap-6">

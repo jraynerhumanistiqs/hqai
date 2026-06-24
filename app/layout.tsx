@@ -1,20 +1,18 @@
 import type { Metadata } from 'next'
-import { Fraunces, Geist, Geist_Mono } from 'next/font/google'
+import { Schibsted_Grotesk, Geist, Geist_Mono } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
-// Typography (June 2026 frontend-design pass). The site previously
-// shipped Inter for everything (the single most over-used AI-SaaS
-// typeface) with Fraunces + Bebas Neue downloaded but unused. We now run
-// a deliberate, distinctive pairing:
-//   - Fraunces  -> editorial display serif (headlines only). Warm,
-//     considered, "real humans behind the AI". --font-fraunces, mapped
-//     to the `display` + `serif` Tailwind tokens.
-//   - Geist     -> humanist body/UI sans, more legible on dark than the
-//     old setup and decidedly not-Inter. --font-geist-sans, mapped to
-//     `sans` (the body default).
-//   - Geist Mono -> statute citations + eyebrow labels (the "evidence"
-//     voice). --font-geist-mono, mapped to `mono`.
+// Typography (June 2026 repositioning pass). The display face moved off
+// Fraunces (a literary serif that read "law journal / editorial
+// authority") to a confident, friendly grotesque - matching the new
+// positioning: take the busywork out of HR and hiring for busy operators,
+// not "cite the law".
+//   - Schibsted Grotesk -> display/headlines. Warm humanist grotesque,
+//     plain-spoken and approachable, distinctive (not Inter/Roboto).
+//     --font-display, mapped to the `display` + `serif` Tailwind tokens.
+//   - Geist      -> humanist body/UI sans (kept). --font-geist-sans -> `sans`.
+//   - Geist Mono -> caption/eyebrow micro-labels (kept). --font-geist-mono.
 // All self-hosted via next/font/google (woff2, no layout-blocking).
 const geistSans = Geist({
   subsets: ['latin'],
@@ -28,9 +26,10 @@ const geistMono = Geist_Mono({
   display: 'swap',
 })
 
-const fraunces = Fraunces({
+const schibsted = Schibsted_Grotesk({
   subsets: ['latin'],
-  variable: '--font-fraunces',
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -51,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // A0.4 - lang="en-AU" so screen readers, date pickers and currency
     // formatters use Australian conventions.
-    <html lang="en-AU" className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}>
+    <html lang="en-AU" className={`${geistSans.variable} ${geistMono.variable} ${schibsted.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </head>

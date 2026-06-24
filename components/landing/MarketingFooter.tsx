@@ -10,6 +10,7 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     links: [
       { label: 'HQ People', href: '/product/people' },
       { label: 'HQ Recruit', href: '/product/recruit' },
+      { label: 'Document Marketplace', href: '/marketplace' },
       { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Pay-as-you-go documents', href: '/#marketplace' },
@@ -95,11 +96,11 @@ export default function MarketingFooter() {
           <div className="max-w-sm">
             <p className="font-display text-lg font-bold tracking-tight text-ink">HQ.ai</p>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              AI for the everyday HR and hiring questions, built on the Fair Work Act and your award.
+              AI that takes the busywork out of HR and hiring for Australian small business.
               A Humanistiqs product.
             </p>
             <p className="mt-4 text-xs leading-relaxed text-ink-muted">
-              Built on the Fair Work Act and all 122 awards. Hosted in Sydney. Made in Australia.
+              Built for Australian workplaces. Hosted in Sydney. Made in Australia.
             </p>
 
             {/* Social row */}
@@ -161,7 +162,7 @@ export default function MarketingFooter() {
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {2026} Rayner Consulting Group Pty Ltd, trading as Humanistiqs. All rights reserved.</p>
-          <p>Australian employment law only - Fair Work Act, the national standards, and your award.</p>
+          <p>Built for Australian workplaces only - no overseas clutter.</p>
         </div>
       </div>
     </footer>

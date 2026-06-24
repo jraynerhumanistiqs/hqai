@@ -196,8 +196,8 @@ export const PRICING: PricingShape = {
       stripePriceIdMonthly: 'STRIPE_PRICE_ID_SOLO_MONTHLY',
       stripePriceIdAnnual: 'STRIPE_PRICE_ID_SOLO_ANNUAL',
       features: [
-        'AI HR Advisor with Fair Work citations',
-        '33 HR document templates',
+        'AI HR assistant for everyday questions',
+        'A full HR document library',
         'HQ Recruit (1 active role)',
         'Document library (100 docs)',
         '500 AI credits/month',
@@ -244,7 +244,7 @@ export const PRICING: PricingShape = {
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_LETTER_OF_OFFER',
       noSignupRequired: true,
-      description: 'Fair Work compliant offer letter, drafted from your inputs, in 3 minutes.',
+      description: 'A professionally written offer letter, drafted from your details, in 3 minutes.',
     },
     {
       id: 'termination-letter',
@@ -262,7 +262,7 @@ export const PRICING: PricingShape = {
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_EMPLOYMENT_CONTRACT',
       noSignupRequired: true,
-      description: 'Full-time, part-time or casual - award-aligned, NES-compliant.',
+      description: 'Full-time, part-time or casual - written to suit the role, with your details filled in.',
     },
     {
       id: 'first-and-final-warning',
@@ -280,7 +280,7 @@ export const PRICING: PricingShape = {
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_POSITION_DESCRIPTION',
       noSignupRequired: true,
-      description: 'A clean role description with classification and responsibilities mapped.',
+      description: 'A clean role description with the duties and responsibilities mapped out.',
     },
     {
       id: 'performance-plan',
@@ -653,14 +653,14 @@ export const C10_SELF_SERVE = {
   people: {
     name: 'HQ People',
     kicker: 'HR help',
-    desc: 'The AI HR advisor, 33 documents and award help. The everyday HR product, used all year.',
+    desc: 'The AI HR assistant, a full document library and the everyday HR jobs handled. The everyday HR product, used all year.',
     bands: [
       { label: 'up to 25', monthly: 59, annualTotal: 590, credits: 400 },
       { label: 'up to 150', monthly: 179, annualTotal: 1790, credits: 1500 },
     ] as C10Band[],
     features: [
-      'AI HR advisor with Fair Work citations',
-      '33 HR document templates',
+      'AI HR assistant for everyday questions',
+      'A full HR document library',
       'Award interpreter',
       'Unlimited logins',
     ],

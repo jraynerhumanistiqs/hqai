@@ -79,15 +79,17 @@ const config: Config = {
       },
 
       fontFamily: {
-        // June 2026 frontend-design pass. Geist = body/UI sans (replaces
-        // Inter). Fraunces = editorial display serif, mapped to both the
-        // `display` and `serif` Tailwind tokens so the existing
-        // className="font-display" / "font-serif" headlines upgrade to
-        // the serif automatically. Geist Mono = citations + eyebrows.
+        // June 2026 repositioning pass. Geist = body/UI sans. Schibsted
+        // Grotesque = display headlines (replaces Fraunces - a friendly
+        // confident grotesque, not a literary serif). Mapped to both the
+        // `display` and `serif` Tailwind tokens (and the legacy `fraunces`
+        // alias) so existing className="font-display"/"font-serif"/
+        // "font-fraunces" headlines all pick up the new face. Geist Mono =
+        // caption/eyebrow micro-labels.
         sans:     ['var(--font-geist-sans)', 'Geist', 'system-ui', 'sans-serif'],
-        serif:    ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
-        display:  ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
-        fraunces: ['var(--font-fraunces)', 'Fraunces', 'Georgia', 'serif'],
+        serif:    ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
+        display:  ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
+        fraunces: ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
         mono:     ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
 

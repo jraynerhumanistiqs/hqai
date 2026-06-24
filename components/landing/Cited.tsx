@@ -1,14 +1,14 @@
 'use client'
 
-// "The Cited Answer" - the marketing site's signature element. Wraps an
-// inline phrase, draws a thin gold underline plus a small superscript
-// dagger marker, and reveals a citation popover on hover, keyboard focus
-// and tap. The popover styling mirrors the real citation chip in
-// HeroChatPreview.tsx (gold border, bg-clay-soft, mono text) so the
-// marketing flourish reads as the actual product feature.
+// "The Done-in-minutes mark" - the marketing site's signature element.
+// Wraps an inline phrase, draws a thin gold underline, and reveals a small
+// outcome popover on hover, keyboard focus and tap. The popover styling
+// mirrors the real speed marker in the product previews (gold border,
+// bg-clay-soft, mono text) so the marketing flourish reads as the actual
+// product feel: the everyday job, done in minutes.
 //
-// Used in EXACTLY four deliberate spots site-wide - keep it rare so it
-// stays the thing the site is remembered by.
+// Used in a few deliberate spots site-wide - keep it rare so it stays the
+// thing the site is remembered by.
 //
 // Accessibility: the wrapper is a real <button> (keyboard reachable),
 // the popover is linked via aria-describedby, it dismisses on blur and
@@ -32,11 +32,12 @@ function usePrefersReducedMotion(): boolean {
 }
 
 interface Props {
-  statute: string
+  note: string
+  label?: string
   children: React.ReactNode
 }
 
-export default function Cited({ statute, children }: Props) {
+export default function Cited({ note, label = 'Done in minutes', children }: Props) {
   const [open, setOpen] = useState(false)
   const reduced = usePrefersReducedMotion()
   const id = useId()
@@ -73,7 +74,7 @@ export default function Cited({ statute, children }: Props) {
         {children}
       </button>
 
-      {/* Citation popover - styled like the product citation chip. */}
+      {/* Outcome popover - styled like the product speed/done marker. */}
       <span
         id={id}
         role="tooltip"
@@ -85,14 +86,16 @@ export default function Cited({ statute, children }: Props) {
       >
         <span className="block whitespace-normal rounded-xl border border-clay border-l-2 border-l-clay bg-clay-soft px-3 py-2 text-left shadow-popover">
           <span className="flex items-center gap-1.5">
+            {/* Clock glyph - the everyday job, done in minutes. */}
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3 shrink-0 text-clay">
-              <path fill="currentColor" d="M6 1l1.5 3 3.3.5-2.4 2.3.6 3.3L6 8.5l-3 1.6.6-3.3L1.2 4.5l3.3-.5z" />
+              <circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" strokeWidth="1" />
+              <path d="M6 3.4V6l1.7 1" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className="font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-clay">
-              Cited
+              {label}
             </span>
           </span>
-          <span className="mt-1 block font-mono text-[11px] leading-snug text-ink">{statute}</span>
+          <span className="mt-1 block font-mono text-[11px] leading-snug text-ink">{note}</span>
         </span>
       </span>
     </span>

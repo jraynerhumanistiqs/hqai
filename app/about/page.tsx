@@ -15,7 +15,7 @@ import Cited from '@/components/landing/Cited'
 export const metadata: Metadata = {
   title: 'About HQ.ai - the Humanistiqs team behind the AI HR advisor',
   description:
-    'HQ.ai is built by Humanistiqs, an Australian HR and recruitment consultancy with 80+ years of combined director experience. Smart AI, real people, and the Fair Work Act rules built in.',
+    'HQ.ai is built by Humanistiqs, an Australian HR and recruitment consultancy with 80+ years of combined director experience. Smart AI for the everyday work, real people for the hard calls, built only for Australian workplaces.',
   alternates: { canonical: '/about' },
   robots: { index: true, follow: true },
 }
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const STATS = [
   { figure: '80+', label: 'years of combined director experience' },
   { figure: '4', label: 'Humanistiqs directors behind the AI' },
-  { figure: '122', label: 'Australian awards built in' },
+  { figure: 'Every', label: 'Australian industry covered' },
 ]
 
 const VALUES = [
@@ -33,12 +33,12 @@ const VALUES = [
     icon: PeopleIcon,
   },
   {
-    t: 'Cite the source',
+    t: 'Show the working',
     d: (
       <>
-        Every answer shows where it comes from -{' '}
-        <Cited statute="s 117 Fair Work Act 2009">the Fair Work Act</Cited> or your award. No guessing,
-        no fine print.
+        Every answer comes in{' '}
+        <Cited note="Plain-English answers with the working shown, so you can act straight away.">plain English with the working shown</Cited>, so you can act
+        straight away. No guessing, no fine print.
       </>
     ),
     icon: SourceIcon,
@@ -76,8 +76,8 @@ export default function AboutPage() {
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
               HQ.ai is made by Humanistiqs, an Australian HR and management consultancy. For years we
               gave small businesses real advice on people, structure and performance. Now you get that
-              same advice in your pocket. It knows the law, it is there any time, and our team stands
-              behind it.
+              same advice in your pocket. It is there any time, it takes the busywork off your plate,
+              and our team stands behind it.
             </p>
             <div className="mt-8">
               <Link
@@ -116,7 +116,7 @@ export default function AboutPage() {
               id="values-heading"
               className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
             >
-              Smart AI, real people, and the rules built in.
+              Smart AI for the everyday, real people for the hard calls.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
               Four things we will not budge on. They are why small businesses trust us with the calls
