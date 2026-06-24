@@ -75,23 +75,6 @@ const TABS: Tab[] = [
     ],
     cta: { label: 'See HQ Recruit', href: '/product/recruit' },
   },
-  {
-    id: 'payg',
-    tag: 'Pay-as-you-go',
-    title: 'Just need one document today? From $25.',
-    desc: 'No subscription. Pick the document you need, answer a few questions, and it is ready to sign in three minutes.',
-    bullets: [
-      'One-off documents from $25',
-      'Done right, with your details filled in',
-      'No subscription needed',
-    ],
-    tools: [
-      { name: 'One-off documents from $25', desc: 'Offer letters, contracts, warnings and more, no subscription.' },
-      { name: 'Answer a few questions', desc: 'We fill in your details and have it ready in three minutes.' },
-      { name: 'Pay only for what you need', desc: 'Buy a single document today, come back whenever.' },
-    ],
-    cta: { label: 'Browse the document marketplace', href: '/marketplace' },
-  },
 ]
 
 const DWELL_MS = 6500
@@ -128,7 +111,7 @@ export default function ToolExplorer() {
           One login. Everything people and hiring.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          Three tools that share one simple home. Tap through to see each one in action.
+          Two tools that share one simple home. Tap through to see each one in action.
         </p>
 
         {/* Tab bar */}
@@ -218,7 +201,6 @@ export default function ToolExplorer() {
           <div key={`preview-${tab.id}`} className="tool-fade">
             {tab.id === 'people' && <PeoplePreview reduced={reduced} />}
             {tab.id === 'recruit' && <RecruitPreview reduced={reduced} />}
-            {tab.id === 'payg' && <DocPreview reduced={reduced} />}
           </div>
         </div>
       </div>
@@ -357,74 +339,6 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
       <p className="mt-5 text-xs italic leading-relaxed text-ink-muted">
         &ldquo;7 years running a 12-person front-of-house team.&rdquo;
       </p>
-    </div>
-  )
-}
-
-// Pay-as-you-go - a letter that builds line by line, then a ready stamp.
-function DocPreview({ reduced }: { reduced: boolean }) {
-  const lines = [
-    { w: 'w-2/5', strong: true },
-    { w: 'w-full' },
-    { w: 'w-11/12' },
-    { w: 'w-4/5' },
-    { w: 'w-full' },
-    { w: 'w-3/5' },
-  ]
-  const [shown, setShown] = useState(reduced ? lines.length : 0)
-  const [stamp, setStamp] = useState(reduced)
-  useEffect(() => {
-    if (reduced) return
-    let n = 0
-    const iv = setInterval(() => {
-      n += 1
-      setShown(n)
-      if (n >= lines.length) {
-        clearInterval(iv)
-        setTimeout(() => setStamp(true), 350)
-      }
-    }, 260)
-    return () => clearInterval(iv)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced])
-
-  return (
-    <div className="relative rounded-3xl border border-border bg-bg-elevated p-5 shadow-float md:p-6">
-      <div className="flex items-center gap-2 border-b border-border pb-3">
-        <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Letter of Offer</span>
-        <span className="ml-auto text-[11px] font-semibold text-ink-soft">from $25</span>
-      </div>
-
-      {/* Document sheet */}
-      <div className="mt-4 min-h-[196px] rounded-2xl bg-bg p-4">
-        <div className="space-y-2.5">
-          {lines.map((l, i) => (
-            <div
-              key={i}
-              className={[
-                'h-2.5 rounded-full transition-all duration-300',
-                l.w,
-                l.strong ? 'bg-ink/70' : 'bg-ink/20',
-                i < shown ? 'opacity-100' : 'opacity-0',
-              ].join(' ')}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Ready stamp */}
-      <div
-        className={[
-          'mt-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-soft px-3 py-1 text-[11px] font-semibold text-ink-soft transition-all duration-500',
-          stamp ? 'opacity-100' : 'translate-y-1 opacity-0',
-        ].join(' ')}
-      >
-        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
-          <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
-        </svg>
-        Ready to sign
-      </div>
     </div>
   )
 }

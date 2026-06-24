@@ -16,7 +16,6 @@ import { useState } from 'react'
 import MarketingHeader from './MarketingHeader'
 import MarketingFooter from './MarketingFooter'
 import HeroSection from './HeroSection'
-import SocialProofRibbon from './SocialProofRibbon'
 import MetricsStrip from './MetricsStrip'
 import ProblemSection from './ProblemSection'
 import ToolExplorer from './ToolExplorer'
@@ -38,7 +37,6 @@ export default function LandingPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <HeroSection />
-        <SocialProofRibbon />
         <ProblemSection />
         <MetricsStrip />
         <div id="product"><ToolExplorer /></div>

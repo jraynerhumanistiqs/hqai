@@ -34,10 +34,13 @@ function usePrefersReducedMotion(): boolean {
 interface Props {
   note: string
   label?: string
+  /** Which side the popover opens. Use 'top' inside clipping containers
+   *  (e.g. an overflow-hidden table) so it is not cut off below. */
+  placement?: 'top' | 'bottom'
   children: React.ReactNode
 }
 
-export default function Cited({ note, label = 'Done in minutes', children }: Props) {
+export default function Cited({ note, label = 'Done in minutes', placement = 'bottom', children }: Props) {
   const [open, setOpen] = useState(false)
   const reduced = usePrefersReducedMotion()
   const id = useId()
@@ -69,7 +72,7 @@ export default function Cited({ note, label = 'Done in minutes', children }: Pro
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
-        className="group cursor-help rounded-sm font-[inherit] text-[inherit] leading-[inherit] text-clay underline decoration-clay decoration-2 underline-offset-[6px] transition-colors hover:text-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+        className="group cursor-help rounded-sm text-left font-[inherit] text-[inherit] leading-[inherit] text-clay underline decoration-clay decoration-2 underline-offset-[6px] transition-colors hover:text-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
       >
         {children}
       </button>
@@ -79,12 +82,16 @@ export default function Cited({ note, label = 'Done in minutes', children }: Pro
         id={id}
         role="tooltip"
         className={[
-          'pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-max max-w-[15rem] -translate-x-1/2',
+          'pointer-events-none absolute z-30 w-max max-w-[15rem]',
+          // 'top' (used in a left-column table cell) anchors its left edge
+          // to the phrase and extends right, so it is not cut off by the
+          // viewport edge. 'bottom' (hero) stays centred under the phrase.
+          placement === 'top' ? 'bottom-full mb-2 left-0' : 'top-full mt-2 left-1/2 -translate-x-1/2',
           reduced ? '' : 'transition-opacity duration-200',
           open ? 'opacity-100' : 'opacity-0',
         ].join(' ')}
       >
-        <span className="block whitespace-normal rounded-xl border border-clay border-l-2 border-l-clay bg-clay-soft px-3 py-2 text-left shadow-popover">
+        <span className="block whitespace-normal rounded-xl border border-clay border-l-2 border-l-clay bg-bg-elevated px-3 py-2 text-left shadow-popover">
           <span className="flex items-center gap-1.5">
             {/* Clock glyph - the everyday job, done in minutes. */}
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3 shrink-0 text-clay">

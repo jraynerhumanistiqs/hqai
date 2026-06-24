@@ -57,7 +57,7 @@ export default function ComparisonSection() {
               </tr>
               <tr>
                 <th scope="row" className="px-5 py-4 font-medium text-ink">
-                  <Cited note="The admin and the documents, done for you - not just pointed at.">Handles the admin and the documents</Cited>
+                  <Cited placement="top" note="The admin and the documents, done for you - not just pointed at.">Handles the admin and the documents</Cited>
                 </th>
                 <td className="px-5 py-4 font-semibold text-ink">Yes</td>
                 <td className="px-5 py-4 text-ink-soft">Sometimes</td>
