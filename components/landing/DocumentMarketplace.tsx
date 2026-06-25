@@ -164,8 +164,8 @@ export default function DocumentMarketplace() {
     <main className="min-h-screen bg-bg text-ink antialiased">
       {/* ── 1. Hero ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-6 pt-16 md:px-10 md:pt-24">
-        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+          <span aria-hidden className="h-px w-5 bg-clay" />
           Document Marketplace
         </p>
         <h1 className="max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[52px]">
@@ -282,8 +282,8 @@ export default function DocumentMarketplace() {
         className="mx-auto mt-16 max-w-6xl scroll-mt-24 px-6 md:px-10 md:mt-24"
         aria-labelledby="how-heading"
       >
-        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+          <span aria-hidden className="h-px w-5 bg-clay" />
           How it works
         </p>
         <h2
@@ -394,7 +394,7 @@ function ProductCard({ doc, fromPrice }: { doc: ProductDoc; fromPrice: number })
         <button
           type="button"
           // Inert - look and feel only. We wire checkout later.
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-ink px-4 text-[13px] font-semibold text-ink transition-colors hover:bg-clay hover:border-clay hover:text-ink-on-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-ink px-4 text-[13px] font-semibold text-ink transition-colors hover:bg-clay hover:border-clay hover:text-ink-on-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
         >
           Get this document
           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>

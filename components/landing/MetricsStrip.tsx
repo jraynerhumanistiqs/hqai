@@ -16,9 +16,9 @@ export default function MetricsStrip() {
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p
           id="metrics-heading"
-          className="flex items-center justify-center gap-2 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted"
+          className="flex items-center justify-center gap-2 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-clay"
         >
-          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          <span aria-hidden className="h-px w-5 bg-clay" />
           The difference
         </p>
 

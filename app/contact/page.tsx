@@ -21,8 +21,8 @@ export default function ContactPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <section className="mx-auto max-w-3xl px-6 py-16 md:px-10 md:py-24">
-          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+            <span aria-hidden className="h-px w-5 bg-clay" />
             Contact
           </p>
           <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[48px]">

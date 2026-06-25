@@ -60,8 +60,8 @@ const TABS: Tab[] = [
   {
     id: 'recruit',
     tag: 'HQ Recruit',
-    title: 'Score a pile of CVs in minutes, not hours.',
-    desc: 'Set what the job needs and the AI scores every CV the same way. Then run quick interviews and share a clean shortlist.',
+    title: 'Hire the right person, without the time sink or the agency fees.',
+    desc: 'HQ Recruit runs the grunt work of hiring from start to finish - the job ad, sorting applicants, the first interviews and a clean shortlist - so you fill the role faster and back yourself on the choice, even if hiring is not your day job.',
     bullets: [
       'Score every CV against what the job needs',
       'Video and phone interviews from one link',
@@ -100,8 +100,8 @@ export default function ToolExplorer() {
   return (
     <section id="tools" className="bg-bg py-20 md:py-28" aria-labelledby="tools-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+          <span aria-hidden className="h-px w-5 bg-clay" />
           Explore the tools
         </p>
         <h2

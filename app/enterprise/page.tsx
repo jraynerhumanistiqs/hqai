@@ -121,8 +121,8 @@ export default function EnterprisePage() {
         {/* Hero */}
         <section className="relative isolate overflow-hidden" aria-labelledby="enterprise-hero">
           <div className="mx-auto max-w-5xl px-6 pb-16 pt-16 text-center md:px-10 md:pb-24 md:pt-24">
-            <p className="mb-5 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="mb-5 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               HR365 + Recruit365
             </p>
             <h1
@@ -160,8 +160,8 @@ export default function EnterprisePage() {
         {/* Plan cards */}
         <section id="variants" className="bg-bg py-20 md:py-28" aria-labelledby="variants-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               The plans
             </p>
             <h2 id="variants-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
@@ -224,8 +224,8 @@ export default function EnterprisePage() {
         {/* Who this is for */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="who-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               Who this is for
             </p>
             <h2 id="who-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
@@ -267,8 +267,8 @@ export default function EnterprisePage() {
         {/* How it works */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="how-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               How it works
             </p>
             <h2 id="how-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[36px]">
@@ -300,8 +300,8 @@ export default function EnterprisePage() {
         {/* Inquiry form */}
         <section id="inquiry" className="bg-bg py-20 md:py-28" aria-labelledby="inquiry-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               Book a call
             </p>
             <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
@@ -321,8 +321,8 @@ export default function EnterprisePage() {
         {/* FAQ */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-faq-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               Questions
             </p>
             <h2 id="enterprise-faq-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">

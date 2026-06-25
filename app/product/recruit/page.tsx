@@ -50,8 +50,8 @@ export default function ProductRecruitPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         <section className="mx-auto max-w-5xl px-6 pt-16 text-center md:px-10 md:pt-24">
-          <p className="mb-4 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          <p className="mb-4 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+            <span aria-hidden className="h-px w-5 bg-clay" />
             HQ Recruit
           </p>
           <h1 className="mx-auto max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
@@ -89,8 +89,8 @@ export default function ProductRecruitPage() {
         {/* Feature grid */}
         <section className="bg-bg py-20 md:py-28" aria-labelledby="features-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               What you get
             </p>
             <h2

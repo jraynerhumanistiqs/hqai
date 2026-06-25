@@ -80,8 +80,8 @@ export default function PersonaBand() {
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-              <span aria-hidden className="h-px w-5 bg-ink-muted" />
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
               Who it&apos;s for
             </p>
             <h2

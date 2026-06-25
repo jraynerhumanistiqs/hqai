@@ -84,8 +84,8 @@ export default function PricingSection({ onReserve }: Props) {
   return (
     <section id="pricing" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-          <span aria-hidden className="h-px w-5 bg-ink-muted" />
+        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+          <span aria-hidden className="h-px w-5 bg-clay" />
           Plans
         </p>
         <h2 id="pricing-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
@@ -282,7 +282,7 @@ export default function PricingSection({ onReserve }: Props) {
           <div className="mt-10 rounded-3xl border border-clay bg-clay-soft/40 p-7 shadow-card md:p-9">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
-                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-clay">Foundation {foundation.cap}</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Foundation {foundation.cap}</p>
                 <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
                   Be one of our first {foundation.cap} customers and lock HQ Business at ${foundation.lockedMonthly}/month for your first 12 months.
                 </h3>

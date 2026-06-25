@@ -61,8 +61,8 @@ export default function HeroSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
         {/* Left: copy block */}
         <div className="max-w-xl">
-          <p className={`mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted ${reveal(stage >= 1)}`}>
-            <span aria-hidden className="h-px w-5 bg-ink-muted" />
+          <p className={`mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay ${reveal(stage >= 1)}`}>
+            <span aria-hidden className="h-px w-5 bg-clay" />
             Built for Australian small business
           </p>
           <h1
