@@ -56,7 +56,12 @@ export default async function DashboardHome() {
     (s || '').replace(/[\u2014\u2013]/g, '-')
 
   return (
-    <div className="flex-1 overflow-y-auto bg-bg-elevated">
+    // SPIKE (June 2026): this one screen is scoped to the marketing dark
+    // theme via data-app="marketing" - the CSS-var tokens cascade so the
+    // whole subtree repaints near-black + Wattle Gold + Schibsted, while
+    // the sidebar and every other dashboard page stay on the light product
+    // theme. A look-and-feel preview of "dashboard matches the public site".
+    <div data-app="marketing" className="flex-1 overflow-y-auto bg-bg text-ink">
       {/* Tightened vertical rhythm - previous gap-8/10 left the
           greeting feeling stranded above the first card row. Half the
           gap and smaller top padding pulls everything together. */}
@@ -67,7 +72,7 @@ export default async function DashboardHome() {
 
         {/* Quick Actions - headings only with hover tooltip */}
         <div>
-          <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-wider text-ink mb-4">Quick actions</h2>
+          <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-4">Quick actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <QuickAction
               href="/dashboard/people"
@@ -95,7 +100,7 @@ export default async function DashboardHome() {
 
           {/* Recent Conversations */}
           <div className="flex flex-col">
-            <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-wider text-ink mb-4">Recent conversations</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-4">Recent conversations</h2>
             <div className="bg-bg-elevated border border-border rounded-3xl flex-1 flex flex-col transition-colors">
               {hasConversations ? (
                 <ul className="divide-y divide-border">
@@ -120,7 +125,7 @@ export default async function DashboardHome() {
                 <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10">
                   <p className="text-sm text-muted mb-4">No conversations yet</p>
                   <Link href="/dashboard/people"
-                    className="inline-block bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
+                    className="inline-block bg-clay hover:bg-clay-hover text-ink-on-accent text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
                     Start your first chat
                   </Link>
                 </div>
@@ -130,7 +135,7 @@ export default async function DashboardHome() {
 
           {/* Recent Documents */}
           <div className="flex flex-col">
-            <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-wider text-ink mb-4">Recent documents</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-4">Recent documents</h2>
             <div className="bg-bg-elevated border border-border rounded-3xl flex-1 flex flex-col transition-colors">
               {recentDocs && recentDocs.length > 0 ? (
                 <ul className="divide-y divide-border">
@@ -162,7 +167,7 @@ export default async function DashboardHome() {
 
         {/* Recent News & Information */}
         <div>
-          <h2 className="font-display text-base sm:text-lg font-bold uppercase tracking-wider text-ink mb-4">Recent applicable news &amp; information</h2>
+          <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-4">Recent applicable news &amp; information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             <NewsCard
               image="/news/fair-work-update.jpg"
