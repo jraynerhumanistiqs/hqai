@@ -71,7 +71,7 @@ export default function HeroSection() {
           >
             HR and hiring are complicated. HQ.ai takes the{' '}
             {stage >= 3 ? (
-              <Cited note="From question to finished document in about three minutes.">busywork off your plate.</Cited>
+              <Cited placement="right" note="From question to finished document in about three minutes.">busywork off your plate.</Cited>
             ) : (
               <span className="text-clay">busywork off your plate.</span>
             )}

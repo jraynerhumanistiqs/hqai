@@ -75,8 +75,19 @@ export default function PricingSection({ onReserve }: Props) {
   const bundlePlan = size === 0 ? bundle.solo : bundle.business
   const annual = cycle === 'annual'
 
-  const peoplePrice = annual && peopleBand.annualTotal ? Math.round(peopleBand.annualTotal / 12) : peopleBand.monthly
-  const bundlePrice = annual ? Math.round(bundlePlan.annualTotal / 12) : bundlePlan.monthly
+  // On annual, the big number is the annual total (the real commitment),
+  // with a smaller per-month equivalent note underneath. On monthly, the
+  // big number is the monthly price with no note.
+  const fmt = (n: number) => `$${n.toLocaleString('en-AU')}`
+
+  const peopleAnnual = annual && !!peopleBand.annualTotal
+  const peopleBig = peopleAnnual ? fmt(peopleBand.annualTotal!) : fmt(peopleBand.monthly)
+  const peopleSuffix = peopleAnnual ? '/yr' : '/mo'
+  const peopleNote = peopleAnnual ? `${fmt(Math.round(peopleBand.annualTotal! / 12))} a month, billed annually` : ''
+
+  const bundleBig = annual ? fmt(bundlePlan.annualTotal) : fmt(bundlePlan.monthly)
+  const bundleSuffix = annual ? '/yr' : '/mo'
+  const bundleNote = annual ? `${fmt(Math.round(bundlePlan.annualTotal / 12))} a month, billed annually` : ''
 
   const activeCat = DOC_CATEGORIES[cat]
   const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
@@ -119,8 +130,9 @@ export default function PricingSection({ onReserve }: Props) {
             kicker={people.kicker}
             name={people.name}
             desc={people.desc}
-            price={`$${peoplePrice}`}
-            priceSuffix="/mo"
+            price={peopleBig}
+            priceSuffix={peopleSuffix}
+            priceNote={peopleNote}
             sub={`For a team of ${peopleBand.label.replace('up to ', 'up to ')} people, ${peopleBand.credits.toLocaleString('en-AU')} AI actions a month`}
             features={people.features}
             cta="Start the 14-day trial"
@@ -145,9 +157,10 @@ export default function PricingSection({ onReserve }: Props) {
             kicker={bundle.kicker}
             name={bundle.name}
             desc={bundle.desc}
-            price={`$${bundlePrice}`}
-            priceSuffix="/mo"
-            sub={`For a team of ${bundlePlan.label.replace('up to ', 'up to ')} people${annual ? `, billed $${bundlePlan.annualTotal.toLocaleString('en-AU')}/yr` : ''}`}
+            price={bundleBig}
+            priceSuffix={bundleSuffix}
+            priceNote={bundleNote}
+            sub={`For a team of ${bundlePlan.label.replace('up to ', 'up to ')} people`}
             features={bundle.features}
             cta="Start the 14-day trial"
             href={`/signup?plan=${bundlePlan.planId}&cycle=${cycle}`}
@@ -168,9 +181,9 @@ export default function PricingSection({ onReserve }: Props) {
               Your self-service AI Administrator
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Need a document right now? Your AI Administrator drafts it on demand - always current, always
-              compliant with Australian workplace law. The HR and recruitment templates that employers ask
-              for most - ready the moment you are. No subscription needed.
+              Need a document right now? Your AI Administrator drafts it on demand - professionally written
+              and ready to use. The HR and recruitment documents that employers ask for most, filled in with
+              your details, ready the moment you are. No subscription needed.
             </p>
             <p className="mt-3 text-sm font-semibold text-ink">Starting at ${cheapestOneOff.price}.</p>
 
@@ -221,7 +234,7 @@ export default function PricingSection({ onReserve }: Props) {
             <button
               type="button"
               onClick={onReserve}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Reserve early access -&gt;
             </button>
@@ -357,13 +370,14 @@ function Toggle<T extends string | number>({
 }
 
 function PlanCard({
-  kicker, name, desc, price, priceSuffix, sub, features, cta, href, ctaStyle, highlight, badge,
+  kicker, name, desc, price, priceSuffix, priceNote, sub, features, cta, href, ctaStyle, highlight, badge,
 }: {
   kicker: string
   name: string
   desc: string
   price: string
   priceSuffix: string
+  priceNote?: string
   sub: string
   features: string[]
   cta: string
@@ -397,6 +411,7 @@ function PlanCard({
         {price}
         <span className="ml-1 text-sm font-normal text-ink-muted">{priceSuffix}</span>
       </p>
+      {priceNote && <p className="mt-1 text-xs font-medium text-ink-soft">{priceNote}</p>}
       <p className="mt-1 text-xs text-ink-muted">{sub}</p>
       <ul className="mt-5 space-y-2 text-sm text-ink-soft">
         {features.map((f) => (

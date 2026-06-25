@@ -20,7 +20,7 @@ export default function ComparisonSection() {
           id="comparison-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Don&apos;t lock into a multi-year contract for support you barely use.
+          Don&apos;t lock into a multi-year contract for support you&apos;re not ready to use.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
           The same everyday HR and hiring support, minus the lock-in and the wait. A fraction of the price. Cancel any time.

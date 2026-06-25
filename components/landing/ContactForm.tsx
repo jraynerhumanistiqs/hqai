@@ -86,10 +86,6 @@ export default function ContactForm() {
       >
         {status === 'sending' ? 'Sending...' : 'Send message'}
       </button>
-      <p className="mt-3 text-xs text-ink-muted">
-        Prefer email? Write to us at{' '}
-        <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink hover:underline">jrayner@humanistiqs.com.au</a>.
-      </p>
     </form>
   )
 }

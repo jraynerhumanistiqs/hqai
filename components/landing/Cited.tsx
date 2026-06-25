@@ -34,9 +34,10 @@ function usePrefersReducedMotion(): boolean {
 interface Props {
   note: string
   label?: string
-  /** Which side the popover opens. Use 'top' inside clipping containers
-   *  (e.g. an overflow-hidden table) so it is not cut off below. */
-  placement?: 'top' | 'bottom'
+  /** Which side the popover opens. 'top' inside clipping containers (e.g.
+   *  an overflow-hidden table); 'right' to sit in blank space beside the
+   *  phrase (e.g. the hero, where 'bottom' would cover the subhead). */
+  placement?: 'top' | 'bottom' | 'right'
   children: React.ReactNode
 }
 
@@ -83,10 +84,16 @@ export default function Cited({ note, label = 'Done in minutes', placement = 'bo
         role="tooltip"
         className={[
           'pointer-events-none absolute z-30 w-max max-w-[15rem]',
-          // 'top' (used in a left-column table cell) anchors its left edge
-          // to the phrase and extends right, so it is not cut off by the
-          // viewport edge. 'bottom' (hero) stays centred under the phrase.
-          placement === 'top' ? 'bottom-full mb-2 left-0' : 'top-full mt-2 left-1/2 -translate-x-1/2',
+          // 'top' (left-column table cell) anchors left + opens upward.
+          // 'right' sits beside the phrase (blank space, e.g. the hero).
+          // 'bottom' (default) centres under the phrase.
+          placement === 'top'
+            ? 'bottom-full mb-2 left-0'
+            : placement === 'right'
+              // Beside the phrase from md up (where blank space exists);
+              // below + centred on mobile (single column, no side room).
+              ? 'top-full mt-2 left-1/2 -translate-x-1/2 md:left-full md:top-auto md:bottom-0 md:mt-0 md:ml-3 md:translate-x-0'
+              : 'top-full mt-2 left-1/2 -translate-x-1/2',
           reduced ? '' : 'transition-opacity duration-200',
           open ? 'opacity-100' : 'opacity-0',
         ].join(' ')}
