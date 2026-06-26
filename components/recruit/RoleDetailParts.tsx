@@ -10,7 +10,7 @@ function fmtTs(sec: number) {
 
 export function BiasDisclaimer({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div className="bg-[#FFF8E1] border border-[#E6C94A] text-charcoal rounded-2xl px-4 py-2 text-xs flex items-start gap-3">
+    <div className="bg-warning/10 border border-warning/40 text-charcoal rounded-2xl px-4 py-2 text-xs flex items-start gap-3">
       <span className="flex-1">
         AI scores are suggestions only. Always apply your own judgement. Scores ignore protected attributes and do not assess personality or emotion.
       </span>
@@ -40,7 +40,7 @@ export function AiSuggestionCard({
 }) {
   if (!evaluation) {
     return (
-      <div className="bg-white rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
+      <div className="bg-bg-elevated rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
         <span className="w-4 h-4 border-2 border-border border-t-ink rounded-full animate-spin" />
         <p className="text-sm text-mid">Loading AI suggestion...</p>
       </div>
@@ -50,7 +50,7 @@ export function AiSuggestionCard({
   const rubric: RubricDimensionScore[] = Array.isArray(evaluation.rubric) ? evaluation.rubric : []
 
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-card">
+    <div className="bg-bg-elevated rounded-2xl border border-border shadow-card">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-widest text-ink">AI Suggestion</span>
@@ -140,14 +140,14 @@ export function AiSuggestionCard({
         <button
           onClick={() => onDecision(evaluation.id, 'reject')}
           disabled={busy === evaluation.id}
-          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-mid hover:text-ink hover:bg-white transition-colors disabled:opacity-50"
+          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-mid hover:text-ink hover:bg-bg-elevated transition-colors disabled:opacity-50"
         >
           Reject
         </button>
         <button
           onClick={() => onDecision(evaluation.id, 'adjust')}
           disabled={busy === evaluation.id}
-          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-white hover:bg-bg transition-colors disabled:opacity-50"
+          className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-bg-elevated hover:bg-bg transition-colors disabled:opacity-50"
         >
           Adjust
         </button>

@@ -39,9 +39,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     // A3 - product chrome runs the Option 3 (Ink & Amber) theme via the
-    // data-app="product" scope on <html>. next-themes inside the
-    // boundary handles light/dark within product.
-    <ThemeBoundary app="product">
+    // data-app="product" scope on <html>. themeMode="dashboard" defaults
+    // to dark (brand consistency with the public site) with a user toggle
+    // to light; next-themes inside the boundary handles the switch.
+    <ThemeBoundary app="product" themeMode="dashboard">
       <MobileShell sidebarProps={sidebarProps}>
         {children}
       </MobileShell>

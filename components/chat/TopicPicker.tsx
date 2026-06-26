@@ -94,9 +94,15 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
               <button
                 key={t.id}
                 onClick={() => setSelected(t)}
-                className="bg-bg-elevated shadow-card hover:shadow-modal rounded-2xl p-5 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                // Intentional always-light override: these four pre-loaded
+                // category cards stay white with fixed dark text in BOTH
+                // light and dark mode (per request). Deliberately NOT the
+                // bg-bg-elevated/text-charcoal tokens, which would flip
+                // these to dark panels in dark mode. Scoped to these four
+                // only - the per-question bullets below keep the tokens.
+                className="bg-white shadow-card hover:shadow-modal rounded-2xl p-5 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                <p className="text-sm font-bold text-charcoal leading-tight">{t.title}</p>
+                <p className="text-sm font-bold text-[#1F1F1F] leading-tight">{t.title}</p>
               </button>
             ))}
           </div>

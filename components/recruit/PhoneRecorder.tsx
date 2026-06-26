@@ -249,13 +249,13 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, initialQue
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Candidate name</label>
-              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
+              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-border-strong" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Phone screen commenced</label>
               <input
                 type="datetime-local"
-                className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-black"
+                className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-border-strong"
                 value={commencedAt}
                 onChange={e => setCommencedAt(e.target.value)}
               />
@@ -263,7 +263,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, initialQue
           </div>
 
           <label className="flex items-start gap-2 text-xs text-mid leading-snug">
-            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5 accent-black" />
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5 accent-accent" />
             <span>
               I confirm the candidate has been told this call will be recorded, transcribed, and scored by AI for the role they&apos;re being assessed for, and they have agreed. (Required under AU recording-consent rules.)
             </span>

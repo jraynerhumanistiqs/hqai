@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/sidebar/Sidebar'
+import ThemeToggle from '@/components/theme/ThemeToggle'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -27,7 +28,7 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
   }, [pathname])
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-inverse">
+    <div className="flex h-screen overflow-hidden bg-bg">
       {/* Desktop sidebar - always visible */}
       <div className="hidden lg:block flex-shrink-0">
         <Sidebar {...sidebarProps} />
@@ -59,10 +60,14 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
             </svg>
           </button>
           <Link href="/dashboard" aria-label="Go to dashboard home">
-            {/* Light-mode topbar - use the ink (dark) logo so it reads against the white surface. */}
-            <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="h-[26px] w-auto" />
+            {/* Theme-aware wordmark: ink logo on the light surface, white
+                logo on the dark surface. Toggled purely via the .dark
+                class so there's no swap flash. */}
+            <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="h-[26px] w-auto dark:hidden" />
+            <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="h-[26px] w-auto hidden dark:block" />
           </Link>
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle variant="icon" />
             {sidebarProps.bizLogoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img

@@ -182,7 +182,7 @@ export function NotesPanel({ responseId }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+    <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         <div>
           <p className="text-xs font-bold text-ink uppercase tracking-widest">
@@ -220,7 +220,7 @@ export function NotesPanel({ responseId }: Props) {
                 {editingId === n.id ? (
                   <div className="mt-1 flex items-end gap-2">
                     <textarea
-                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-black bg-white"
+                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-border-strong bg-bg-soft"
                       rows={2}
                       value={editDraft}
                       onChange={e => setEditDraft(e.target.value)}
@@ -264,7 +264,7 @@ export function NotesPanel({ responseId }: Props) {
       <div className="border-t border-border p-4 relative">
         <textarea
           ref={textareaRef}
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-black bg-white"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-border-strong bg-bg-soft"
           rows={2}
           placeholder="Add a note. Type @ to tag a teammate."
           value={text}
@@ -272,7 +272,7 @@ export function NotesPanel({ responseId }: Props) {
           onKeyDown={onKeyDown}
         />
         {acOpen && acMatches.length > 0 && (
-          <div className="absolute left-4 bottom-20 bg-white border border-border rounded-2xl shadow-card z-10 w-64 max-h-56 overflow-y-auto">
+          <div className="absolute left-4 bottom-20 bg-bg-elevated border border-border rounded-2xl shadow-card z-10 w-64 max-h-56 overflow-y-auto">
             {acMatches.map((m, i) => (
               <button
                 key={m.id}

@@ -164,12 +164,12 @@ function DimensionRow({ stat }: { stat: DimStat }) {
           <div className="h-full bg-ink rounded-full" style={{ width: `${meanPct}%` }} />
         </div>
         <svg width={W} height={H} className="flex-shrink-0" aria-label={`${stat.name} distribution`}>
-          <line x1={padX} x2={W - padX} y1={H / 2} y2={H / 2} stroke="#e2e2e2" strokeWidth={1} />
-          <line x1={x(stat.min)} x2={x(stat.max)} y1={H / 2} y2={H / 2} stroke="#4b4b4b" strokeWidth={1} />
-          <line x1={x(stat.min)} x2={x(stat.min)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="#4b4b4b" strokeWidth={1} />
-          <line x1={x(stat.max)} x2={x(stat.max)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="#4b4b4b" strokeWidth={1} />
-          <rect x={x(stat.p25)} y={H / 2 - 5} width={Math.max(1, x(stat.p75) - x(stat.p25))} height={10} fill="#1F1F1F" opacity={0.9} />
-          <line x1={x(stat.p50)} x2={x(stat.p50)} y1={H / 2 - 5} y2={H / 2 + 5} stroke="#FFFFFF" strokeWidth={2} />
+          <line x1={padX} x2={W - padX} y1={H / 2} y2={H / 2} stroke="var(--border)" strokeWidth={1} />
+          <line x1={x(stat.min)} x2={x(stat.max)} y1={H / 2} y2={H / 2} stroke="var(--ink-soft)" strokeWidth={1} />
+          <line x1={x(stat.min)} x2={x(stat.min)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="var(--ink-soft)" strokeWidth={1} />
+          <line x1={x(stat.max)} x2={x(stat.max)} y1={H / 2 - 3} y2={H / 2 + 3} stroke="var(--ink-soft)" strokeWidth={1} />
+          <rect x={x(stat.p25)} y={H / 2 - 5} width={Math.max(1, x(stat.p75) - x(stat.p25))} height={10} fill="var(--ink)" opacity={0.9} />
+          <line x1={x(stat.p50)} x2={x(stat.p50)} y1={H / 2 - 5} y2={H / 2 + 5} stroke="var(--bg-elevated)" strokeWidth={2} />
         </svg>
       </div>
     </div>
@@ -178,10 +178,10 @@ function DimensionRow({ stat }: { stat: DimStat }) {
 
 function AgreementTile({ agreement }: { agreement: Agreement }) {
   const slices = [
-    { key: 'accept', label: 'Accepted', value: agreement.accept, color: '#000000' },
-    { key: 'adjust', label: 'Adjusted', value: agreement.adjust, color: '#4b4b4b' },
-    { key: 'reject', label: 'Rejected', value: agreement.reject, color: '#D94F4F' },
-    { key: 'pending', label: 'Pending', value: agreement.pending, color: '#efefef' },
+    { key: 'accept', label: 'Accepted', value: agreement.accept, color: 'var(--ink)' },
+    { key: 'adjust', label: 'Adjusted', value: agreement.adjust, color: 'var(--ink-soft)' },
+    { key: 'reject', label: 'Rejected', value: agreement.reject, color: 'var(--danger)' },
+    { key: 'pending', label: 'Pending', value: agreement.pending, color: 'var(--border)' },
   ]
   const total = slices.reduce((a, s) => a + s.value, 0) || 1
   const realTotal = slices.reduce((a, s) => a + s.value, 0)
@@ -192,7 +192,7 @@ function AgreementTile({ agreement }: { agreement: Agreement }) {
     <Tile title="AI agreement">
       <div className="flex items-center gap-5">
         <svg width={120} height={120} viewBox="0 0 120 120">
-          <circle cx={C} cy={C} r={R} fill="none" stroke="#efefef" strokeWidth={STROKE} />
+          <circle cx={C} cy={C} r={R} fill="none" stroke="var(--border)" strokeWidth={STROKE} />
           {slices.map(s => {
             if (!s.value) return null
             const len = (s.value / total) * circumference
@@ -212,8 +212,8 @@ function AgreementTile({ agreement }: { agreement: Agreement }) {
             offset += len
             return el
           })}
-          <text x={C} y={C - 2} textAnchor="middle" dominantBaseline="middle" className="fill-black" style={{ fontWeight: 700, fontSize: 16 }}>{realTotal}</text>
-          <text x={C} y={C + 14} textAnchor="middle" dominantBaseline="middle" className="fill-mid" style={{ fontSize: 10 }}>decisions</text>
+          <text x={C} y={C - 2} textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontWeight: 700, fontSize: 16 }}>{realTotal}</text>
+          <text x={C} y={C + 14} textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink-soft)', fontSize: 10 }}>decisions</text>
         </svg>
         <div className="flex-1 space-y-1.5">
           {slices.map(s => (

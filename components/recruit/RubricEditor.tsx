@@ -10,7 +10,7 @@ interface Props {
 }
 
 const DEFAULT_INPUT_CLS =
-  'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+  'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-soft transition-colors'
 
 export function RubricEditor({
   mode,

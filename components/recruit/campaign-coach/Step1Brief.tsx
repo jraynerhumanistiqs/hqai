@@ -114,7 +114,7 @@ export default function Step1Brief() {
           <button
             disabled
             title="Voice input - coming soon"
-            className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center cursor-not-allowed shadow-card"
+            className="w-9 h-9 rounded-full bg-ink text-ink-on-accent flex items-center justify-center cursor-not-allowed shadow-card"
             aria-label="Voice input - coming soon"
           >
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">

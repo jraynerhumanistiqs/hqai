@@ -347,7 +347,7 @@ export default function SettingsPage() {
           )}
 
           {searchParams.get('billing') === 'success' && (
-            <div className="bg-green-900/30 border border-green-700 rounded-lg px-3 py-2 text-sm text-green-400 mb-4">
+            <div className="bg-success/10 border border-success/30 rounded-lg px-3 py-2 text-sm text-success mb-4">
               Subscription activated successfully!
             </div>
           )}
@@ -364,7 +364,7 @@ export default function SettingsPage() {
             </div>
             {hasStripe && (
               <button onClick={openPortal} disabled={billingLoading}
-                className="bg-bg-elevated hover:bg-gray-200 text-ink text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+                className="bg-bg-elevated hover:bg-bg-soft text-ink text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
                 {billingLoading ? 'Loading...' : 'Manage billing'}
               </button>
             )}

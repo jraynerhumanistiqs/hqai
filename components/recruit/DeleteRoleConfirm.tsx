@@ -33,7 +33,7 @@ export function DeleteRoleConfirm({ session, onCancel, onConfirmed }: Props) {
       onClick={onCancel}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal max-w-md w-full p-6"
+        className="bg-bg-elevated rounded-2xl shadow-modal max-w-md w-full p-6"
         onClick={e => e.stopPropagation()}
       >
         <h3 className="font-display text-lg font-bold text-charcoal uppercase tracking-wider mb-2">
@@ -51,7 +51,7 @@ export function DeleteRoleConfirm({ session, onCancel, onConfirmed }: Props) {
           value={typed}
           onChange={e => setTyped(e.target.value)}
           placeholder="Type the role title to confirm"
-          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors"
+          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated transition-colors"
           autoFocus
         />
 
@@ -61,14 +61,14 @@ export function DeleteRoleConfirm({ session, onCancel, onConfirmed }: Props) {
           <button
             onClick={onCancel}
             disabled={loading}
-            className="bg-white border border-border text-mid hover:text-charcoal text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+            className="bg-bg-elevated border border-border text-mid hover:text-charcoal text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
             disabled={!canConfirm || loading}
-            className="bg-danger text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-40 flex items-center gap-2"
+            className="bg-danger text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-40 flex items-center gap-2"
           >
             {loading ? (
               <>

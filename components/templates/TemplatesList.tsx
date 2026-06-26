@@ -153,7 +153,7 @@ export function TemplatesList({
                           <button
                             onClick={() => handleDownload(tmpl)}
                             disabled={downloading === tmpl.id}
-                            className="bg-white hover:bg-light text-mid hover:text-charcoal text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
+                            className="bg-bg-elevated hover:bg-light text-mid hover:text-charcoal text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
                           >
                             {downloading === tmpl.id ? 'Generating...' : 'Download blank'}
                           </button>

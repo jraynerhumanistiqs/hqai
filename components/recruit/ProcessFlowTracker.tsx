@@ -41,7 +41,7 @@ export function ProcessFlowTracker({ session, responses, className }: Props) {
   ]
 
   return (
-    <div className={`bg-white border border-border rounded-2xl px-5 py-4 ${className ?? ''}`}>
+    <div className={`bg-bg-elevated border border-border rounded-2xl px-5 py-4 ${className ?? ''}`}>
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-3">Process flow for this role</p>
       <ol className="flex flex-col sm:flex-row sm:items-stretch sm:divide-x divide-border">
         {steps.map((s, i) => (
@@ -64,6 +64,6 @@ export function ProcessFlowTracker({ session, responses, className }: Props) {
 
 function stateClass(s: StepState): string {
   if (s === 'done') return 'bg-accent text-ink-on-accent'
-  if (s === 'active') return 'bg-light text-charcoal ring-1 ring-black'
+  if (s === 'active') return 'bg-light text-charcoal ring-1 ring-ink'
   return 'bg-light text-muted'
 }

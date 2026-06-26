@@ -398,7 +398,7 @@ function StepProgress({
         const cls = isActive
           ? 'bg-accent text-ink-on-accent'
           : isCompleted
-          ? 'bg-charcoal text-white'
+          ? 'bg-ink text-ink-on-accent'
           : 'bg-light text-mid'
         const clickable = reachable(n)
         return (

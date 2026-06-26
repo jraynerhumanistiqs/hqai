@@ -151,7 +151,7 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
       onClick={() => !busy && onClose()}
     >
       <div
-        className="bg-bg-elevated w-full max-w-2xl rounded-3xl border border-border ring-1 ring-black/5 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-bg-elevated w-full max-w-2xl rounded-3xl border border-border ring-1 ring-ink/5 shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-bg-elevated z-10">

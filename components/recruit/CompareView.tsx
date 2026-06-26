@@ -85,7 +85,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col print:static print:bg-white">
+    <div className="fixed inset-0 bg-bg-elevated z-50 flex flex-col print:static print:bg-white">
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -106,7 +106,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => window.print()}
-            className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-white hover:bg-bg"
+            className="text-xs font-bold px-4 py-2 rounded-full border border-border text-ink bg-bg-elevated hover:bg-bg"
           >Print / Export PDF</button>
           <button
             onClick={onClose}
@@ -129,7 +129,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
           <table className="compare-grid w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-2 border-b border-border align-top w-48">
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-2 border-b border-border align-top w-48">
                   &nbsp;
                 </th>
                 {candidates.map(c => (
@@ -142,7 +142,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
             </thead>
             <tbody>
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-2 align-top">Candidate</th>
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-2 align-top">Candidate</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-2 align-top">
                     <p className="text-sm text-charcoal">{anonymise ? '-' : c.candidate_email}</p>
@@ -153,7 +153,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
 
               {Array.from({ length: maxQuestions }).map((_, qi) => (
                 <tr key={`q-${qi}`}>
-                  <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Video Q{qi + 1}</th>
+                  <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Video Q{qi + 1}</th>
                   {candidates.map(c => {
                     const uid = c.video_ids[qi]
                     const q = c.questions[qi]
@@ -179,7 +179,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
               ))}
 
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">AI overall</th>
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">AI overall</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-3 align-top text-xs text-charcoal">
                     {c.evaluation?.overall_summary ?? <span className="text-mid">--</span>}
@@ -189,7 +189,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
 
               {dimensionNames.map(dim => (
                 <tr key={`dim-${dim}`}>
-                  <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top capitalize">
+                  <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top capitalize">
                     {dim.replace(/_/g, ' ')}
                   </th>
                   {candidates.map(c => {
@@ -220,7 +220,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
               ))}
 
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Staff rating</th>
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Staff rating</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-3 align-top text-sm text-charcoal">
                     {c.staff_rating !== null ? `${c.staff_rating}/5` : <span className="text-mid">--</span>}
@@ -229,7 +229,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
               </tr>
 
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Stage</th>
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Stage</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-3 align-top text-xs text-charcoal">
                     {STAGE_LABEL[c.stage] ?? c.stage}
@@ -238,7 +238,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
               </tr>
 
               <tr>
-                <th className="sticky left-0 bg-white text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Notes</th>
+                <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-3 align-top">Notes</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-3 align-top text-xs text-charcoal whitespace-pre-wrap">
                     {c.notes ?? <span className="text-mid">--</span>}

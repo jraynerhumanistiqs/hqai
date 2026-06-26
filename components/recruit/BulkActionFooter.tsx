@@ -90,7 +90,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white rounded-full shadow-card px-4 py-2 flex items-center gap-3">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-ink-on-accent rounded-full shadow-card px-4 py-2 flex items-center gap-3">
         <span className="text-xs font-bold">{selectedCount} selected</span>
 
         <button
@@ -103,7 +103,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
           <button
             onClick={() => { setStageOpen(v => !v); setShareOpen(false) }}
             disabled={busy}
-            className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40"
+            className="text-xs font-bold px-3 py-1 rounded-full bg-ink-on-accent/10 text-ink-on-accent hover:bg-ink-on-accent/20 disabled:opacity-40"
           >Move to stage &#9662;</button>
           {stageOpen && (
             <div className="absolute bottom-full mb-2 right-0 bg-bg-elevated text-ink rounded-xl shadow-card border border-border overflow-hidden min-w-[160px]">
@@ -122,7 +122,7 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
           <button
             onClick={() => { setShareOpen(v => !v); setStageOpen(false) }}
             disabled={busy}
-            className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-40"
+            className="text-xs font-bold px-3 py-1 rounded-full bg-ink-on-accent/10 text-ink-on-accent hover:bg-ink-on-accent/20 disabled:opacity-40"
           >Share all &#9662;</button>
           {shareOpen && (
             <div className="absolute bottom-full mb-2 right-0 bg-bg-elevated text-ink rounded-xl shadow-card border border-border overflow-hidden min-w-[180px]">
@@ -140,17 +140,17 @@ export function BulkActionFooter({ selectedCount, selectedIds, onCompare, onClea
         <button
           onClick={bulkReject}
           disabled={busy}
-          className="text-xs font-bold px-3 py-1 rounded-full bg-danger/20 text-white hover:bg-danger/30 disabled:opacity-40"
+          className="text-xs font-bold px-3 py-1 rounded-full bg-danger/20 text-ink-on-accent hover:bg-danger/30 disabled:opacity-40"
         >Reject all</button>
 
         <button
           onClick={onClear}
-          className="text-xs font-bold text-white/70 hover:text-white"
+          className="text-xs font-bold text-ink-on-accent/70 hover:text-ink-on-accent"
         >Clear</button>
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-ink text-white rounded-2xl shadow-card px-4 py-3 text-xs font-bold max-w-md">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-ink text-ink-on-accent rounded-2xl shadow-card px-4 py-3 text-xs font-bold max-w-md">
           {toast}
         </div>
       )}

@@ -62,7 +62,7 @@ export function TranscriptViewer({ utterances, currentTimeSec, onSeek, highlight
 
   if (!utterances.length) {
     return (
-      <div className="bg-white rounded-2xl border border-border shadow-card px-5 py-4">
+      <div className="bg-bg-elevated rounded-2xl border border-border shadow-card px-5 py-4">
         <p className="text-xs text-mid">Transcript not available yet.</p>
       </div>
     )
@@ -71,7 +71,7 @@ export function TranscriptViewer({ utterances, currentTimeSec, onSeek, highlight
   return (
     <div
       ref={listRef}
-      className="bg-white rounded-2xl border border-border shadow-card max-h-96 overflow-y-auto divide-y divide-border"
+      className="bg-bg-elevated rounded-2xl border border-border shadow-card max-h-96 overflow-y-auto divide-y divide-border"
       role="list"
     >
       {utterances.map((u, i) => {
@@ -87,7 +87,7 @@ export function TranscriptViewer({ utterances, currentTimeSec, onSeek, highlight
             ref={setRef}
             onClick={() => onSeek(u.start)}
             className={`w-full text-left px-4 py-3 transition-colors flex gap-3 items-start ${
-              isActive ? 'bg-yellow-50' : 'hover:bg-bg/60'
+              isActive ? 'bg-warning/10' : 'hover:bg-bg/60'
             }`}
           >
             <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-light text-mid border border-border flex-shrink-0 mt-0.5">

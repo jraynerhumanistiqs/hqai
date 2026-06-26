@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/ui/Modal'
+import ThemeToggle from '@/components/theme/ThemeToggle'
 
 type AppRole = 'owner' | 'test_admin' | 'member'
 
@@ -524,6 +525,10 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             <SettingsIcon active={isActive('/dashboard/settings')} />
             <span>Settings</span>
           </Link>
+          {/* Appearance toggle - flips the dashboard between the dark
+              (brand-default) and light product themes. Collapses to its
+              icon in icons-only mode via the generic span selector. */}
+          <ThemeToggle variant="row" />
           <button onClick={signOut} title="Sign out" aria-label="Sign out"
             className="w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] text-ink-soft hover:bg-bg-soft hover:text-ink transition-all">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="flex-shrink-0 opacity-60">
@@ -557,7 +562,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           preview build they're looking at. */}
       <div className="px-2.5 pb-3 pt-3 flex-shrink-0 border-t border-border space-y-2">
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-1 sidebar-collapsible-hide">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto" priority />
+          {/* Theme-aware wordmark - ink on light, white on dark. */}
+          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto dark:hidden" priority />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto hidden dark:block" priority />
         </Link>
         <p className="px-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted sidebar-collapsible-hide">v0.4 preview</p>
       </div>

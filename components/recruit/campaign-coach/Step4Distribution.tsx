@@ -116,7 +116,7 @@ export default function Step4Distribution() {
         })}
       </div>
 
-      <div className="bg-charcoal text-white rounded-3xl p-5 flex items-center justify-between">
+      <div className="bg-ink text-ink-on-accent rounded-3xl p-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">
             Total estimated cost
@@ -152,12 +152,12 @@ function ToggleSwitch({
     <button
       onClick={() => onChange(!checked)}
       className={`flex-shrink-0 w-12 h-7 rounded-full p-0.5 transition-colors ${
-        checked ? 'bg-black' : 'bg-light'
+        checked ? 'bg-ink' : 'bg-light'
       }`}
       aria-pressed={checked}
     >
       <span
-        className={`block w-6 h-6 bg-white rounded-full shadow transition-transform ${
+        className={`block w-6 h-6 bg-bg-elevated rounded-full shadow transition-transform ${
           checked ? 'translate-x-5' : 'translate-x-0'
         }`}
       />

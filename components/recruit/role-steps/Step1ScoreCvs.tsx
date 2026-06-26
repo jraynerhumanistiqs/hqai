@@ -100,7 +100,7 @@ export function Step1ScoreCvs({ sessionId, roleTitle }: Props) {
   if (error) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-6">
-        <div className="bg-white border border-danger/30 rounded-2xl p-5">
+        <div className="bg-bg-elevated border border-danger/30 rounded-2xl p-5">
           <p className="text-sm font-bold text-danger">Couldn&apos;t load Step 1</p>
           <p className="text-xs text-mid mt-1">{error}</p>
           <p className="text-xs text-mid mt-3">

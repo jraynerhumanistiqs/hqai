@@ -192,7 +192,7 @@ export default function Step2Extract() {
                     })
                   }
                 }}
-                className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal max-w-full"
+                className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal max-w-full"
               >
                 <option value="">Select an award...</option>
                 {COMMON_AWARDS.map(a => (
@@ -308,7 +308,7 @@ export default function Step2Extract() {
               href={fwoAwardUrl(profile.award.code)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-black text-white text-sm font-bold rounded-full px-4 py-2 hover:bg-charcoal"
+              className="inline-flex items-center gap-1.5 bg-ink text-ink-on-accent text-sm font-bold rounded-full px-4 py-2 hover:bg-accent-hover"
             >
               View on Fair Work
               <span aria-hidden="true">↗</span>
@@ -349,7 +349,7 @@ function InlineText({
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal w-full sm:w-auto"
+      className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal w-full sm:w-auto"
     />
   )
 }
@@ -368,7 +368,7 @@ function InlineNumber({
       type="number"
       value={value}
       onChange={e => onChange(e.target.value)}
-      className={`bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal ${width}`}
+      className={`bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal ${width}`}
     />
   )
 }
@@ -386,7 +386,7 @@ function InlineSelect({
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-white focus:ring-1 focus:ring-charcoal"
+      className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal"
     >
       {options.map(o => (
         <option key={o.value} value={o.value}>

@@ -9,7 +9,7 @@ interface Props {
   onSaved: (updated: PrescreenSession) => void
 }
 
-const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-white transition-colors'
+const inputCls = 'w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated transition-colors'
 
 function initialRubric(session: PrescreenSession): RubricDimension[] {
   const cur = Array.isArray(session.custom_rubric) ? session.custom_rubric : []
@@ -149,7 +149,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
       onClick={busy ? undefined : onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
+        className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

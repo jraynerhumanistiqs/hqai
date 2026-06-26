@@ -121,7 +121,7 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
       aria-modal="true"
     >
       <div
-        className="bg-white rounded-2xl shadow-card w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        className="bg-bg-elevated rounded-2xl shadow-card w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // A0.4 - lang="en-AU" so screen readers, date pickers and currency
     // formatters use Australian conventions.
-    <html lang="en-AU" className={`${geistSans.variable} ${geistMono.variable} ${schibsted.variable}`}>
+    <html lang="en-AU" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${schibsted.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </head>

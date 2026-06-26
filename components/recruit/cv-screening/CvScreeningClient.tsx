@@ -732,7 +732,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                           title={`v${v.version_number ?? 1} - ${cohort} candidate${cohort === 1 ? '' : 's'} scored`}
                         >
                           v{v.version_number ?? 1}
-                          <span className={`ml-1.5 ${isActive ? 'text-white/70' : 'text-muted'}`}>
+                          <span className={`ml-1.5 ${isActive ? 'text-ink-on-accent/70' : 'text-muted'}`}>
                             {cohort}
                           </span>
                         </button>
@@ -898,7 +898,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => toggleSelected(s.id)}
-                                    className="w-4 h-4 rounded border-border accent-black cursor-pointer"
+                                    className="w-4 h-4 rounded border-border accent-accent cursor-pointer"
                                   />
                                 </label>
                                 <div className="sm:col-span-3 text-sm font-bold text-charcoal truncate text-left flex items-center gap-1.5 group">
@@ -1146,7 +1146,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             onClick={() => setCriteriaModalOpen(false)}
           >
             <div
-              className="bg-bg-elevated rounded-3xl border border-border ring-1 ring-black/5 shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
+              className="bg-bg-elevated rounded-3xl border border-border ring-1 ring-ink/5 shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="px-6 pt-5 pb-4 border-b border-border">
@@ -1395,23 +1395,23 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* Sticky selection bar - single line, scales width with content */}
       {selectedCount > 0 && (
         <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
-          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-white rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-ink-on-accent rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
             <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
-            <span className="text-xs text-white/60 hidden md:inline">
+            <span className="text-xs opacity-60 hidden md:inline">
               {prescreenSessionId
                 ? 'Send the selected candidates to prescreen, or download a CV report.'
                 : 'Generate a client-ready summary or send to Shortlist Agent.'}
             </span>
             <button
               onClick={clearSelected}
-              className="text-xs font-bold text-white/70 hover:text-white px-2 py-1 flex-shrink-0"
+              className="text-xs font-bold opacity-70 hover:opacity-100 px-2 py-1 flex-shrink-0"
             >
               Clear
             </button>
             <button
               onClick={batchSendToShortlist}
               disabled={batchHandoffBusy}
-              className="bg-white/15 text-white text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
+              className="bg-white/15 text-ink-on-accent text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
               title={prescreenSessionId
                 ? 'Attach the selected CVs to this role and move them to Step 2 (Prescreen)'
                 : 'Create one Shortlist Agent role with all selected CVs invited for video pre-screen'}
@@ -1641,7 +1641,7 @@ function RubricRow({
           }}
           onBlur={onCommitRename}
           onClick={e => e.stopPropagation()}
-          className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-black rounded-md px-2 py-1 outline-none"
+          className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-ink rounded-md px-2 py-1 outline-none"
           maxLength={80}
         />
       ) : (

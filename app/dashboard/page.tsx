@@ -56,12 +56,13 @@ export default async function DashboardHome() {
     (s || '').replace(/[\u2014\u2013]/g, '-')
 
   return (
-    // SPIKE (June 2026): this one screen is scoped to the marketing dark
-    // theme via data-app="marketing" - the CSS-var tokens cascade so the
-    // whole subtree repaints near-black + Wattle Gold + Schibsted, while
-    // the sidebar and every other dashboard page stay on the light product
-    // theme. A look-and-feel preview of "dashboard matches the public site".
-    <div data-app="marketing" className="flex-1 overflow-y-auto bg-bg text-ink">
+    // The whole dashboard now honours the product light/dark theme
+    // (defaults to dark, toggle in the sidebar). The June 2026 spike that
+    // hard-scoped this one screen to data-app="marketing" is retired - the
+    // product .dark tokens already mirror the marketing palette, so this
+    // page reads near-black + Wattle Gold + Schibsted in dark and clean
+    // white in light, in step with every other dashboard surface.
+    <div className="flex-1 overflow-y-auto bg-bg text-ink">
       {/* Tightened vertical rhythm - previous gap-8/10 left the
           greeting feeling stranded above the first card row. Half the
           gap and smaller top padding pulls everything together. */}

@@ -266,11 +266,11 @@ export default function Step5Launch() {
                         return [...prev, opt.id]
                       })
                     }}
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-border-strong bg-ink/5' : 'border-border hover:border-mid'}`}
                   >
-                    <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-black bg-black' : 'border-border'}`}>
+                    <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-ink bg-ink' : 'border-border'}`}>
                       {checked && (
-                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="w-2.5 h-2.5 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                         </svg>
                       )}
@@ -323,7 +323,7 @@ function LaunchSuccess({ result }: { result: any }) {
   return (
     <div className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-charcoal text-white flex items-center justify-center font-bold">
+        <div className="w-10 h-10 rounded-full bg-ink text-ink-on-accent flex items-center justify-center font-bold">
           ✓
         </div>
         <div>
@@ -372,7 +372,7 @@ function LaunchSuccess({ result }: { result: any }) {
             )}
             <button
               onClick={() => copy(adText, 'ad')}
-              className="bg-white border border-border text-charcoal text-xs font-bold px-4 py-2 rounded-full hover:bg-light transition-colors"
+              className="bg-bg-elevated border border-border text-charcoal text-xs font-bold px-4 py-2 rounded-full hover:bg-light transition-colors"
             >
               {copiedAd ? 'Copied ad text' : 'Copy ad text'}
             </button>
@@ -416,7 +416,7 @@ function DeepLinkButton({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-charcoal text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-black transition-colors"
+      className="bg-ink text-ink-on-accent text-xs font-bold px-4 py-2 rounded-full hover:bg-accent-hover transition-colors"
     >
       {children}
     </a>

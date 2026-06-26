@@ -206,7 +206,9 @@
 
     --ink:              #F5F5F4;
     --ink-soft:         #A8A8A3;
-    --ink-muted:        #6B6B66;
+    /* Matched to the marketing dark surface (#7C7C77) so the dashboard
+       reads identically to the public site in dark mode. */
+    --ink-muted:        #7C7C77;
     --ink-on-accent:    #FFFFFF;
 
     /* Dark variant: Wattle Gold carries CTAs (with near-black labels)

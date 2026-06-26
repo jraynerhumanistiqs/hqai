@@ -103,7 +103,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
 
   return (
     <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4" {...backdrop}>
-      <div className="bg-white rounded-2xl shadow-card max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="bg-bg-elevated rounded-2xl shadow-card max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <p className="text-xs font-bold text-ink uppercase tracking-widest">Share with hiring manager</p>
           <button onClick={onClose} className="text-mid hover:text-ink text-lg leading-none">&times;</button>
@@ -113,7 +113,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
           <div>
             <label className="block text-xs font-bold text-ink mb-1">Label (optional)</label>
             <input
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-black bg-white"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-border-strong bg-bg-soft"
               placeholder="e.g. Sarah - Hiring Manager"
               value={label}
               onChange={e => setLabel(e.target.value)}
@@ -128,7 +128,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                   key={d}
                   onClick={() => setDays(d)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
-                    days === d ? 'bg-black text-white border-black' : 'bg-white text-mid border-border hover:text-ink'
+                    days === d ? 'bg-ink text-ink-on-accent border-ink' : 'bg-bg-elevated text-mid border-border hover:text-ink'
                   }`}
                 >{d} days</button>
               ))}
@@ -137,7 +137,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
           <button
             onClick={create}
             disabled={creating}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-black text-white disabled:opacity-40"
+            className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-ink-on-accent disabled:opacity-40"
           >
             {creating ? 'Creating...' : 'Generate review link'}
           </button>
@@ -175,9 +175,9 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                       </p>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${
-                      st === 'active' ? 'bg-green-50 text-green-600 border-green-200' :
-                      st === 'revoked' ? 'bg-light text-mid border-border' :
-                      'bg-amber-50 text-amber-700 border-amber-200'
+                      st === 'active' ? 'bg-success/10 text-success border-success/20' :
+                      st === 'revoked' ? 'bg-bg-soft text-ink-muted border-border' :
+                      'bg-warning/10 text-warning border-warning/20'
                     }`}>{st}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-2">
@@ -204,14 +204,14 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                       <input
                         type="email"
                         placeholder="recipient@company.com"
-                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-black bg-white"
+                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-border-strong bg-bg-soft"
                         value={emailTo}
                         onChange={e => setEmailTo(e.target.value)}
                       />
                       <button
                         onClick={() => sendByEmail(l)}
                         disabled={sending || !emailTo.trim()}
-                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-black text-white disabled:opacity-40"
+                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-ink text-ink-on-accent disabled:opacity-40"
                       >{emailSent ? 'Sent' : sending ? 'Sending...' : 'Send'}</button>
                     </div>
                   )}

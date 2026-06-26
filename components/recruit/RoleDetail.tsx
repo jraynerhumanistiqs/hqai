@@ -978,7 +978,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         >
                           <input
                             type="checkbox"
-                            className="w-4 h-4 accent-black cursor-pointer"
+                            className="w-4 h-4 accent-ink cursor-pointer"
                             checked={checked}
                             disabled={disabled}
                             onChange={() => toggleSelect(r.id)}
