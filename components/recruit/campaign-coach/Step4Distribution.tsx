@@ -84,7 +84,7 @@ export default function Step4Distribution() {
           return (
             <div
               key={b.id}
-              className="bg-white shadow-card rounded-3xl p-4 sm:p-5 flex items-start gap-4"
+              className="bg-bg-elevated shadow-card rounded-3xl p-4 sm:p-5 flex items-start gap-4"
             >
               <div className="w-10 h-10 rounded-full bg-light flex items-center justify-center font-display text-xs font-bold text-charcoal flex-shrink-0">
                 {(BOARD_LABELS[b.id] || b.id).slice(0, 2).toUpperCase()}

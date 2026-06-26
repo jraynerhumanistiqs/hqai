@@ -279,7 +279,7 @@ export function EditRoleModal({ session, onClose, onSaved }: Props) {
           <button
             onClick={handleSave}
             disabled={busy}
-            className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
+            className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-ink-on-accent text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
           >
             {rescoring ? (
               <>

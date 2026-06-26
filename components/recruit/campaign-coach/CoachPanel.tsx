@@ -122,9 +122,9 @@ export default function CoachPanel({ onClose }: { onClose?: () => void }) {
         </div>
       )}
 
-      <div className="border-t border-border px-4 py-3 flex-shrink-0 flex items-center justify-between gap-2">
-        <p className="text-xs text-ink-muted">Chat back to the coach</p>
-        <span className="bg-bg-soft text-ink-muted rounded-full text-xs px-2 py-0.5 flex-shrink-0">
+      <div className="border-t border-border px-4 py-3 flex-shrink-0 flex items-center gap-2">
+        <p className="text-xs text-ink-muted">Two-way coaching</p>
+        <span className="bg-bg-soft text-ink-muted border border-border rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 flex-shrink-0">
           Coming soon
         </span>
       </div>

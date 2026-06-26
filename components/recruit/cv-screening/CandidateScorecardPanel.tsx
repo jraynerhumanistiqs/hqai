@@ -75,9 +75,12 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
     }
   }
 
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+
   async function handleReject() {
     if (!onRejectCandidate) return
-    if (!window.confirm(`Reject ${screening.candidate_label ?? 'this candidate'}? They move to the No category. You can still find them in the list.`)) return
+    setRejectConfirmOpen(false)
     setRoleActionBusy('reject')
     setRoleActionError(null)
     try {
@@ -91,8 +94,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   }
 
   async function deleteCandidate() {
-    const candidateLabel = screening.candidate_label ?? 'this candidate'
-    if (!window.confirm(`Delete ${candidateLabel}? This cannot be undone.`)) return
+    setDeleteConfirmOpen(false)
     setDeleting(true)
     setDeleteError(null)
     try {
@@ -296,55 +298,98 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameDraft, setRenameDraft] = useState('')
+  const [renameError, setRenameError] = useState<string | null>(null)
+  const [renameBusy, setRenameBusy] = useState(false)
+
+  async function commitRename() {
+    const next = renameDraft.trim()
+    if (!next || next === screening.candidate_label) { setRenameOpen(false); return }
+    setRenameBusy(true)
+    setRenameError(null)
+    try {
+      const r = await fetch(`/api/cv-screening/screenings/${screening.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidate_label: next }),
+      })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error || 'Update failed')
+      onRenameCandidate?.(data.screening.candidate_label)
+      setRenameOpen(false)
+    } catch (err) {
+      setRenameError(err instanceof Error ? err.message : 'Could not rename candidate')
+    } finally {
+      setRenameBusy(false)
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 bg-ink/40 z-40 flex justify-end"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-2xl h-full overflow-y-auto shadow-card"
+        className="bg-bg-elevated w-full max-w-2xl h-full overflow-y-auto shadow-card"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-border px-6 py-4 flex items-start justify-between z-10">
-          <div>
+        <div className="sticky top-0 bg-bg-elevated border-b border-border px-6 py-4 flex items-start justify-between z-10">
+          <div className="flex-1 min-w-0 pr-3">
             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
               {rubric?.role ?? screening.rubric_id}
             </p>
-            <h2 className="font-display text-h3 font-bold text-charcoal inline-flex items-center gap-2 group">
-              <span>{screening.candidate_label}</span>
-              <button
-                type="button"
-                onClick={async () => {
-                  const next = window.prompt('Rename candidate', screening.candidate_label)
-                  if (!next || !next.trim() || next.trim() === screening.candidate_label) return
-                  try {
-                    const r = await fetch(`/api/cv-screening/screenings/${screening.id}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ candidate_label: next.trim() }),
-                    })
-                    const data = await r.json()
-                    if (!r.ok) throw new Error(data.error || 'Update failed')
-                    onRenameCandidate?.(data.screening.candidate_label)
-                  } catch (err) {
-                    window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
-                  }
-                }}
-                aria-label="Rename candidate"
-                title="Rename candidate"
-                className="text-[11px] text-mid hover:text-charcoal opacity-0 group-hover:opacity-100 rounded p-1 transition-opacity"
-              >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
-                  <path d="M10 3l3 3" />
-                </svg>
-              </button>
-            </h2>
+            {renameOpen ? (
+              <div className="space-y-1">
+                <input
+                  autoFocus
+                  value={renameDraft}
+                  onChange={e => setRenameDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenameOpen(false) }}
+                  className="w-full text-base font-bold text-charcoal bg-bg border border-border rounded-full px-3 py-1.5 outline-none focus:border-charcoal"
+                  aria-label="Candidate name"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={commitRename}
+                    disabled={renameBusy}
+                    className="text-xs font-bold text-accent hover:underline disabled:opacity-50"
+                  >
+                    {renameBusy ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRenameOpen(false)}
+                    className="text-xs font-bold text-mid hover:underline"
+                  >
+                    Cancel
+                  </button>
+                  {renameError && <span className="text-xs text-danger">{renameError}</span>}
+                </div>
+              </div>
+            ) : (
+              <h2 className="font-display text-h3 font-bold text-charcoal inline-flex items-center gap-2 group">
+                <span>{screening.candidate_label}</span>
+                <button
+                  type="button"
+                  onClick={() => { setRenameDraft(screening.candidate_label ?? ''); setRenameOpen(true); setRenameError(null) }}
+                  aria-label="Rename candidate"
+                  title="Rename candidate"
+                  className="text-[11px] text-mid hover:text-charcoal opacity-0 group-hover:opacity-100 rounded p-1 transition-opacity"
+                >
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                    <path d="M10 3l3 3" />
+                  </svg>
+                </button>
+              </h2>
+            )}
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-light flex items-center justify-center text-mid text-lg"
-            aria-label="Close"
+            className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 flex-shrink-0"
+            aria-label="Close scorecard"
           >
             ×
           </button>
@@ -352,7 +397,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
 
         <div className="px-6 py-6 space-y-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-display font-bold text-charcoal leading-none">
+            <span className="text-3xl sm:text-4xl font-bold text-charcoal leading-none tabular-nums">
               {Number(screening.overall_score).toFixed(2)}
             </span>
             <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 ${BAND_COLOURS[screening.band as keyof typeof BAND_COLOURS] ?? ''}`}>
@@ -399,26 +444,43 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                   type="button"
                   onClick={handleSendToPrescreen}
                   disabled={roleActionBusy !== null || roleActionDone === 'prescreen'}
-                  className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal disabled:opacity-60"
+                  className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-4 py-2 hover:bg-accent-hover disabled:opacity-60"
                 >
                   {roleActionBusy === 'prescreen'
                     ? 'Sending...'
                     : roleActionDone === 'prescreen'
-                      ? 'Sent to prescreen ✓'
+                      ? 'Sent to prescreen'
                       : 'Send to prescreen'}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={roleActionBusy !== null || roleActionDone === 'reject'}
-                  className="bg-bg-elevated border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-danger/10 hover:text-danger hover:border-danger/30 disabled:opacity-60"
-                >
-                  {roleActionBusy === 'reject'
-                    ? 'Rejecting...'
-                    : roleActionDone === 'reject'
-                      ? 'Rejected ✓'
-                      : 'Reject candidate'}
-                </button>
+                {rejectConfirmOpen ? (
+                  <span className="inline-flex items-center gap-2 text-xs">
+                    <span className="text-mid">Reject this candidate?</span>
+                    <button
+                      type="button"
+                      onClick={handleReject}
+                      disabled={roleActionBusy !== null}
+                      className="font-bold text-danger hover:underline disabled:opacity-50"
+                    >
+                      Yes, reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRejectConfirmOpen(false)}
+                      className="font-bold text-mid hover:underline"
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setRejectConfirmOpen(true)}
+                    disabled={roleActionBusy !== null || roleActionDone === 'reject'}
+                    className="bg-bg-elevated border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-danger/10 hover:text-danger hover:border-danger/30 disabled:opacity-60"
+                  >
+                    {roleActionDone === 'reject' ? 'Rejected' : 'Reject candidate'}
+                  </button>
+                )}
                 <span className="text-[11px] text-muted">
                   Download the CV report below.
                 </span>
@@ -450,7 +512,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                 type="button"
                 onClick={() => downloadExport('score', 'CV Score Summary')}
                 disabled={!!downloadBusy}
-                className="bg-black text-white text-xs font-bold rounded-full px-4 py-2 hover:bg-charcoal disabled:opacity-60"
+                className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-4 py-2 hover:bg-accent-hover disabled:opacity-60"
               >
                 {downloadBusy === 'score' ? 'Generating...' : 'CV Score Summary'}
               </button>
@@ -458,7 +520,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                 type="button"
                 onClick={() => downloadExport('formatted', 'Formatted & Branded CV')}
                 disabled={!!downloadBusy}
-                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg disabled:opacity-60"
+                className="bg-bg-elevated border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-light disabled:opacity-60"
               >
                 {downloadBusy === 'formatted' ? 'Generating...' : 'Formatted & Branded CV'}
               </button>
@@ -466,7 +528,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                 type="button"
                 onClick={() => downloadExport('combined', 'Combined download')}
                 disabled={!!downloadBusy}
-                className="bg-white border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-bg disabled:opacity-60"
+                className="bg-bg-elevated border border-border text-charcoal text-xs font-bold rounded-full px-4 py-2 hover:bg-light disabled:opacity-60"
               >
                 {downloadBusy === 'combined' ? 'Generating...' : 'Combine Both'}
               </button>
@@ -525,7 +587,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                   onClick={runCounterfactual}
                   disabled={probeBusy}
                   title="Re-scores this CV with a few different names to check the AI's score doesn't change based on the candidate's name."
-                  className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal disabled:opacity-50"
+                  className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-3 py-1.5 hover:bg-accent-hover disabled:opacity-50"
                 >
                   {probeBusy ? 'Checking...' : 'Check for name bias'}
                 </button>
@@ -580,21 +642,42 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             </pre>
           </details>
 
-          {/* Delete candidate - footer-low-emphasis. Confirmation via
-              native window.confirm; on success the row is removed from
-              the parent's screenings[] state and the drawer closes. */}
-          <div className="pt-4 border-t border-border flex items-center justify-between gap-3">
+          {/* Delete candidate - footer-low-emphasis. Inline confirm replaces
+              native window.confirm for non-blocking UX. */}
+          <div className="pt-4 border-t border-border">
             {deleteError && (
-              <p className="text-[11px] text-danger flex-1">{deleteError}</p>
+              <p className="text-[11px] text-danger mb-2">{deleteError}</p>
             )}
-            <button
-              type="button"
-              onClick={deleteCandidate}
-              disabled={deleting}
-              className="ml-auto text-xs font-bold text-mid hover:text-danger transition-colors disabled:opacity-50"
-            >
-              {deleting ? 'Deleting...' : 'Delete candidate'}
-            </button>
+            {deleteConfirmOpen ? (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-mid">Delete {screening.candidate_label ?? 'this candidate'}? This cannot be undone.</span>
+                <button
+                  type="button"
+                  onClick={deleteCandidate}
+                  disabled={deleting}
+                  className="font-bold text-danger hover:underline disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Yes, delete'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  className="font-bold text-mid hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                  className="text-xs font-bold text-mid hover:text-danger transition-colors"
+                >
+                  Delete candidate
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -604,7 +687,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             onClick={() => !handoffLoading && setHandoffOpen(false)}
           >
             <div
-              className="bg-white w-full max-w-xl rounded-3xl shadow-card max-h-[85vh] overflow-y-auto"
+              className="bg-bg-elevated w-full max-w-xl rounded-3xl shadow-card max-h-[85vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="px-6 py-4 border-b border-border flex items-center justify-between">
@@ -613,7 +696,8 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                 </h3>
                 <button
                   onClick={() => !handoffLoading && setHandoffOpen(false)}
-                  className="w-8 h-8 rounded-full hover:bg-light flex items-center justify-center text-mid"
+                  className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                  aria-label="Close video pre-screen invite"
                 >
                   ×
                 </button>
@@ -700,7 +784,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                         </code>
                         <button
                           onClick={copyLink}
-                          className="bg-black text-white text-xs font-bold rounded-full px-3 py-1.5 hover:bg-charcoal"
+                          className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-3 py-1.5 hover:bg-accent-hover"
                         >
                           {copied ? 'Copied' : 'Copy'}
                         </button>
@@ -715,13 +799,13 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                         href={handoffResult.candidate_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 bg-white border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 text-center hover:bg-light"
+                        className="flex-1 bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 text-center hover:bg-light"
                       >
                         Preview candidate view
                       </a>
                       <button
                         onClick={() => setHandoffOpen(false)}
-                        className="flex-1 bg-black text-white text-sm font-bold rounded-full px-4 py-2.5 hover:bg-charcoal"
+                        className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover"
                       >
                         Done
                       </button>

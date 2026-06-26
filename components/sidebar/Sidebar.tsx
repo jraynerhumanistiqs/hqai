@@ -344,11 +344,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Shortlist Agent
+              <InfoTooltip text="Full hiring workflow - score, prescreen, shortlist and decide inside one role." />
             </Link>
             <Link href="/dashboard/recruit/cv-screening"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
               Quick CV score
+              <InfoTooltip text="Score one or more CVs without setting up a role first." />
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
@@ -361,7 +363,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* Documents dropdown */}
         <button onClick={() => toggleSubmenu(docsOpen, setDocsOpen)} title="Documents" aria-label="Documents"
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-            ${isActive('/dashboard/documents')
+            ${isActive('/dashboard/documents', true)
               ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <DocsIcon active={isActive('/dashboard/documents')} />
@@ -374,11 +376,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/documents') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               <span>My Documents</span>
-            </Link>
-            <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              <span>All Templates</span>
             </Link>
           </div>
         )}

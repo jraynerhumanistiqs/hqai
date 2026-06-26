@@ -114,7 +114,7 @@ export default function Step5Launch() {
           <button
             type="button"
             onClick={handoffToResumeAgent}
-            className="bg-black text-white text-sm font-bold px-7 py-3.5 rounded-full hover:bg-[#1a1a1a] transition-colors"
+            className="bg-accent text-ink-on-accent text-sm font-bold px-7 py-3.5 rounded-full hover:bg-accent-hover transition-colors"
           >
             Finalise Campaign (Move to CV Scoring Agent) →
           </button>
@@ -122,7 +122,7 @@ export default function Step5Launch() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white shadow-card rounded-3xl p-5 sm:p-6">
+        <div className="bg-bg-elevated shadow-card rounded-3xl p-5 sm:p-6">
           <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-3">
             Ad preview
           </p>
@@ -181,7 +181,7 @@ export default function Step5Launch() {
           </div>
         </div>
 
-        <div className="bg-white shadow-card rounded-3xl p-5 sm:p-6 space-y-4">
+        <div className="bg-bg-elevated shadow-card rounded-3xl p-5 sm:p-6 space-y-4">
           <div>
             <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">
               Screening questions
@@ -321,7 +321,7 @@ function LaunchSuccess({ result }: { result: any }) {
   }
 
   return (
-    <div className="bg-white shadow-card rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto">
+    <div className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-full bg-charcoal text-white flex items-center justify-center font-bold">
           ✓
@@ -349,7 +349,7 @@ function LaunchSuccess({ result }: { result: any }) {
             />
             <button
               onClick={() => copy(candidateUrl, 'url')}
-              className="bg-black text-white text-xs font-bold px-3 py-2 rounded-full hover:bg-[#1a1a1a] transition-colors"
+              className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-2 rounded-full hover:bg-accent-hover transition-colors"
             >
               {copiedUrl ? 'Copied' : 'Copy'}
             </button>
@@ -389,7 +389,7 @@ function LaunchSuccess({ result }: { result: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Link
               href="/dashboard/recruit/cv-screening"
-              className="bg-black text-white text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-charcoal transition-colors"
+              className="bg-accent text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-accent-hover transition-colors"
             >
               Move to CV Screening →
             </Link>
@@ -399,7 +399,7 @@ function LaunchSuccess({ result }: { result: any }) {
               // the role they just built rubric/questions for, instead of
               // defaulting to the first role in their list. Fix for Item 9.
               href={sessionId ? `/dashboard/recruit/shortlist?session=${sessionId}` : '/dashboard/recruit/shortlist'}
-              className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-light transition-colors"
+              className="bg-bg-elevated border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full text-center hover:bg-light transition-colors"
             >
               Skip to Shortlist Agent →
             </Link>

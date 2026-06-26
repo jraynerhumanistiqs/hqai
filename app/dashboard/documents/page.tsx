@@ -119,19 +119,21 @@ export default function DocumentsPage() {
   return (
     <div className="h-full overflow-y-auto scrollbar-thin bg-bg">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        <h1 className="font-display text-[44px] sm:text-[56px] tracking-tight text-ink leading-[1.05] mb-1">My Documents</h1>
+        {/* Fix #4 (M1): scale down to match TemplatesList heading treatment */}
+        <h1 className="font-display text-3xl sm:text-[44px] tracking-tight text-ink leading-[1.05] mb-1">My Documents</h1>
         <p className="text-xs sm:text-sm text-ink-soft mb-4 sm:mb-6">
           {loading
-            ? 'Loading your documents…'
+            ? 'Loading your documents...'
             : `${total} document${total === 1 ? '' : 's'} generated across the AI Administrator, CV Scoring Agent and chat.`}
         </p>
 
-        <div className="mb-4 sm:mb-6">
+        {/* Fix #8 (M11): sticky search bar with standard bordered input */}
+        <div className="sticky top-0 z-10 bg-bg pb-3 mb-1">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search documents"
-            className="w-full border-b border-ink/30 focus:border-ink bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
+            className="w-full bg-bg border border-border rounded-full px-4 py-2.5 text-sm text-ink placeholder-ink-muted focus:border-ink focus:outline-none transition-colors"
           />
         </div>
 
@@ -146,22 +148,32 @@ export default function DocumentsPage() {
         <div className="space-y-3">
           {categories.map(cat => (
             <div key={cat.title} className="bg-bg-elevated border border-border rounded-3xl overflow-hidden">
+              {/* Fix #3 (H10 a11y): aria-expanded + aria-controls + focus ring */}
               <button
+                id={`doc-cat-btn-${cat.title.replace(/\s+/g, '-')}`}
+                aria-expanded={openCategory === cat.title}
+                aria-controls={`doc-cat-panel-${cat.title.replace(/\s+/g, '-')}`}
                 onClick={() => setOpenCategory(prev => prev === cat.title ? null : cat.title)}
-                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-bg-soft transition-colors"
+                className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   <h2 className="font-display text-base sm:text-lg tracking-tight text-ink truncate">{cat.title}</h2>
                   <span className="text-xs text-ink-muted bg-bg-soft px-2 py-0.5 rounded-full flex-shrink-0 border border-border">{cat.docs.length}</span>
                 </div>
-                <svg className={`w-4 h-4 text-gray-500 transition-transform ${openCategory === cat.title ? 'rotate-180' : ''}`}
+                {/* Fix #5 (M2): text-gray-500 -> text-ink-muted */}
+                <svg className={`w-4 h-4 text-ink-muted transition-transform ${openCategory === cat.title ? 'rotate-180' : ''}`}
                   viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
                 </svg>
               </button>
 
               {openCategory === cat.title && (
-                <div className="border-t border-border">
+                <div
+                  id={`doc-cat-panel-${cat.title.replace(/\s+/g, '-')}`}
+                  role="region"
+                  aria-labelledby={`doc-cat-btn-${cat.title.replace(/\s+/g, '-')}`}
+                  className="border-t border-border"
+                >
                   {cat.docs.map((doc, idx) => (
                     <div key={doc.id} className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-bg-soft transition-colors ${idx > 0 ? 'border-t border-border' : ''}`}>
                       <div className="flex items-start gap-3 sm:gap-4">
@@ -179,19 +191,22 @@ export default function DocumentsPage() {
                             {(doc.type ?? '').replace(/[-_]/g, ' ') || 'document'} - {formatDate(doc.created_at)}
                           </p>
                         </div>
+                        {/* Fix #2 (H3 touch): min-h-touch on Edit + Download DOCX buttons */}
+                        {/* Fix #8 (M11): hover:opacity-90 on Edit so it has perceptible hover */}
+                        {/* Fix #10 (L7): "Download DOCX" label */}
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => setEditing(doc)}
-                            className="bg-ink hover:bg-accent text-bg-elevated text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors"
+                            className="bg-ink hover:opacity-90 text-bg-elevated text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => downloadDocx(doc)}
                             disabled={downloading === doc.id}
-                            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-border transition-colors disabled:opacity-50"
+                            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
                           >
-                            {downloading === doc.id ? 'Preparing…' : 'Download'}
+                            {downloading === doc.id ? 'Preparing...' : 'Download DOCX'}
                           </button>
                         </div>
                       </div>
@@ -209,7 +224,7 @@ export default function DocumentsPage() {
   )
 }
 
-// ── Editor modal ───────────────────────────────────────────────────
+// -- Editor modal ---------------------------------------------------
 function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) {
   const editorRef = useRef<DocEditorHandle | null>(null)
   const [downloading, setDownloading] = useState(false)
@@ -264,20 +279,23 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
     }
   }
 
+  // Fix #6 (L5): scrim bg-ink/40 -> bg-ink/60
+  // Fix #3 (H10 a11y): aria-label on dialog -> aria-labelledby pointing to title <p>
   return (
     <div
-      className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-label="Edit document"
+      aria-labelledby="edit-doc-modal-title"
       onClick={onClose}
     >
       {/* Grid layout (auto/1fr) over fixed 92vh height. The 1fr row
           gives DocEditor a fully-resolved containing block so the
           inner overflow-y-auto pane can actually scroll - the previous
           flex/max-h chain failed to clamp on tall content. */}
+      {/* Fix #5 (M2): bg-white -> bg-bg-elevated */}
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-[920px] h-[92vh] grid"
+        className="bg-bg-elevated rounded-2xl shadow-modal w-full max-w-[920px] h-[92vh] grid"
         style={{ gridTemplateRows: 'auto 1fr' }}
         onClick={e => e.stopPropagation()}
       >
@@ -285,7 +303,8 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
           <div className="flex items-center justify-between px-5 py-3 border-b border-border">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Editing</p>
-              <p className="text-sm font-bold text-charcoal truncate max-w-[400px]">{doc.title}</p>
+              {/* Fix #3 (H10 a11y): id on title so aria-labelledby works */}
+              <p id="edit-doc-modal-title" className="text-sm font-bold text-charcoal truncate max-w-[400px]">{doc.title}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -296,13 +315,14 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
               >
                 {downloading ? 'Preparing PDF...' : 'Download PDF'}
               </button>
+              {/* Fix #2 (H3 touch): close button -> w-9 h-9 min-h-touch min-w-touch rounded-full */}
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close editor"
-                className="text-mid hover:text-charcoal text-lg font-bold px-2"
+                className="w-9 h-9 min-h-touch min-w-touch rounded-full hover:bg-bg-soft flex items-center justify-center text-mid hover:text-charcoal text-lg font-bold transition-colors"
               >
-                ×
+                &times;
               </button>
             </div>
           </div>

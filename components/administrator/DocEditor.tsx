@@ -31,7 +31,7 @@ import { useEffect, useImperativeHandle, forwardRef, useRef, useState, useCallba
 
 // FontSize ships with @tiptap/extension-text-style in v3.
 
-// ── Resizable image node view ──────────────────────────────────────
+// -- Resizable image node view --------------------------------------
 // TipTap's stock Image extension renders a static <img>. To get the
 // Word-style "drag the handle to resize" behaviour, we extend it with
 // a width attribute and a custom node view that draws drag handles in
@@ -46,7 +46,7 @@ const ResizableImage = Image.extend({
   },
 })
 
-// ── Editor handle exposed to the parent ────────────────────────────
+// -- Editor handle exposed to the parent ---------------------------
 export interface DocEditorHandle {
   getHTML: () => string
   getPageSettings: () => PageSettings
@@ -170,7 +170,8 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
           DOM but the markers + indentation were hidden). Re-apply
           inside the editor page only so the rest of the marketing
           chrome isn't affected. Same fix for blockquote, headings,
-          tables and resizable images. */}
+          tables and resizable images.
+          Fix #5 (M2): hardcoded hex -> CSS vars. */}
       <style>{`
         .doc-editor-page .ProseMirror { outline: none; }
         .doc-editor-page .ProseMirror p { margin: 0 0 8px; }
@@ -193,14 +194,14 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
         .doc-editor-page .ProseMirror h3 { font-size: 16px; font-weight: 700; margin: 14px 0 6px; }
         .doc-editor-page .ProseMirror h4 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; }
         .doc-editor-page .ProseMirror blockquote {
-          border-left: 3px solid #d1cfc5;
+          border-left: 3px solid var(--border);
           padding-left: 12px;
-          color: #5e5d59;
+          color: var(--ink-muted);
           margin: 0 0 12px;
         }
         .doc-editor-page .ProseMirror hr {
           border: 0;
-          border-top: 1px solid #d1cfc5;
+          border-top: 1px solid var(--border);
           margin: 16px 0;
         }
         .doc-editor-page .ProseMirror table {
@@ -210,11 +211,11 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
         }
         .doc-editor-page .ProseMirror table td,
         .doc-editor-page .ProseMirror table th {
-          border: 1px solid #d1cfc5;
+          border: 1px solid var(--border);
           padding: 6px 10px;
           vertical-align: top;
         }
-        .doc-editor-page .ProseMirror table th { background: #f0eee6; font-weight: 700; }
+        .doc-editor-page .ProseMirror table th { background: var(--bg-soft); font-weight: 700; }
         .doc-editor-page .ProseMirror img {
           max-width: 100%;
           height: auto;
@@ -222,7 +223,7 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
           margin: 8px 0;
         }
         .doc-editor-page .ProseMirror .is-editor-empty:first-child::before {
-          color: #5e5d59;
+          color: var(--ink-muted);
           content: attr(data-placeholder);
           float: left;
           height: 0;
@@ -318,7 +319,7 @@ const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
 
 export default DocEditor
 
-// ── Toolbar ────────────────────────────────────────────────────────
+// -- Toolbar -------------------------------------------------------
 const FONT_SIZES = ['10px', '11px', '12px', '14px', '16px', '18px', '20px', '24px', '32px']
 
 function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
@@ -328,15 +329,18 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
   onTogglePageMenu: () => void
 }) {
   const isActive = (name: string, attrs?: Record<string, unknown>) => editor.isActive(name, attrs)
+  // Fix #2 (H3 touch): bump button hit-area toward 44px on touch via min-h-touch.
+  // min-w-[28px] is kept for narrow glyphs; min-h-touch handles the vertical tap target.
   const btn = (active: boolean) =>
-    `inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded text-xs font-bold transition-colors ` +
+    `inline-flex items-center justify-center min-w-[28px] min-h-touch px-2 rounded text-xs font-bold transition-colors ` +
     (active ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft')
 
   return (
-    <div className="flex flex-wrap items-center gap-1 px-3 py-2 bg-bg-elevated border-b border-border sticky top-0 z-10">
-      {/* Undo / Redo */}
-      <button title="Undo" className={btn(false)} onClick={() => editor.chain().focus().undo().run()}>↶</button>
-      <button title="Redo" className={btn(false)} onClick={() => editor.chain().focus().redo().run()}>↷</button>
+    // Fix #2 (H3 touch): overflow-x-auto flex-nowrap on mobile so buttons don't wrap below usable size.
+    <div className="flex flex-nowrap overflow-x-auto items-center gap-1 px-3 py-2 bg-bg-elevated border-b border-border sticky top-0 z-10 scrollbar-thin">
+      {/* Undo / Redo - Fix #3 (H10 a11y): aria-label on glyph buttons */}
+      <button title="Undo" aria-label="Undo" className={btn(false)} onClick={() => editor.chain().focus().undo().run()}>&#8630;</button>
+      <button title="Redo" aria-label="Redo" className={btn(false)} onClick={() => editor.chain().focus().redo().run()}>&#8631;</button>
       <Sep />
 
       {/* Heading level */}
@@ -374,34 +378,34 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
 
       <Sep />
 
-      {/* Inline marks */}
-      <button title="Bold (Ctrl+B)"      className={btn(isActive('bold'))}      onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
-      <button title="Italic (Ctrl+I)"    className={btn(isActive('italic'))}    onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
-      <button title="Underline (Ctrl+U)" className={btn(isActive('underline'))} onClick={() => editor.chain().focus().toggleUnderline().run()}><u>U</u></button>
-      <button title="Strikethrough"      className={btn(isActive('strike'))}    onClick={() => editor.chain().focus().toggleStrike().run()}><s>S</s></button>
+      {/* Inline marks - Fix #3 (H10 a11y): aria-label on all glyph buttons */}
+      <button title="Bold (Ctrl+B)"      aria-label="Bold"          className={btn(isActive('bold'))}      onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
+      <button title="Italic (Ctrl+I)"    aria-label="Italic"        className={btn(isActive('italic'))}    onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
+      <button title="Underline (Ctrl+U)" aria-label="Underline"     className={btn(isActive('underline'))} onClick={() => editor.chain().focus().toggleUnderline().run()}><u>U</u></button>
+      <button title="Strikethrough"      aria-label="Strikethrough" className={btn(isActive('strike'))}    onClick={() => editor.chain().focus().toggleStrike().run()}><s>S</s></button>
 
       <Sep />
 
       {/* Lists */}
-      <button title="Bullet list"      className={btn(isActive('bulletList'))}  onClick={() => editor.chain().focus().toggleBulletList().run()}>•</button>
-      <button title="Numbered list"    className={btn(isActive('orderedList'))} onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</button>
-      <button title="Blockquote"       className={btn(isActive('blockquote'))}  onClick={() => editor.chain().focus().toggleBlockquote().run()}>“”</button>
+      <button title="Bullet list"  aria-label="Bullet list"   className={btn(isActive('bulletList'))}  onClick={() => editor.chain().focus().toggleBulletList().run()}>&#8226;</button>
+      <button title="Numbered list" aria-label="Numbered list" className={btn(isActive('orderedList'))} onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</button>
+      <button title="Blockquote"   aria-label="Blockquote"    className={btn(isActive('blockquote'))}  onClick={() => editor.chain().focus().toggleBlockquote().run()}>&ldquo;&rdquo;</button>
 
       <Sep />
 
       {/* Align */}
-      <button title="Align left"    className={btn(isActive({ textAlign: 'left' }))}    onClick={() => editor.chain().focus().setTextAlign('left').run()}>L</button>
-      <button title="Align centre"  className={btn(isActive({ textAlign: 'center' }))}  onClick={() => editor.chain().focus().setTextAlign('center').run()}>C</button>
-      <button title="Align right"   className={btn(isActive({ textAlign: 'right' }))}   onClick={() => editor.chain().focus().setTextAlign('right').run()}>R</button>
-      <button title="Justify"       className={btn(isActive({ textAlign: 'justify' }))} onClick={() => editor.chain().focus().setTextAlign('justify').run()}>J</button>
+      <button title="Align left"   aria-label="Align left"   className={btn(isActive({ textAlign: 'left' }))}    onClick={() => editor.chain().focus().setTextAlign('left').run()}>L</button>
+      <button title="Align centre" aria-label="Align centre" className={btn(isActive({ textAlign: 'center' }))}  onClick={() => editor.chain().focus().setTextAlign('center').run()}>C</button>
+      <button title="Align right"  aria-label="Align right"  className={btn(isActive({ textAlign: 'right' }))}   onClick={() => editor.chain().focus().setTextAlign('right').run()}>R</button>
+      <button title="Justify"      aria-label="Justify"      className={btn(isActive({ textAlign: 'justify' }))} onClick={() => editor.chain().focus().setTextAlign('justify').run()}>J</button>
 
       <Sep />
 
       {/* Insert */}
-      <button title="Insert image"  className={btn(false)} onClick={onInsertImage}>🖼</button>
-      <button title="Insert link"   className={btn(isActive('link'))} onClick={onOpenLink}>🔗</button>
-      <button title="Insert table"  className={btn(false)} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>⊞</button>
-      <button title="Horizontal rule" className={btn(false)} onClick={() => editor.chain().focus().setHorizontalRule().run()}>―</button>
+      <button title="Insert image"      aria-label="Insert image"      className={btn(false)} onClick={onInsertImage}>&#128444;</button>
+      <button title="Insert link"       aria-label="Insert link"       className={btn(isActive('link'))} onClick={onOpenLink}>&#128279;</button>
+      <button title="Insert table"      aria-label="Insert table"      className={btn(false)} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>&#8862;</button>
+      <button title="Horizontal rule"   aria-label="Horizontal rule"   className={btn(false)} onClick={() => editor.chain().focus().setHorizontalRule().run()}>&#9135;</button>
 
       <Sep />
 
@@ -413,6 +417,7 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
             <button
               key={w}
               title={`Resize to ${w}px`}
+              aria-label={`Resize image to ${w}px`}
               className={btn(false)}
               onClick={() => editor.chain().focus().updateAttributes('image', { width: `${w}px` }).run()}
             >
@@ -423,16 +428,16 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
         </>
       )}
 
-      <button title="Page setup"      className={btn(false)} onClick={onTogglePageMenu}>Page setup</button>
+      <button title="Page setup" aria-label="Page setup" className={btn(false)} onClick={onTogglePageMenu}>Page setup</button>
     </div>
   )
 }
 
 function Sep() {
-  return <span className="inline-block w-px h-5 bg-border mx-1" />
+  return <span className="inline-block w-px h-5 bg-border mx-1 flex-shrink-0" />
 }
 
-// ── Page settings panel ────────────────────────────────────────────
+// -- Page settings panel -------------------------------------------
 function PageSettingsBar({ settings, onChange, onClose }: {
   settings: PageSettings
   onChange: (next: PageSettings) => void
@@ -447,8 +452,8 @@ function PageSettingsBar({ settings, onChange, onClose }: {
           onChange={e => onChange({ ...settings, size: e.target.value as 'A4' | 'Letter' })}
           className="w-full bg-bg-elevated border border-border rounded px-2 py-1 text-ink"
         >
-          <option value="A4">A4 (210 × 297 mm)</option>
-          <option value="Letter">Letter (216 × 279 mm)</option>
+          <option value="A4">A4 (210 x 297 mm)</option>
+          <option value="Letter">Letter (216 x 279 mm)</option>
         </select>
       </div>
 

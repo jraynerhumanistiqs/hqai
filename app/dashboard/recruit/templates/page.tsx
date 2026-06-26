@@ -7,9 +7,11 @@ export default function RecruitmentTemplatesPage() {
   return (
     <TemplatesList
       title="Recruitment Templates"
-      subtitle={`${count} best-practice recruitment templates - job ads, screening questions, reference checks, scorecards and candidate emails. Download a blank template or customise with your role details first.`}
+      subtitle={`${count} best-practice recruitment templates - job ads, screening questions, reference checks, scorecards and candidate emails. Download a blank template or fill in your role details first.`}
       includeCategories={['Recruitment']}
-      customiseHref="/dashboard/people"
+      // Fix #7 (M7): pass recruit module so Fill in details routes to the recruit chat,
+      // not the HR People chat.
+      customiseModule="recruit"
     />
   )
 }

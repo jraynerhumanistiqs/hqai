@@ -102,7 +102,7 @@ export default function Step2Extract() {
         </p>
       </div>
 
-      <div className="bg-white shadow-card rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="bg-bg-elevated shadow-card rounded-3xl p-5 sm:p-6 space-y-4">
         <FieldRow label="Title">
           <InlineText value={profile.title} onChange={v => patch({ title: v })} />
         </FieldRow>
@@ -280,7 +280,7 @@ export default function Step2Extract() {
           onClick={() => setShowAwardDrawer(false)}
         >
           <div
-            className="bg-white w-full max-w-md h-full overflow-y-auto p-6 shadow-card"
+            className="bg-bg-elevated w-full max-w-md h-full overflow-y-auto p-6 shadow-card"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">

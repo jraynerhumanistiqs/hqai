@@ -49,7 +49,7 @@ export default function Step3DraftCoach() {
       </div>
 
       {!state.job_ad_draft ? (
-        <div className="bg-white shadow-card rounded-3xl p-6 text-sm text-mid">
+        <div className="bg-bg-elevated shadow-card rounded-3xl p-6 text-sm text-mid">
           {state.streaming
             ? 'Coach is drafting your ad…'
             : 'Waiting for draft. If nothing arrives, go back and confirm the brief.'}
@@ -102,7 +102,7 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
   return (
     <div
       ref={ref}
-      className={`bg-white shadow-card rounded-3xl p-5 sm:p-6 transition-all ${
+      className={`bg-bg-elevated shadow-card rounded-3xl p-5 sm:p-6 transition-all ${
         flashing ? 'ring-2 ring-warning' : ''
       }`}
     >
@@ -122,7 +122,7 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
             </button>
             {menuOpen && (
               <div
-                className="absolute right-0 top-9 bg-white shadow-card rounded-2xl py-1 w-48 z-10"
+                className="absolute right-0 top-9 bg-bg-elevated shadow-card rounded-2xl py-1 w-48 z-10"
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 <MenuItem onClick={() => aiRewrite('rewrite')}>Rewrite this section</MenuItem>
@@ -151,10 +151,10 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
         <button
           onClick={approve}
           disabled={blockState === 'approved'}
-          className={`text-sm font-bold px-5 py-2.5 rounded-full transition-colors ${
+          className={`text-sm font-bold px-5 py-2.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
             blockState === 'approved'
               ? 'bg-charcoal text-white cursor-default'
-              : 'bg-black text-white hover:bg-[#1a1a1a]'
+              : 'bg-accent text-ink-on-accent hover:bg-accent-hover'
           }`}
         >
           {blockState === 'approved' ? 'Approved ✓' : 'Approve section ✓'}
@@ -253,7 +253,7 @@ function DiffView({
       <div className="flex gap-2">
         <button
           onClick={onAccept}
-          className="bg-black text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-[#1a1a1a] transition-colors"
+          className="bg-accent text-ink-on-accent text-sm font-bold px-4 py-2 rounded-full hover:bg-accent-hover transition-colors"
         >
           Keep new
         </button>

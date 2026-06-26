@@ -101,7 +101,7 @@ export default function IngestClient() {
       if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`)
       setResult({ kind: data.kind, payload: data.payload, id: data.id, document_id: data.document_id })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ingest failed')
+      setError(err instanceof Error ? err.message : 'Could not extract document')
     }
     setBusy(false)
   }

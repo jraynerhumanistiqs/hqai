@@ -60,14 +60,20 @@ type ViewMode = 'list' | 'kanban'
 
 const STATUS_LABEL: Record<string, string> = {
   submitted: 'Submitted',
-  transcribing: 'Transcribing',
-  transcribed: 'Transcribed',
-  evaluating: 'Evaluating',
-  scored: 'Scored',
+  transcribing: 'Processing video',
+  transcribed: 'Ready to score',
+  evaluating: 'AI reviewing',
+  scored: 'AI scored',
   staff_reviewed: 'Reviewed',
   shared: 'Shared',
   new: 'Submitted',
   reviewed: 'Reviewed',
+}
+
+const SESSION_STATUS_LABEL: Record<string, string> = {
+  active: 'Active',
+  draft: 'Draft',
+  closed: 'Closed',
 }
 
 // Premium-minimal pill pattern.
@@ -116,6 +122,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   // email + name, and we POST /api/prescreen/responses/[id]/invite which
   // updates the row + emails an invite link with ?response= so the
   // submission updates the placeholder in place.
+  const [renamingId, setRenamingId]       = useState<string | null>(null)
+  const [renameDraft, setRenameDraft]     = useState('')
+  const [renameError, setRenameError]     = useState('')
   const [rowInviteFor, setRowInviteFor]   = useState<string | null>(null)
   const [rowInviteEmail, setRowInviteEmail] = useState('')
   const [rowInviteName, setRowInviteName] = useState('')
@@ -181,6 +190,8 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [reloadCounter, setReloadCounter] = useState(0)
   const [compareOpen, setCompareOpen] = useState(false)
   const [shareDialogFor, setShareDialogFor] = useState<string | null>(null)
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false)
+  const headerMenuRef = useRef<HTMLDivElement | null>(null)
 
   const pathSegment = session.slug || session.id
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.humanistiqs.ai'
@@ -530,6 +541,17 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     return () => window.removeEventListener('keydown', onEsc)
   }, [legendOpen])
 
+  useEffect(() => {
+    if (!headerMenuOpen) return
+    function onDocClick(e: MouseEvent) {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+        setHeaderMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [headerMenuOpen])
+
   const hasScoredRow = filtered.some(r => (r.status as string) === 'scored' || (r.status as string) === 'staff_reviewed')
   const showBiasBanner = hasScoredRow && !biasBannerDismissed
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
@@ -549,27 +571,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             <p className="text-sm text-mid mt-1">{session.company}</p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:mt-1">
-            <Link
-              href={`/dashboard/recruit/${session.id}/analytics`}
-              className="text-xs font-bold px-3 py-1 rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors"
-            >Analytics</Link>
             <div className="flex items-center gap-1 bg-bg border border-border rounded-full p-0.5">
               <button
                 onClick={() => setViewMode('list')}
-                className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
+                className={`text-xs font-bold px-3 py-1 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
                   viewMode === 'list' ? 'bg-accent text-ink-on-accent' : 'text-mid hover:text-ink'
                 }`}
               >List</button>
               <button
                 onClick={() => setViewMode('kanban')}
-                className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
+                className={`text-xs font-bold px-3 py-1 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
                   viewMode === 'kanban' ? 'bg-accent text-ink-on-accent' : 'text-mid hover:text-ink'
                 }`}
               >Kanban</button>
             </div>
             <button
               onClick={() => setAnonymise(v => !v)}
-              className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${
+              className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
                 anonymise
                   ? 'bg-accent text-ink-on-accent border-accent'
                   : 'bg-bg-elevated text-mid border-border hover:text-ink'
@@ -578,18 +596,45 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             >
               {anonymise ? 'Anonymised' : 'Anonymise'}
             </button>
-            <button
-              onClick={() => setLegendOpen(true)}
-              className="hidden sm:inline-flex text-xs font-bold px-3 py-1 rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors items-center"
-              title="Keyboard shortcuts (?)"
-            >?</button>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
               session.status === 'active'
                 ? 'bg-success/10 text-success border-success/20'
                 : 'bg-light text-mid border-border'
             }`}>
-              {session.status}
+              {SESSION_STATUS_LABEL[session.status] ?? session.status}
             </span>
+            {/* Overflow menu - Analytics + keyboard shortcuts */}
+            <div className="relative" ref={headerMenuRef}>
+              <button
+                onClick={() => setHeaderMenuOpen(v => !v)}
+                aria-label="More actions"
+                aria-expanded={headerMenuOpen}
+                className="w-7 h-7 flex items-center justify-center rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <circle cx="10" cy="4"  r="1.6"/>
+                  <circle cx="10" cy="10" r="1.6"/>
+                  <circle cx="10" cy="16" r="1.6"/>
+                </svg>
+              </button>
+              {headerMenuOpen && (
+                <div className="absolute top-9 right-0 z-20 bg-bg-elevated shadow-modal rounded-xl border border-border py-1 w-44">
+                  <Link
+                    href={`/dashboard/recruit/${session.id}/analytics`}
+                    onClick={() => setHeaderMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+                  >
+                    Analytics
+                  </Link>
+                  <button
+                    onClick={() => { setLegendOpen(true); setHeaderMenuOpen(false) }}
+                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+                  >
+                    Keyboard shortcuts
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -599,8 +644,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           <span>{timeLimitLabel} per answer</span>
           <span>&middot;</span>
           <span>{mergedResponses.length} {mergedResponses.length === 1 ? 'candidate' : 'candidates'}</span>
-          <span>&middot;</span>
-          <span>Created {new Date(session.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
         </div>
       </div>
 
@@ -674,7 +717,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   placeholder="e.g. acme-senior-accountant"
                   maxLength={60}
                 />
-                <button onClick={saveSlug} disabled={slugSaving} className="text-xs font-bold px-3 py-2 rounded-full bg-accent hover:bg-accent2 text-white transition-colors disabled:opacity-50">
+                <button onClick={saveSlug} disabled={slugSaving} className="text-xs font-bold px-3 py-2 rounded-full bg-accent hover:bg-accent-hover text-ink-on-accent transition-colors disabled:opacity-50">
                   {slugSaving ? 'Saving...' : 'Save'}
                 </button>
                 <button onClick={() => { setEditingSlug(false); setSlugError('') }} className="text-xs font-bold px-3 py-2 rounded-full text-mid hover:text-ink transition-colors">
@@ -701,7 +744,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   className={`text-sm font-bold px-4 py-2 rounded-full transition-colors flex-shrink-0 ${
                     copied
                       ? 'bg-success/10 text-success border border-success/20'
-                      : 'bg-accent hover:bg-accent2 text-white'
+                      : 'bg-accent hover:bg-accent-hover text-ink-on-accent'
                   }`}
                 >
                   {copied ? 'Copied' : 'Copy Link'}
@@ -725,11 +768,11 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-bold text-ink mb-1">Candidate name</label>
-                    <input className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
+                    <input aria-label="Candidate name" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-ink mb-1">Email address</label>
-                    <input type="email" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+                    <input type="email" aria-label="Candidate email address" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
                   </div>
                 </div>
 
@@ -803,8 +846,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
           <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
             <button
-              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-bg/50 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-bg/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               onClick={() => setQuestionsOpen(!questionsOpen)}
+              aria-expanded={questionsOpen}
             >
               <p className="text-xs font-bold text-ink uppercase tracking-widest">
                 Pre-Screen Questions
@@ -843,7 +887,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`text-xs px-2.5 py-1 rounded-full font-bold capitalize transition-colors ${
-                          filter === f ? 'bg-accent text-white' : 'text-mid hover:text-ink'
+                          filter === f ? 'bg-accent text-ink-on-accent' : 'text-mid hover:text-ink'
                         }`}
                       >
                         {f === 'staff_reviewed' ? 'reviewed' : f}
@@ -943,6 +987,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         <button
                           className="flex-1 flex items-center gap-3 text-left"
                           onClick={() => setExpanded(expanded === r.id ? null : r.id)}
+                          aria-expanded={expanded === r.id}
                         >
                           {!anonymise && (
                             <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-xs font-bold text-ink flex-shrink-0">
@@ -951,38 +996,78 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           )}
                           <div className="flex-1 min-w-0 group">
                             <p className="text-sm font-bold text-ink truncate flex items-center gap-1.5">
-                              <span className="truncate">{name}</span>
-                              {!anonymise && (
-                                <span
-                                  role="button"
-                                  tabIndex={0}
-                                  aria-label="Rename candidate"
-                                  title="Rename candidate"
-                                  onClick={async (e) => {
-                                    e.stopPropagation()
-                                    const next = window.prompt('Rename candidate', r.candidate_name ?? '')
-                                    if (!next || !next.trim() || next.trim() === (r.candidate_name ?? '')) return
-                                    try {
-                                      const resp = await fetch(`/api/prescreen/responses/${r.id}`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ candidate_name: next.trim() }),
-                                      })
-                                      const data = await resp.json()
-                                      if (!resp.ok) throw new Error(data.error || 'Update failed')
-                                      onPatchResponse(r.id, { candidate_name: next.trim() })
-                                    } catch (err) {
-                                      window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
-                                    }
-                                  }}
-                                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { (e.currentTarget as HTMLElement).click() } }}
-                                  className="opacity-0 group-hover:opacity-100 text-[10px] text-mid hover:text-ink rounded p-0.5 transition-opacity cursor-pointer flex-shrink-0"
-                                >
-                                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                    <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
-                                    <path d="M10 3l3 3" />
-                                  </svg>
+                              {renamingId === r.id ? (
+                                <span className="flex items-center gap-1.5 flex-1 min-w-0" onClick={e => e.stopPropagation()}>
+                                  <input
+                                    autoFocus
+                                    value={renameDraft}
+                                    onChange={e => { setRenameDraft(e.target.value); setRenameError('') }}
+                                    onKeyDown={async (e) => {
+                                      if (e.key === 'Escape') { setRenamingId(null); setRenameError('') }
+                                      if (e.key === 'Enter') {
+                                        const next = renameDraft.trim()
+                                        if (!next || next === (r.candidate_name ?? '')) { setRenamingId(null); return }
+                                        try {
+                                          const resp = await fetch(`/api/prescreen/responses/${r.id}`, {
+                                            method: 'PATCH',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ candidate_name: next }),
+                                          })
+                                          const data = await resp.json()
+                                          if (!resp.ok) throw new Error(data.error || 'Update failed')
+                                          onPatchResponse(r.id, { candidate_name: next })
+                                          setRenamingId(null)
+                                        } catch (err) {
+                                          setRenameError(err instanceof Error ? err.message : 'Could not rename candidate')
+                                        }
+                                      }
+                                    }}
+                                    onBlur={async () => {
+                                      const next = renameDraft.trim()
+                                      if (!next || next === (r.candidate_name ?? '')) { setRenamingId(null); return }
+                                      try {
+                                        const resp = await fetch(`/api/prescreen/responses/${r.id}`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ candidate_name: next }),
+                                        })
+                                        const data = await resp.json()
+                                        if (!resp.ok) throw new Error(data.error || 'Update failed')
+                                        onPatchResponse(r.id, { candidate_name: next })
+                                        setRenamingId(null)
+                                      } catch (err) {
+                                        setRenameError(err instanceof Error ? err.message : 'Could not rename candidate')
+                                      }
+                                    }}
+                                    className="flex-1 min-w-0 border border-accent/60 rounded px-1.5 py-0.5 text-sm font-bold text-ink bg-bg-elevated focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                  />
+                                  {renameError && <span className="text-[10px] text-danger whitespace-nowrap">{renameError}</span>}
                                 </span>
+                              ) : (
+                                <>
+                                  <span className="truncate">{name}</span>
+                                  {!anonymise && (
+                                    <span
+                                      role="button"
+                                      tabIndex={0}
+                                      aria-label="Rename candidate"
+                                      title="Rename candidate"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setRenamingId(r.id)
+                                        setRenameDraft(r.candidate_name ?? '')
+                                        setRenameError('')
+                                      }}
+                                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { (e.currentTarget as HTMLElement).click() } }}
+                                      className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-[10px] text-mid hover:text-ink rounded p-0.5 transition-opacity cursor-pointer flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                    >
+                                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                        <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                        <path d="M10 3l3 3" />
+                                      </svg>
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </p>
                             <p className="text-xs text-mid truncate">
@@ -1048,6 +1133,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                             <input
                               type="text"
+                              aria-label="Candidate full name"
                               value={rowInviteName}
                               onChange={e => setRowInviteName(e.target.value)}
                               placeholder="Candidate full name"
@@ -1055,6 +1141,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             />
                             <input
                               type="email"
+                              aria-label="Candidate email address"
                               autoFocus
                               value={rowInviteEmail}
                               onChange={e => setRowInviteEmail(e.target.value)}
@@ -1106,8 +1193,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 bg-bg-elevated border border-border rounded-full px-3 py-1.5 text-xs font-bold text-ink hover:bg-light transition-colors"
                             >
-                              <span>&#128197;</span>
-                              <span>Interview booked &mdash; {new Date(bookingsByResponse[r.id].event_start).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' })}</span>
+                              <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                              </svg>
+                              <span>Interview booked - {new Date(bookingsByResponse[r.id].event_start).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' })}</span>
                             </a>
                           )}
                           <div className="flex items-center justify-end gap-2">
@@ -1212,7 +1301,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             />
                           ) : ((r.status as string) === 'transcribing' || (r.status as string) === 'evaluating') ? (
                             <div className="bg-bg-elevated rounded-2xl border border-border shadow-card px-5 py-4 flex items-center gap-3">
-                              <span className="w-4 h-4 border-2 border-border border-t-black rounded-full animate-spin" />
+                              <span className="w-4 h-4 border-2 border-border border-t-accent rounded-full animate-spin" />
                               <p className="text-sm text-mid">
                                 {(r.status as string) === 'transcribing' ? 'Transcribing video...' : 'Generating AI suggestion...'}
                               </p>
@@ -1266,9 +1355,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                 <button
                                   key={n}
                                   onClick={() => onPatchResponse(r.id, { rating: n, status: 'staff_reviewed' as any })}
-                                  className={`text-2xl leading-none transition-colors ${(r.rating ?? 0) >= n ? 'text-warning' : 'text-light hover:text-warning/60'}`}
+                                  aria-label={`Rate ${n} star${n === 1 ? '' : 's'}`}
+                                  className={`w-6 h-6 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded ${(r.rating ?? 0) >= n ? 'text-warning' : 'text-light hover:text-warning/60'}`}
                                 >
-                                  *
+                                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5" aria-hidden>
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                  </svg>
                                 </button>
                               ))}
                             </div>
@@ -1277,7 +1369,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           <div className="flex flex-wrap gap-2">
                             <button
                               onClick={() => handleShare(r.id)}
-                              className="bg-accent hover:bg-accent2 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
+                              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold px-4 py-2 rounded-full transition-colors"
                             >
                               Share with Client
                             </button>
@@ -1393,11 +1485,13 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 // CV scoring via the prescreen_session_id link set during batch-handoff.
 function CandidateSummaryButton({ responses }: { responses: CandidateResponse[] }) {
   const [busy, setBusy] = useState(false)
+  const [dlErr, setDlErr] = useState<string | null>(null)
   const eligible = responses.filter(r => typeof r.overall_score === 'number' || (r.rubric_scores && (r.rubric_scores as unknown[]).length > 0))
   if (eligible.length === 0) return null
 
   async function download() {
     setBusy(true)
+    setDlErr(null)
     try {
       const res = await fetch('/api/recruit/candidate-summary', {
         method: 'POST',
@@ -1420,19 +1514,23 @@ function CandidateSummaryButton({ responses }: { responses: CandidateResponse[] 
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (err) {
-      alert(`Summary failed: ${err instanceof Error ? err.message : 'unknown error'}`)
+      console.error('[candidate-summary] download failed:', err)
+      setDlErr('Could not generate the summary. Please try again.')
     }
     setBusy(false)
   }
 
   return (
-    <button
-      onClick={download}
-      disabled={busy}
-      title="Download combined CV + Video Candidate Summary report"
-      className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover disabled:opacity-50"
-    >
-      {busy ? 'Generating...' : `Candidate Summary (${eligible.length})`}
-    </button>
+    <div className="flex flex-col items-start">
+      <button
+        onClick={download}
+        disabled={busy}
+        title="Download combined CV + Video Candidate Summary report"
+        className="min-h-touch bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+      >
+        {busy ? 'Generating...' : `Candidate Summary (${eligible.length})`}
+      </button>
+      {dlErr && <p role="alert" className="mt-1 text-xs text-danger">{dlErr}</p>}
+    </div>
   )
 }

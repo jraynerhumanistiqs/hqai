@@ -160,7 +160,8 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
           </h3>
           <button
             onClick={() => !busy && onClose()}
-            className="w-8 h-8 rounded-full hover:bg-light flex items-center justify-center text-mid text-lg"
+            className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+            aria-label="Close"
           >
             ×
           </button>
@@ -258,7 +259,7 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
                 <button
                   onClick={suggest}
                   disabled={busy || !jd.trim() || !label.trim()}
-                  className="flex-1 bg-black text-white text-sm font-bold rounded-full px-4 py-2.5 hover:bg-charcoal disabled:opacity-50"
+                  className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
                 >
                   {busy ? 'Generating...' : 'Suggest rubric'}
                 </button>
@@ -352,7 +353,7 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
                 <button
                   onClick={save}
                   disabled={busy || !draftRubric.criteria.length}
-                  className="flex-1 bg-black text-white text-sm font-bold rounded-full px-4 py-2.5 hover:bg-charcoal disabled:opacity-50"
+                  className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
                 >
                   {busy ? 'Saving...' : 'Save and use this rubric'}
                 </button>

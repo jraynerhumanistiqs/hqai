@@ -94,9 +94,8 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
               <button
                 key={t.id}
                 onClick={() => setSelected(t)}
-                className="bg-bg-elevated shadow-card hover:shadow-modal rounded-2xl p-5 text-left transition-shadow"
+                className="bg-bg-elevated shadow-card hover:shadow-modal rounded-2xl p-5 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                <div className="text-2xl mb-2">{t.emoji}</div>
                 <p className="text-sm font-bold text-charcoal leading-tight">{t.title}</p>
               </button>
             ))}
@@ -114,7 +113,7 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
         <>
           <div className="bg-light rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
             <p className="text-sm font-bold text-charcoal">
-              {selected.emoji} {selected.title}
+              {selected.title}
             </p>
             <button
               onClick={() => setSelected(null)}

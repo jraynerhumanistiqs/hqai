@@ -54,9 +54,9 @@ export function RoleStepperRail({ currentStep, onStepChange }: Props) {
               disabled={!live}
               aria-current={active ? 'step' : undefined}
               title={live ? step.hint : 'Coming soon - the bigger merge build wires this up'}
-              className={`w-full text-left rounded-2xl px-3 py-3 border transition-colors flex items-start gap-3 ${
+              className={`w-full text-left rounded-2xl px-3 py-3 border transition-colors flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
                 active
-                  ? 'bg-accent text-ink-on-accent border-accent shadow-card'
+                  ? 'bg-accent text-ink-on-accent border-accent'
                   : live
                     ? 'bg-bg border-border text-ink hover:bg-light'
                     : 'bg-bg border-dashed border-border text-mid cursor-not-allowed'
@@ -92,11 +92,6 @@ export function RoleStepperRail({ currentStep, onStepChange }: Props) {
           )
         })}
       </nav>
-      <div className="px-4 py-3 border-t border-border">
-        <p className="text-[10px] text-muted leading-snug">
-          Walk the candidate pool left to right. Each step uses the same data, just filtered for the phase you&apos;re in.
-        </p>
-      </div>
     </aside>
     </>
   )

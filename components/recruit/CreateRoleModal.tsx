@@ -305,9 +305,9 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                         }}
                         className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all ${checked ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
                       >
-                        <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-black bg-black' : 'border-border'}`}>
+                        <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-accent bg-accent' : 'border-border'}`}>
                           {checked && (
-                            <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="w-2.5 h-2.5 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                             </svg>
                           )}
@@ -466,7 +466,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                 <button
                   onClick={handleGenerate}
                   disabled={generating || !roleTitle.trim()}
-                  className="flex-1 bg-black hover:bg-charcoal disabled:bg-light disabled:text-mid disabled:cursor-not-allowed text-white text-sm font-bold py-2.5 rounded-full transition-colors inline-flex items-center justify-center gap-2"
+                  className="flex-1 bg-accent hover:bg-accent-hover disabled:bg-light disabled:text-mid disabled:cursor-not-allowed text-ink-on-accent text-sm font-bold py-2.5 rounded-full transition-colors inline-flex items-center justify-center gap-2"
                 >
                   {generating ? (
                     <>
@@ -545,7 +545,7 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
               <button
                 onClick={handleCreate}
                 disabled={creating || savingDraft || !questions.filter(q => q.trim()).length}
-                className="bg-accent hover:bg-accent2 disabled:opacity-40 text-white text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
+                className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-ink-on-accent text-base font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2"
               >
                 {creating ? (
                   <>

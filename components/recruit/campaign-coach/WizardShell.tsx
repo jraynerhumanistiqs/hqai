@@ -14,7 +14,7 @@ import Step3DraftCoach from './Step3DraftCoach'
 import Step4Distribution from './Step4Distribution'
 import Step5Launch from './Step5Launch'
 
-const STEP_LABELS = ['Brief', 'Extract', 'Draft & Coach', 'Distribution', 'Hand-off']
+const STEP_LABELS = ['Brief', 'Role profile', 'Draft & Coach', 'Distribution', 'Launch']
 
 export default function WizardShell({ business }: { business: CampaignBusinessContext }) {
   const [state, dispatch] = useReducer(wizardReducer, initialWizardState)
@@ -262,7 +262,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
             </h1>
             <p className="text-sm text-ink-soft mb-3">
               {business.name ? `For ${business.name}.` : 'AI-coached recruitment campaign.'}{' '}
-              Five steps - brief, extract, draft, distribute, launch.
+              Five steps - brief, role profile, draft, distribute, launch.
             </p>
             <StepProgress
               step={state.step}
@@ -285,17 +285,17 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           </div>
 
           {state.step !== 5 && (
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-white flex-shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-bg-elevated flex-shrink-0">
               <button
                 onClick={onBack}
                 disabled={state.step === 1}
-                className="bg-white border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="bg-bg-elevated border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                ← Back
+                Back
               </button>
               <button
                 onClick={() => setCoachOpenMobile(o => !o)}
-                className="lg:hidden bg-light text-charcoal text-xs font-bold px-3 py-2 rounded-full"
+                className="lg:hidden bg-light text-charcoal text-xs font-bold px-3 min-h-touch rounded-full inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 {coachOpenMobile ? 'Hide coach' : 'Show coach'}
               </button>
@@ -303,7 +303,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
                 <button
                   onClick={onReBrief}
                   disabled={state.streaming || !state.briefText.trim()}
-                  className="bg-light text-charcoal text-sm font-bold px-4 py-2.5 rounded-full hover:bg-border disabled:opacity-50 transition-colors"
+                  className="bg-light text-charcoal text-sm font-bold px-4 py-2.5 rounded-full hover:bg-border disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                   title="Re-run the brief if the extracted details aren't right"
                 >
                   Ask coach to try again
@@ -312,15 +312,15 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
               <button
                 onClick={onPrimary}
                 disabled={!stepCanAdvance}
-                className="bg-black text-white text-sm font-bold px-5 py-2.5 rounded-full hover:bg-[#1a1a1a] disabled:bg-muted disabled:cursor-not-allowed transition-colors"
+                className="bg-accent text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full hover:bg-accent-hover disabled:bg-muted disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                {state.streaming ? 'Coach is thinking…' : primaryCtaLabel}
+                {state.streaming ? 'Coach is thinking...' : primaryCtaLabel}
               </button>
             </div>
           )}
         </div>
 
-        <div className="hidden lg:flex w-[320px] flex-shrink-0 border-l border-border bg-white">
+        <div className="hidden lg:flex w-[320px] flex-shrink-0 border-l border-border bg-bg-elevated">
           <CoachPanel />
         </div>
 
@@ -351,11 +351,12 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         {!coachOpenMobile && (
           <button
             onClick={() => setCoachOpenMobile(true)}
-            className="lg:hidden fixed bottom-20 right-4 z-30 bg-black text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-card flex items-center gap-2"
+            aria-label="Open Campaign Coach"
+            className="lg:hidden fixed bottom-20 right-4 z-30 bg-accent text-ink-on-accent text-xs font-bold px-4 min-h-touch rounded-full shadow-card inline-flex items-center gap-2 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
           >
-            <span className="w-5 h-5 rounded-full bg-white text-ink font-display flex items-center justify-center text-[10px]">
-              C
-            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
             Coach
           </button>
         )}
@@ -405,13 +406,15 @@ function StepProgress({
             key={n}
             onClick={() => clickable && onJump(n)}
             disabled={!clickable}
-            className={`${cls} text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 ${
+            aria-current={isActive ? 'step' : undefined}
+            aria-label={`Step ${n}: ${label}${isCompleted ? ', completed' : isActive ? ', current step' : ''}`}
+            className={`${cls} text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 min-h-touch rounded-full inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
               clickable ? 'hover:opacity-90 cursor-pointer' : 'cursor-default'
             }`}
           >
-            <span className="opacity-70">{n}</span>
+            <span className="opacity-70" aria-hidden="true">{n}</span>
             {isCompleted && (
-              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

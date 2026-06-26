@@ -189,11 +189,11 @@ export default function AdministratorClient({ templates, categories, initialTemp
           and download a final PDF when you&apos;re happy.
         </p>
         <p className="text-small text-ink-soft mb-6">
-          Have an existing CV or contract?{' '}
+          Have an existing CV?{' '}
           <Link href="/dashboard/people/administrator/ingest" className="text-accent underline-offset-4 hover:underline font-bold">
-            Drop it in and I&apos;ll handle it
+            Upload document
           </Link>{' '}
-          - CV Formatter rewrites it to the Humanistiqs format, or run a contract review.
+          - CV Formatter rewrites it to the Humanistiqs house format.
         </p>
 
         {!active && (
@@ -221,9 +221,6 @@ export default function AdministratorClient({ templates, categories, initialTemp
                   <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-2">{t.category}</p>
                   <p className="text-small font-bold text-ink mb-1.5 leading-snug">{t.title}</p>
                   <p className="text-xs text-ink-soft line-clamp-2 flex-1">{t.description}</p>
-                  <p className="text-[11px] font-bold text-accent mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Open template -&gt;
-                  </p>
                 </button>
               ))}
               {filtered.length === 0 && (
@@ -237,7 +234,6 @@ export default function AdministratorClient({ templates, categories, initialTemp
                 the engine does + what to do as the operator. */}
             <section className="bg-bg-elevated border border-border rounded-3xl p-6 sm:p-8 mt-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" aria-hidden />
                 <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">How the AI Administrator works</p>
               </div>
 
@@ -294,7 +290,6 @@ export default function AdministratorClient({ templates, categories, initialTemp
 
               <section className="bg-bg-elevated border border-border rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" aria-hidden />
                   <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">How this draft is built</p>
                 </div>
                 <ul className="space-y-2 text-xs text-ink-soft leading-relaxed list-disc pl-4">

@@ -309,6 +309,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     ))
   }
 
+  const [bandFilter, setBandFilter] = useState<'all' | 'strong' | 'yes' | 'maybe' | 'no'>('all')
+  const [reportError, setReportError] = useState<string | null>(null)
+  const [renameState, setRenameState] = useState<{ id: string; draft: string; error: string | null } | null>(null)
+
   // Include screenings scored against ANY version of the active rubric
   // family, not just the currently-selected version. Previously the
   // filter was `s.rubric_id === rubricId` which meant switching to v2
@@ -329,14 +333,21 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     if (ALL_RUBRICS.find(r => r.rubric_id === rubricId)) return new Set<string>([rubricId])
     return new Set<string>()
   })()
-  const filtered = screenings.filter(s => activeFamilyIds.has(s.rubric_id))
+  const filteredByRubric = screenings.filter(s => activeFamilyIds.has(s.rubric_id))
   const counts = {
-    all: filtered.length,
-    strong: filtered.filter(s => effectiveBand(s) === 'strong_yes').length,
-    yes: filtered.filter(s => effectiveBand(s) === 'yes').length,
-    maybe: filtered.filter(s => effectiveBand(s) === 'maybe').length,
-    no: filtered.filter(s => { const b = effectiveBand(s); return b === 'likely_no' || b === 'reject' }).length,
+    all: filteredByRubric.length,
+    strong: filteredByRubric.filter(s => effectiveBand(s) === 'strong_yes').length,
+    yes: filteredByRubric.filter(s => effectiveBand(s) === 'yes').length,
+    maybe: filteredByRubric.filter(s => effectiveBand(s) === 'maybe').length,
+    no: filteredByRubric.filter(s => { const b = effectiveBand(s); return b === 'likely_no' || b === 'reject' }).length,
   }
+  const filtered = bandFilter === 'all'
+    ? filteredByRubric
+    : bandFilter === 'no'
+      ? filteredByRubric.filter(s => { const b = effectiveBand(s); return b === 'likely_no' || b === 'reject' })
+      : bandFilter === 'strong'
+        ? filteredByRubric.filter(s => effectiveBand(s) === 'strong_yes')
+        : filteredByRubric.filter(s => effectiveBand(s) === bandFilter)
   const selected = screenings.find(s => s.id === selectedId) ?? null
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -389,7 +400,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (err) {
-      alert(`Report failed: ${err instanceof Error ? err.message : 'unknown error'}`)
+      setReportError(`Report failed: ${err instanceof Error ? err.message : 'unknown error'}`)
     }
     setReportBusy(false)
   }
@@ -514,7 +525,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [standardOpen, setStandardOpen] = useState(true)
 
   return (
-    <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-bg">
+    <div className="flex flex-col md:flex-row h-full overflow-hidden bg-bg">
 
       {/* -- Left panel: rubric list. Hidden entirely when the component
            is hosted inside Step 1 of the role workflow stepper. The
@@ -522,7 +533,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
            the rubric library here makes the screen feel like three
            stacked sidebars. The role's own criteria are still surfaced
            in the detail panel header. -- */}
-      <div className={`w-full lg:w-64 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-bg-elevated flex-col ${prescreenSessionId ? 'hidden' : (showListPanel ? 'flex' : 'hidden lg:flex')}`}>
+      <div className={`w-full md:w-64 md:flex-shrink-0 border-b md:border-b-0 md:border-r border-border bg-bg-elevated flex-col ${prescreenSessionId ? 'hidden' : (showListPanel ? 'flex' : 'hidden md:flex')}`}>
 
         {/* Header - AI Administrator pattern (eyebrow + sans h1 + body). */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
@@ -577,7 +588,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* -- Right panel: rubric detail (upload + candidates + DI). In
            role context the left panel is hidden, so we always show the
            right panel as the full-width detail surface. -- */}
-      <div className={`flex-1 overflow-hidden ${prescreenSessionId ? 'flex flex-col' : (showListPanel ? 'hidden lg:flex lg:flex-col' : 'flex flex-col')}`}>
+      <div className={`flex-1 overflow-hidden ${prescreenSessionId ? 'flex flex-col' : (showListPanel ? 'hidden md:flex md:flex-col' : 'flex flex-col')}`}>
         {/* In-role context header - always visible in role context (even
             before a rubric is chosen) so the criteria selector + manage
             affordances are reachable. The full rubric library panel is
@@ -646,7 +657,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 exists. In-role mode hides the left panel entirely so
                 the back bar would point to nothing. */}
             {!prescreenSessionId && (
-              <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
+              <div className="md:hidden flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-elevated flex-shrink-0">
                 <button
                   onClick={() => setMobileShowList(true)}
                   className="flex items-center gap-1.5 text-sm font-bold text-charcoal hover:text-ink transition-colors"
@@ -823,13 +834,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 {/* Candidates */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl">
                   <div className="px-6 py-4 border-b border-border flex flex-wrap items-center gap-2">
-                    <FilterChip label={`All (${counts.all})`} active />
-                    <FilterChip label={`Strong (${counts.strong})`} />
-                    <FilterChip label={`Yes (${counts.yes})`} />
-                    <FilterChip label={`Maybe (${counts.maybe})`} />
-                    <FilterChip label={`No (${counts.no})`} />
+                    <FilterChip label={`All (${counts.all})`} active={bandFilter === 'all'} onClick={() => setBandFilter('all')} />
+                    <FilterChip label={`Strong (${counts.strong})`} active={bandFilter === 'strong'} onClick={() => setBandFilter('strong')} />
+                    <FilterChip label={`Yes (${counts.yes})`} active={bandFilter === 'yes'} onClick={() => setBandFilter('yes')} />
+                    <FilterChip label={`Maybe (${counts.maybe})`} active={bandFilter === 'maybe'} onClick={() => setBandFilter('maybe')} />
+                    <FilterChip label={`No (${counts.no})`} active={bandFilter === 'no'} onClick={() => setBandFilter('no')} />
                     <span className="ml-auto text-xs text-muted">
-                      {busy ? 'Analysing CVs...' : `${filtered.length} candidates`}
+                      {busy ? 'Analysing CVs...' : `${filtered.length} candidate${filtered.length === 1 ? '' : 's'}`}
                     </span>
                   </div>
                   {batchHandoffResult && (
@@ -841,7 +852,11 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   {filtered.length === 0 ? (
                     <div className="px-6 py-12 text-center">
                       <p className="text-sm text-mid">
-                        No candidates yet. Upload some CVs above to get started.
+                        {!criteriaConfirmed
+                          ? 'Confirm your scoring criteria above before uploading CVs.'
+                          : bandFilter !== 'all'
+                            ? `No candidates in the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} band.`
+                            : 'No candidates yet. Upload some CVs above to get started.'}
                       </p>
                     </div>
                   ) : (
@@ -858,14 +873,14 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         )}
                       </div>
                       <ul className="divide-y divide-border">
-                        {/* Header row */}
+                        {/* Header row - hidden on mobile */}
                         <li className="px-6 py-2 hidden sm:grid grid-cols-12 gap-3 items-center text-[10px] font-bold uppercase tracking-wider text-muted bg-light/50">
                           <span className="col-span-1" />
                           <span className="col-span-3">Candidate</span>
                           <span className="col-span-1">Score</span>
                           <span className="col-span-2">Band</span>
                           <span className="col-span-2">Next step</span>
-                          <span className="col-span-2">Comments</span>
+                          <span className="col-span-2 hidden sm:block">Comments</span>
                           <span className="col-span-1 text-right">View</span>
                         </li>
                         {filtered
@@ -877,8 +892,8 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                             const action = effectiveNextAction(s)
                             const hasOverride = !!(s.override_band || s.override_next_action || s.override_comment)
                             return (
-                              <li key={s.id} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center hover:bg-light transition-colors ${checked ? 'bg-light' : ''}`}>
-                                <label className="col-span-1 flex items-center cursor-pointer" onClick={e => e.stopPropagation()}>
+                              <li key={s.id} className={`px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-1 sm:grid sm:grid-cols-12 sm:gap-3 sm:items-center hover:bg-light transition-colors ${checked ? 'bg-light' : ''}`}>
+                                <label className="col-span-1 flex items-center cursor-pointer self-start" onClick={e => e.stopPropagation()}>
                                   <input
                                     type="checkbox"
                                     checked={checked}
@@ -886,46 +901,64 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                     className="w-4 h-4 rounded border-border accent-black cursor-pointer"
                                   />
                                 </label>
-                                <div className="col-span-3 text-sm font-bold text-charcoal truncate text-left flex items-center gap-1.5 group">
-                                  <button
-                                    onClick={() => setSelectedId(s.id)}
-                                    className="truncate text-left flex-1 min-w-0"
-                                    title={s.candidate_label}
-                                  >
-                                    {s.candidate_label}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={async (e) => {
-                                      e.stopPropagation()
-                                      const next = window.prompt('Rename candidate', s.candidate_label)
-                                      if (!next || !next.trim() || next.trim() === s.candidate_label) return
-                                      try {
-                                        const r = await fetch(`/api/cv-screening/screenings/${s.id}`, {
-                                          method: 'PATCH',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({ candidate_label: next.trim() }),
-                                        })
-                                        const data = await r.json()
-                                        if (!r.ok) throw new Error(data.error || 'Update failed')
-                                        setScreenings(prev => prev.map(row => row.id === s.id ? { ...row, candidate_label: data.screening.candidate_label } : row))
-                                      } catch (err) {
-                                        window.alert(err instanceof Error ? err.message : 'Could not rename candidate')
-                                      }
-                                    }}
-                                    aria-label="Rename candidate"
-                                    title="Rename candidate"
-                                    className="opacity-0 group-hover:opacity-100 text-[10px] text-mid hover:text-charcoal rounded p-0.5 flex-shrink-0 transition-opacity"
-                                  >
-                                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                      <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
-                                      <path d="M10 3l3 3" />
-                                    </svg>
-                                  </button>
+                                <div className="sm:col-span-3 text-sm font-bold text-charcoal truncate text-left flex items-center gap-1.5 group">
+                                  {renameState?.id === s.id ? (
+                                    <div className="flex-1 min-w-0 space-y-0.5" onClick={e => e.stopPropagation()}>
+                                      <input
+                                        autoFocus
+                                        value={renameState.draft}
+                                        onChange={e => setRenameState(prev => prev ? { ...prev, draft: e.target.value } : null)}
+                                        onKeyDown={async (e) => {
+                                          if (e.key === 'Escape') { setRenameState(null); return }
+                                          if (e.key === 'Enter') {
+                                            const next = renameState.draft.trim()
+                                            if (!next || next === s.candidate_label) { setRenameState(null); return }
+                                            try {
+                                              const r = await fetch(`/api/cv-screening/screenings/${s.id}`, {
+                                                method: 'PATCH',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ candidate_label: next }),
+                                              })
+                                              const data = await r.json()
+                                              if (!r.ok) throw new Error(data.error || 'Update failed')
+                                              setScreenings(prev => prev.map(row => row.id === s.id ? { ...row, candidate_label: data.screening.candidate_label } : row))
+                                              setRenameState(null)
+                                            } catch (err) {
+                                              setRenameState(prev => prev ? { ...prev, error: err instanceof Error ? err.message : 'Could not rename' } : null)
+                                            }
+                                          }
+                                        }}
+                                        className="w-full text-xs text-charcoal bg-bg border border-border rounded-full px-2 py-1 outline-none focus:border-charcoal"
+                                      />
+                                      {renameState.error && <span className="text-[10px] text-danger block">{renameState.error}</span>}
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => setSelectedId(s.id)}
+                                        className="truncate text-left flex-1 min-w-0"
+                                        title={s.candidate_label}
+                                      >
+                                        {s.candidate_label}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={e => { e.stopPropagation(); setRenameState({ id: s.id, draft: s.candidate_label ?? '', error: null }) }}
+                                        aria-label="Rename candidate"
+                                        title="Rename candidate"
+                                        className="opacity-0 group-hover:opacity-100 text-[10px] text-mid hover:text-charcoal rounded p-0.5 flex-shrink-0 transition-opacity"
+                                      >
+                                        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                          <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                          <path d="M10 3l3 3" />
+                                        </svg>
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                                 <button
                                   onClick={() => setSelectedId(s.id)}
-                                  className="col-span-1 text-sm text-charcoal font-bold text-left inline-flex items-center gap-1.5"
+                                  className="sm:col-span-1 text-sm text-charcoal font-bold text-left inline-flex items-center gap-1.5"
                                 >
                                   <span>{Number(s.overall_score).toFixed(2)}</span>
                                   {/* Version badge - shows which rubric
@@ -952,7 +985,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 <button
                                   onClick={() => setOverrideTarget(s)}
                                   title="Click to override the AI's band"
-                                  className={`col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-charcoal transition-all justify-start ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
+                                  className={`sm:col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-charcoal transition-all justify-start w-fit ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
                                 >
                                   {BAND_LABELS[band as keyof typeof BAND_LABELS] ?? band}
                                   {s.override_band && <span className="text-[9px] opacity-70">edited</span>}
@@ -960,7 +993,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 <button
                                   onClick={() => setOverrideTarget(s)}
                                   title="Click to override the AI's next step"
-                                  className="col-span-2 text-xs text-mid truncate text-left hover:text-charcoal hover:underline"
+                                  className="sm:col-span-2 text-xs text-mid truncate text-left hover:text-charcoal hover:underline"
                                 >
                                   {ACTION_LABELS[action as keyof typeof ACTION_LABELS] ?? action}
                                   {s.override_next_action && <span className="text-[9px] ml-1 opacity-70">edited</span>}
@@ -968,13 +1001,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 <button
                                   onClick={() => setOverrideTarget(s)}
                                   title={s.override_comment || 'Click to add a comment'}
-                                  className={`col-span-2 text-xs truncate text-left ${hasOverride ? 'text-charcoal hover:underline' : 'text-muted hover:text-charcoal italic'}`}
+                                  className={`sm:col-span-2 hidden sm:block text-xs truncate text-left ${hasOverride ? 'text-charcoal hover:underline' : 'text-muted hover:text-charcoal italic'}`}
                                 >
                                   {s.override_comment ? s.override_comment : 'Add comment...'}
                                 </button>
                                 <button
                                   onClick={() => setSelectedId(s.id)}
-                                  className="col-span-1 text-xs text-muted text-right hover:text-charcoal"
+                                  className="sm:col-span-1 text-xs text-muted text-left sm:text-right hover:text-charcoal"
                                 >
                                   View
                                 </button>
@@ -986,13 +1019,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   )}
                 </section>
 
-                {/* How the agent works - full-width info card.
-                    Replaces the old two-up grid that paired with the
-                    Disparate Impact Dashboard. Reframed into two clear
-                    sections: HOW (explains what's happening behind the
-                    scenes) and WHAT TO DO (concrete next steps the
-                    user should take). */}
-                <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
+                {/* How the agent works - shown only when the candidate list is empty
+                    so it doesn't clutter the screen once candidates arrive. */}
+                {filtered.length === 0 && <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-ink" />
                     <p className="text-[11px] font-bold uppercase tracking-widest text-muted">How the CV Scoring Agent works</p>
@@ -1024,7 +1053,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   <p className="text-[11px] text-muted italic mt-5 leading-relaxed border-t border-border pt-4">
                     HQ.ai does not make hiring decisions. It supports yours. Every recommendation here is reviewable, overridable, and auditable. You always click the button.
                   </p>
-                </section>
+                </section>}
 
               </div>
             </div>
@@ -1398,6 +1427,12 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             >
               {reportBusy ? 'Generating...' : 'Download CV report'}
             </button>
+            {reportError && (
+              <span className="text-xs text-danger flex-shrink-0 max-w-[200px] truncate" title={reportError}>
+                {reportError}
+                <button type="button" onClick={() => setReportError(null)} className="ml-1 font-bold">x</button>
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -1687,9 +1722,9 @@ function RubricRow({
 
 function statusLabel(status: PendingUpload['status']): string {
   switch (status) {
-    case 'queued': return 'Queued'
-    case 'parsing': return 'Reading CV'
-    case 'scoring': return 'Scoring'
+    case 'queued': return 'In queue'
+    case 'parsing': return 'Reading CV...'
+    case 'scoring': return 'Scoring...'
     case 'done': return 'Done'
     case 'error': return 'Error'
     default: return status
@@ -1790,14 +1825,16 @@ function _UNUSED_DisparateImpactCardImpl({ screenings }: { screenings: Candidate
   )
 }
 
-function FilterChip({ label, active }: { label: string; active?: boolean }) {
+function FilterChip({ label, active, onClick }: { label: string; active?: boolean; onClick?: () => void }) {
   return (
-    <span
-      className={`text-xs font-bold rounded-full px-3 py-1.5 ${
-        active ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid'
+    <button
+      type="button"
+      onClick={onClick}
+      className={`text-xs font-bold rounded-full px-3 py-1.5 transition-colors ${
+        active ? 'bg-accent text-ink-on-accent' : 'bg-light text-mid hover:bg-border hover:text-charcoal'
       }`}
     >
       {label}
-    </span>
+    </button>
   )
 }

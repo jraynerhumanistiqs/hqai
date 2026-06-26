@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
 import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
 import { parseCitations, type Citation } from '@/lib/parse-citations'
@@ -95,6 +95,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const advisorModalHeadingId = useId()
 
   const suggestions = module === 'recruit' ? SUGGESTIONS_RECRUIT : SUGGESTIONS_PEOPLE
 
@@ -361,12 +362,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         // text, render a diagnostic bubble so the user can see the real cause
         // (API key, credit, Anthropic 5xx, Supabase auth) without dev tools.
         if (serverError && !assistantContent.trim()) {
+          console.error('[chat] server error:', serverError.error, serverError.detail)
           updated[updated.length - 1] = {
             role: 'assistant',
-            content:
-              `Chat ran into a server error. ${serverError.error}` +
-              (serverError.detail ? `\n\nDetails: ${serverError.detail}` : '') +
-              `\n\nIf this keeps happening, check the Anthropic console for credit/key status and the Vercel deployment logs.`,
+            content: '__API_ERROR__',
           }
           return updated
         }
@@ -399,14 +398,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         // handler has already injected the escalation card, so just exit.
         // User-stop case keeps partial content with no extra error message.
       } else {
-        const detail =
-          err instanceof Error ? err.message : String(err ?? 'Unknown error')
+        console.error('[chat] fetch error:', err)
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content:
-            `I'm having trouble connecting right now.\n\nDetails: ${detail}\n\n` +
-            `Please try again in a moment. If this keeps happening, check the Anthropic ` +
-            `console for credit/key status and the Vercel deployment logs.`,
+          content: '__API_ERROR__',
         }])
       }
     }
@@ -562,7 +557,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   }
 
   const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'
-  const moduleDesc = module === 'recruit' ? 'Recruitment & talent acquisition' : bizName
   const greeting = getGreeting()
 
   return (
@@ -573,17 +567,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
         <div className="min-w-0">
           <h1 className="font-sans text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
-          <p className="text-[10px] sm:text-xs text-muted hidden sm:block">{moduleDesc}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
           <button
             onClick={toggleHistory}
-            className="bg-light rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap hidden sm:flex items-center gap-1.5"
+            aria-label="Chat History"
+            className="bg-light rounded-full min-h-touch min-w-touch sm:min-w-0 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap flex items-center justify-center sm:gap-1.5"
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
             </svg>
-            Chat History
+            <span className="hidden sm:inline">Chat History</span>
           </button>
           <button
             onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
@@ -646,12 +640,9 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 </div>
               )}
 
-              {/* Assistant: flat prose full-width with small label */}
+              {/* Assistant: flat prose full-width */}
               {msg.role === 'assistant' && (
                 <div className="w-full">
-                  <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
-                    {moduleLabel}
-                  </p>
 
                   {/* Form or flat prose */}
                   {msg.formType && !msg.formCompleted ? (
@@ -673,6 +664,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     <p className="text-sm text-mid">
                       <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your document…
                     </p>
+                  ) : msg.content === '__API_ERROR__' ? (
+                    <div className="bg-danger/5 border border-danger/20 rounded-xl p-3.5 text-sm text-charcoal leading-relaxed">
+                      Something went wrong. Please try again - if it keeps happening, contact support.
+                    </div>
                   ) : msg.content ? (
                     (() => {
                       // If the route attached citations, trust them; otherwise
@@ -699,16 +694,20 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                     })()
                   ) : (
                     // Pre-stream: pulsing dot where tokens will land
-                    <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
+                    <span
+                      role="status"
+                      aria-label="Assistant is thinking"
+                      className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse"
+                    />
                   )}
 
-                  {/* Hover action row (Copy) - only for non-form completed assistant messages with content */}
-                  {!msg.formType && msg.content && !(isLoading && i === messages.length - 1) && (
-                    <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Action row (Copy) - only for non-form completed assistant messages with content */}
+                  {!msg.formType && msg.content && msg.content !== '__API_ERROR__' && !(isLoading && i === messages.length - 1) && (
+                    <div className="mt-2 flex items-center gap-1 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                       <button
                         onClick={() => copyMessage(msg.content, i)}
                         title="Copy"
-                        className="w-7 h-7 flex items-center justify-center rounded-full text-mid hover:bg-light hover:text-charcoal transition-colors"
+                        className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-light hover:text-charcoal transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                       >
                         {copiedIdx === i ? (
                           <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -758,45 +757,39 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
                   {/* Escalation card */}
                   {msg.escalate && (
-                    <>
-                      <div className="mt-3 bg-warning/5 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                        <span className="w-8 h-8 flex-shrink-0 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
-                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-                          </svg>
-                        </span>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
-                          <p className="text-xs text-mid leading-relaxed mb-2.5">
-                            This involves real legal exposure. A HQ Advisor can give you specific, protected advice before you act.
-                          </p>
-                          <div className="flex gap-2 flex-wrap">
-                            <button onClick={() => setShowAdvisorModal(true)}
-                              className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                              Book a call with an HQ Advisor
-                            </button>
-                            <button
-                              onClick={() => {
-                                setShowAdvisorModal(false)
-                                setMessages(prev => prev.map((m, idx) =>
-                                  idx === i ? { ...m, escalate: false } : m
-                                ))
-                              }}
-                              className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                              Continue talking with the AI Advisor
-                            </button>
-                          </div>
+                    <div className="mt-3 bg-warning/10 border border-warning/20 rounded-xl p-3.5 flex gap-3">
+                      <span className="w-8 h-8 flex-shrink-0 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                        <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                        </svg>
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
+                        <p className="text-xs text-mid leading-relaxed mb-2.5">
+                          This involves real legal exposure. A HQ Advisor can give you specific, protected advice before you act.
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                          <button onClick={() => setShowAdvisorModal(true)}
+                            className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                            Book a call with an HQ Advisor
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowAdvisorModal(false)
+                              setMessages(prev => prev.map((m, idx) =>
+                                idx === i ? { ...m, escalate: false } : m
+                              ))
+                            }}
+                            className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                            Continue talking with the AI Advisor
+                          </button>
+                          <button onClick={() => setShowContextInput(!showContextInput)}
+                            className="text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-warning/10 hover:text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+                            + Add more context
+                          </button>
                         </div>
-                      </div>
-
-                      {/* Add more context */}
-                      <div className="mt-2">
-                        <button onClick={() => setShowContextInput(!showContextInput)}
-                          className="text-xs text-mid font-bold hover:underline">
-                          + Add more context
-                        </button>
                         {showContextInput && (
-                          <div className="mt-2 space-y-2">
+                          <div className="mt-3 space-y-2">
                             <textarea
                               value={extraContext}
                               onChange={e => setExtraContext(e.target.value)}
@@ -812,7 +805,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           </div>
                         )}
                       </div>
-                    </>
+                    </div>
                   )}
 
                   {/* Document saved indicator with download */}
@@ -852,8 +845,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           {/* Pre-stream thinking indicator (only when no assistant placeholder is present yet) */}
           {isLoading && messages[messages.length - 1]?.role === 'user' && (
             <div className="flex flex-col items-start">
-              <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">{moduleLabel}</p>
-              <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
+              <span
+                role="status"
+                aria-label="Assistant is thinking"
+                className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse"
+              />
             </div>
           )}
         </div>
@@ -880,9 +876,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <button
                 onClick={stopGeneration}
                 title="Stop generating"
+                aria-label="Stop generating"
                 className="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                <span className="w-3 h-3 bg-bg-elevated rounded-sm" />
+                <span className="w-3 h-3 bg-bg-elevated rounded-sm" aria-hidden="true" />
               </button>
             ) : (
               <button
@@ -890,7 +887,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                 disabled={!input.trim()}
                 title="Send"
                 aria-label="Send message"
-                className="min-h-touch min-w-touch bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover disabled:bg-muted disabled:cursor-not-allowed transition-all"
+                className="min-h-touch min-w-touch bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover disabled:bg-muted disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path d="M10 3a1 1 0 01.707.293l5 5a1 1 0 01-1.414 1.414L11 6.414V16a1 1 0 11-2 0V6.414L5.707 9.707a1 1 0 01-1.414-1.414l5-5A1 1 0 0110 3z"/>
@@ -898,12 +895,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               </button>
             )}
           </div>
-          <p className="text-[10px] text-muted text-center mt-2 leading-relaxed px-4">
-            AI Advisor provides general guidance grounded in Australian employment law - not legal advice. Verify critical decisions.{' '}
-            <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
-              Talk to an HQ Advisor
-            </Link>
-          </p>
+          {messages.length === 0 && (
+            <p className="text-xs text-muted text-center mt-2 leading-relaxed px-4">
+              General guidance only - not legal advice.{' '}
+              <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
+                Talk to an HQ Advisor
+              </Link>
+            </p>
+          )}
         </div>
       </div>
 
@@ -916,9 +915,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             <h2 className="font-sans text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
             <button
               onClick={() => setHistoryOpen(false)}
-              className="w-7 h-7 rounded-full hover:bg-light flex items-center justify-center text-mid hover:text-charcoal transition-colors"
+              aria-label="Close history"
+              className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid hover:text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
               </svg>
             </button>
@@ -935,8 +935,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             ) : (
               <ul className="divide-y divide-border">
                 {historyItems.map(c => (
-                  <li key={c.id} className="px-4 py-3 hover:bg-light transition-colors group">
-                    <div className="flex items-start gap-2">
+                  <li key={c.id} className="hover:bg-light transition-colors group">
+                    <div className="flex items-start gap-2 px-4 py-3">
                       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-ink'}`} />
                       <div className="min-w-0 flex-1">
                         {renamingId === c.id ? (
@@ -953,34 +953,44 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             maxLength={120}
                           />
                         ) : (
-                          <p className="text-sm font-medium text-charcoal truncate">{(c.title || 'Untitled').replace(/[—–]/g, '-')}</p>
+                          <button
+                            className="w-full text-left text-sm font-medium text-charcoal truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
+                            onClick={() => {
+                              setConversationId(c.id)
+                              setHistoryOpen(false)
+                            }}
+                          >
+                            {(c.title || 'Untitled').replace(/[—–]/g, '-')}
+                          </button>
                         )}
-                        <p className="text-[10px] text-muted mt-0.5">
+                        <p className="text-xs text-muted mt-0.5">
                           {c.module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'}
                           {' - '}
                           {formatHistoryDate(c.created_at)}
                         </p>
                       </div>
                       {c.escalated && renamingId !== c.id && confirmDeleteId !== c.id && (
-                        <span className="text-[10px] bg-warning/10 text-warning px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Escalated</span>
+                        <span className="text-xs bg-warning/10 text-warning px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Escalated</span>
                       )}
                       {renamingId !== c.id && confirmDeleteId !== c.id && (
-                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-0.5 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                           <button
                             onClick={() => startRename(c.id, c.title)}
                             title="Rename"
-                            className="w-6 h-6 flex items-center justify-center rounded-full text-mid hover:bg-border hover:text-charcoal transition-colors"
+                            aria-label="Rename conversation"
+                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-border hover:text-charcoal transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                             </svg>
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(c.id)}
                             title="Delete"
-                            className="w-6 h-6 flex items-center justify-center rounded-full text-mid hover:bg-danger/10 hover:text-danger transition-colors"
+                            aria-label="Delete conversation"
+                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-danger/10 hover:text-danger transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
                             </svg>
                           </button>
@@ -988,17 +998,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                       )}
                     </div>
                     {confirmDeleteId === c.id && (
-                      <div className="mt-2 flex items-center gap-2 pl-3">
-                        <span className="text-[11px] text-mid">Delete this chat?</span>
+                      <div className="flex items-center gap-2 px-4 pb-3 pl-7">
+                        <span className="text-xs text-mid">Delete this chat?</span>
                         <button
                           onClick={() => deleteConversation(c.id)}
-                          className="text-[11px] font-bold text-danger hover:underline"
+                          className="text-xs font-bold text-danger hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30 rounded"
                         >
                           Delete
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          className="text-[11px] font-bold text-mid hover:underline"
+                          className="text-xs font-bold text-mid hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
                         >
                           Cancel
                         </button>
@@ -1014,32 +1024,23 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       {/* Advisor modal */}
       {showAdvisorModal && (
-        <div className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4" onClick={() => setShowAdvisorModal(false)}>
-          <div className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
-            <p className="text-sm text-mid mb-4 leading-relaxed">
-              HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
-            </p>
-            <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
-              <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
-              <p><strong className="font-bold text-charcoal">Industry:</strong> {industry}</p>
-              <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
-              <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
-              {messages.length > 0 && (
-                <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-bg-elevated hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors">
-                Close
-              </button>
-              <Link href="/dashboard/booking" onClick={() => setShowAdvisorModal(false)}
-                className="flex-1 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold text-center transition-colors">
-                Book a call with an HQ Advisor
-              </Link>
-            </div>
-          </div>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={advisorModalHeadingId}
+          className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAdvisorModal(false)}
+          onKeyDown={e => { if (e.key === 'Escape') setShowAdvisorModal(false) }}
+        >
+          <AdvisorModalContent
+            headingId={advisorModalHeadingId}
+            bizName={bizName}
+            industry={industry}
+            state={state}
+            award={award}
+            messages={messages}
+            onClose={() => setShowAdvisorModal(false)}
+          />
         </div>
       )}
     </div>
@@ -1280,14 +1281,17 @@ function DocumentFormCard({
 
       {/* Form fields */}
       <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-        {formDef.fields.map(field => (
+        {formDef.fields.map(field => {
+          const fieldId = `docform-${docType}-${field.key}`.replace(/\s+/g, '-').toLowerCase()
+          return (
           <div key={field.key}>
-            <label className="block text-xs font-bold text-mid mb-1.5">
+            <label htmlFor={fieldId} className="block text-xs font-bold text-mid mb-1.5">
               {field.label}
               {field.required && <span className="text-danger ml-0.5">*</span>}
             </label>
             {field.type === 'select' ? (
               <select
+                id={fieldId}
                 className={inputCls + " appearance-none"}
                 value={formData[field.key] || ''}
                 onChange={e => updateField(field.key, e.target.value)}
@@ -1300,6 +1304,7 @@ function DocumentFormCard({
               </select>
             ) : field.type === 'textarea' ? (
               <textarea
+                id={fieldId}
                 className={inputCls + " resize-none"}
                 rows={3}
                 value={formData[field.key] || ''}
@@ -1309,6 +1314,7 @@ function DocumentFormCard({
               />
             ) : field.type === 'date' ? (
               <input
+                id={fieldId}
                 type="date"
                 className={inputCls}
                 value={formData[field.key] || ''}
@@ -1317,6 +1323,7 @@ function DocumentFormCard({
               />
             ) : (
               <input
+                id={fieldId}
                 type={field.type === 'number' ? 'number' : 'text'}
                 className={inputCls}
                 value={formData[field.key] || ''}
@@ -1326,7 +1333,8 @@ function DocumentFormCard({
               />
             )}
           </div>
-        ))}
+          )
+        })}
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
@@ -1354,9 +1362,11 @@ function DocumentFormCard({
 
 function DownloadDocxButton({ content, title, docType, docId }: { content: string; title: string; docType: string; docId: string | null }) {
   const [downloading, setDownloading] = useState(false)
+  const [dlError, setDlError] = useState<string | null>(null)
 
   async function handleDownload() {
     setDownloading(true)
+    setDlError(null)
     try {
       // Prefer the library download endpoint when we have a saved doc id -
       // that fetches the original generated content. The /generate fallback
@@ -1381,22 +1391,86 @@ function DownloadDocxButton({ content, title, docType, docId }: { content: strin
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-    } catch {
-      alert('Could not generate document. Please try again.')
+    } catch (err) {
+      console.error('[download]', err)
+      setDlError('Could not generate document. Please try again.')
     }
     setDownloading(false)
   }
 
   return (
-    <button
-      onClick={handleDownload}
-      disabled={downloading}
-      className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors inline-flex items-center gap-1 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+    <div>
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors inline-flex items-center gap-1 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+      >
+        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+        </svg>
+        {downloading ? 'Generating…' : 'Download DOCX'}
+      </button>
+      {dlError && (
+        <p role="alert" className="text-xs text-danger mt-1">{dlError}</p>
+      )}
+    </div>
+  )
+}
+
+function AdvisorModalContent({
+  headingId,
+  bizName,
+  industry,
+  state,
+  award,
+  messages,
+  onClose,
+}: {
+  headingId: string
+  bizName: string
+  industry: string
+  state: string
+  award: string
+  messages: Message[]
+  onClose: () => void
+}) {
+  const firstFocusRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    firstFocusRef.current?.focus()
+  }, [])
+
+  return (
+    <div
+      className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal"
+      onClick={e => e.stopPropagation()}
     >
-      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
-      </svg>
-      {downloading ? 'Generating…' : 'Download DOCX'}
-    </button>
+      <h3 id={headingId} className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
+      <p className="text-sm text-mid mb-4 leading-relaxed">
+        HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
+      </p>
+      <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
+        <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
+        <p><strong className="font-bold text-charcoal">Industry:</strong> {industry}</p>
+        <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
+        <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
+        {messages.length > 0 && (
+          <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
+        )}
+      </div>
+      <div className="flex gap-3">
+        <button
+          ref={firstFocusRef}
+          onClick={onClose}
+          className="flex-1 py-2.5 bg-bg-elevated hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+        >
+          Close
+        </button>
+        <Link href="/dashboard/booking" onClick={onClose}
+          className="flex-1 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+          Book a call with an HQ Advisor
+        </Link>
+      </div>
+    </div>
   )
 }

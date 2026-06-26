@@ -42,7 +42,8 @@ export function RecruitDashboard() {
             return
           }
         }
-        if (list.length > 0) setSelected(list[0])
+        // Only auto-select on lg+ so mobile users see the role list first
+        if (list.length > 0 && typeof window !== 'undefined' && window.innerWidth >= 1024) setSelected(list[0])
       })
       .catch(console.error)
       .finally(() => setLoadingSessions(false))
@@ -167,9 +168,6 @@ export function RecruitDashboard() {
             <h1 className="font-display text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider">
               Shortlist Agent
             </h1>
-            <span className="bg-light text-mid text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5">
-              New
-            </span>
           </div>
           <p className="text-xs text-muted mb-2">
             {activeCount} active · {draftCount} draft / pending
@@ -218,7 +216,7 @@ export function RecruitDashboard() {
                 />
               ))}
 
-              <GroupHeader label="Draft / Pending" count={draftCount} open={draftOpen} onToggle={() => setDraftOpen(v => !v)} tone="draft" />
+              <GroupHeader label="Draft & closed" count={draftCount} open={draftOpen} onToggle={() => setDraftOpen(v => !v)} tone="draft" />
               {draftOpen && draftSessions.length === 0 && (
                 <p className="text-xs text-mid px-4 py-3">No drafts. Use “Save as draft” when creating a role.</p>
               )}
@@ -275,18 +273,18 @@ export function RecruitDashboard() {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-xs px-4">
-              <div className="w-14 h-14 bg-accent3 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-14 h-14 bg-bg-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                 </svg>
               </div>
-              <h2 className="font-serif text-xl font-bold text-ink mb-1">Select a role</h2>
+              <h2 className="font-display text-xl font-bold text-ink mb-1">Select a role</h2>
               <p className="text-sm text-mid mb-5">
                 Choose a role from the left panel, or create a new one to start receiving video pre-screens.
               </p>
               <button
                 onClick={() => setShowCreate(true)}
-                className="bg-accent hover:bg-accent2 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
               >
                 + New Role
               </button>
@@ -366,7 +364,7 @@ function SessionRow({
   return (
     <div
       className={`relative w-full transition-all border-l-2 ${
-        selected ? 'bg-accent3 border-l-accent' : 'border-l-transparent hover:bg-bg'
+        selected ? 'bg-ink/5 border-l-accent' : 'border-l-transparent hover:bg-bg'
       }`}
     >
       <button onClick={onSelect} className="w-full text-left px-4 py-3 pr-10">
