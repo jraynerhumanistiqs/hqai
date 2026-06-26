@@ -70,6 +70,9 @@ export default function DocumentsPage() {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
   const [editing, setEditing] = useState<Doc | null>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/documents')
@@ -113,6 +116,27 @@ export default function DocumentsPage() {
     } finally {
       // Brief flash so the user sees feedback even on fast downloads.
       setTimeout(() => setDownloading(null), 600)
+    }
+  }
+
+  // Delete sits alongside Edit/Download with a two-step inline confirm
+  // (the destructive action is de-emphasised to an icon until armed, then
+  // requires an explicit Delete/Cancel - no full modal for a list row).
+  async function deleteDoc(doc: Doc) {
+    setDeletingId(doc.id)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/documents?id=${doc.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({} as { error?: string }))
+        throw new Error(data?.error || `HTTP ${res.status}`)
+      }
+      setDocs(prev => prev.filter(d => d.id !== doc.id))
+      setConfirmDeleteId(null)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete the document. Please try again.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -191,23 +215,56 @@ export default function DocumentsPage() {
                             {(doc.type ?? '').replace(/[-_]/g, ' ') || 'document'} - {formatDate(doc.created_at)}
                           </p>
                         </div>
-                        {/* Fix #2 (H3 touch): min-h-touch on Edit + Download DOCX buttons */}
-                        {/* Fix #8 (M11): hover:opacity-90 on Edit so it has perceptible hover */}
-                        {/* Fix #10 (L7): "Download DOCX" label */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => setEditing(doc)}
-                            className="bg-ink hover:opacity-90 text-bg-elevated text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => downloadDocx(doc)}
-                            disabled={downloading === doc.id}
-                            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
-                          >
-                            {downloading === doc.id ? 'Preparing...' : 'Download DOCX'}
-                          </button>
+                        {/* Action cluster: Edit + Download DOCX + Delete.
+                            Delete is a quiet danger icon that arms a
+                            two-step inline confirm (Delete / Cancel). */}
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          {confirmDeleteId === doc.id ? (
+                            <div className="flex items-center gap-2">
+                              <span className="hidden sm:inline text-[11px] sm:text-xs text-ink-soft">Delete this document?</span>
+                              <button
+                                onClick={() => deleteDoc(doc)}
+                                disabled={deletingId === doc.id}
+                                className="bg-danger hover:opacity-90 text-ink-on-accent text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity disabled:opacity-50"
+                              >
+                                {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                              </button>
+                              <button
+                                onClick={() => { setConfirmDeleteId(null); setDeleteError(null) }}
+                                disabled={deletingId === doc.id}
+                                className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setEditing(doc)}
+                                className="bg-ink hover:opacity-90 text-bg-elevated text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => downloadDocx(doc)}
+                                disabled={downloading === doc.id}
+                                className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
+                              >
+                                {downloading === doc.id ? 'Preparing...' : 'Download DOCX'}
+                              </button>
+                              <button
+                                onClick={() => { setConfirmDeleteId(doc.id); setDeleteError(null) }}
+                                aria-label={`Delete ${doc.title}`}
+                                title="Delete document"
+                                className="w-9 h-9 min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink-muted hover:text-danger hover:bg-danger/10 border border-border hover:border-danger/40 transition-colors"
+                              >
+                                <TrashIcon />
+                              </button>
+                            </div>
+                          )}
+                          {deleteError && confirmDeleteId === doc.id && (
+                            <p className="text-[11px] text-danger text-right max-w-[220px]" role="alert">{deleteError}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -335,6 +392,14 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
         </div>
       </div>
     </div>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+    </svg>
   )
 }
 

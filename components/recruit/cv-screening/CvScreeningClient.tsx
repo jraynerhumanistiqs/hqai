@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
 import {
   type CandidateScreening,
@@ -552,6 +553,19 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           >
             + New scoring criteria
           </button>
+          {/* CV Formatter cross-link (relocated here from the AI
+              Administrator subheading). Lives in the standalone Quick CV
+              score header only - this whole left panel is hidden in the
+              in-role stepper, so the role flow stays uncluttered. */}
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-[11px] text-ink-soft leading-relaxed">
+              Have an existing CV?{' '}
+              <Link href="/dashboard/people/administrator/ingest" className="text-accent underline-offset-2 hover:underline font-bold">
+                Reformat it with the CV Formatter
+              </Link>{' '}
+              - it restructures the CV into the Humanistiqs house format without changing a word.
+            </p>
+          </div>
         </div>
 
         {/* Rubric list (scrollable) */}

@@ -13,7 +13,6 @@
 // editing lands as a follow-up.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import type { TemplateFormField } from '@/lib/template-ip'
 import { Button } from '@/components/ui/button'
 import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/administrator/DocEditor'
@@ -184,16 +183,9 @@ export default function AdministratorClient({ templates, categories, initialTemp
         <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
           Every HR document you need, in under 3 minutes.
         </h1>
-        <p className="text-body text-ink-soft mb-3 max-w-2xl">
+        <p className="text-body text-ink-soft mb-6 max-w-2xl">
           Pick a template, fill the form, generate. Edit the draft inline
           and download a final PDF when you&apos;re happy.
-        </p>
-        <p className="text-small text-ink-soft mb-6">
-          Have an existing CV?{' '}
-          <Link href="/dashboard/people/administrator/ingest" className="text-accent underline-offset-4 hover:underline font-bold">
-            Upload document
-          </Link>{' '}
-          - CV Formatter rewrites it to the Humanistiqs house format.
         </p>
 
         {!active && (
