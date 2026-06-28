@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useReducer, useState } from 'react'
+import { useCallback, useReducer } from 'react'
 import {
   WizardContext,
   initialWizardState,
@@ -8,7 +8,7 @@ import {
 } from './wizard-state'
 import type { CampaignBusinessContext } from '@/lib/campaign-types'
 import RecruitFlowRail, { type FlowStep } from '../RecruitFlowRail'
-import CoachPanel from './CoachPanel'
+import CoachTip from './CoachTip'
 import Step1Brief from './Step1Brief'
 import Step2Extract from './Step2Extract'
 import Step3DraftCoach from './Step3DraftCoach'
@@ -27,7 +27,6 @@ const WIZARD_STEPS: Omit<FlowStep, 'done'>[] = [
 
 export default function WizardShell({ business }: { business: CampaignBusinessContext }) {
   const [state, dispatch] = useReducer(wizardReducer, initialWizardState)
-  const [coachOpenMobile, setCoachOpenMobile] = useState(false)
 
   const callDraft = useCallback(
     async (step: number, extra: Record<string, any> = {}): Promise<any | null> => {
@@ -296,7 +295,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
 
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-8 bg-bg">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               {state.step === 1 && <Step1Brief />}
               {state.step === 2 && <Step2Extract />}
               {state.step === 3 && <Step3DraftCoach />}
@@ -313,12 +312,6 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
                 className="bg-bg-elevated border border-border text-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 Back
-              </button>
-              <button
-                onClick={() => setCoachOpenMobile(o => !o)}
-                className="lg:hidden bg-light text-charcoal text-xs font-bold px-3 min-h-touch rounded-full inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-              >
-                {coachOpenMobile ? 'Hide coach' : 'Show coach'}
               </button>
               {isReturningToStep1 && (
                 <button
@@ -341,46 +334,9 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           )}
         </div>
 
-        <div className="hidden lg:flex w-[320px] flex-shrink-0 border-l border-border bg-bg-elevated">
-          <CoachPanel />
-        </div>
-
-        {coachOpenMobile && (
-          <div
-            className="lg:hidden fixed inset-0 z-40 flex flex-col justify-end bg-ink/40 motion-safe:animate-[fadeIn_150ms_ease-out]"
-            onClick={() => setCoachOpenMobile(false)}
-          >
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Campaign Coach"
-              className="relative bg-bg-elevated rounded-t-panel shadow-modal max-h-[80vh] flex flex-col motion-safe:animate-[slideUp_220ms_ease-out]"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Grab handle - signals the sheet can be dismissed by tapping
-                  the backdrop or the close control inside CoachPanel. */}
-              <div className="flex-shrink-0 flex justify-center pt-2.5 pb-1">
-                <span aria-hidden="true" className="h-1.5 w-10 rounded-full bg-border" />
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-                <CoachPanel onClose={() => setCoachOpenMobile(false)} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!coachOpenMobile && (
-          <button
-            onClick={() => setCoachOpenMobile(true)}
-            aria-label="Open Campaign Coach"
-            className="lg:hidden fixed bottom-20 right-4 z-30 bg-accent text-ink-on-accent text-xs font-bold px-4 min-h-touch rounded-full shadow-card inline-flex items-center gap-2 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Coach
-          </button>
-        )}
+        {/* Coach guidance now lives in a floating pop-up tip instead of a
+            persistent right-hand panel, so the wizard gets the full width. */}
+        <CoachTip />
       </div>
     </WizardContext.Provider>
   )
