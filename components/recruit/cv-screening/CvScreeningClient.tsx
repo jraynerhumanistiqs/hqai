@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
 import {
@@ -15,6 +15,7 @@ import CandidateScorecardPanel from './CandidateScorecardPanel'
 import NewRubricModal from './NewRubricModal'
 import EditRubricModal from './EditRubricModal'
 import OverrideModal from './OverrideModal'
+import RecruitFlowRail, { type FlowStep } from '@/components/recruit/RecruitFlowRail'
 
 interface CustomRubricRow {
   id: string
@@ -525,6 +526,950 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const [customOpen, setCustomOpen] = useState(true)
   const [standardOpen, setStandardOpen] = useState(true)
 
+  // Standalone "click along to progress" rail step. Only drives the
+  // !prescreenSessionId layout - the in-role (Shortlist Step 1) path
+  // ignores this entirely and renders exactly as before.
+  //   1 Choose criteria  2 Upload CVs  3 Review scores
+  const [standaloneStep, setStandaloneStep] = useState(1)
+
+  // A rubric is selected once rubricId resolves to a known rubric.
+  const rubricSelected = Boolean(activeRubricKind)
+  // The active cohort has at least one scored candidate (any version of
+  // the selected rubric family). filteredByRubric already scopes to the
+  // active family, so its length is the cohort size.
+  const cohortScoredCount = filteredByRubric.length
+
+  // Gentle, non-surprising auto-advance: fires only on the TRANSITION
+  // (rubric becoming selected, cohort gaining its first scored
+  // candidate), never on every render. This means clicking back to an
+  // earlier step does NOT bounce the user forward again - the condition
+  // staying true is not enough, it has to have just become true. Forward
+  // only; we never auto-advance backwards.
+  const prevRubricSelected = useRef(rubricSelected)
+  const prevHasScored = useRef(cohortScoredCount > 0)
+  useEffect(() => {
+    if (prescreenSessionId) return
+    const hasScored = cohortScoredCount > 0
+    if (rubricSelected && !prevRubricSelected.current && standaloneStep === 1) {
+      setStandaloneStep(2)
+    } else if (hasScored && !prevHasScored.current && standaloneStep === 2) {
+      setStandaloneStep(3)
+    }
+    prevRubricSelected.current = rubricSelected
+    prevHasScored.current = hasScored
+  }, [prescreenSessionId, rubricSelected, cohortScoredCount, standaloneStep])
+
+  // Steps + reachability for the rail (standalone only).
+  const flowSteps: FlowStep[] = [
+    { label: 'Choose criteria', hint: 'Pick a saved set or create one', done: rubricSelected },
+    { label: 'Upload CVs', hint: 'Drop a batch to score against it', done: cohortScoredCount > 0 },
+    { label: 'Review scores', hint: 'Ranked, with evidence from each CV' },
+  ].map((s, i) => ({ id: i + 1, ...s }))
+
+  function goToStep(id: number) {
+    // Step 1 is the chooser. Returning there keeps the selected rubric
+    // intact (clearing rubricId would discard the cohort filter and the
+    // criteria-confirm state); the chooser simply shows the library again
+    // with the current selection highlighted.
+    setStandaloneStep(id)
+  }
+
+  // CV Formatter cross-link, relocated out of the cramped sidebar header
+  // and pinned to the rail footer. Standalone only (the rail itself only
+  // renders when !prescreenSessionId).
+  const railFooter = (
+    <p className="text-[11px] text-ink-soft leading-relaxed">
+      Have an existing CV?{' '}
+      <Link href="/dashboard/people/administrator/ingest" className="text-clay underline-offset-2 hover:underline font-bold">
+        Reformat it with the CV Formatter
+      </Link>{' '}
+      - it restructures the CV into the Humanistiqs house format without changing a word.
+    </p>
+  )
+
+  // ----------------------------------------------------------------
+  // Standalone "Quick CV score" - the calm click-along rail layout.
+  // Only rendered when !prescreenSessionId. The in-role (Shortlist
+  // Agent Step 1) path below this block is left exactly as it was.
+  // ----------------------------------------------------------------
+  if (!prescreenSessionId) {
+    return (
+      <div className="flex flex-col md:flex-row h-full overflow-hidden bg-bg">
+        <RecruitFlowRail
+          eyebrow="HQ Recruit"
+          title="Quick CV score"
+          blurb="Score CVs against your criteria, no role needed. Promote your picks to spin up a Shortlist Agent role."
+          steps={flowSteps}
+          current={standaloneStep}
+          onStepChange={goToStep}
+          canNavigate={(step) => {
+            if (step.id === 1) return true
+            if (step.id === 2) return rubricSelected
+            return cohortScoredCount > 0
+          }}
+          footer={railFooter}
+        />
+
+        {/* Main pane - one step's content at a time, with room. */}
+        <div className="flex-1 overflow-y-auto bg-bg">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+            {/* ===== STEP 1 - Choose criteria ===== */}
+            {standaloneStep === 1 && (
+              <div className="space-y-6">
+                <header>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-ink mb-1.5">
+                    Choose your scoring criteria
+                  </h2>
+                  <p className="text-sm text-ink-soft leading-relaxed max-w-2xl">
+                    Pick a saved set of criteria, or create one from a job ad or position description. The criteria shape both the CV scores and any prescreen questions. Selecting a set takes you to upload.
+                  </p>
+                </header>
+
+                {/* Numbered onboarding - explicit "1 then 2" so SMEs who
+                    do not know the word "rubric" still see criteria come
+                    BEFORE uploads. */}
+                <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <li className="flex items-start gap-3 bg-bg-elevated shadow-card rounded-2xl px-4 py-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-accent text-ink-on-accent text-sm font-bold flex items-center justify-center">1</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-ink">Create scoring criteria</p>
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        The questions and skills each CV will be judged against. Paste a job ad or upload a PD and the AI drafts the criteria for you.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3 bg-bg-elevated shadow-card rounded-2xl px-4 py-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-bg-soft text-ink text-sm font-bold flex items-center justify-center">2</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-ink">Upload CVs to score</p>
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        Drop a batch in. Each CV is scored against your criteria, with the evidence quoted from the CV.
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+
+                {/* Saved scoring criteria library - relocated out of the
+                    cramped left sidebar into the main pane with room. A
+                    tidy grid of selectable cards; picking one advances to
+                    Upload via the auto-advance effect. */}
+                <section className="bg-bg-elevated shadow-card rounded-3xl p-5 sm:p-6 space-y-4">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-0.5">
+                        Saved scoring criteria
+                      </p>
+                      <p className="text-xs text-ink-soft">
+                        {customCount === 0
+                          ? 'No saved criteria yet. Create one from a job ad and reuse it for future roles.'
+                          : `${customCount} saved ${customCount === 1 ? 'set' : 'sets'}. Pick one to score against, or create a new set.`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewRubric(true)}
+                      className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold px-4 min-h-touch py-2 rounded-full transition-colors inline-flex items-center"
+                    >
+                      + New scoring criteria
+                    </button>
+                  </div>
+
+                  {customCount === 0 ? (
+                    <div className="border-2 border-dashed border-border rounded-2xl px-6 py-10 text-center">
+                      <p className="text-sm font-bold text-ink mb-1">No scoring criteria yet</p>
+                      <p className="text-xs text-ink-muted mb-4 max-w-md mx-auto">
+                        Paste a job ad or upload a position description and the AI drafts a weighted set of criteria you can review, edit and reuse.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewRubric(true)}
+                        className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-5 min-h-touch py-2.5 hover:bg-accent-hover inline-flex items-center"
+                      >
+                        + Create scoring criteria
+                      </button>
+                    </div>
+                  ) : (
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {customFamilies.map(fam => {
+                        // Newest version is the default selectable for the
+                        // family card; switching versions still happens in
+                        // Step 2 via the version switcher.
+                        const latest = fam.versions[0]
+                        const familyIds = new Set(fam.versions.map(v => v.id))
+                        const cohort = screenings.filter(s => familyIds.has(s.rubric_id)).length
+                        const isActive = familyIds.has(rubricId)
+                        return (
+                          <li key={fam.familyId}>
+                            <button
+                              type="button"
+                              onClick={() => { setRubricId(latest.id); setMobileShowList(false) }}
+                              className={`group relative w-full text-left rounded-2xl border px-4 py-3.5 min-h-touch transition-colors ${
+                                isActive
+                                  ? 'border-accent bg-accent-soft'
+                                  : 'border-border bg-bg hover:bg-bg-soft'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-bold text-ink truncate flex-1">{fam.familyLabel}</p>
+                                {fam.versions.length > 1 && (
+                                  <span className="text-[9px] font-bold uppercase tracking-wider bg-bg-soft text-ink-soft rounded-full px-1.5 py-0.5 flex-shrink-0">
+                                    {fam.versions.length} versions
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-ink-muted mt-1">
+                                {cohort > 0 ? `${cohort} scored` : 'No candidates yet'} - updated {new Date(latest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                              </p>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {/* ===== STEP 2 - Upload CVs ===== */}
+            {standaloneStep === 2 && activeRubricKind && (
+              <div className="space-y-6">
+                {/* Rubric header - name + edit, with a quiet "Change
+                    criteria" affordance back to Step 1. */}
+                <header className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => goToStep(1)}
+                      className="text-[11px] font-bold text-ink-soft hover:text-ink mb-1.5 inline-flex items-center gap-1.5"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+                      </svg>
+                      Change criteria
+                    </button>
+                    <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1">
+                      {activeRubricKind === 'custom' ? 'Custom scoring criteria' : 'Standard scoring criteria'}
+                    </p>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-ink mb-1.5">
+                      {activeRubricLabel}
+                    </h2>
+                    <p className="text-sm text-ink-soft leading-relaxed max-w-2xl">
+                      Drop CVs in - every score points to evidence in the CV. {businessName} keeps the final call, no candidate is auto-rejected.
+                    </p>
+                  </div>
+                  {activeCustom && (
+                    <button
+                      onClick={() => setEditingRubric(activeCustom)}
+                      className="bg-bg-elevated border border-border text-ink text-xs font-bold px-3 min-h-touch py-2 rounded-full hover:bg-bg-soft inline-flex items-center gap-1.5 flex-shrink-0"
+                      title="Edit criteria (creates a new version, keeps existing scores)"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2h2a1 1 0 010 2h-2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8H3a1 1 0 010-2h2V4zm2 4v8h6V8H7zm2-4v2h2V4H9z"/>
+                      </svg>
+                      Edit criteria
+                    </button>
+                  )}
+                </header>
+
+                {/* Version switcher - only when this rubric has 2+ versions */}
+                {activeCustom && activeFamily.length > 1 && (
+                  <div className="bg-bg-elevated shadow-card rounded-3xl px-5 py-3 flex items-center gap-2 flex-wrap">
+                    <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mr-2">Versions</p>
+                    {activeFamily.map(v => {
+                      const cohort = screenings.filter(s => s.rubric_id === v.id).length
+                      const isActive = v.id === activeCustom.id
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={() => setRubricId(v.id)}
+                          className={`text-xs font-bold rounded-full px-3 py-1.5 transition-colors ${
+                            isActive ? 'bg-accent text-ink-on-accent' : 'bg-bg-soft text-ink-soft hover:bg-border hover:text-ink'
+                          }`}
+                          title={`v${v.version_number ?? 1} - ${cohort} candidate${cohort === 1 ? '' : 's'} scored`}
+                        >
+                          v{v.version_number ?? 1}
+                          <span className={`ml-1.5 ${isActive ? 'text-ink-on-accent/70' : 'text-ink-muted'}`}>
+                            {cohort}
+                          </span>
+                        </button>
+                      )
+                    })}
+                    <p className="text-[10px] text-ink-muted ml-1">
+                      Each version keeps its own candidate scores.
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload area - criteria-confirm gate + dropzone + pending. */}
+                <section className="bg-bg-elevated shadow-card rounded-3xl p-6 space-y-5">
+                  {!criteriaConfirmed ? (
+                    <div className="border-2 border-dashed border-border rounded-2xl px-6 py-10 text-center">
+                      <p className="text-sm font-bold text-ink mb-1">
+                        Confirm your scoring criteria before uploading
+                      </p>
+                      <p className="text-xs text-ink-muted mb-4 max-w-md mx-auto">
+                        The criteria shape both the CV scores and the prescreen questions. Take a quick look before any CV lands - editing them later means rescoring.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setCriteriaModalOpen(true)}
+                        className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-5 min-h-touch py-2.5 hover:bg-accent-hover inline-flex items-center"
+                      >
+                        Review scoring criteria
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={e => {
+                        e.preventDefault()
+                        setDragOver(false)
+                        if (e.dataTransfer.files) handleFiles(e.dataTransfer.files)
+                      }}
+                      className={`block border-2 border-dashed rounded-2xl px-6 py-10 text-center cursor-pointer transition-colors ${
+                        dragOver ? 'border-ink bg-bg-soft' : 'border-border hover:border-ink-soft hover:bg-bg-soft'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.txt"
+                        multiple
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files) handleFiles(e.target.files)
+                          e.target.value = ''
+                        }}
+                      />
+                      <p className="text-sm font-bold text-ink mb-1">
+                        Drop CVs here or click to upload
+                      </p>
+                      <p className="text-xs text-ink-muted">
+                        PDF, DOCX or plain text. Up to 20 at a time. Scored against <strong>{activeRubricLabel}</strong>.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setCriteriaModalOpen(true) }}
+                        className="mt-3 text-[11px] font-bold text-ink-soft hover:text-ink underline"
+                      >
+                        Review criteria again
+                      </button>
+                    </label>
+                  )}
+
+                  {pending.length > 0 && (
+                    <>
+                      <ul className="space-y-1.5">
+                        {pending.map(p => (
+                          <li key={p.id} className="flex items-center justify-between text-xs bg-bg-soft rounded-full px-4 py-2">
+                            <span className="text-ink font-bold truncate max-w-[60%]">{p.filename}</span>
+                            <span className={p.status === 'error' ? 'text-danger' : 'text-ink-soft'}>
+                              {p.status === 'error' ? `Couldn't process - ${p.error}` : statusLabel(p.status)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-[11px] text-ink-muted leading-relaxed mt-2">
+                        Scoring usually takes 30-90 seconds per CV. We run each one through your criteria with full reasoning, not a keyword match - the depth is what makes the ranking trustworthy.
+                      </p>
+                    </>
+                  )}
+                </section>
+
+                {/* Once a candidate is scored the rail auto-advances to
+                    Review; offer a manual jump too for anyone who scrolled. */}
+                {cohortScoredCount > 0 && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => goToStep(3)}
+                      className="bg-bg-elevated border border-border text-ink text-xs font-bold px-4 min-h-touch py-2 rounded-full hover:bg-bg-soft inline-flex items-center gap-1.5"
+                    >
+                      Review scores ({cohortScoredCount})
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ===== STEP 3 - Review scores ===== */}
+            {standaloneStep === 3 && activeRubricKind && (
+              <div className="space-y-6">
+                <header className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => goToStep(2)}
+                      className="text-[11px] font-bold text-ink-soft hover:text-ink mb-1.5 inline-flex items-center gap-1.5"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"/>
+                      </svg>
+                      Back to upload
+                    </button>
+                    <p className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1">
+                      {activeRubricKind === 'custom' ? 'Custom scoring criteria' : 'Standard scoring criteria'}
+                    </p>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-ink mb-1.5">
+                      {activeRubricLabel}
+                    </h2>
+                    <p className="text-sm text-ink-soft leading-relaxed max-w-2xl">
+                      Ranked by score, each backed by evidence quoted from the CV. Tick your picks and send them across to spin up a Shortlist Agent role.
+                    </p>
+                  </div>
+                  <a
+                    href="/dashboard/recruit/shortlist"
+                    className="bg-bg-elevated border border-border text-ink text-xs font-bold px-3 min-h-touch py-2 rounded-full hover:bg-bg-soft hidden sm:inline-flex items-center flex-shrink-0"
+                  >
+                    Move to Shortlist Agent
+                  </a>
+                </header>
+
+                {/* Candidates */}
+                <section className="bg-bg-elevated shadow-card rounded-3xl">
+                  <div className="px-6 py-4 border-b border-border flex flex-wrap items-center gap-2">
+                    <FilterChip label={`All (${counts.all})`} active={bandFilter === 'all'} onClick={() => setBandFilter('all')} />
+                    <FilterChip label={`Strong (${counts.strong})`} active={bandFilter === 'strong'} onClick={() => setBandFilter('strong')} />
+                    <FilterChip label={`Yes (${counts.yes})`} active={bandFilter === 'yes'} onClick={() => setBandFilter('yes')} />
+                    <FilterChip label={`Maybe (${counts.maybe})`} active={bandFilter === 'maybe'} onClick={() => setBandFilter('maybe')} />
+                    <FilterChip label={`No (${counts.no})`} active={bandFilter === 'no'} onClick={() => setBandFilter('no')} />
+                    <span className="ml-auto text-xs text-ink-muted">
+                      {busy ? 'Analysing CVs...' : `${filtered.length} candidate${filtered.length === 1 ? '' : 's'}`}
+                    </span>
+                  </div>
+                  {batchHandoffResult && (
+                    <div className={`px-6 py-2 border-b border-border text-xs ${batchHandoffResult.startsWith('Failed') ? 'bg-danger/10 text-danger' : 'bg-bg-soft text-ink-soft'}`}>
+                      {batchHandoffResult}
+                    </div>
+                  )}
+
+                  {filtered.length === 0 ? (
+                    <div className="px-6 py-12 text-center">
+                      <p className="text-sm text-ink-soft">
+                        {bandFilter !== 'all'
+                          ? `No candidates in the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} band.`
+                          : 'No candidates yet. Upload some CVs in the previous step to get started.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-6 py-2 border-b border-border bg-bg-soft/50 flex items-center gap-3 text-xs">
+                        <button
+                          onClick={selectedCount === filtered.length ? clearSelected : selectAllVisible}
+                          className="text-ink-soft hover:text-ink font-bold"
+                        >
+                          {selectedCount === filtered.length ? 'Clear selection' : 'Select all'}
+                        </button>
+                        {selectedCount > 0 && (
+                          <span className="text-ink-soft">{selectedCount} selected</span>
+                        )}
+                      </div>
+                      <ul className="divide-y divide-border">
+                        {/* Header row - hidden on mobile */}
+                        <li className="px-6 py-2 hidden sm:grid grid-cols-12 gap-3 items-center text-[10px] font-bold uppercase tracking-wider text-ink-muted bg-bg-soft/50">
+                          <span className="col-span-1" />
+                          <span className="col-span-3">Candidate</span>
+                          <span className="col-span-1">Score</span>
+                          <span className="col-span-2">Band</span>
+                          <span className="col-span-2">Next step</span>
+                          <span className="col-span-2 hidden sm:block">Comments</span>
+                          <span className="col-span-1 text-right">View</span>
+                        </li>
+                        {filtered
+                          .slice()
+                          .sort((a, b) => Number(b.overall_score) - Number(a.overall_score))
+                          .map(s => {
+                            const checked = selectedIds.has(s.id)
+                            const band = effectiveBand(s)
+                            const action = effectiveNextAction(s)
+                            const hasOverride = !!(s.override_band || s.override_next_action || s.override_comment)
+                            return (
+                              <li key={s.id} className={`px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-1 sm:grid sm:grid-cols-12 sm:gap-3 sm:items-center hover:bg-bg-soft transition-colors ${checked ? 'bg-bg-soft' : ''}`}>
+                                <label className="col-span-1 flex items-center cursor-pointer self-start" onClick={e => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleSelected(s.id)}
+                                    className="w-4 h-4 rounded border-border accent-accent cursor-pointer"
+                                  />
+                                </label>
+                                <div className="sm:col-span-3 text-sm font-bold text-ink truncate text-left flex items-center gap-1.5 group">
+                                  {renameState?.id === s.id ? (
+                                    <div className="flex-1 min-w-0 space-y-0.5" onClick={e => e.stopPropagation()}>
+                                      <input
+                                        autoFocus
+                                        value={renameState.draft}
+                                        onChange={e => setRenameState(prev => prev ? { ...prev, draft: e.target.value } : null)}
+                                        onKeyDown={async (e) => {
+                                          if (e.key === 'Escape') { setRenameState(null); return }
+                                          if (e.key === 'Enter') {
+                                            const next = renameState.draft.trim()
+                                            if (!next || next === s.candidate_label) { setRenameState(null); return }
+                                            try {
+                                              const r = await fetch(`/api/cv-screening/screenings/${s.id}`, {
+                                                method: 'PATCH',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ candidate_label: next }),
+                                              })
+                                              const data = await r.json()
+                                              if (!r.ok) throw new Error(data.error || 'Update failed')
+                                              setScreenings(prev => prev.map(row => row.id === s.id ? { ...row, candidate_label: data.screening.candidate_label } : row))
+                                              setRenameState(null)
+                                            } catch (err) {
+                                              setRenameState(prev => prev ? { ...prev, error: err instanceof Error ? err.message : 'Could not rename' } : null)
+                                            }
+                                          }
+                                        }}
+                                        className="w-full text-xs text-ink bg-bg border border-border rounded-full px-2 py-1 outline-none focus:border-ink"
+                                      />
+                                      {renameState.error && <span className="text-[10px] text-danger block">{renameState.error}</span>}
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => setSelectedId(s.id)}
+                                        className="truncate text-left flex-1 min-w-0"
+                                        title={s.candidate_label}
+                                      >
+                                        {s.candidate_label}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={e => { e.stopPropagation(); setRenameState({ id: s.id, draft: s.candidate_label ?? '', error: null }) }}
+                                        aria-label="Rename candidate"
+                                        title="Rename candidate"
+                                        className="opacity-0 group-hover:opacity-100 text-[10px] text-ink-soft hover:text-ink rounded p-0.5 flex-shrink-0 transition-opacity"
+                                      >
+                                        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                          <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                          <path d="M10 3l3 3" />
+                                        </svg>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => setSelectedId(s.id)}
+                                  className="sm:col-span-1 text-sm text-ink font-bold text-left inline-flex items-center gap-1.5"
+                                >
+                                  <span>{Number(s.overall_score).toFixed(2)}</span>
+                                  {(() => {
+                                    const scoredAgainst = customRubrics.find(cr => cr.id === s.rubric_id)
+                                    if (!scoredAgainst || scoredAgainst.id === rubricId) return null
+                                    return (
+                                      <span
+                                        title={`Scored under v${scoredAgainst.version_number ?? 1}`}
+                                        className="text-[9px] font-bold text-ink-soft bg-bg-soft border border-border rounded-full px-1.5 py-0.5"
+                                      >
+                                        v{scoredAgainst.version_number ?? 1}
+                                      </span>
+                                    )
+                                  })()}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title="Click to override the AI's band"
+                                  className={`sm:col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-ink transition-all justify-start w-fit ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
+                                >
+                                  {BAND_LABELS[band as keyof typeof BAND_LABELS] ?? band}
+                                  {s.override_band && <span className="text-[9px] opacity-70">edited</span>}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title="Click to override the AI's next step"
+                                  className="sm:col-span-2 text-xs text-ink-soft truncate text-left hover:text-ink hover:underline"
+                                >
+                                  {ACTION_LABELS[action as keyof typeof ACTION_LABELS] ?? action}
+                                  {s.override_next_action && <span className="text-[9px] ml-1 opacity-70">edited</span>}
+                                </button>
+                                <button
+                                  onClick={() => setOverrideTarget(s)}
+                                  title={s.override_comment || 'Click to add a comment'}
+                                  className={`sm:col-span-2 hidden sm:block text-xs truncate text-left ${hasOverride ? 'text-ink hover:underline' : 'text-ink-muted hover:text-ink italic'}`}
+                                >
+                                  {s.override_comment ? s.override_comment : 'Add comment...'}
+                                </button>
+                                <button
+                                  onClick={() => setSelectedId(s.id)}
+                                  className="sm:col-span-1 text-xs text-ink-muted text-left sm:text-right hover:text-ink"
+                                >
+                                  View
+                                </button>
+                              </li>
+                            )
+                          })}
+                      </ul>
+                    </>
+                  )}
+                </section>
+
+                {/* How the agent works - shown only when the candidate list
+                    is empty so it doesn't clutter once candidates arrive. */}
+                {filtered.length === 0 && <section className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-ink" />
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">How the CV Scoring Agent works</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                      <p className="text-sm font-bold text-ink mb-2">What the agent does</p>
+                      <ul className="space-y-2 text-xs text-ink-soft leading-relaxed list-disc pl-4">
+                        <li>Scores each CV against your chosen criteria, weighted by importance.</li>
+                        <li>Masks names, photos, addresses, dates of birth and graduation years before scoring - the model judges substance, not signal.</li>
+                        <li>Backs every score with a verbatim line from the CV so you can see exactly why.</li>
+                        <li>Recommends a next step (Schedule Interview, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-ink mb-2">What to do from here</p>
+                      <ol className="space-y-2 text-xs text-ink-soft leading-relaxed list-decimal pl-4">
+                        <li><strong className="text-ink">Open a candidate.</strong> Click a row to read their scorecard with the evidence quoted from their CV.</li>
+                        <li><strong className="text-ink">Override the AI if you disagree.</strong> Click the score band or next-step on any row to change it and add a short comment explaining why.</li>
+                        <li><strong className="text-ink">Run a fairness check.</strong> In any scorecard, use <em>Run name probe</em> under Fairness checks to test if the score moves when the candidate&apos;s name is swapped to a different cultural background.</li>
+                        <li><strong className="text-ink">Send your shortlist forward.</strong> Tick the candidates you want and use <em>Send to Shortlist Agent</em> to bundle them as one campaign with their CV scoring carried through.</li>
+                        <li><strong className="text-ink">Save criteria you&apos;ll reuse.</strong> If you hired for the same role last quarter, save the scoring criteria from Step 1 so you don&apos;t rebuild it from scratch next time.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-ink-muted italic mt-5 leading-relaxed border-t border-border pt-4">
+                    HQ.ai does not make hiring decisions. It supports yours. Every recommendation here is reviewable, overridable, and auditable. You always click the button.
+                  </p>
+                </section>}
+              </div>
+            )}
+
+            {/* Guard: if a later step is shown but the rubric was cleared,
+                fall back to the chooser. */}
+            {standaloneStep !== 1 && !activeRubricKind && (
+              <div className="bg-bg-elevated shadow-card rounded-3xl px-6 py-12 text-center">
+                <p className="text-sm font-bold text-ink mb-1">Choose your scoring criteria first</p>
+                <p className="text-xs text-ink-muted mb-4">Pick a saved set or create new criteria to score CVs against.</p>
+                <button
+                  type="button"
+                  onClick={() => goToStep(1)}
+                  className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-5 min-h-touch py-2.5 hover:bg-accent-hover inline-flex items-center"
+                >
+                  Choose criteria
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Scorecard side panel */}
+        {selected && (
+          <CandidateScorecardPanel
+            screening={selected}
+            customRubrics={customRubrics}
+            inRole={false}
+            onClose={() => setSelectedId(null)}
+            onRenameCandidate={(next) =>
+              setScreenings(prev => prev.map(row => row.id === selected.id ? { ...row, candidate_label: next } : row))
+            }
+            onDeleteCandidate={(id) => {
+              setScreenings(prev => prev.filter(row => row.id !== id))
+              setSelectedIds(prev => {
+                if (!prev.has(id)) return prev
+                const next = new Set(prev)
+                next.delete(id)
+                return next
+              })
+            }}
+          />
+        )}
+
+        {/* Criteria confirmation modal - gates CV upload. */}
+        {criteriaModalOpen && (() => {
+          const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
+          const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
+          return (
+            <div
+              className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 px-4"
+              onClick={() => setCriteriaModalOpen(false)}
+            >
+              <div
+                className="bg-bg-elevated rounded-3xl border border-border ring-1 ring-ink/5 shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="px-6 pt-5 pb-4 border-b border-border">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
+                    Confirm scoring criteria
+                  </p>
+                  <h2 className="font-sans text-lg font-bold text-ink tracking-tight">
+                    {activeRubricLabel}
+                  </h2>
+                </div>
+                <div className="px-6 py-5 space-y-4">
+                  <div className="bg-warning/10 border border-warning/30 rounded-2xl px-4 py-3 text-xs text-ink leading-relaxed">
+                    <strong className="text-warning">Before you upload:</strong> these criteria shape both the CV scores AND the prescreen questions, so editing them later means rescoring. Double-check they match your PD.
+                  </div>
+                  {criteria.length > 0 && (
+                    <div className="bg-bg-soft/60 border border-border rounded-2xl px-4 py-4">
+                      <div className="flex items-baseline justify-between mb-3">
+                        <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+                          How the score is weighted
+                        </p>
+                        <p className="text-[10px] text-ink-muted">{criteria.length} criteria</p>
+                      </div>
+                      <ul className="space-y-2">
+                        {criteria.map(c => {
+                          const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
+                          return (
+                            <li key={c.id}>
+                              <div className="flex items-baseline justify-between gap-3 mb-1">
+                                <span className="text-xs text-ink font-medium truncate">{c.label}</span>
+                                <span className="text-xs font-bold text-ink tabular-nums shrink-0">{pct}%</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+                              </div>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      <p className="text-[10px] text-ink-muted mt-3 leading-snug">
+                        Percentages show how each criterion is weighted in the overall CV score.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="px-6 py-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCriteriaModalOpen(false)
+                      if (activeCustom) setEditingRubric(activeCustom)
+                      else setShowNewRubric(true)
+                    }}
+                    className="text-xs font-bold px-4 min-h-touch py-2 rounded-full border border-border bg-bg-elevated text-ink-soft hover:text-ink transition-colors"
+                  >
+                    Change criteria
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmedCriteria(prev => ({ ...prev, [rubricId]: true }))
+                      setCriteriaModalOpen(false)
+                    }}
+                    className="text-xs font-bold px-4 min-h-touch py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors"
+                  >
+                    Yes, use this criteria
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* New rubric modal */}
+        {showNewRubric && (
+          <NewRubricModal
+            initialLabel={campaignHandoff?.title}
+            initialJd={campaignHandoff?.jd}
+            fromCampaignCoach={campaignHandoff?.fromCampaignCoach ?? false}
+            onClose={() => { setShowNewRubric(false); setCampaignHandoff(null) }}
+            onCreated={(saved) => {
+              const row: CustomRubricRow = {
+                ...(saved as unknown as { id: string; label: string; rubric: Rubric; created_at: string }),
+                label_family: (saved as any).label ?? null,
+                parent_rubric_id: (saved as any).id ?? null,
+                version_number: 1,
+              }
+              setCustomRubrics(prev => [row, ...prev])
+              setRubricId(row.id)
+              setShowNewRubric(false)
+              setCampaignHandoff(null)
+            }}
+          />
+        )}
+
+        {/* Edit criteria modal - creates a new version */}
+        {editingRubric && (
+          <EditRubricModal
+            rubric={editingRubric}
+            onClose={() => setEditingRubric(null)}
+            onSaved={(newVersion) => {
+              const familyKey = newVersion.parent_rubric_id ?? newVersion.id
+              const familyIds = new Set(
+                customRubrics
+                  .filter(cr => (cr.parent_rubric_id ?? cr.id) === familyKey)
+                  .map(cr => cr.id),
+              )
+              const eligible = screenings.filter(s => familyIds.has(s.rubric_id) && s.rubric_id !== newVersion.id)
+
+              setCustomRubrics(prev => [newVersion, ...prev])
+              setRubricId(newVersion.id)
+              setEditingRubric(null)
+
+              if (eligible.length > 0) {
+                setRescorePrompt({
+                  targetRubricId: newVersion.id,
+                  targetVersion: newVersion.version_number ?? 1,
+                  eligibleScreeningIds: eligible.map(s => s.id),
+                })
+                setRescoreError(null)
+                setRescoreProgress(null)
+              }
+            }}
+          />
+        )}
+
+        {/* Rescore-against-new-version modal. */}
+        {rescorePrompt && (
+          <div
+            className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4"
+            onClick={() => {
+              if (rescoreBusy) return
+              setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null)
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rescore-modal-title-standalone"
+              className="bg-bg-elevated shadow-modal rounded-2xl w-full max-w-md p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p id="rescore-modal-title-standalone" className="font-display text-lg font-bold text-ink mb-1">
+                v{rescorePrompt.targetVersion} saved
+              </p>
+              {rescoreError ? (
+                <p className="text-sm text-danger mb-4">{rescoreError}</p>
+              ) : rescoreBusy && rescoreProgress ? (
+                <p className="text-sm text-ink-soft mb-4">
+                  Rescoring {rescoreProgress.done} of {rescoreProgress.total}...
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-ink-soft mb-2">
+                    You have {rescorePrompt.eligibleScreeningIds.length} candidate{rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'} scored on the previous version. Rescore them against v{rescorePrompt.targetVersion}?
+                  </p>
+                  <p className="text-xs text-ink-muted mb-4">
+                    v1 scores stay intact for comparison - each candidate will appear in both version tabs.
+                  </p>
+                </>
+              )}
+              <div className="flex items-center gap-2 justify-end">
+                <button
+                  onClick={() => { setRescorePrompt(null); setRescoreError(null); setRescoreProgress(null) }}
+                  disabled={rescoreBusy}
+                  className="text-sm font-bold text-ink-soft hover:text-ink px-4 py-2 disabled:opacity-50"
+                >
+                  Not now
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!rescorePrompt) return
+                    setRescoreBusy(true)
+                    setRescoreError(null)
+                    const total = rescorePrompt.eligibleScreeningIds.length
+                    let done = 0
+                    setRescoreProgress({ done, total })
+                    const failures: string[] = []
+                    for (const sid of rescorePrompt.eligibleScreeningIds) {
+                      try {
+                        const res = await fetch(`/api/cv-screening/screenings/${sid}/rescore`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ rubric_id: rescorePrompt.targetRubricId }),
+                        })
+                        const data = await res.json()
+                        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+                        if (data?.screening) {
+                          setScreenings(prev => [data.screening as CandidateScreening, ...prev])
+                        }
+                      } catch (err) {
+                        failures.push(err instanceof Error ? err.message : 'unknown')
+                      }
+                      done += 1
+                      setRescoreProgress({ done, total })
+                    }
+                    setRescoreBusy(false)
+                    if (failures.length > 0) {
+                      setRescoreError(`${failures.length} of ${total} failed. ${failures[0]}`)
+                    } else {
+                      setRescorePrompt(null)
+                      setRescoreProgress(null)
+                    }
+                  }}
+                  disabled={rescoreBusy}
+                  className="bg-accent hover:bg-accent-hover text-ink-on-accent text-sm font-bold rounded-full px-5 py-2 disabled:opacity-50"
+                >
+                  {rescoreBusy
+                    ? 'Rescoring...'
+                    : `Rescore ${rescorePrompt.eligibleScreeningIds.length} candidate${rescorePrompt.eligibleScreeningIds.length === 1 ? '' : 's'}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual override modal */}
+        {overrideTarget && (
+          <OverrideModal
+            screening={overrideTarget}
+            onClose={() => setOverrideTarget(null)}
+            onSaved={(updated) => {
+              setScreenings(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s))
+              setOverrideTarget(null)
+            }}
+          />
+        )}
+
+        {/* Sticky selection bar */}
+        {selectedCount > 0 && (
+          <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
+            <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-ink-on-accent rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+              <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
+              <span className="text-xs opacity-60 hidden md:inline">
+                Generate a client-ready summary or send to Shortlist Agent.
+              </span>
+              <button
+                onClick={clearSelected}
+                className="text-xs font-bold opacity-70 hover:opacity-100 px-2 py-1 flex-shrink-0"
+              >
+                Clear
+              </button>
+              <button
+                onClick={batchSendToShortlist}
+                disabled={batchHandoffBusy}
+                className="bg-white/15 text-ink-on-accent text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
+                title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
+              >
+                {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
+              </button>
+              <button
+                onClick={generateReport}
+                disabled={reportBusy}
+                className="bg-bg-elevated text-ink text-sm font-bold rounded-full px-4 py-1.5 hover:bg-bg-soft disabled:opacity-50 flex-shrink-0"
+              >
+                {reportBusy ? 'Generating...' : 'Download CV report'}
+              </button>
+              {reportError && (
+                <span className="text-xs text-danger flex-shrink-0 max-w-[200px] truncate" title={reportError}>
+                  {reportError}
+                  <button type="button" onClick={() => setReportError(null)} className="ml-1 font-bold">x</button>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ----------------------------------------------------------------
+  // In-role path (Shortlist Agent Step 1). Rendered only when
+  // prescreenSessionId is truthy. UNCHANGED from before the rail
+  // reflow - same markup, same behaviour.
+  // ----------------------------------------------------------------
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden bg-bg">
 
