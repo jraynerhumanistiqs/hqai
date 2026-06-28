@@ -7,8 +7,9 @@ import {
   allBlocksApproved,
 } from './wizard-state'
 import type { CampaignBusinessContext } from '@/lib/campaign-types'
+import { stageForStep } from '@/lib/campaign-tips'
 import RecruitFlowRail, { type FlowStep } from '../RecruitFlowRail'
-import CoachTip from './CoachTip'
+import TipBot from './TipBot'
 import Step1Brief from './Step1Brief'
 import Step2Extract from './Step2Extract'
 import Step3DraftCoach from './Step3DraftCoach'
@@ -334,9 +335,9 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           )}
         </div>
 
-        {/* Coach guidance now lives in a floating pop-up tip instead of a
-            persistent right-hand panel, so the wizard gets the full width. */}
-        <CoachTip />
+        {/* Recruitment Tip Bot - a floating pop-up card routed to the
+            current step's funnel stage. Replaces the interim CoachTip. */}
+        <TipBot stage={stageForStep(state.step)} region={business.state ? 'au' : 'global'} />
       </div>
     </WizardContext.Provider>
   )
