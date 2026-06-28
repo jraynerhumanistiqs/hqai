@@ -4,20 +4,20 @@
 //
 // A floating pop-up card (bottom-right) that surfaces curated recruitment
 // tips routed to the wizard step the user is on. Data + ordering come from
-// GET /api/campaign/tips (the queue is already sorted by the routing rules -
-// region front, confidence, random tie-break - so we render it in order and
-// just cycle). Replaces the interim CoachTip.
+// GET /api/campaign/tips (the queue is already sorted - confidence then a
+// random tie-break - so we render it in order and just cycle).
 //
 // Self-contained: owns open/closed, fetching, cycling, the per-stage
 // localStorage resume, per-session auto-surface, and fire-and-forget
-// telemetry. Tips are rendered verbatim (already in HQ.ai brand voice).
+// telemetry. Tips are rendered verbatim (already written in plain English).
+// A small "Australian law" flag appears only on tips tied to a legal
+// requirement; there is no general region badge.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RecruitmentTip, TipStage } from '@/lib/campaign-tips'
 
 interface TipBotProps {
   stage: TipStage
-  region: 'au' | 'global'
 }
 
 const IDX_KEY = (stage: string) => `hqai:tip-idx:${stage}`
@@ -37,7 +37,7 @@ function writeSavedIdx(stage: string, idx: number) {
   try { localStorage.setItem(IDX_KEY(stage), String(idx)) } catch { /* no-op */ }
 }
 
-function track(payload: { event: string; tip_id?: string; stage: string; region: string; category?: string }) {
+function track(payload: { event: string; tip_id?: string; stage: string; category?: string }) {
   try {
     fetch('/api/telemetry/tip', {
       method: 'POST',
@@ -54,6 +54,13 @@ function LightbulbIcon({ size = 16 }: { size?: number }) {
     </svg>
   )
 }
+function ScalesIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3v18M7 21h10M5 7h14M5 7l-3 6a3 3 0 0 0 6 0L5 7zm14 0l-3 6a3 3 0 0 0 6 0l-3-6zM12 3l-7 4M12 3l7 4" />
+    </svg>
+  )
+}
 function Chevron({ dir }: { dir: 'left' | 'right' }) {
   return (
     <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -66,7 +73,7 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
   )
 }
 
-export default function TipBot({ stage, region }: TipBotProps) {
+export default function TipBot({ stage }: TipBotProps) {
   const [queue, setQueue] = useState<RecruitmentTip[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [index, setIndex] = useState(0)
@@ -91,11 +98,11 @@ export default function TipBot({ stage, region }: TipBotProps) {
     } catch { /* no-op */ }
   }, [stage])
 
-  // Fetch the ordered queue for the current stage / region / category.
+  // Fetch the ordered queue for the current stage / category.
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    const params = new URLSearchParams({ stage, region })
+    const params = new URLSearchParams({ stage })
     if (category) params.set('category', category)
     fetch(`/api/campaign/tips?${params.toString()}`)
       .then(r => r.json())
@@ -117,7 +124,7 @@ export default function TipBot({ stage, region }: TipBotProps) {
       .catch(() => { if (!cancelled) setQueue([]) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [stage, region, category])
+  }, [stage, category])
 
   // Persist the last-seen index for the default queue (so the opener varies).
   useEffect(() => {
@@ -131,16 +138,16 @@ export default function TipBot({ stage, region }: TipBotProps) {
     const tip = queue[index]
     if (!tip || lastViewedId.current === tip.id) return
     lastViewedId.current = tip.id
-    track({ event: 'tip_viewed', tip_id: tip.id, stage, region, category: category ?? undefined })
-  }, [open, index, queue, stage, region, category])
+    track({ event: 'tip_viewed', tip_id: tip.id, stage, category: category ?? undefined })
+  }, [open, index, queue, stage, category])
 
   const cycle = useCallback((dir: 1 | -1) => {
     if (queue.length === 0) return
     const next = (index + dir + queue.length) % queue.length
     setIndex(next)
     const tip = queue[next]
-    track({ event: 'tip_cycled', tip_id: tip?.id, stage, region, category: category ?? undefined })
-  }, [queue, index, stage, region, category])
+    track({ event: 'tip_cycled', tip_id: tip?.id, stage, category: category ?? undefined })
+  }, [queue, index, stage, category])
 
   function onKeyDown(e: React.KeyboardEvent) {
     const tag = (e.target as HTMLElement)?.tagName?.toLowerCase()
@@ -154,7 +161,7 @@ export default function TipBot({ stage, region }: TipBotProps) {
     lastViewedId.current = null
     try { sessionStorage.setItem(DISMISSED_KEY, '1') } catch { /* no-op */ }
     const tip = queue[index]
-    track({ event: 'tip_dismissed', tip_id: tip?.id, stage, region, category: category ?? undefined })
+    track({ event: 'tip_dismissed', tip_id: tip?.id, stage, category: category ?? undefined })
   }
 
   // ── Closed: the persistent reopen lightbulb ──
@@ -226,17 +233,13 @@ export default function TipBot({ stage, region }: TipBotProps) {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 mb-2">
-              <span
-                className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                  tip.region === 'AU'
-                    ? 'bg-accent-soft text-clay-ink dark:text-clay border-accent/30'
-                    : 'bg-bg-soft text-ink-muted border-border'
-                }`}
-              >
-                {tip.region === 'AU' ? 'AU' : 'Global'}
+            {/* Legal flag - only on tips tied to an Australian legal requirement. */}
+            {tip.legislative && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 mb-2 rounded-full bg-accent-soft text-clay-ink dark:text-clay border border-accent/30">
+                <ScalesIcon />
+                Australian law
               </span>
-            </div>
+            )}
             <p className="text-sm font-bold text-ink leading-snug">{tip.tip}</p>
             {tip.why_it_works && (
               <p className="text-xs text-ink-soft leading-relaxed mt-1.5">{tip.why_it_works}</p>
@@ -248,7 +251,7 @@ export default function TipBot({ stage, region }: TipBotProps) {
                     href={tip.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => track({ event: 'tip_source_clicked', tip_id: tip.id, stage, region, category: category ?? undefined })}
+                    onClick={() => track({ event: 'tip_source_clicked', tip_id: tip.id, stage, category: category ?? undefined })}
                     className="font-bold text-clay-ink dark:text-clay hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
                   >
                     {tip.source}{tip.source_date ? ` - ${tip.source_date}` : ''}

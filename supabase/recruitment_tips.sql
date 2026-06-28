@@ -8,17 +8,21 @@
 create table if not exists recruitment_tips (
   id             text primary key,
   category       text,
-  campaign_stage text not null,
+  campaign_stage text not null,   -- brief | role_profile | draft | distribution | launch
   tip            text not null,
   why_it_works   text,
-  region         text,
-  confidence     text,
+  region         text,            -- lineage only; not used for routing/display
+  confidence     text,            -- high | medium
+  legislative    boolean default false,  -- tied to an Australian legal requirement
   evidence       text,
   source         text,
   source_url     text,
   source_date    text,
   updated_at     timestamptz not null default now()
 );
+
+-- For tables created before the legislative flag existed.
+alter table recruitment_tips add column if not exists legislative boolean default false;
 
 create index if not exists idx_recruitment_tips_stage
   on recruitment_tips (campaign_stage);

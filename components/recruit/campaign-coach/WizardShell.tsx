@@ -337,7 +337,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
 
         {/* Recruitment Tip Bot - a floating pop-up card routed to the
             current step's funnel stage. Replaces the interim CoachTip. */}
-        <TipBot stage={stageForStep(state.step)} region={business.state ? 'au' : 'global'} />
+        <TipBot stage={stageForStep(state.step)} />
       </div>
     </WizardContext.Provider>
   )

@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
   if (!stage || !TIP_STAGES.includes(stage)) {
     return NextResponse.json({ error: 'Invalid or missing stage' }, { status: 400 })
   }
-  const region: 'au' | 'global' = sp.get('region') === 'au' ? 'au' : 'global'
   const category = sp.get('category') || undefined
 
   // Prefer Supabase; fall back to the bundled seed JSON when the table is
@@ -45,7 +44,7 @@ export async function GET(req: NextRequest) {
     rows = all.filter(t => t.campaign_stage === stage)
   }
 
-  const tips = buildTipQueue(rows, { stage, region, category })
-  const categories = categoriesForStage(rows, stage, region)
+  const tips = buildTipQueue(rows, { stage, category })
+  const categories = categoriesForStage(rows, stage)
   return NextResponse.json({ tips, categories })
 }

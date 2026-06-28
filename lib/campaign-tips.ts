@@ -1,15 +1,18 @@
 // Campaign Coach recruitment Tip Bot - shared types + routing.
 //
 // Source of truth: docs/research/recruitment-research/recruitment-tips.json
-// (150 curated tips, mirrored into the Supabase table `recruitment_tips`).
-// The read API (/api/campaign/tips) loads rows from the table - falling back
-// to the bundled JSON - then orders the queue with buildTipQueue() below.
+// (150 curated tips, written in plain English for people new to hiring, and
+// mirrored into the Supabase table `recruitment_tips`). The read API
+// (/api/campaign/tips) loads rows from the table - falling back to the
+// bundled JSON - then orders the queue with buildTipQueue() below.
 //
 // This module is CLIENT-SAFE (no fs / node imports) so the TipBot component
 // can import the types + STEP_TO_STAGE. The file reader lives separately in
 // lib/campaign-tips-server.ts (server-only).
 
-export type TipStage = 'plan' | 'attract' | 'engage' | 'screen' | 'offer' | 'analyse'
+// The five stages map 1:1 to the Campaign Coach wizard steps, so each step
+// shows tips relevant to the task in front of the user.
+export type TipStage = 'brief' | 'role_profile' | 'draft' | 'distribution' | 'launch'
 export type TipRegion = 'AU' | 'global'
 export type TipConfidence = 'high' | 'medium'
 
@@ -19,35 +22,36 @@ export interface RecruitmentTip {
   campaign_stage: TipStage
   tip: string
   why_it_works: string
-  region: TipRegion
+  /** Lineage only - not used for routing or display. */
+  region?: TipRegion
   confidence: TipConfidence
+  /** True when the tip is tied to a clear Australian legal requirement.
+      Drives the small "Australian law" flag on the card; otherwise no flag. */
+  legislative?: boolean
   evidence?: string
   source?: string
   source_url?: string
   source_date?: string
 }
 
-export const TIP_STAGES: TipStage[] = ['plan', 'attract', 'engage', 'screen', 'offer', 'analyse']
+export const TIP_STAGES: TipStage[] = ['brief', 'role_profile', 'draft', 'distribution', 'launch']
 
-// Campaign Coach wizard step (1..5) -> recruitment-funnel stage. The wizard
-// covers the FRONT of the funnel (plan -> attract -> engage). The downstream
-// stages (screen / offer / analyse) belong to the Shortlist Agent and are
-// reserved for that surface; they do not appear in Campaign Coach in v1.
-//   1 Brief         -> plan    (planning the role + the success metric)
-//   2 Role profile  -> plan    (defining the role)
-//   3 Draft & Coach -> attract (writing the job ad)
-//   4 Distribution  -> attract (choosing the channels)
-//   5 Launch        -> engage  (live - candidates start engaging)
+// Campaign Coach wizard step (1..5) -> stage. One stage per step:
+//   1 Brief         -> brief        (plan the role + how you will measure success)
+//   2 Role profile  -> role_profile (pin down title, pay, must-haves, criteria)
+//   3 Draft & Coach -> draft        (write the job ad)
+//   4 Distribution  -> distribution (where it posts)
+//   5 Launch        -> launch       (go live + handle candidates well)
 export const STEP_TO_STAGE: Record<number, TipStage> = {
-  1: 'plan',
-  2: 'plan',
-  3: 'attract',
-  4: 'attract',
-  5: 'engage',
+  1: 'brief',
+  2: 'role_profile',
+  3: 'draft',
+  4: 'distribution',
+  5: 'launch',
 }
 
 export function stageForStep(step: number): TipStage {
-  return STEP_TO_STAGE[step] ?? 'plan'
+  return STEP_TO_STAGE[step] ?? 'brief'
 }
 
 export const TIP_TELEMETRY_EVENTS = [
@@ -60,7 +64,7 @@ export type TipTelemetryEvent = (typeof TIP_TELEMETRY_EVENTS)[number]
 
 // Fisher-Yates shuffle with an injectable RNG (Math.random by default). Used
 // only to vary the order WITHIN a confidence band, so the opener differs
-// between visits (routing rule 4).
+// between visits.
 function shuffle<T>(arr: T[], rng: () => number): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -72,48 +76,27 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
 
 export interface BuildTipQueueOpts {
   stage: TipStage
-  /** Business region. 'au' -> AU tips to the front then globals; 'global' -> globals only. */
-  region: 'au' | 'global'
   /** Optional secondary filter from the card's "narrow to topic" chip. */
   category?: string
   rng?: () => number
 }
 
-// Routing rules (in order):
+// Routing:
 //  1. filter to the stage (+ optional category)
-//  3. region: 'au' keeps AU + global with AU at the front; 'global' drops AU
-//  4. confidence: high before medium, random tie-break within each band
-// (rule 2 - the category chip - is the optional `category` filter.)
+//  2. confidence: high before medium, random tie-break within each band so
+//     the opener varies between visits.
 export function buildTipQueue(all: RecruitmentTip[], opts: BuildTipQueueOpts): RecruitmentTip[] {
   const rng = opts.rng ?? Math.random
   let pool = all.filter(t => t.campaign_stage === opts.stage)
   if (opts.category) pool = pool.filter(t => t.category === opts.category)
-  if (opts.region !== 'au') pool = pool.filter(t => t.region !== 'AU')
-
-  // Bucket by (region rank, confidence rank); shuffle inside each bucket;
-  // then concatenate the buckets in priority order.
-  const regionRank = (t: RecruitmentTip) => (opts.region === 'au' && t.region === 'AU' ? 0 : 1)
-  const confRank = (t: RecruitmentTip) => (t.confidence === 'high' ? 0 : 1)
-  const buckets = new Map<string, RecruitmentTip[]>()
-  for (const t of pool) {
-    const key = `${regionRank(t)}-${confRank(t)}`
-    if (!buckets.has(key)) buckets.set(key, [])
-    buckets.get(key)!.push(t)
-  }
-  const order = opts.region === 'au'
-    ? ['0-0', '0-1', '1-0', '1-1'] // AU-high, AU-medium, global-high, global-medium
-    : ['1-0', '1-1'] // global-high, global-medium
-  const out: RecruitmentTip[] = []
-  for (const key of order) {
-    const b = buckets.get(key)
-    if (b) out.push(...shuffle(b, rng))
-  }
-  return out
+  const high = shuffle(pool.filter(t => t.confidence === 'high'), rng)
+  const medium = shuffle(pool.filter(t => t.confidence !== 'high'), rng)
+  return [...high, ...medium]
 }
 
-/** Categories present for a stage given the region routing (for the chips). */
-export function categoriesForStage(all: RecruitmentTip[], stage: TipStage, region: 'au' | 'global'): string[] {
-  let pool = all.filter(t => t.campaign_stage === stage)
-  if (region !== 'au') pool = pool.filter(t => t.region !== 'AU')
-  return Array.from(new Set(pool.map(t => t.category).filter(Boolean))).sort()
+/** Topics present for a stage (for the "narrow to topic" chips). */
+export function categoriesForStage(all: RecruitmentTip[], stage: TipStage): string[] {
+  return Array.from(
+    new Set(all.filter(t => t.campaign_stage === stage).map(t => t.category).filter(Boolean)),
+  ).sort()
 }
