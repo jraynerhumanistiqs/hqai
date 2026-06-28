@@ -9,21 +9,13 @@ export default async function ShortlistAgentPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // The redundant page banner was removed - RecruitDashboard carries its
+  // own "Shortlist Agent" header, and the per-role click-along rail
+  // (RoleStepperRail -> RecruitFlowRail) guides the workflow. Letting the
+  // tool fill the height gives the content the room back.
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 pt-4 sm:px-6 sm:pt-6">
-        <div className="rounded-panel border border-border bg-clay-soft px-5 py-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-            HQ Recruit - Shortlist Agent
-          </p>
-          <p className="mt-1.5 text-sm text-ink-soft">
-            Review candidate responses, score against the rubric, and hand off to interview.
-          </p>
-        </div>
-      </div>
-      <div className="flex-1 min-h-0">
-        <RecruitDashboard />
-      </div>
+    <div className="h-full min-h-0">
+      <RecruitDashboard />
     </div>
   )
 }

@@ -7,6 +7,7 @@ import {
   allBlocksApproved,
 } from './wizard-state'
 import type { CampaignBusinessContext } from '@/lib/campaign-types'
+import RecruitFlowRail, { type FlowStep } from '../RecruitFlowRail'
 import CoachPanel from './CoachPanel'
 import Step1Brief from './Step1Brief'
 import Step2Extract from './Step2Extract'
@@ -14,7 +15,15 @@ import Step3DraftCoach from './Step3DraftCoach'
 import Step4Distribution from './Step4Distribution'
 import Step5Launch from './Step5Launch'
 
-const STEP_LABELS = ['Brief', 'Role profile', 'Draft & Coach', 'Distribution', 'Launch']
+// The five wizard steps as a calm left progress rail. Labels are unchanged
+// from the old pill bar; each carries one line of new-user guidance.
+const WIZARD_STEPS: Omit<FlowStep, 'done'>[] = [
+  { id: 1, label: 'Brief',         hint: 'Tell the coach about the role' },
+  { id: 2, label: 'Role profile',  hint: 'Confirm the extracted details' },
+  { id: 3, label: 'Draft & Coach', hint: 'Approve each block' },
+  { id: 4, label: 'Distribution',  hint: 'Pick where it posts' },
+  { id: 5, label: 'Launch',        hint: 'Go live + prefilled links' },
+]
 
 export default function WizardShell({ business }: { business: CampaignBusinessContext }) {
   const [state, dispatch] = useReducer(wizardReducer, initialWizardState)
@@ -123,6 +132,28 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
   }, [state.role_profile, state.job_ad_draft, state.distribution_plan])
 
   const goStep = (s: 1 | 2 | 3 | 4 | 5) => dispatch({ type: 'SET_STEP', step: s })
+
+  // Reachability for the left rail - ported verbatim from the old
+  // StepProgress pill bar so jump-to-step behaviour is unchanged. A step is
+  // reachable if (a) it's behind the current step, or (b) the wizard has the
+  // data needed to render it usefully.
+  const hasRoleProfile = !!state.role_profile
+  const hasJobAd = !!state.job_ad_draft
+  const hasDistribution = !!state.distribution_plan
+  const canNavigate = (step: FlowStep): boolean => {
+    const n = step.id
+    if (n <= state.step) return n !== state.step
+    if (n === 2) return hasRoleProfile
+    if (n === 3) return hasRoleProfile && hasJobAd
+    if (n === 4) return hasRoleProfile && hasJobAd && hasDistribution
+    if (n === 5) return hasRoleProfile && hasJobAd && hasDistribution
+    return false
+  }
+
+  const railSteps: FlowStep[] = WIZARD_STEPS.map(s => ({
+    ...s,
+    done: s.id < state.step,
+  }))
 
   const stepCanAdvance = (() => {
     if (state.streaming) return false
@@ -250,30 +281,20 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
 
   return (
     <WizardContext.Provider value={{ state, dispatch, business, callDraft, callLaunch }}>
-      <div className="flex h-full bg-bg">
+      <div className="flex flex-col md:flex-row h-full bg-bg">
+        {/* Shared HQ Recruit progress rail (desktop aside + mobile bar). It
+            now carries the page header, so the content area starts clean. */}
+        <RecruitFlowRail
+          eyebrow="HQ Recruit - Campaign Coach"
+          title="Brief the role, draft the ad."
+          blurb={business.name ? `For ${business.name}.` : 'AI-coached recruitment campaign.'}
+          steps={railSteps}
+          current={state.step}
+          onStepChange={(id) => goStep(id as 1 | 2 | 3 | 4 | 5)}
+          canNavigate={canNavigate}
+        />
+
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-bg-elevated flex-shrink-0">
-            {/* AI Administrator-style page header. */}
-            <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
-              HQ Recruit - Campaign Coach
-            </p>
-            <h1 className="font-sans text-h2 sm:text-h1 font-bold text-ink tracking-tight mb-1">
-              Brief the role, draft the ad.
-            </h1>
-            <p className="text-sm text-ink-soft mb-3">
-              {business.name ? `For ${business.name}.` : 'AI-coached recruitment campaign.'}{' '}
-              Five steps - brief, role profile, draft, distribute, launch.
-            </p>
-            <StepProgress
-              step={state.step}
-              onJump={goStep}
-              hasRoleProfile={!!state.role_profile}
-              hasJobAd={!!state.job_ad_draft}
-              hasDistribution={!!state.distribution_plan}
-            />
-
-          </div>
-
           <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-8 bg-bg">
             <div className="max-w-3xl mx-auto">
               {state.step === 1 && <Step1Brief />}
@@ -362,71 +383,6 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         )}
       </div>
     </WizardContext.Provider>
-  )
-}
-
-function StepProgress({
-  step,
-  onJump,
-  hasRoleProfile,
-  hasJobAd,
-  hasDistribution,
-}: {
-  step: 1 | 2 | 3 | 4 | 5
-  onJump: (s: 1 | 2 | 3 | 4 | 5) => void
-  hasRoleProfile: boolean
-  hasJobAd: boolean
-  hasDistribution: boolean
-}) {
-  // A step is reachable if (a) it's behind the current step, or (b) the
-  // wizard has the data needed to render it usefully. Lets users navigate
-  // freely once they've moved past Step 1.
-  const reachable = (n: 1 | 2 | 3 | 4 | 5): boolean => {
-    if (n <= step) return n !== step
-    if (n === 2) return hasRoleProfile
-    if (n === 3) return hasRoleProfile && hasJobAd
-    if (n === 4) return hasRoleProfile && hasJobAd && hasDistribution
-    if (n === 5) return hasRoleProfile && hasJobAd && hasDistribution
-    return false
-  }
-  return (
-    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      {STEP_LABELS.map((label, i) => {
-        const n = (i + 1) as 1 | 2 | 3 | 4 | 5
-        const isActive = n === step
-        const isCompleted = n < step
-        const cls = isActive
-          ? 'bg-accent text-ink-on-accent'
-          : isCompleted
-          ? 'bg-ink text-ink-on-accent'
-          : 'bg-light text-mid'
-        const clickable = reachable(n)
-        return (
-          <button
-            key={n}
-            onClick={() => clickable && onJump(n)}
-            disabled={!clickable}
-            aria-current={isActive ? 'step' : undefined}
-            aria-label={`Step ${n}: ${label}${isCompleted ? ', completed' : isActive ? ', current step' : ''}`}
-            className={`${cls} text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 min-h-touch rounded-full inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
-              clickable ? 'hover:opacity-90 cursor-pointer' : 'cursor-default'
-            }`}
-          >
-            <span className="opacity-70" aria-hidden="true">{n}</span>
-            {isCompleted && (
-              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
-            <span>{label}</span>
-          </button>
-        )
-      })}
-    </div>
   )
 }
 
