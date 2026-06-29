@@ -29,8 +29,10 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      {/* Desktop sidebar - always visible */}
-      <div className="hidden lg:block flex-shrink-0">
+      {/* Desktop sidebar - a 68px icon rail that auto-expands (overlaying the
+          content) on hover. The wrapper reserves the rail width and is the
+          positioning context for the absolute, expanding aside inside it. */}
+      <div className="hidden lg:block flex-shrink-0 relative w-[68px]">
         <Sidebar {...sidebarProps} />
       </div>
 

@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -20,7 +21,6 @@ interface SidebarProps {
   onClose?: () => void
 }
 
-const COLLAPSE_STORAGE_KEY = 'hqai:sidebar-collapsed'
 const WIDTH_STORAGE_KEY    = 'hqai:sidebar-width'
 const DEFAULT_WIDTH = 232
 const MIN_WIDTH = 200
@@ -71,24 +71,15 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
     try { window.localStorage.setItem(WIDTH_STORAGE_KEY, String(width)) } catch { /* no-op */ }
   }, [width])
 
-  // Collapsible sidebar - hydration-safe (always starts expanded on
-  // first render so SSR + first paint match). The persisted value is
-  // applied client-side on mount. Mobile is always expanded; the
-  // collapse only applies at >=lg.
-  const [collapsed, setCollapsed] = useState(false)
-  useEffect(() => {
-    try {
-      const v = window.localStorage.getItem(COLLAPSE_STORAGE_KEY)
-      if (v === '1') setCollapsed(true)
-    } catch { /* no-op */ }
-  }, [])
-  function toggleCollapsed() {
-    setCollapsed(c => {
-      const next = !c
-      try { window.localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? '1' : '0') } catch { /* no-op */ }
-      return next
-    })
-  }
+  // Auto-collapsing rail (desktop). The sidebar sits as a 68px icon rail and
+  // expands - overlaying the content, not reflowing it - only while the mouse
+  // is over it. It also collapses whenever the route changes, so clicking a
+  // page leaves the rail tidy; re-expand by hovering the icons. The mobile
+  // drawer (onClose set) never collapses - it always shows the full sidebar.
+  const isDrawer = !!onClose
+  const [hovered, setHovered] = useState(false)
+  const collapsed = !isDrawer && !hovered
+  useEffect(() => { setHovered(false) }, [pathname])
 
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [recruitOpen, setRecruitOpen] = useState(false)
@@ -116,17 +107,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
     }
   }, [collapsed])
 
-  // Helper used by the parent dropdown buttons. Clicking a parent in
-  // collapsed mode SHOULD expand the sidebar back out AND open that
-  // submenu so the user sees something useful instead of an empty
-  // dropdown hidden behind the icon-rail width.
+  // Toggle a submenu. The sidebar always expands on hover before a click can
+  // land, so there is no collapsed branch to handle here.
   function toggleSubmenu(currentOpen: boolean, setOpen: (b: boolean) => void) {
-    if (collapsed) {
-      setCollapsed(false)
-      try { window.localStorage.setItem(COLLAPSE_STORAGE_KEY, '0') } catch { /* no-op */ }
-      setOpen(true)
-      return
-    }
     setOpen(!currentOpen)
   }
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
@@ -195,7 +178,12 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   return (
     <aside
       data-collapsed={collapsed ? 'true' : 'false'}
-      className="relative flex-shrink-0 bg-bg flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out border-r border-border"
+      onMouseEnter={() => setHovered(true)}
+      onMouseMove={() => { if (!hovered) setHovered(true) }}
+      onMouseLeave={() => { if (!dragRef.current) setHovered(false) }}
+      className={`bg-bg flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out border-r border-border ${
+        isDrawer ? 'relative flex-shrink-0' : 'absolute inset-y-0 left-0 z-40'
+      } ${!isDrawer && !collapsed ? 'shadow-float' : ''}`}
       style={{ width: `${widthPx}px` }}
     >
       {/* Drag handle - the 4px strip on the right edge. Only visible
@@ -210,27 +198,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className="hidden lg:block absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent hover:bg-bg-soft active:bg-border transition-colors"
         />
       )}
-      {/* Top bar - mobile close + desktop collapse toggle.
-          The collapse button stays visible at >=lg and gives the user
-          control over whether the sidebar shows labels or just icons. */}
-      <div className="flex items-center justify-between px-2.5 pt-3">
-        {/* Desktop collapse toggle */}
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-pressed={collapsed}
-          className="hidden lg:inline-flex w-8 h-8 items-center justify-center rounded-lg hover:bg-bg-soft transition-colors text-ink-muted hover:text-ink-soft relative z-30"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            {collapsed ? (
-              <path fillRule="evenodd" d="M7.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-            ) : (
-              <path fillRule="evenodd" d="M12.707 4.293a1 1 0 010 1.414L8.414 10l4.293 4.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clipRule="evenodd"/>
-            )}
-          </svg>
-        </button>
+      {/* Top bar - mobile close only. The desktop collapse is now automatic
+          (hover to expand), so the manual collapse toggle was removed. */}
+      <div className="flex items-center justify-end px-2.5 pt-3">
         {/* Mobile close - the brand logo used to sit here too; moved
             to the footer above the advisor support callout. */}
         {onClose ? (
@@ -686,16 +656,40 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   )
 }
 
-// Reusable tooltip that positions below instead of left (prevents cut-off)
+// Reusable info tooltip. Renders the bubble to document.body via a portal with
+// fixed positioning, so it escapes the sidebar's overflow-hidden / overlay
+// clipping (it used to get cut off). Opens to the RIGHT of the icon.
 function InfoTooltip({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect()
+    if (r) setPos({ top: r.top + r.height / 2, left: r.right + 8 })
+  }
+  const hide = () => setPos(null)
   return (
-    <span className="relative group ml-auto">
+    <span
+      ref={ref}
+      tabIndex={0}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      className="relative inline-flex ml-auto rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+    >
       <svg className="w-4 h-4 text-ink-muted hover:text-ink-soft cursor-help" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
       </svg>
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-ink text-bg-elevated text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-        {text}
-      </span>
+      {pos && typeof document !== 'undefined' && createPortal(
+        <span
+          role="tooltip"
+          style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'translateY(-50%)' }}
+          className="z-[100] bg-ink text-bg-elevated text-[11px] leading-snug px-2.5 py-1.5 rounded-lg shadow-modal max-w-[240px] pointer-events-none"
+        >
+          {text}
+        </span>,
+        document.body,
+      )}
     </span>
   )
 }
