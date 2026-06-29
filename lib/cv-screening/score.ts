@@ -12,9 +12,10 @@ import type {
   CriterionScore,
   Rubric,
 } from '@/lib/cv-screening-types'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 
 export interface ScoreResult {
   candidate_label: string

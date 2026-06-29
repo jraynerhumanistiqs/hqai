@@ -11,13 +11,14 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { tools as chatTools, runTool } from '@/lib/chat-tools'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 
 const STATUS_PHRASES: Record<1 | 2 | 3 | 4, string[]> = {
   1: [

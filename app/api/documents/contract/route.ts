@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { buildSystemPrompt } from '@/lib/prompts'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { TEMPLATE_BY_ID, ALL_TEMPLATES } from '@/lib/template-ip'
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Header, PageBreak } from 'docx'
 import { NextRequest, NextResponse } from 'next/server'
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
 
   // Call Claude with high token limit for full document
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: CLAUDE_MODEL,
     max_tokens: 8192,
     system: systemPrompt,
     messages: [{ role: 'user', content: detailsPrompt }],

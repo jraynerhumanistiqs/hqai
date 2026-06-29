@@ -3,13 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
 import type { CandidateScreening, CriterionScore, Rubric, RubricCriterion } from '@/lib/cv-screening-types'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 90
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 
 // Names chosen to span common Anglo / South Asian / East Asian / Arabic
 // surname patterns for a fairness probe. Same first-letter cadence so the

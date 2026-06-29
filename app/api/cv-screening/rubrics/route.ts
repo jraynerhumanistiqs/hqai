@@ -2,13 +2,14 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { Rubric, RubricCriterion } from '@/lib/cv-screening-types'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 
 interface CreateBody {
   label: string

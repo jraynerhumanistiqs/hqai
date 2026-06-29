@@ -14,6 +14,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import {
   type Rubric,
   BAND_LABELS,
@@ -122,7 +123,7 @@ const CV_FORMATTER_TOOL = {
 
 async function formatCvWithClaude(cvText: string): Promise<CvPayload> {
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
     system: 'You reformat Australian candidate CVs into the Humanistiqs CV layout. Preserve every claim from the source CV verbatim. Australian English (organise, behaviour, optimise). Plain hyphens only - never em-dashes.',
     tools: [CV_FORMATTER_TOOL as unknown as Anthropic.Messages.Tool],

@@ -9,6 +9,7 @@ import {
   type FairnessChecks,
   type Rubric,
 } from '@/lib/cv-screening-types'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { detectBiasSignals } from '@/lib/bias-detect'
@@ -35,7 +36,7 @@ export const maxDuration = 300
 const MAX_CV_CHARS = 24000
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 
 export async function POST(req: NextRequest) {
   try {

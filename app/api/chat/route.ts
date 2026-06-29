@@ -11,13 +11,14 @@ import { parseCitations } from '@/lib/parse-citations'
 // per-iteration steering instructions; we keep the stable prefix
 // cacheable and let the variable suffix ride along uncached.
 import { withPromptCache, withPromptCacheBlocks } from '@/lib/router'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = CLAUDE_MODEL
 // 2 iterations: iter 0 forced search (model can emit multiple parallel
 // search_knowledge calls in one turn via Promise.all dispatch), iter 1
 // final stream (tool_choice='none'). Was 3 but Vercel Hobby caps at 60s

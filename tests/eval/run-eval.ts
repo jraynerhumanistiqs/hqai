@@ -33,6 +33,7 @@ function loadEnvLocal() {
 }
 loadEnvLocal()
 
+import { CLAUDE_MODEL } from '../../lib/ai-models'
 import { SEED_QUESTIONS } from './golden-set.seed'
 import { judgeNumeric } from './judges/numeric-judge'
 import { judgeNarrative } from './judges/llm-judge'
@@ -58,7 +59,7 @@ interface Args {
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     set: 'all',
-    model: 'claude-sonnet-4-6',
+    model: CLAUDE_MODEL,
     out: 'eval-report.json',
     includeUnreviewed: false,
   }

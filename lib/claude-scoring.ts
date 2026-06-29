@@ -1,12 +1,13 @@
 ﻿// Humanistiqs - Claude scoring helper for HQ Recruit pre-screen videos.
-// Phase 1 AI scoring. Model: claude-sonnet-4-6. Strict JSON output.
+// Phase 1 AI scoring. Strict JSON output.
 // Australian-compliance guardrails enforced in the system prompt.
 
 import Anthropic from '@anthropic-ai/sdk'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-export const SCORING_MODEL = 'claude-sonnet-4-6'
+export const SCORING_MODEL = CLAUDE_MODEL
 
 export interface RubricDimensionDef {
   name: string

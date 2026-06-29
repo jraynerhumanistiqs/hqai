@@ -7,8 +7,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
 import type { GoldenQuestion, JudgeResult } from '../types'
+import { CLAUDE_MODELS } from '../../../lib/ai-models'
 
-const JUDGE_MODEL = 'claude-haiku-4-5-20251001'
+const JUDGE_MODEL = CLAUDE_MODELS.simple
 const CACHE_DIR = path.join(__dirname, '..', '.cache')
 
 export async function judgeNarrative(question: GoldenQuestion, answer: string): Promise<JudgeResult> {

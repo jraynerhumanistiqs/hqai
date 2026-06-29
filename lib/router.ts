@@ -20,6 +20,7 @@
 // tool-use, streaming, heartbeat and retry behaviour.
 
 import type Anthropic from '@anthropic-ai/sdk'
+import { CLAUDE_MODELS } from '@/lib/ai-models'
 
 // ── Tier definitions ──────────────────────────────────────────────────
 
@@ -32,13 +33,13 @@ export type Tier = 'simple' | 'standard' | 'complex'
 export const MODELS: Record<Tier, string> = {
   // Haiku 4.5 - fast, cheap, perfectly adequate for template-fill +
   // short-conversation replies + simple edits.
-  simple:   'claude-haiku-4-5-20251001',
+  simple:   CLAUDE_MODELS.simple,
   // Sonnet 4 - current default, used today for all chat traffic. Keeps
   // existing recall behaviour for any intent we are unsure about.
-  standard: 'claude-sonnet-4-6',
+  standard: CLAUDE_MODELS.standard,
   // Opus 4 - reserved for escalations, multi-step reasoning, and
   // complex contracts.
-  complex:  'claude-opus-4-8',
+  complex:  CLAUDE_MODELS.complex,
 }
 
 // ── Tool + intent taxonomy ────────────────────────────────────────────

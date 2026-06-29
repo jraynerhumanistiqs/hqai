@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { resolveBusinessScope } from '@/lib/supabase/scope'
 import Anthropic from '@anthropic-ai/sdk'
+import { CLAUDE_MODEL } from '@/lib/ai-models'
 
 export const runtime = 'nodejs'
 
@@ -13,7 +14,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 async function generateQuestions(roleTitle: string, description: string, count: number): Promise<string[]> {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: CLAUDE_MODEL,
     max_tokens: 1000,
     messages: [{
       role: 'user',
