@@ -55,32 +55,21 @@ function systemPromptForStep(
   if (step === 1) {
     return `${businessLine}
 
-You are HQ.ai's Campaign Coach. The user has given you a free-text brief about a role they want to hire. Your job is to extract a structured RoleProfile AND suggest an Australian Modern Award classification.
+You are HQ.ai's Campaign Coach. The user has pasted a free-text brief about a role they want to hire. It might be rough notes or a full existing job ad, it can be long, and it may describe more than one similar role.
 
-You MUST call the \`search_knowledge\` tool to ground the award suggestion in the Fair Work Act / Modern Awards corpus before finalising the AwardSuggestion. Use a short keyword query (e.g. "clerks award level 4", "building construction onsite award").
+Call the submit_role_profile tool with your best structured extraction. ALWAYS return a role_profile - never refuse, never ask a clarifying question, and never reply with plain text. The user reviews and edits every field on the next step, so a reasonable estimate is always better than leaving a field out.
 
-After tool use, respond with EXACTLY ONE JSON object inside a single \`\`\`json fenced code block. No prose before or after. The object must have this shape:
-{
-  "role_profile": RoleProfile,
-  "award_suggestion": AwardSuggestion | null
-}
-
-RoleProfile fields:
-- title (string), alt_titles (string[] for board SEO, 2-4 items)
-- level: "entry" | "mid" | "senior" | "lead" | "manager"
-- contract_type: "permanent_ft" | "permanent_pt" | "fixed_term" | "casual" | "contract"
-- hours_per_week (number, optional)
-- location: { suburb, state (NSW|VIC|QLD|SA|WA|TAS|ACT|NT), postcode?, remote: "no"|"hybrid"|"full" }
-- salary: { min, max, currency: "AUD", super_inclusive: boolean, source: "user" | "estimate" }
-- must_have_skills (string[], 3-7 items)
-- nice_to_have_skills (string[])
-- team_context (string, optional)
-- start_date ("asap" | ISO date, optional)
-- eeo_flags (string[]) - list any AU-prohibited-grounds risk phrases you noticed in the brief; empty array if none.
-
-AwardSuggestion fields:
-- code (e.g. "MA000020"), name, classification (e.g. "Level 3"), min_weekly_rate (AUD, integer), source_url (FWA reference), confidence (0-1).
-If you genuinely cannot pin an award, return null for award_suggestion.`
+Rules:
+- If the brief describes several similar roles (e.g. an expression of interest), extract the single most representative or most senior role. The user can set up the others separately afterwards.
+- title: a clear, searchable job title, 1-4 words (e.g. "HR Advisor", not "Expressions of Interest").
+- alt_titles: 2-4 close variants people might search for.
+- level: best fit of entry | mid | senior | lead | manager.
+- contract_type: best fit. An hourly or day-rate contractor brief is "contract"; a role with a fixed duration is "fixed_term".
+- location: suburb + AU state inferred from the brief. Default remote to "no" unless the brief says hybrid or remote. If no state is given, use the business's primary state.
+- salary: always provide a min and max in AUD. If the brief gives an hourly or daily rate, convert it to an approximate annual range (about 1,950 work hours a year for full-time) and set source to "estimate". Set super_inclusive to false unless the brief says the figure includes super.
+- must_have_skills: 3-7 of the most important; nice_to_have_skills: the rest.
+- eeo_flags: any wording in the brief that could risk an Australian prohibited ground (age, gender, etc.); empty array if none.
+- award_suggestion: your best estimate of the Australian Modern Award (code, name, classification, approximate min weekly rate) from your own knowledge, or null if you genuinely cannot pin one. Do not block on this.`
   }
 
   if (step === 2) {
@@ -378,7 +367,11 @@ export async function POST(req: NextRequest) {
                       team_context: { type: 'string' },
                       eeo_flags: { type: 'array', items: { type: 'string' } },
                     },
-                    required: ['title', 'alt_titles', 'level', 'contract_type', 'location', 'salary', 'must_have_skills', 'nice_to_have_skills', 'eeo_flags'],
+                    // Only the title is required so a sparse or unusual brief
+                    // still produces a usable profile. The prompt asks the
+                    // model to fill the rest with sensible estimates, and the
+                    // user reviews/edits everything on Step 2.
+                    required: ['title'],
                   },
                   award_suggestion: {
                     type: 'object',
@@ -404,29 +397,44 @@ export async function POST(req: NextRequest) {
               messages: working,
             })
             const toolUse = (res.content as any[]).find(b => b.type === 'tool_use')
-            const output = toolUse?.input ?? null
-            console.log('[campaign/draft] step 1 structured output:', output ? 'OK' : 'FAILED', 'stop:', res.stop_reason)
-            if (!output) {
-              // Surface what the model actually returned so the wizard can
-              // show it inline. Includes stop_reason, content-block types,
-              // and any plain text the model emitted instead of using the
-              // forced tool.
-              const contentSummary = (res.content as any[]).map(b => ({
-                type: b.type,
-                text: b.type === 'text' ? String(b.text || '').slice(0, 600) : undefined,
-                tool_name: b.type === 'tool_use' ? b.name : undefined,
-              }))
+            const output: any = toolUse?.input ?? null
+            const hasProfile = !!(output?.role_profile?.title)
+            console.log('[campaign/draft] step 1:', hasProfile ? 'OK' : 'FALLBACK', 'stop:', res.stop_reason)
+            if (hasProfile) {
+              send({ done: true, output })
+            } else {
+              // Never block the user. If the model somehow returns no usable
+              // profile (e.g. a truncated tool call), build a minimal one
+              // from the brief so they always reach Step 2 and can fill it in.
+              // Logged so a systemic extraction problem is still visible.
+              console.warn(
+                '[campaign/draft] step 1 minimal fallback. stop:',
+                res.stop_reason,
+                'content:',
+                (res.content as any[]).map(b => b.type).join(','),
+              )
+              const raw = String(body?.brief?.raw_text ?? '')
+              const firstLine = raw.split('\n').map(s => s.trim()).find(Boolean) || 'New role'
+              const fallbackTitle =
+                firstLine.replace(/^expressions?\s+of\s+interest\s*[-:]?\s*/i, '').slice(0, 80).trim() || 'New role'
               send({
                 done: true,
                 output: {
-                  _parseFailed: true,
-                  _stop_reason: res.stop_reason,
-                  _content: contentSummary,
-                  _model: MODEL,
+                  role_profile: {
+                    title: fallbackTitle,
+                    alt_titles: [],
+                    level: 'mid',
+                    contract_type: 'permanent_ft',
+                    location: { suburb: '', state: business.state || 'QLD', remote: 'no' },
+                    salary: { min: 0, max: 0, currency: 'AUD', super_inclusive: false, source: 'estimate' },
+                    must_have_skills: [],
+                    nice_to_have_skills: [],
+                    eeo_flags: [],
+                  },
+                  award_suggestion: null,
+                  _fallback: true,
                 },
               })
-            } else {
-              send({ done: true, output })
             }
             controller.close()
             return
@@ -455,14 +463,41 @@ export async function POST(req: NextRequest) {
             ? err.stack?.split('\n').slice(0, 4).join(' | ')
             : undefined
           console.error('[campaign/draft] stream error:', detail, stack)
-          // Send BOTH a soft error chunk AND a `done` with the error in
-          // the output payload - so the wizard's diagnostic dump shows
-          // exactly what blew up server-side instead of `null`.
-          send({ error: 'Stream error', detail })
-          send({
-            done: true,
-            output: { _parseFailed: true, _error: detail, _stack: stack },
-          })
+          if (step === 1) {
+            // Step 1 must never hard-block, even on an API outage. Advance
+            // with a minimal profile built from the brief so the user can
+            // fill it in on Step 2. The real error is logged above.
+            const raw = String(body?.brief?.raw_text ?? '')
+            const firstLine = raw.split('\n').map(s => s.trim()).find(Boolean) || 'New role'
+            const fallbackTitle =
+              firstLine.replace(/^expressions?\s+of\s+interest\s*[-:]?\s*/i, '').slice(0, 80).trim() || 'New role'
+            send({
+              done: true,
+              output: {
+                role_profile: {
+                  title: fallbackTitle,
+                  alt_titles: [],
+                  level: 'mid',
+                  contract_type: 'permanent_ft',
+                  location: { suburb: '', state: business.state || 'QLD', remote: 'no' },
+                  salary: { min: 0, max: 0, currency: 'AUD', super_inclusive: false, source: 'estimate' },
+                  must_have_skills: [],
+                  nice_to_have_skills: [],
+                  eeo_flags: [],
+                },
+                award_suggestion: null,
+                _fallback: true,
+                _error: detail,
+              },
+            })
+          } else {
+            // Steps 2-4: surface the failure so the wizard can show it.
+            send({ error: 'Stream error', detail })
+            send({
+              done: true,
+              output: { _parseFailed: true, _error: detail, _stack: stack },
+            })
+          }
           controller.close()
         }
       },
