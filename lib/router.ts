@@ -35,10 +35,10 @@ export const MODELS: Record<Tier, string> = {
   simple:   'claude-haiku-4-5-20251001',
   // Sonnet 4 - current default, used today for all chat traffic. Keeps
   // existing recall behaviour for any intent we are unsure about.
-  standard: 'claude-sonnet-4-20250514',
+  standard: 'claude-sonnet-4-6',
   // Opus 4 - reserved for escalations, multi-step reasoning, and
   // complex contracts.
-  complex:  'claude-opus-4-20250514',
+  complex:  'claude-opus-4-8',
 }
 
 // ── Tool + intent taxonomy ────────────────────────────────────────────

@@ -42,6 +42,10 @@ export type WizardState = {
   // coach message panel that used to surface this was retired, so failures
   // need their own state to stay visible.
   briefError?: string
+  // Visible error for the later steps (e.g. the Step 2 -> 3 draft). Same
+  // reason as briefError - the coach panel is gone, so a failed AI call
+  // needs explicit state or it would fail silently.
+  stepError?: string
 }
 
 export type WizardAction =
@@ -63,6 +67,7 @@ export type WizardAction =
   | { type: 'FLASH_BLOCK'; key?: BlockKey }
   | { type: 'MARK_BRIEFED' }
   | { type: 'SET_BRIEF_ERROR'; error?: string }
+  | { type: 'SET_STEP_ERROR'; error?: string }
 
 export const initialWizardState: WizardState = {
   step: 1,
@@ -77,7 +82,7 @@ export const initialWizardState: WizardState = {
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
     case 'SET_STEP':
-      return { ...state, step: action.step }
+      return { ...state, step: action.step, stepError: undefined }
     case 'SET_BRIEF_TEXT':
       return { ...state, briefText: action.text, briefError: undefined }
     case 'SET_BRIEF':
@@ -162,6 +167,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, hasBriefed: true }
     case 'SET_BRIEF_ERROR':
       return { ...state, briefError: action.error }
+    case 'SET_STEP_ERROR':
+      return { ...state, stepError: action.error }
     default:
       return state
   }

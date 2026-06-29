@@ -17,7 +17,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 // 2 iterations: iter 0 forced search (model can emit multiple parallel
 // search_knowledge calls in one turn via Promise.all dispatch), iter 1
 // final stream (tool_choice='none'). Was 3 but Vercel Hobby caps at 60s

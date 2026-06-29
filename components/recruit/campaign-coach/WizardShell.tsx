@@ -252,13 +252,14 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           }
         }
 
+        dispatch({ type: 'SET_STEP_ERROR', error: undefined })
         const out = await callDraft(2)
         if (out?.blocks || out?.job_ad_draft) {
           dispatch({ type: 'SET_STEP', step: 3 })
         } else {
           dispatch({
-            type: 'REPLACE_LAST_COACH_MESSAGE',
-            text: "I couldn't draft the ad cleanly - give me one more try.",
+            type: 'SET_STEP_ERROR',
+            error: "I couldn't draft the ad just then. Give it another go - if it keeps happening, tweak a detail above and retry.",
           })
         }
         break
@@ -298,6 +299,11 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 py-6 sm:py-8 bg-bg">
             <div className="max-w-4xl mx-auto">
+              {state.stepError && (
+                <div role="alert" className="mb-4 bg-danger/10 border border-danger/30 text-danger text-sm rounded-2xl px-4 py-3">
+                  {state.stepError}
+                </div>
+              )}
               {state.step === 1 && <Step1Brief />}
               {state.step === 2 && <Step2Extract />}
               {state.step === 3 && <Step3DraftCoach />}

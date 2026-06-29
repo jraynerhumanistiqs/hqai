@@ -15,7 +15,7 @@ https://github.com/jraynerhumanistiqs/hqai
 - Next.js 16 (App Router) + TypeScript
 - Tailwind CSS v3 with custom design tokens (tailwind.config.ts)
 - Supabase (auth + PostgreSQL) - RLS disabled for beta
-- Anthropic Claude API (claude-sonnet-4-20250514) with streaming
+- Anthropic Claude API (claude-sonnet-4-6) with streaming
 - Cloudflare Stream - candidate video upload/playback
 - Resend - transactional email (candidate invite + submission notify)
 - Vercel (hosting)

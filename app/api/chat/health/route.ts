@@ -33,7 +33,7 @@ export async function GET() {
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const res = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 16,
       messages: [{ role: 'user', content: 'reply with the word OK.' }],
     })
@@ -46,7 +46,7 @@ export async function GET() {
       ok: true,
       stage: 'anthropic',
       latency_ms: Date.now() - started,
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       reply: text,
       stop_reason: res.stop_reason,
     })

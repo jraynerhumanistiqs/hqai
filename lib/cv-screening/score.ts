@@ -14,7 +14,7 @@ import type {
 } from '@/lib/cv-screening-types'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 export interface ScoreResult {
   candidate_label: string

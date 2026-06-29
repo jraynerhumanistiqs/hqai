@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   // Call Claude with high token limit for full document
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 8192,
     system: systemPrompt,
     messages: [{ role: 'user', content: detailsPrompt }],

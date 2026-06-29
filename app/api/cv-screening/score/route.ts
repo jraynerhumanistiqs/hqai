@@ -35,7 +35,7 @@ export const maxDuration = 300
 const MAX_CV_CHARS = 24000
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 export async function POST(req: NextRequest) {
   try {

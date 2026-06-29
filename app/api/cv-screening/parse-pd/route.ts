@@ -16,7 +16,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 const MAX_BYTES = 8 * 1024 * 1024 // 8 MB safety net for serverless
 

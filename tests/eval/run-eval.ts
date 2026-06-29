@@ -58,7 +58,7 @@ interface Args {
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     set: 'all',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     out: 'eval-report.json',
     includeUnreviewed: false,
   }

@@ -122,7 +122,7 @@ const CV_FORMATTER_TOOL = {
 
 async function formatCvWithClaude(cvText: string): Promise<CvPayload> {
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     system: 'You reformat Australian candidate CVs into the Humanistiqs CV layout. Preserve every claim from the source CV verbatim. Australian English (organise, behaviour, optimise). Plain hyphens only - never em-dashes.',
     tools: [CV_FORMATTER_TOOL as unknown as Anthropic.Messages.Tool],
