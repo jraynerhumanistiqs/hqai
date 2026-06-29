@@ -132,7 +132,7 @@ export default function Step5Launch() {
           <p className="text-xs text-mid mb-4">
             {profile?.location?.suburb}, {profile?.location?.state}
             {profile?.salary
-              ? ` · $${profile.salary.min.toLocaleString()}-${profile.salary.max.toLocaleString()} ${profile.salary.currency}`
+              ? ` · $${profile.salary.min.toLocaleString()}-${profile.salary.max.toLocaleString()} ${profile.salary.currency} / ${profile.salary.period ?? 'year'}`
               : ''}
           </p>
           <div className="prose prose-sm max-w-none text-charcoal text-sm leading-relaxed space-y-3">

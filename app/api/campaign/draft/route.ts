@@ -66,7 +66,7 @@ Rules:
 - level: best fit of entry | mid | senior | lead | manager.
 - contract_type: best fit. An hourly or day-rate contractor brief is "contract"; a role with a fixed duration is "fixed_term".
 - location: suburb + AU state inferred from the brief. Default remote to "no" unless the brief says hybrid or remote. If no state is given, use the business's primary state.
-- salary: always provide a min and max in AUD. If the brief gives an hourly or daily rate, convert it to an approximate annual range (about 1,950 work hours a year for full-time) and set source to "estimate". Set super_inclusive to false unless the brief says the figure includes super.
+- salary: always provide a min and max in AUD, plus a period of "year", "hour" or "day" that matches how the brief expresses pay. If the brief gives an hourly or day rate (common for contractors and casuals), keep min/max as that hourly or day figure and set period to "hour" or "day" - do NOT convert it to an annual salary. If no pay is given, estimate a sensible annual range, set period to "year", and set source to "estimate". Set super_inclusive to false unless the brief says the figure includes super.
 - must_have_skills: 3-7 of the most important; nice_to_have_skills: the rest.
 - eeo_flags: any wording in the brief that could risk an Australian prohibited ground (age, gender, etc.); empty array if none.
 - award_suggestion: your best estimate of the Australian Modern Award (code, name, classification, approximate min weekly rate) from your own knowledge, or null if you genuinely cannot pin one. Do not block on this.`
@@ -359,6 +359,7 @@ export async function POST(req: NextRequest) {
                           currency: { type: 'string' },
                           super_inclusive: { type: 'boolean' },
                           source: { type: 'string', enum: ['user', 'estimate'] },
+                          period: { type: 'string', enum: ['year', 'hour', 'day'] },
                         },
                         required: ['min', 'max', 'currency', 'super_inclusive', 'source'],
                       },

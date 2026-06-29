@@ -148,7 +148,19 @@ export default function Step2Extract() {
         </FieldRow>
 
         <FieldRow label="Salary">
+          {/* Pay basis is interchangeable for any contract type - set it to
+              per year, per hour or per day so hourly contractor and casual
+              rates read correctly through to the ad. */}
           <div className="flex flex-wrap items-center gap-2">
+            <InlineSelect
+              value={profile.salary.period ?? 'year'}
+              options={[
+                { value: 'year', label: 'Per year' },
+                { value: 'hour', label: 'Per hour' },
+                { value: 'day', label: 'Per day' },
+              ]}
+              onChange={v => patchSalary({ period: v as 'year' | 'hour' | 'day' })}
+            />
             <span className="text-xs text-muted">Min $</span>
             <InlineNumber
               value={profile.salary.min}

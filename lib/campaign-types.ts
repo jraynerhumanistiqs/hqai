@@ -28,7 +28,7 @@ export type RoleProfile = {
   contract_type: 'permanent_ft' | 'permanent_pt' | 'fixed_term' | 'casual' | 'contract'
   hours_per_week?: number
   location: { suburb: string; state: AU_State; postcode?: string; remote: 'no' | 'hybrid' | 'full' }
-  salary: { min: number; max: number; currency: 'AUD'; super_inclusive: boolean; source: 'user' | 'estimate' }
+  salary: { min: number; max: number; currency: 'AUD'; super_inclusive: boolean; source: 'user' | 'estimate'; period?: 'year' | 'hour' | 'day' }
   must_have_skills: string[]         // 3-7 ideal
   nice_to_have_skills: string[]
   team_context?: string
