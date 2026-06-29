@@ -38,6 +38,10 @@ export type WizardState = {
   // the field-edit telemetry to compare against the user-edited final value
   // when they advance from Step 2.
   role_profile_initial?: RoleProfile
+  // Visible error for the Step 1 brief (shown inline in Step1Brief). The
+  // coach message panel that used to surface this was retired, so failures
+  // need their own state to stay visible.
+  briefError?: string
 }
 
 export type WizardAction =
@@ -58,6 +62,7 @@ export type WizardAction =
   | { type: 'MARK_DRAFTED_STEP3' }
   | { type: 'FLASH_BLOCK'; key?: BlockKey }
   | { type: 'MARK_BRIEFED' }
+  | { type: 'SET_BRIEF_ERROR'; error?: string }
 
 export const initialWizardState: WizardState = {
   step: 1,
@@ -74,7 +79,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
     case 'SET_STEP':
       return { ...state, step: action.step }
     case 'SET_BRIEF_TEXT':
-      return { ...state, briefText: action.text }
+      return { ...state, briefText: action.text, briefError: undefined }
     case 'SET_BRIEF':
       return { ...state, brief: action.brief }
     case 'SET_ROLE_PROFILE':
@@ -155,6 +160,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, flashBlock: action.key }
     case 'MARK_BRIEFED':
       return { ...state, hasBriefed: true }
+    case 'SET_BRIEF_ERROR':
+      return { ...state, briefError: action.error }
     default:
       return state
   }

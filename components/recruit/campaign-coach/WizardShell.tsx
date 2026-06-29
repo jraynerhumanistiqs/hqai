@@ -211,19 +211,20 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           break
         }
         if (!state.briefText.trim()) return
+        dispatch({ type: 'SET_BRIEF_ERROR', error: undefined })
         const out = await callDraft(1, { brief: { raw_text: state.briefText } })
         if (out?.role_profile) {
           dispatch({ type: 'MARK_BRIEFED' })
-          // Intentionally no SET_STEP here - the user advances via the
-          // "Review the details" CTA once they're ready.
+          // Advance straight to Step 2 - the review step where the user
+          // checks and edits the details we pulled out. (The old flow stayed
+          // on Step 1 behind a "Review the details" CTA, but that relied on
+          // the coach message panel for feedback; with the panel retired it
+          // looked like nothing happened, so we move to the review step.)
+          dispatch({ type: 'SET_STEP', step: 2 })
         } else {
-          const dump = (() => {
-            try { return JSON.stringify(out, null, 2).slice(0, 1500) }
-            catch { return String(out) }
-          })()
           dispatch({
-            type: 'REPLACE_LAST_COACH_MESSAGE',
-            text: `I had a wobble parsing that one. The server returned:\n\n${dump}`,
+            type: 'SET_BRIEF_ERROR',
+            error: "I couldn't read that brief clearly. Try again, or add a bit more detail about the role, the location, the pay, and the must-have skills.",
           })
         }
         break

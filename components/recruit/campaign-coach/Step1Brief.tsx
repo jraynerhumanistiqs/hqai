@@ -125,6 +125,21 @@ export default function Step1Brief() {
         </div>
       </div>
 
+      {/* Inline brief status. The coach message panel was retired, so the
+          brief outcome surfaces here: a thinking hint while it runs, and a
+          visible error if it could not read the brief. */}
+      {state.streaming && (
+        <p className="text-sm text-mid flex items-center gap-2" role="status">
+          <span className="w-4 h-4 rounded-full border-2 border-border border-t-charcoal animate-spin" aria-hidden="true" />
+          Reading your brief and pulling out the details...
+        </p>
+      )}
+      {state.briefError && !state.streaming && (
+        <div role="alert" className="bg-danger/10 border border-danger/30 text-danger text-sm rounded-2xl px-4 py-3">
+          {state.briefError}
+        </div>
+      )}
+
       {/* Recent campaigns - up to 5 of the user's most recent role
           briefs. Replaces the old "Common roles in [industry]" chip row.
           When there are zero campaigns yet, show a single helper

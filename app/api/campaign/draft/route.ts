@@ -397,7 +397,7 @@ export async function POST(req: NextRequest) {
             }
             const res = await anthropic.messages.create({
               model: MODEL,
-              max_tokens: 2048,
+              max_tokens: 4096,
               system: systemPrompt,
               tools: [submitProfile],
               tool_choice: { type: 'tool', name: 'submit_role_profile' },
