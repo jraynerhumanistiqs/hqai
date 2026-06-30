@@ -2,7 +2,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
-import type { CandidateScreening, CriterionScore, Rubric, RubricCriterion } from '@/lib/cv-screening-types'
+import type { CandidateScreening, CriterionScore, Rubric } from '@/lib/cv-screening-types'
+import { computeOverall } from '@/lib/cv-screening/score'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -193,17 +194,4 @@ Output only via the submit_score tool.`,
     rationale: c.rationale ? String(c.rationale) : undefined,
   }))
   return { criteria_scores: scores }
-}
-
-function computeOverall(scores: CriterionScore[], criteria: RubricCriterion[]): number {
-  let weighted = 0
-  let totalWeight = 0
-  for (const c of criteria) {
-    const found = scores.find(s => s.id === c.id)
-    if (!found) continue
-    weighted += found.score * c.weight
-    totalWeight += c.weight
-  }
-  if (totalWeight === 0) return 0
-  return Number((weighted / totalWeight).toFixed(2))
 }

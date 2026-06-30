@@ -292,7 +292,7 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
                           />
                           {c.hard_gate && (
                             <span className="inline-block mt-0.5 text-[10px] font-bold uppercase tracking-wider bg-warning/10 text-warning rounded-full px-2 py-0.5">
-                              Hard gate
+                              Consideration
                             </span>
                           )}
                         </div>

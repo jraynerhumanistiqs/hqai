@@ -9,6 +9,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
+interface ConsiderationIn {
+  id?: unknown
+  label?: unknown
+  status?: unknown
+  ai_status?: unknown
+  note?: unknown
+}
+
 interface Body {
   override_band?: string | null
   override_next_action?: string | null
@@ -17,7 +25,13 @@ interface Body {
    *  AI extracted from the CV. Persisted as candidate_label so the
    *  pipeline + reports + comparison view all read the curated name. */
   candidate_label?: string
+  /** Recruiter-confirmed hard-gate eligibility flags (location / work
+   *  rights). These are considerations shown post-score, not part of
+   *  the merit number, so they live in their own jsonb column. */
+  considerations?: ConsiderationIn[] | null
 }
+
+const VALID_CONSIDERATION_STATUS = new Set(['met', 'unclear', 'not_met'])
 
 const VALID_BANDS = new Set(['strong_yes', 'yes', 'maybe', 'likely_no', 'reject'])
 const VALID_ACTIONS = new Set([
@@ -77,13 +91,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
       patch.candidate_label = body.candidate_label.trim().slice(0, 200)
     }
+    if ('considerations' in body) {
+      if (body.considerations === null) {
+        patch.considerations = null
+      } else if (Array.isArray(body.considerations)) {
+        const clean = body.considerations
+          .filter(c => c && typeof c.id === 'string' && VALID_CONSIDERATION_STATUS.has(String(c.status)))
+          .map(c => ({
+            id: String(c.id).slice(0, 80),
+            label: typeof c.label === 'string' ? c.label.slice(0, 200) : String(c.id),
+            status: String(c.status),
+            ai_status: VALID_CONSIDERATION_STATUS.has(String(c.ai_status)) ? String(c.ai_status) : undefined,
+            note: typeof c.note === 'string' ? c.note.slice(0, 500) : undefined,
+          }))
+        patch.considerations = clean
+      } else {
+        return NextResponse.json({ error: 'considerations must be an array or null' }, { status: 400 })
+      }
+    }
 
     // If nothing actually changed besides the audit columns, refuse.
     if (
       !('override_band' in body) &&
       !('override_next_action' in body) &&
       !('override_comment' in body) &&
-      !('candidate_label' in body)
+      !('candidate_label' in body) &&
+      !('considerations' in body)
     ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
@@ -97,6 +130,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .single()
 
     if (error) {
+      // If the considerations column isn't migrated yet, retry the
+      // update without it so band/action/name edits still land. The
+      // recruiter's eligibility tick just won't persist until the
+      // migration (cv_screenings_considerations.sql) is applied.
+      if (error.message?.includes('considerations') && 'considerations' in patch) {
+        delete patch.considerations
+        const retry = await supabaseAdmin
+          .from('cv_screenings')
+          .update(patch)
+          .eq('id', id)
+          .eq('business_id', businessId)
+          .select('*')
+          .single()
+        if (!retry.error) {
+          return NextResponse.json({
+            screening: retry.data,
+            considerations_warning: 'Eligibility consideration not saved - apply migration cv_screenings_considerations.sql on Supabase.',
+          })
+        }
+        return NextResponse.json({ error: retry.error.message }, { status: 500 })
+      }
       // If the override columns don't exist yet (migration not applied),
       // return a clear message instead of a generic 500.
       if (error.message?.includes('override_band') || error.message?.includes('override_next_action')) {

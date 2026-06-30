@@ -46,6 +46,61 @@ export interface CriterionScore {
   rationale?: string
 }
 
+// Considerations are hard-gate checks (location / work rights) that are
+// assessed but deliberately kept OUT of the weighted merit score - they
+// surface post-score as a single-select tick the recruiter confirms.
+// An interstate candidate with full work rights and intent to relocate
+// should not score lower on merit than a local one; eligibility is a
+// yes/unclear/no flag, not a number that drags the score down.
+export type ConsiderationStatus = 'met' | 'unclear' | 'not_met'
+
+export interface Consideration {
+  id: string                       // criterion id, e.g. 'location_eligibility'
+  label: string                    // human label carried from the rubric
+  status: ConsiderationStatus      // current (recruiter-confirmed) value
+  ai_status?: ConsiderationStatus  // the AI's original read, kept for drift
+  note?: string                    // AI rationale or recruiter note
+}
+
+export const CONSIDERATION_LABELS: Record<ConsiderationStatus, string> = {
+  met: 'Eligible',
+  unclear: 'Unclear',
+  not_met: 'Not eligible',
+}
+
+// Map a hard-gate criterion's 0-5 score to a consideration status. The
+// scorer uses 5 = clear yes, 0 = clear no, ~3 = uncertain / relocating.
+export function statusFromGateScore(score: number): ConsiderationStatus {
+  if (score >= 4) return 'met'
+  if (score <= 1) return 'not_met'
+  return 'unclear'
+}
+
+// Build the post-score considerations for a screening from its hard-gate
+// criteria. The AI read comes from the gate criteria_scores; any value the
+// recruiter has confirmed (persisted on the row) overrides it. Pure - used
+// by the scorecard so we don't need to persist the AI read separately.
+export function deriveConsiderations(
+  criteria: RubricCriterion[],
+  scores: CriterionScore[],
+  persisted?: Consideration[] | null,
+): Consideration[] {
+  return criteria
+    .filter(c => c.hard_gate)
+    .map(c => {
+      const cs = scores.find(s => s.id === c.id)
+      const ai_status = statusFromGateScore(cs?.score ?? 3)
+      const saved = persisted?.find(p => p.id === c.id)
+      return {
+        id: c.id,
+        label: c.label,
+        status: saved?.status ?? ai_status,
+        ai_status,
+        note: saved?.note ?? cs?.rationale,
+      }
+    })
+}
+
 export type CandidateBand = 'strong_yes' | 'yes' | 'maybe' | 'likely_no' | 'reject'
 
 export type NextAction =
@@ -77,6 +132,10 @@ export interface CandidateScreening {
   next_action: NextAction
   rationale_short: string
   criteria_scores: CriterionScore[]
+  // Hard-gate eligibility flags shown post-score. Optional - older rows
+  // and the standalone read path derive these on the fly from the
+  // hard-gate criteria_scores + rubric when the column is absent.
+  considerations?: Consideration[] | null
   fairness_checks: FairnessChecks
   status: 'parsing' | 'scoring' | 'scored' | 'failed'
   error_message?: string | null

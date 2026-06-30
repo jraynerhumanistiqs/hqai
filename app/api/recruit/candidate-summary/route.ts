@@ -120,7 +120,13 @@ export async function POST(req: NextRequest) {
           children: [new TextRun({ text: `Overall: ${Number(cv.overall_score).toFixed(2)} / 5.00 - ${cv.band ?? 'unranked'}`, bold: true })],
         }))
         children.push(new Paragraph({ text: cv.rationale_short ?? '' }))
-        for (const cs of (cv.criteria_scores as CriterionScoreShape[]) ?? []) {
+        // Hard-gate eligibility checks (location / work rights) are
+        // considerations, not scored merit - this route has no rubric to
+        // read the hard_gate flag from, so suppress them by id/label so a
+        // "0/5" location line doesn't read as a merit fail.
+        const isGate = (cs: CriterionScoreShape) =>
+          /location|eligib|work[_\s-]?right|relocat|visa|citizen/i.test(`${cs.id} ${cs.label ?? ''}`)
+        for (const cs of ((cv.criteria_scores as CriterionScoreShape[]) ?? []).filter(cs => !isGate(cs))) {
           children.push(new Paragraph({
             children: [
               new TextRun({ text: `${cs.label ?? cs.id}: `, bold: true }),

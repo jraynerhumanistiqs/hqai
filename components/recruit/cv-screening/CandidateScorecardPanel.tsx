@@ -1,11 +1,15 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   type CandidateScreening,
+  type Consideration,
+  type ConsiderationStatus,
   type Rubric,
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
+  CONSIDERATION_LABELS,
+  deriveConsiderations,
 } from '@/lib/cv-screening-types'
 import { getRubric } from '@/lib/cv-screening-rubrics'
 
@@ -119,6 +123,51 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
     rubric?.criteria.forEach(c => { map[c.id] = c.label })
     return map
   }, [rubric])
+
+  // Hard-gate criteria (location / work rights) are pulled out of the
+  // scored "Criteria" list and shown as post-score "Considerations" - a
+  // single-select eligibility tick that does NOT affect the merit number.
+  const gateIds = useMemo(
+    () => new Set((rubric?.criteria ?? []).filter(c => c.hard_gate).map(c => c.id)),
+    [rubric],
+  )
+  const derivedConsiderations = useMemo(
+    () => rubric ? deriveConsiderations(rubric.criteria, screening.criteria_scores, screening.considerations) : [],
+    [rubric, screening.criteria_scores, screening.considerations],
+  )
+  const [considerations, setConsiderations] = useState<Consideration[]>(derivedConsiderations)
+  const [considerSaving, setConsiderSaving] = useState<string | null>(null)
+  const [considerError, setConsiderError] = useState<string | null>(null)
+  // Re-seed from the AI read + persisted values when the candidate or the
+  // resolved rubric changes. Local toggles below won't re-trigger this
+  // (screening.id + rubric are stable once resolved), so edits stick.
+  useEffect(() => {
+    setConsiderations(derivedConsiderations)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screening.id, rubric])
+
+  async function setConsideration(id: string, status: ConsiderationStatus) {
+    const next = considerations.map(c => c.id === id ? { ...c, status } : c)
+    setConsiderations(next)
+    // A screening that never persisted (local- placeholder id) can't be
+    // PATCHed - keep the optimistic UI change but skip the network call.
+    if (typeof screening.id === 'string' && screening.id.startsWith('local-')) return
+    setConsiderSaving(id)
+    setConsiderError(null)
+    try {
+      const res = await fetch(`/api/cv-screening/screenings/${screening.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ considerations: next }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((data as { error?: string }).error || `HTTP ${res.status}`)
+    } catch (err) {
+      setConsiderError(err instanceof Error ? err.message : 'Could not save eligibility')
+    } finally {
+      setConsiderSaving(null)
+    }
+  }
 
   const [handoffOpen, setHandoffOpen] = useState(false)
   const [handoffLoading, setHandoffLoading] = useState(false)
@@ -556,7 +605,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               Criteria
             </p>
             <ul className="space-y-3">
-              {screening.criteria_scores.map(cs => (
+              {screening.criteria_scores.filter(cs => !gateIds.has(cs.id)).map(cs => (
                 <li key={cs.id} className="bg-light rounded-2xl px-4 py-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-bold text-charcoal">
@@ -578,6 +627,79 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               ))}
             </ul>
           </div>
+
+          {/* Considerations - hard-gate eligibility checks (location / work
+              rights) shown AFTER the score and deliberately excluded from
+              it. A single-select tick the recruiter confirms, pre-set to the
+              AI's read. Location no longer drags down a candidate's merit
+              score - an interstate applicant with work rights and intent to
+              relocate stays on a level field. */}
+          {considerations.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                  Considerations
+                </p>
+                {considerSaving && <span className="text-[10px] text-muted">Saving...</span>}
+              </div>
+              <p className="text-xs text-mid mb-2 leading-relaxed">
+                Eligibility checks that do not affect the score. Confirm or adjust the AI&apos;s read.
+              </p>
+              <ul className="space-y-3">
+                {considerations.map(c => (
+                  <li key={c.id} className="bg-light rounded-2xl px-4 py-3">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <span className="text-sm font-bold text-charcoal">{c.label}</span>
+                      {c.ai_status && c.status !== c.ai_status && (
+                        <span className="text-[10px] font-bold text-mid">edited</span>
+                      )}
+                    </div>
+                    <div
+                      role="radiogroup"
+                      aria-label={`${c.label} eligibility`}
+                      className="inline-flex rounded-full border border-border bg-bg-elevated p-0.5"
+                    >
+                      {(['met', 'unclear', 'not_met'] as ConsiderationStatus[]).map(status => {
+                        const selected = c.status === status
+                        return (
+                          <button
+                            key={status}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            disabled={considerSaving === c.id}
+                            onClick={() => setConsideration(c.id, status)}
+                            className={`inline-flex items-center gap-1 text-xs font-bold rounded-full px-3 py-1.5 transition-colors disabled:opacity-60 ${
+                              selected
+                                ? status === 'met'
+                                  ? 'bg-success/12 text-success'
+                                  : status === 'not_met'
+                                    ? 'bg-danger/12 text-danger'
+                                    : 'bg-ink text-bg-elevated'
+                                : 'text-mid hover:text-charcoal'
+                            }`}
+                          >
+                            {selected && (
+                              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M2.5 6.5l2.5 2.5 4.5-5" />
+                              </svg>
+                            )}
+                            {CONSIDERATION_LABELS[status]}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {c.note && (
+                      <p className="text-xs text-mid mt-2 leading-relaxed">{c.note}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {considerError && (
+                <p className="text-[11px] text-danger mt-2">{considerError}</p>
+              )}
+            </div>
+          )}
 
           {screening.fairness_checks && (
             <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-2">

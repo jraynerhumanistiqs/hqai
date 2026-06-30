@@ -129,7 +129,11 @@ RULES:
    - 0: NO EVIDENCE in the CV. Use 0 by default if the criterion is not addressed at all - do NOT default to 2.
 3. Use 0 when the CV is silent on a criterion. Only score 2 if you can explicitly name a transferable skill from another domain that maps to this criterion. Naming the transfer is mandatory in the rationale.
 4. Each non-zero score must be backed by a verbatim CV span you quote in the evidence array. A score of 0 must have an empty evidence array and the rationale "No evidence in CV".
-5. For binary hard-gate criteria like AU work rights and location: score 5 if the CV indicates AU citizenship, permanent residency, valid work visa, or a current Brisbane/QLD address. Score 0 only if the CV states no work rights or is clearly overseas with no relocation indication. Score 3 with low confidence if uncertain.
+5. Binary hard-gate criteria (AU work rights and location) are eligibility CONSIDERATIONS, not merit. They do NOT change the candidate's overall score - a recruiter confirms them separately - so judge eligibility generously:
+   - Score 5 (eligible) if the CV shows the right to work in Australia (citizenship, permanent residency, or a valid work visa), REGARDLESS of which state they currently live in. Being interstate is not a fail: someone in Victoria with full AU work rights applying for a Brisbane role is eligible - relocation is the candidate's choice to make.
+   - Score 3 (unclear) if work rights or willingness to relocate cannot be determined from the CV. Interstate with no stated relocation intent is unclear, not a no.
+   - Score 0 (not eligible) only if the CV explicitly states no Australian work rights, or explicitly rules out the location/relocation.
+   - Never penalise a candidate's location on its own.
 6. Tenure gaps are not penalties unless the candidate had no work history. Note any reason given (caregiving, study, illness) in tenure_note rather than reducing any tenure score.
 7. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
 8. No em-dashes or en-dashes in your output. Plain hyphens only.
@@ -181,14 +185,22 @@ Output only via the submit_score tool.`
   }
 }
 
+// Weighted merit score. Hard-gate criteria (location / work rights) are
+// deliberately EXCLUDED: they are assessed and surfaced post-score as a
+// "consideration" the recruiter confirms, not folded into the number.
+// This stops an interstate candidate with full work rights and intent to
+// relocate from scoring lower on merit than a local one. The remaining
+// criteria re-normalise across their own weights (we divide by the sum of
+// the weights actually scored), so dropping a gate doesn't deflate scores.
 export function computeOverall(
   scores: CriterionScore[],
   criteria: Rubric['criteria'],
 ): number {
-  const cList = criteria as Array<{ id: string; weight: number }>
+  const cList = criteria as Array<{ id: string; weight: number; hard_gate?: boolean }>
   let weighted = 0
   let totalWeight = 0
   for (const c of cList) {
+    if (c.hard_gate) continue
     const found = scores.find(s => s.id === c.id)
     if (!found) continue
     weighted += found.score * c.weight

@@ -7,6 +7,8 @@ import {
   type Rubric,
   BAND_LABELS,
   ACTION_LABELS,
+  CONSIDERATION_LABELS,
+  deriveConsiderations,
 } from '@/lib/cv-screening-types'
 import {
   Document,
@@ -154,7 +156,13 @@ export async function POST(req: NextRequest) {
       rubric?.criteria.forEach(c => {
         criteriaById[c.id] = { label: c.label, weight: c.weight }
       })
-      const criteriaScores = (s.criteria_scores as CriterionScore[]) ?? []
+      // Hard gates (location / work rights) are considerations, not scored
+      // merit - keep them out of the per-criterion table and evidence list,
+      // and show them in a Considerations block instead.
+      const gateIds = new Set((rubric?.criteria ?? []).filter(c => c.hard_gate).map(c => c.id))
+      const allScores = (s.criteria_scores as CriterionScore[]) ?? []
+      const criteriaScores = allScores.filter(cs => !gateIds.has(cs.id))
+      const considerations = rubric ? deriveConsiderations(rubric.criteria, allScores, s.considerations) : []
       const sections: Paragraph[] = []
 
       sections.push(coverParagraph('Candidate CV Scoring Report', 28))
@@ -186,6 +194,15 @@ export async function POST(req: NextRequest) {
         sections.push(evidenceItem(label, cs))
       }
       sections.push(spacer(180))
+
+      if (considerations.length > 0) {
+        sections.push(sectionHeading('Considerations'))
+        for (const c of considerations) {
+          sections.push(bodyPara(`${c.label}: ${CONSIDERATION_LABELS[c.status]}`))
+        }
+        sections.push(bodyPara('Eligibility checks - confirmed by the recruiter, not part of the score.'))
+        sections.push(spacer(180))
+      }
 
       sections.push(sectionHeading('Fairness checks'))
       sections.push(bodyPara(`Name blinded from scorer: ${s.fairness_checks?.name_blinded ? 'yes' : 'no'}`))

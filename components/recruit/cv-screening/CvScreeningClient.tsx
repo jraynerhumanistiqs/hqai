@@ -1188,7 +1188,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
         {/* Criteria confirmation modal - gates CV upload. */}
         {criteriaModalOpen && (() => {
           const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
-          const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
+          // Hard gates (location / work rights) are considerations, not
+          // scored merit, so they're left out of the weighting maths.
+          const totalWeight = criteria.filter(c => !c.hard_gate).reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
           return (
             <div
               className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 px-4"
@@ -1220,6 +1222,14 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       </div>
                       <ul className="space-y-2">
                         {criteria.map(c => {
+                          if (c.hard_gate) {
+                            return (
+                              <li key={c.id} className="flex items-baseline justify-between gap-3">
+                                <span className="text-xs text-ink font-medium truncate">{c.label}</span>
+                                <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider shrink-0">Consideration</span>
+                              </li>
+                            )
+                          }
                           const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
                           return (
                             <li key={c.id}>
@@ -1235,7 +1245,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         })}
                       </ul>
                       <p className="text-[10px] text-ink-muted mt-3 leading-snug">
-                        Percentages show how each criterion is weighted in the overall CV score.
+                        Percentages show how each criterion is weighted in the overall CV score. Considerations (location / work rights) are checked but do not affect the score.
                       </p>
                     </div>
                   )}
@@ -2098,7 +2108,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           sit inline on the Score CVs surface. */}
       {criteriaModalOpen && (() => {
         const criteria = activeCustom?.rubric?.criteria ?? activeStandard?.criteria ?? []
-        const totalWeight = criteria.reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
+        // Hard gates (location / work rights) are considerations, not
+        // scored merit, so they're left out of the weighting maths.
+        const totalWeight = criteria.filter(c => !c.hard_gate).reduce((s, c) => s + (Number(c.weight) || 0), 0) || 1
         return (
           <div
             className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 px-4"
@@ -2130,6 +2142,14 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     </div>
                     <ul className="space-y-2">
                       {criteria.map(c => {
+                        if (c.hard_gate) {
+                          return (
+                            <li key={c.id} className="flex items-baseline justify-between gap-3">
+                              <span className="text-xs text-charcoal font-medium truncate">{c.label}</span>
+                              <span className="text-[10px] font-bold text-muted uppercase tracking-wider shrink-0">Consideration</span>
+                            </li>
+                          )
+                        }
                         const pct = Math.round(((Number(c.weight) || 0) / totalWeight) * 100)
                         return (
                           <li key={c.id}>
@@ -2145,7 +2165,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       })}
                     </ul>
                     <p className="text-[10px] text-muted mt-3 leading-snug">
-                      Percentages show how each criterion is weighted in the overall CV score.
+                      Percentages show how each criterion is weighted in the overall CV score. Considerations (location / work rights) are checked but do not affect the score.
                     </p>
                   </div>
                 )}

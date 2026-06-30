@@ -247,7 +247,7 @@ export default function EditRubricModal({ rubric, onClose, onSaved }: Props) {
                         className="accent-accent mt-0.5"
                       />
                       <span>
-                        <strong className="text-charcoal font-bold">Must-have</strong> - candidates without this don&apos;t progress (e.g. right to work, mandatory licence)
+                        <strong className="text-charcoal font-bold">Eligibility check</strong> - shown as a consideration after scoring (e.g. right to work, location). Does not change the score; you confirm it per candidate.
                       </span>
                     </label>
                     <label className="inline-flex items-start gap-2 text-xs text-mid leading-snug">

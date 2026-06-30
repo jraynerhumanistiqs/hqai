@@ -19,6 +19,8 @@ import {
   type Rubric,
   BAND_LABELS,
   ACTION_LABELS,
+  CONSIDERATION_LABELS,
+  deriveConsiderations,
 } from '@/lib/cv-screening-types'
 import {
   Document,
@@ -318,8 +320,13 @@ function buildScoreSummarySection(opts: {
 
     const criteriaById: Record<string, string> = {}
     rubric?.criteria.forEach(c => { criteriaById[c.id] = c.label })
+    // Hard-gate criteria (location / work rights) are considerations, not
+    // scored merit. Skip them in the criteria cards and list them in a
+    // dedicated Considerations block below so the docx matches the in-app
+    // scorecard.
+    const gateIds = new Set((rubric?.criteria ?? []).filter(c => c.hard_gate).map(c => c.id))
 
-    for (const cs of screening.criteria_scores as Array<{ id: string; score: number; rationale?: string; evidence?: Array<{ text: string }> }>) {
+    for (const cs of (screening.criteria_scores as Array<{ id: string; score: number; rationale?: string; evidence?: Array<{ text: string }> }>).filter(cs => !gateIds.has(cs.id))) {
       const labelText = criteriaById[cs.id] ?? cs.id
       const cardChildren: Paragraph[] = []
       const cardColour = colourForScore(cs.score)
@@ -380,6 +387,42 @@ function buildScoreSummarySection(opts: {
       // Small spacer between cards (the site uses space-y-3).
       out.push(new Paragraph({ spacing: { before: 100, after: 0 }, children: [new TextRun({ text: '', font: FONT })] }))
     }
+  }
+
+  // Considerations section - hard-gate eligibility flags (location / work
+  // rights) that are checked but kept out of the score. Prefer the
+  // recruiter-confirmed values on the row; otherwise derive from the AI's
+  // gate scores. Only renders when the rubric actually has a hard gate.
+  const considerations = rubric
+    ? deriveConsiderations(rubric.criteria, Array.isArray(screening.criteria_scores) ? screening.criteria_scores : [], screening.considerations)
+    : []
+  if (considerations.length > 0) {
+    out.push(new Paragraph({
+      spacing: { before: 200, after: 160 },
+      children: [new TextRun({
+        text: 'CONSIDERATIONS',
+        bold: true,
+        size: 18,
+        color: '6B6B66',
+        characterSpacing: 30,
+        font: FONT,
+      })],
+    }))
+    for (const c of considerations) {
+      out.push(new Paragraph({
+        spacing: { before: 0, after: 80 },
+        tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        children: [
+          new TextRun({ text: c.label, bold: true, size: 22, font: FONT, color: '111111' }),
+          new TextRun({ text: '\t', font: FONT }),
+          new TextRun({ text: CONSIDERATION_LABELS[c.status], bold: true, size: 22, font: FONT, color: MUTED_INK }),
+        ],
+      }))
+    }
+    out.push(new Paragraph({
+      spacing: { before: 40, after: 200 },
+      children: [new TextRun({ text: 'Eligibility checks - not part of the score.', italics: true, size: 18, color: MUTED_INK, font: FONT })],
+    }))
   }
 
   return out
