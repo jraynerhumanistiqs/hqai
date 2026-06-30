@@ -32,6 +32,23 @@ export default function Step5Launch() {
       setError('Finish the role profile first - I need the title and must-have skills before I can hand this off.')
       return
     }
+    // Persist this campaign so it appears under "Reuse a recent campaign"
+    // on Step 1 next time. The real flow hands off to the CV Scoring Agent
+    // (which creates the prescreen session later), so /api/campaign/launch -
+    // the only other writer of the campaigns table - is never reached.
+    // Fire-and-forget: a failure here must not block the handoff.
+    if (state.job_ad_draft) {
+      void fetch('/api/campaign/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role_profile: profile,
+          job_ad_draft: state.job_ad_draft,
+          distribution_plan: state.distribution_plan,
+          coach_score: state.coach_score ?? null,
+        }),
+      }).catch(() => {/* non-fatal - recent campaigns just won't show this one */})
+    }
     // Full job ad content carried through so the rubric-suggestion
     // endpoint has the same context the recruiter just iterated on
     // (overview / about_us / responsibilities / requirements /

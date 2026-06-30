@@ -25,6 +25,11 @@ interface BatchBody {
   // legacy behaviour kicks in: create a brand new prescreen session
   // and redirect to it (standalone CV Scoring Agent flow).
   target_session_id?: string
+  // Interview type(s) the recruiter chose (e.g. in Campaign Coach Step 5).
+  // Carried through so a new Shortlist role honours Video + Phone instead
+  // of silently defaulting to video-only. Ignored when attaching to an
+  // existing session (that session already has its own choice).
+  interview_types?: Array<'video' | 'phone'>
 }
 
 export async function POST(req: NextRequest) {
@@ -95,20 +100,46 @@ export async function POST(req: NextRequest) {
           description: c.anchors?.['3'] ? `${c.label} - benchmark: ${c.anchors['3']}` : c.label,
         }))
 
-      const { data: created, error: sessionErr } = await supabaseAdmin
-        .from('prescreen_sessions')
-        .insert({
-          company: business.name,
-          role_title: body.role_title || rubric.role,
-          questions,
-          time_limit_seconds: 90,
-          status: 'active',
-          created_by: user.id,
-          rubric_mode: 'custom',
-          custom_rubric: customRubric,
-        })
-        .select()
-        .single()
+      // Honour the recruiter's interview-type choice (Campaign Coach Step 5
+      // passes Video + Phone). Default to video when unspecified. Persisted
+      // with a retry-without-column fallback, mirroring the prescreen
+      // sessions route, in case the phone_screen_support migration hasn't
+      // been applied to this env.
+      const interviewTypes: string[] = Array.isArray(body.interview_types) && body.interview_types.length > 0
+        ? body.interview_types.filter(t => t === 'video' || t === 'phone')
+        : ['video']
+      const baseSession = {
+        company: business.name,
+        role_title: body.role_title || rubric.role,
+        questions,
+        time_limit_seconds: 90,
+        status: 'active',
+        created_by: user.id,
+        rubric_mode: 'custom',
+        custom_rubric: customRubric,
+      }
+
+      let created: { id: string; role_title: string; slug?: string | null } | null = null
+      let sessionErr: { message?: string } | null = null
+      {
+        const full = await supabaseAdmin
+          .from('prescreen_sessions')
+          .insert({ ...baseSession, interview_types: interviewTypes.length > 0 ? interviewTypes : ['video'] })
+          .select()
+          .single()
+        if (full.error && full.error.message?.includes('interview_types')) {
+          const legacy = await supabaseAdmin
+            .from('prescreen_sessions')
+            .insert(baseSession)
+            .select()
+            .single()
+          created = legacy.data
+          sessionErr = legacy.error
+        } else {
+          created = full.data
+          sessionErr = full.error
+        }
+      }
       if (sessionErr || !created) {
         console.error('[batch-handoff] session insert', sessionErr)
         return NextResponse.json({ error: 'Failed to create Shortlist role' }, { status: 500 })

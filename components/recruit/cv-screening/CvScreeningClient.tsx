@@ -95,6 +95,10 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     title: string
     jd: string
     fromCampaignCoach: boolean
+    // Carried from Campaign Coach Step 5 so the eventual Shortlist role
+    // honours the recruiter's Video + Phone choice instead of defaulting
+    // to video-only.
+    interviewTypes?: Array<'video' | 'phone'>
   } | null>(null)
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -171,7 +175,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       if (data.interview_types?.length) {
         lines.push('', `Interview types: ${data.interview_types.join(', ')}`)
       }
-      setCampaignHandoff({ title: data.title, jd: lines.join('\n'), fromCampaignCoach: true })
+      setCampaignHandoff({ title: data.title, jd: lines.join('\n'), fromCampaignCoach: true, interviewTypes: data.interview_types })
       setShowNewRubric(true)
     } catch {
       // sessionStorage parse / read failure - silently skip the handoff
@@ -248,6 +252,11 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           // new one. The role's Step 2 (Prescreen) view picks them up
           // immediately.
           ...(prescreenSessionId ? { target_session_id: prescreenSessionId } : {}),
+          // New-session path only: carry the Campaign Coach interview-type
+          // choice (Video + Phone) through so the role isn't video-only.
+          ...(!prescreenSessionId && campaignHandoff?.interviewTypes?.length
+            ? { interview_types: campaignHandoff.interviewTypes }
+            : {}),
         }),
       })
       const data = await res.json()
