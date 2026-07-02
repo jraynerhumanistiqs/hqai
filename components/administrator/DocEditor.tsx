@@ -28,6 +28,7 @@ import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { Placeholder } from '@tiptap/extension-placeholder'
 import { useEffect, useImperativeHandle, forwardRef, useRef, useState, useCallback } from 'react'
+import EditorSkeleton from './EditorSkeleton'
 
 // FontSize ships with @tiptap/extension-text-style in v3.
 
@@ -145,7 +146,11 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
   }, [editor, linkUrl])
 
   if (!editor) {
-    return <div className="text-xs text-ink-muted p-6">Loading editor...</div>
+    // TipTap is initialising (immediatelyRender:false returns a null editor
+    // on the first render). Show the same skeleton the lazy fallback uses so
+    // the load reads as one continuous "preparing" state until the editable
+    // paper is ready.
+    return <EditorSkeleton />
   }
 
   // Grid layout with explicit auto rows for the toolbar / optional
@@ -173,6 +178,22 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
           tables and resizable images.
           Fix #5 (M2): hardcoded hex -> CSS vars. */}
       <style>{`
+        /* The page canvas is a white "paper" - a WYSIWYG preview of the
+           printed PDF - so it must ALWAYS render in the light/print palette,
+           even when the dashboard is in dark mode. Re-declaring the theme
+           tokens locally makes every token-based colour inside the paper
+           (body text, dividers, table headers, the header/footer bands)
+           resolve to readable dark-on-white values instead of the dark-theme
+           ink, which was showing as near-invisible light grey on the page. */
+        .doc-editor-page {
+          --ink: #1F1F1F;
+          --ink-soft: #4D4D4D;
+          --ink-muted: #9A9A99;
+          --border: #E2E2E2;
+          --bg-soft: #F7F7F2;
+          color: #1F1F1F;
+        }
+        .doc-editor-page .ProseMirror { color: #1F1F1F; }
         .doc-editor-page .ProseMirror { outline: none; }
         .doc-editor-page .ProseMirror p { margin: 0 0 8px; }
         .doc-editor-page .ProseMirror ul {

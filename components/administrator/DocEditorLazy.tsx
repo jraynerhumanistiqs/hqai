@@ -16,12 +16,13 @@
 // shift; the editor sits inside a fixed-height container in both callers).
 import { lazy, Suspense, forwardRef } from 'react'
 import type { DocEditorHandle, DocEditorProps } from './DocEditor'
+import EditorSkeleton from './EditorSkeleton'
 
 const LazyDocEditor = lazy(() => import('./DocEditor'))
 
 const DocEditorLazy = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditorLazy(props, ref) {
   return (
-    <Suspense fallback={<div className="min-h-[400px] w-full animate-pulse rounded-lg bg-bg-soft" aria-hidden="true" />}>
+    <Suspense fallback={<EditorSkeleton />}>
       <LazyDocEditor {...props} ref={ref} />
     </Suspense>
   )
