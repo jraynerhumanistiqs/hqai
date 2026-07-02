@@ -7,7 +7,7 @@
 // wording before exporting a fresh PDF.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import DocEditor, { type DocEditorHandle } from '@/components/administrator/DocEditor'
+import DocEditor, { type DocEditorHandle } from '@/components/administrator/DocEditorLazy'
 
 interface Doc {
   id: string

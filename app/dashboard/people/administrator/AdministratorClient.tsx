@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TemplateFormField } from '@/lib/template-ip'
 import { Button } from '@/components/ui/button'
-import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/administrator/DocEditor'
+import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/administrator/DocEditorLazy'
 
 interface TemplateLite {
   id: string

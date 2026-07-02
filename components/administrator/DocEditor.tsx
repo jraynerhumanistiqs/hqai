@@ -73,13 +73,13 @@ const DEFAULT_SETTINGS: PageSettings = {
   footerHtml: '',
 }
 
-interface Props {
+export interface DocEditorProps {
   initialHtml: string
   initialSettings?: Partial<PageSettings>
   onChange?: (html: string) => void
 }
 
-const DocEditor = forwardRef<DocEditorHandle, Props>(function DocEditor(
+const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor(
   { initialHtml, initialSettings, onChange },
   ref,
 ) {

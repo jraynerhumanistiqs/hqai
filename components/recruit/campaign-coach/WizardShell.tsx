@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useReducer } from 'react'
+import dynamic from 'next/dynamic'
 import {
   WizardContext,
   initialWizardState,
@@ -11,10 +12,15 @@ import { stageForStep } from '@/lib/campaign-tips'
 import RecruitFlowRail, { type FlowStep } from '../RecruitFlowRail'
 import TipBot from './TipBot'
 import Step1Brief from './Step1Brief'
-import Step2Extract from './Step2Extract'
-import Step3DraftCoach from './Step3DraftCoach'
-import Step4Distribution from './Step4Distribution'
-import Step5Launch from './Step5Launch'
+// The wizard renders one step at a time and always starts on Step 1, so only
+// Step 1 is needed on load. Steps 2-5 are code-split and fetched as the
+// recruiter advances - keeping the campaign-coach page's initial bundle to
+// the shell + Step 1 instead of all five step screens. ssr:false: only the
+// active step is ever rendered (state.step === N), all client-side.
+const Step2Extract = dynamic(() => import('./Step2Extract'), { ssr: false })
+const Step3DraftCoach = dynamic(() => import('./Step3DraftCoach'), { ssr: false })
+const Step4Distribution = dynamic(() => import('./Step4Distribution'), { ssr: false })
+const Step5Launch = dynamic(() => import('./Step5Launch'), { ssr: false })
 
 // The five wizard steps as a calm left progress rail. Labels are unchanged
 // from the old pill bar; each carries one line of new-user guidance.

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
 import {
@@ -11,10 +12,16 @@ import {
   effectiveBand,
   effectiveNextAction,
 } from '@/lib/cv-screening-types'
-import CandidateScorecardPanel from './CandidateScorecardPanel'
-import NewRubricModal from './NewRubricModal'
-import EditRubricModal from './EditRubricModal'
-import OverrideModal from './OverrideModal'
+// The scorecard drawer (944 lines) and the three rubric/override modals only
+// render on interaction (click a candidate / edit a rubric / override a
+// score). Code-split them with next/dynamic so their JS stays out of the CV
+// Screening page's initial bundle and is fetched the first time each opens.
+// ssr:false is correct here - they render nothing until opened, so there's
+// no server HTML to produce.
+const CandidateScorecardPanel = dynamic(() => import('./CandidateScorecardPanel'), { ssr: false })
+const NewRubricModal = dynamic(() => import('./NewRubricModal'), { ssr: false })
+const EditRubricModal = dynamic(() => import('./EditRubricModal'), { ssr: false })
+const OverrideModal = dynamic(() => import('./OverrideModal'), { ssr: false })
 import RecruitFlowRail, { type FlowStep } from '@/components/recruit/RecruitFlowRail'
 
 interface CustomRubricRow {

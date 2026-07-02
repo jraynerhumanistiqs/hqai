@@ -1,12 +1,17 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import type { PrescreenSession, CandidateResponse } from '@/lib/recruit-types'
-import { CreateRoleModal } from './CreateRoleModal'
-import { EditRoleModal } from './EditRoleModal'
-import { DeleteRoleConfirm } from './DeleteRoleConfirm'
 import { RoleDetail } from './RoleDetail'
-import { BinPanel } from './BinPanel'
+// The create / edit / delete-role modals and the bin panel only render when
+// the recruiter opens them, so keep their JS out of the recruit dashboard's
+// initial bundle - each chunk loads the first time it's opened. (Named
+// exports, so map through .then. ssr:false - nothing to render until open.)
+const CreateRoleModal = dynamic(() => import('./CreateRoleModal').then(m => m.CreateRoleModal), { ssr: false })
+const EditRoleModal = dynamic(() => import('./EditRoleModal').then(m => m.EditRoleModal), { ssr: false })
+const DeleteRoleConfirm = dynamic(() => import('./DeleteRoleConfirm').then(m => m.DeleteRoleConfirm), { ssr: false })
+const BinPanel = dynamic(() => import('./BinPanel').then(m => m.BinPanel), { ssr: false })
 
 export function RecruitDashboard() {
   const searchParams = useSearchParams()
