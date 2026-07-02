@@ -31,6 +31,25 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Barrel-file optimisation. These packages export everything through a
+  // single index (a "barrel"), so a plain `import { X } from 'pkg'` can pull
+  // the whole package into the bundle. optimizePackageImports rewrites those
+  // to direct deep imports at build time, so only the pieces actually used
+  // ship. TipTap (the doc editor) and Radix are the heaviest modular client
+  // libraries in the app; trimming them shrinks the editor + dialog/menu
+  // surfaces' JS.
+  experimental: {
+    optimizePackageImports: [
+      '@tiptap/react',
+      '@tiptap/starter-kit',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+    ],
+  },
   // Vercel / Next bundles server modules through Webpack which relocates
   // node_modules into the lambda. @sparticuz/chromium ships a `bin/`
   // directory with the Chromium binary (.tar.br) that the relocator

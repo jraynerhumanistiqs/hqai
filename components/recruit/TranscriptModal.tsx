@@ -1,6 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx'
+// `docx` is a large (~hundreds of KB) library. Import it as TYPES ONLY here
+// (erased at build, zero runtime cost) and pull the runtime module in via a
+// dynamic import inside downloadDocx below - so the recruit dashboard's
+// initial bundle no longer ships docx just to power a rarely-clicked
+// "download transcript" button. The chunk is fetched on first download.
+import type { Paragraph } from 'docx'
 
 interface Props {
   open: boolean
@@ -32,6 +37,8 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
   async function downloadDocx() {
     setDownloading(true)
     try {
+      // Load docx on demand - keeps it out of the initial client bundle.
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx')
       // Build a properly-formatted Word doc with branded headings.
       const headerChildren: Paragraph[] = [
         new Paragraph({
