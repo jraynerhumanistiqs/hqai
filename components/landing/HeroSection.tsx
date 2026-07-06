@@ -59,8 +59,14 @@ export default function HeroSection() {
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
-        {/* Left: copy block */}
-        <div className="max-w-xl">
+        {/* Left: copy block.
+            relative z-20 lifts this column's stacking context above the
+            right-hand preview column. Both columns get a transform from the
+            reveal animation, so each is its own stacking context painting in
+            DOM order - without this the HQ People card (later in the DOM)
+            covers the "busywork off your plate" popover where it opens into
+            the gap between the columns. */}
+        <div className="relative z-20 max-w-xl">
           <p className={`mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay ${reveal(stage >= 1)}`}>
             <span aria-hidden className="h-px w-5 bg-clay" />
             Built for Australian small business
