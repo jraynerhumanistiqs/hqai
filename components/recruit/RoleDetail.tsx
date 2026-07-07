@@ -691,17 +691,15 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           )}
 
           <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-ink uppercase tracking-widest">Candidate Invite Link</p>
-              {(session.interview_types?.includes('phone') ?? false) && !phoneRecorderOpen && (
-                <button
-                  onClick={() => setPhoneRecorderOpen(true)}
-                  className="text-xs font-bold text-ink hover:underline"
-                  title="Record a phone screen instead of sending the video invite link"
-                >
-                  + Record phone screen
-                </button>
-              )}
+            <div className="mb-3">
+              <p className="text-xs font-bold text-ink uppercase tracking-widest">
+                {(session.interview_types?.includes('phone') ?? false)
+                  ? 'Video pre-screen link'
+                  : 'Candidate invite link'}
+              </p>
+              <p className="text-[11px] text-mid mt-0.5">
+                Send this link so the candidate records their video answers in their browser.
+              </p>
             </div>
             {editingSlug ? (
               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -762,6 +760,27 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               <span className="text-mid text-xs">&middot;</span>
               <p className="text-xs text-mid">Or copy and share the link above</p>
             </div>
+
+            {/* Phone screen - shown as its own clear option whenever the role
+                includes phone screening, so when a recruiter picked BOTH
+                video + phone in Campaign Coach / role setup, both methods are
+                visible here (not just the video link). Opens the recorder. */}
+            {(session.interview_types?.includes('phone') ?? false) && !phoneRecorderOpen && (
+              <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-ink uppercase tracking-widest">Phone screen</p>
+                  <p className="text-[11px] text-mid mt-0.5">
+                    Prefer to call this candidate? Record the phone screen and we&apos;ll transcribe and score it against the same questions.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPhoneRecorderOpen(true)}
+                  className="flex-shrink-0 text-xs font-bold px-4 py-2 rounded-full bg-ink text-bg-elevated hover:bg-charcoal transition-colors"
+                >
+                  Record phone screen
+                </button>
+              </div>
+            )}
 
             {showInvite && (
               <div className="mt-3 pt-3 border-t border-border space-y-3">

@@ -118,27 +118,40 @@ export function RecruitDashboard() {
     setDeleteTarget(null)
   }
 
-  async function handlePatchResponse(id: string, patch: Partial<CandidateResponse>) {
-    const res = await fetch(`/api/prescreen/responses/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    })
-    // Prefer the server's returned row. The patch we send can contain
-    // virtual verbs (e.g. shortlist_action: 'promote') that the route
-    // translates into real columns (shortlisted_at + shortlisted_by) -
-    // merging the raw patch would never reflect those, so the Shortlist
-    // and Decision steps wouldn't update. Fall back to the optimistic
-    // patch only if the response body is unusable.
-    let merged: Partial<CandidateResponse> | null = null
+  async function handlePatchResponse(
+    id: string,
+    patch: Partial<CandidateResponse> & { shortlist_action?: 'promote' | 'remove' },
+  ) {
+    // Optimistic update FIRST so the UI reflects the change instantly - the
+    // "Move to interview" / "Remove" buttons in Step 3 gate on shortlisted_at,
+    // so we translate the shortlist_action verb into that column locally
+    // rather than waiting on (and depending on) the server echoing it back.
+    const optimistic: Record<string, unknown> = { ...patch }
+    delete optimistic.shortlist_action
+    if (patch.shortlist_action === 'promote') optimistic.shortlisted_at = new Date().toISOString()
+    else if (patch.shortlist_action === 'remove') optimistic.shortlisted_at = null
+    setResponses(prev => prev.map(r => r.id === id ? { ...r, ...(optimistic as Partial<CandidateResponse>) } : r))
+
     try {
-      const data = await res.json()
-      if (data && data.response) merged = data.response as Partial<CandidateResponse>
-    } catch {
-      // ignore - fall back below
+      const res = await fetch(`/api/prescreen/responses/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      // Reconcile with the server's returned row when the write succeeded -
+      // it carries the derived columns (shortlisted_at/by, decision_at/by).
+      // On failure we keep the optimistic state rather than silently reverting.
+      if (res.ok) {
+        const data = await res.json().catch(() => null)
+        if (data && data.response) {
+          setResponses(prev => prev.map(r => r.id === id ? { ...r, ...(data.response as Partial<CandidateResponse>) } : r))
+        }
+      } else {
+        console.error('[handlePatchResponse] PATCH failed', res.status, await res.text().catch(() => ''))
+      }
+    } catch (err) {
+      console.error('[handlePatchResponse]', err)
     }
-    const applied = merged ?? patch
-    setResponses(prev => prev.map(r => r.id === id ? { ...r, ...applied } : r))
   }
 
   async function handleShareResponse(id: string): Promise<string> {

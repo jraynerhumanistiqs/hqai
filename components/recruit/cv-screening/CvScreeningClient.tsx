@@ -1600,6 +1600,11 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                 className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg text-ink min-w-[200px]"
               >
                 <option value="">Choose criteria...</option>
+                {/* Standard/starter rubrics are intentionally NOT offered in
+                    the Shortlist Agent (in-role) - a role should be scored on
+                    criteria built for it, so recruiters pick a saved rubric or
+                    create new criteria. The generic starter rubrics only live
+                    on the standalone Quick CV score surface. */}
                 {customFamilies.length > 0 && (
                   <optgroup label="Saved criteria">
                     {customFamilies.flatMap(fam =>
@@ -1611,11 +1616,6 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     )}
                   </optgroup>
                 )}
-                <optgroup label="Standard rubrics">
-                  {ALL_RUBRICS.map(r => (
-                    <option key={r.rubric_id} value={r.rubric_id}>{r.role}</option>
-                  ))}
-                </optgroup>
               </select>
               {activeCustom && (
                 <button

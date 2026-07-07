@@ -54,6 +54,9 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
   const [busyId, setBusyId] = useState<string | null>(null)
   const [shareUrls, setShareUrls] = useState<Record<string, string>>({})
   const [copied, setCopied] = useState<string | null>(null)
+  // Multi-select for bulk "Move to interview" across the candidate pool.
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   const shortlisted = useMemo(() => responses.filter(isShortlisted), [responses])
   const otherCandidates = useMemo(() => responses.filter(r => !isShortlisted(r)), [responses])
@@ -64,6 +67,36 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
       await onPatchResponse(id, { shortlist_action: action })
     } finally {
       setBusyId(null)
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelected(prev =>
+      prev.size === otherCandidates.length && otherCandidates.length > 0
+        ? new Set()
+        : new Set(otherCandidates.map(r => r.id)),
+    )
+  }
+
+  async function moveSelectedToInterview() {
+    if (selected.size === 0) return
+    setBulkBusy(true)
+    try {
+      // Move each selected candidate. Run in parallel - each is an
+      // independent PATCH + optimistic update in the parent.
+      await Promise.all(Array.from(selected).map(id => onPatchResponse(id, { shortlist_action: 'promote' })))
+      setSelected(new Set())
+    } finally {
+      setBulkBusy(false)
     }
   }
 
@@ -141,35 +174,69 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
       </div>
 
       <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-border">
-          <p className="text-sm font-bold text-ink">Candidate pool ({otherCandidates.length})</p>
-          <p className="text-xs text-mid mt-1">Move anyone here into the interview list.</p>
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-ink">Candidate pool ({otherCandidates.length})</p>
+            <p className="text-xs text-mid mt-1">Tick a few and move them together, or move one at a time.</p>
+          </div>
+          {selected.size > 0 && (
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={moveSelectedToInterview}
+              className="flex-shrink-0 text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-50 whitespace-nowrap"
+            >
+              {bulkBusy ? 'Moving...' : `Move ${selected.size} to interview`}
+            </button>
+          )}
         </div>
         {otherCandidates.length === 0 ? (
           <div className="px-5 py-8 text-center">
             <p className="text-sm text-mid">No other candidates in this role yet.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {otherCandidates.map(r => (
-              <li key={r.id} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-ink truncate">{r.candidate_name || 'Unnamed candidate'}</p>
-                  <p className="text-xs text-mid truncate">
-                    {friendlyStatus(r)}{r.rating ? ` - ${r.rating}/5` : ''}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={busyId === r.id}
-                  onClick={() => toggleShortlist(r.id, 'promote')}
-                  className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-50"
-                >
-                  Move to interview
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="px-5 py-2.5 border-b border-border flex items-center gap-3 bg-bg">
+              <input
+                type="checkbox"
+                checked={selected.size === otherCandidates.length && otherCandidates.length > 0}
+                ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < otherCandidates.length }}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 accent-ink"
+                aria-label="Select all candidates"
+              />
+              <span className="text-xs font-bold text-mid">
+                {selected.size > 0 ? `${selected.size} selected` : 'Select all'}
+              </span>
+            </div>
+            <ul className="divide-y divide-border">
+              {otherCandidates.map(r => (
+                <li key={r.id} className="px-5 py-3 flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(r.id)}
+                    onChange={() => toggleSelect(r.id)}
+                    className="w-4 h-4 accent-ink flex-shrink-0"
+                    aria-label={`Select ${r.candidate_name || 'candidate'}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-ink truncate">{r.candidate_name || 'Unnamed candidate'}</p>
+                    <p className="text-xs text-mid truncate">
+                      {friendlyStatus(r)}{r.rating ? ` - ${r.rating}/5` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busyId === r.id || bulkBusy}
+                    onClick={() => toggleShortlist(r.id, 'promote')}
+                    className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-50"
+                  >
+                    Move to interview
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </div>

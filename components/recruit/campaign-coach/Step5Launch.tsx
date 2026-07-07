@@ -304,12 +304,13 @@ export default function Step5Launch() {
           <li className="flex gap-3">
             <NextStepNumber>1</NextStepNumber>
             <p className="text-sm text-mid leading-relaxed pt-0.5">
-              Copy the ad text above and paste it into your job board of choice.{' '}
-              <span className="inline-flex items-center gap-1.5 bg-clay-soft text-clay-ink text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full align-middle ml-1">
-                SEEK, LinkedIn &amp; Indeed - in development
-              </span>{' '}
-              We're building direct posting so you won't need to copy and paste - for now, this is
-              the quickest way to get the role live.
+              Copy the ad text above and paste it into your job board of choice - SEEK, LinkedIn,
+              Indeed, or wherever you post roles.
+              <InfoDot label="Direct job board posting - in development">
+                We&apos;re building direct posting to SEEK, LinkedIn and Indeed so you won&apos;t need
+                to copy and paste. It&apos;s in development - for now, pasting the ad in is the
+                quickest way to get the role live.
+              </InfoDot>
             </p>
           </li>
           <li className="flex gap-3">
@@ -377,6 +378,38 @@ function NextStepNumber({ children }: { children: React.ReactNode }) {
     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-clay-soft text-clay-ink text-xs font-bold flex items-center justify-center">
       {children}
     </div>
+  )
+}
+
+// Inline info dot with a small popover - opens on hover, focus or tap.
+// Used to tuck the "direct posting is in development" note behind an icon
+// at the end of step 1 so the step reads cleanly.
+function InfoDot({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <span className="relative inline-block align-middle ml-1.5">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => setOpen(v => !v)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onBlur={() => setOpen(false)}
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-clay-soft text-clay-ink text-[10px] font-bold leading-none hover:bg-clay/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-clay"
+      >
+        i
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          className="absolute left-1/2 top-full z-30 mt-2 w-64 max-w-[80vw] -translate-x-1/2 rounded-xl border border-border bg-bg-elevated px-3 py-2.5 text-left shadow-modal"
+        >
+          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-clay-ink">{label}</span>
+          <span className="block text-xs font-normal normal-case leading-relaxed text-mid">{children}</span>
+        </span>
+      )}
+    </span>
   )
 }
 
