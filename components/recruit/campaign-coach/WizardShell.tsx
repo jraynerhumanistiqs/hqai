@@ -19,17 +19,19 @@ import Step1Brief from './Step1Brief'
 // active step is ever rendered (state.step === N), all client-side.
 const Step2Extract = dynamic(() => import('./Step2Extract'), { ssr: false })
 const Step3DraftCoach = dynamic(() => import('./Step3DraftCoach'), { ssr: false })
-const Step4Distribution = dynamic(() => import('./Step4Distribution'), { ssr: false })
+// Step5Launch is the FINAL step (step 4). The old "Distribution" stage was
+// removed - job-board posting isn't part of the flow - so Launch renumbered
+// from 5 to 4. The filename is kept to avoid churn across the wizard.
 const Step5Launch = dynamic(() => import('./Step5Launch'), { ssr: false })
 
-// The five wizard steps as a calm left progress rail. Labels are unchanged
-// from the old pill bar; each carries one line of new-user guidance.
+// The four wizard steps as a calm left progress rail. Each carries one line
+// of new-user guidance. (Distribution was removed: HQ Recruit doesn't post to
+// job boards yet, so the final step just hands the finished ad off.)
 const WIZARD_STEPS: Omit<FlowStep, 'done'>[] = [
   { id: 1, label: 'Brief',         hint: 'Tell the coach about the role' },
   { id: 2, label: 'Role profile',  hint: 'Confirm the extracted details' },
   { id: 3, label: 'Draft & Coach', hint: 'Approve each block' },
-  { id: 4, label: 'Distribution',  hint: 'Pick where it posts' },
-  { id: 5, label: 'Launch',        hint: 'Go live + prefilled links' },
+  { id: 4, label: 'Finish',        hint: 'Your ad + screening, ready to use' },
 ]
 
 export default function WizardShell({ business }: { business: CampaignBusinessContext }) {
@@ -111,7 +113,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
   )
 
   const callLaunch = useCallback(async () => {
-    if (!state.role_profile || !state.job_ad_draft || !state.distribution_plan) return null
+    if (!state.role_profile || !state.job_ad_draft) return null
     dispatch({ type: 'SET_STREAMING', streaming: true })
     try {
       const res = await fetch('/api/campaign/launch', {
@@ -120,7 +122,6 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         body: JSON.stringify({
           role_profile: state.role_profile,
           job_ad_draft: state.job_ad_draft,
-          distribution_plan: state.distribution_plan,
           options: {
             question_count: 5,
             rubric_mode: 'auto',
@@ -135,9 +136,9 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
     } finally {
       dispatch({ type: 'SET_STREAMING', streaming: false })
     }
-  }, [state.role_profile, state.job_ad_draft, state.distribution_plan])
+  }, [state.role_profile, state.job_ad_draft])
 
-  const goStep = (s: 1 | 2 | 3 | 4 | 5) => dispatch({ type: 'SET_STEP', step: s })
+  const goStep = (s: 1 | 2 | 3 | 4) => dispatch({ type: 'SET_STEP', step: s })
 
   // Reachability for the left rail - ported verbatim from the old
   // StepProgress pill bar so jump-to-step behaviour is unchanged. A step is
@@ -145,14 +146,12 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
   // data needed to render it usefully.
   const hasRoleProfile = !!state.role_profile
   const hasJobAd = !!state.job_ad_draft
-  const hasDistribution = !!state.distribution_plan
   const canNavigate = (step: FlowStep): boolean => {
     const n = step.id
     if (n <= state.step) return n !== state.step
     if (n === 2) return hasRoleProfile
     if (n === 3) return hasRoleProfile && hasJobAd
-    if (n === 4) return hasRoleProfile && hasJobAd && hasDistribution
-    if (n === 5) return hasRoleProfile && hasJobAd && hasDistribution
+    if (n === 4) return hasRoleProfile && hasJobAd
     return false
   }
 
@@ -167,8 +166,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       case 1: return state.briefText.trim().length > 0
       case 2: return !!state.role_profile
       case 3: return !!state.job_ad_draft && allBlocksApproved(state)
-      case 4: return !!state.distribution_plan
-      case 5: return false
+      case 4: return false
       default: return false
     }
   })()
@@ -187,9 +185,8 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
         // explicit "review the details" that the user chooses to click.
         return isReturningToStep1 ? 'Review the details →' : 'Brief the coach →'
       case 2: return 'Looks good - draft it →'
-      case 3: return 'All approved - continue →'
-      case 4: return 'Get prefilled links →'
-      case 5: return 'Launch campaign →'
+      case 3: return 'All approved - finish →'
+      case 4: return 'Finish'
     }
   })()
 
@@ -272,19 +269,16 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
       }
       case 3: {
         if (!allBlocksApproved(state)) return
+        // Step 3 approved -> Finish (step 4, the final launch/handoff screen).
         dispatch({ type: 'SET_STEP', step: 4 })
         break
       }
-      case 4: {
-        dispatch({ type: 'SET_STEP', step: 5 })
-        break
-      }
-      case 5: break
+      case 4: break
     }
   }
 
   const onBack = () => {
-    if (state.step > 1) goStep(((state.step - 1) as 1 | 2 | 3 | 4 | 5))
+    if (state.step > 1) goStep(((state.step - 1) as 1 | 2 | 3 | 4))
   }
 
   return (
@@ -298,7 +292,7 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
           blurb={business.name ? `For ${business.name}.` : 'AI-coached recruitment campaign.'}
           steps={railSteps}
           current={state.step}
-          onStepChange={(id) => goStep(id as 1 | 2 | 3 | 4 | 5)}
+          onStepChange={(id) => goStep(id as 1 | 2 | 3 | 4)}
           canNavigate={canNavigate}
         />
 
@@ -313,12 +307,11 @@ export default function WizardShell({ business }: { business: CampaignBusinessCo
               {state.step === 1 && <Step1Brief />}
               {state.step === 2 && <Step2Extract />}
               {state.step === 3 && <Step3DraftCoach />}
-              {state.step === 4 && <Step4Distribution />}
-              {state.step === 5 && <Step5Launch />}
+              {state.step === 4 && <Step5Launch />}
             </div>
           </div>
 
-          {state.step !== 5 && (
+          {state.step !== 4 && (
             <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-bg-elevated flex-shrink-0">
               <button
                 onClick={onBack}
@@ -365,12 +358,8 @@ function applyOutput(
   if (step === 1) {
     if (output.role_profile) dispatch({ type: 'SET_ROLE_PROFILE', profile: output.role_profile })
     if (output.brief) dispatch({ type: 'SET_BRIEF', brief: output.brief })
-    if (output.award_suggestion && output.role_profile) {
-      dispatch({
-        type: 'SET_ROLE_PROFILE',
-        profile: { ...output.role_profile, award: output.award_suggestion },
-      })
-    }
+    // Award allocation removed from Campaign Coach - the coach no longer
+    // pins an award onto the role, so output.award_suggestion is ignored.
   }
   if (step === 2) {
     if (output.role_profile) dispatch({ type: 'SET_ROLE_PROFILE', profile: output.role_profile })
@@ -382,8 +371,6 @@ function applyOutput(
     if (output.coach_score) dispatch({ type: 'SET_COACH_SCORE', score: output.coach_score })
     if (output.overall !== undefined) dispatch({ type: 'SET_COACH_SCORE', score: output })
   }
-  if (step === 4) {
-    if (output.distribution_plan) dispatch({ type: 'SET_DISTRIBUTION', plan: output.distribution_plan })
-    if (output.boards) dispatch({ type: 'SET_DISTRIBUTION', plan: output })
-  }
+  // Step 4 is now the final Finish/handoff screen - no AI draft call, so no
+  // applyOutput branch. (The old step 4 built a distribution plan; removed.)
 }

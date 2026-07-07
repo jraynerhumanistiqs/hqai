@@ -36,18 +36,19 @@ export interface RecruitmentTip {
 
 export const TIP_STAGES: TipStage[] = ['brief', 'role_profile', 'draft', 'distribution', 'launch']
 
-// Campaign Coach wizard step (1..5) -> stage. One stage per step:
+// Campaign Coach wizard step (1..4) -> stage. The Distribution stage was
+// removed, so step 4 is now Finish and maps to the 'launch' tips (go live +
+// handle candidates well). 'distribution' stays in the type/dataset for
+// lineage but is no longer surfaced by a step.
 //   1 Brief         -> brief        (plan the role + how you will measure success)
 //   2 Role profile  -> role_profile (pin down title, pay, must-haves, criteria)
 //   3 Draft & Coach -> draft        (write the job ad)
-//   4 Distribution  -> distribution (where it posts)
-//   5 Launch        -> launch       (go live + handle candidates well)
+//   4 Finish        -> launch       (go live + handle candidates well)
 export const STEP_TO_STAGE: Record<number, TipStage> = {
   1: 'brief',
   2: 'role_profile',
   3: 'draft',
-  4: 'distribution',
-  5: 'launch',
+  4: 'launch',
 }
 
 export function stageForStep(step: number): TipStage {

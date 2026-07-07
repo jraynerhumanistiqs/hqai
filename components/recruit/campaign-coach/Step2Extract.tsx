@@ -27,55 +27,9 @@ const REMOTE_LABELS: Record<'no' | 'hybrid' | 'full', string> = {
 
 const AU_STATES: AU_State[] = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT']
 
-// Alphabetised by name. AWARD_FREE pinned to the bottom so users see all real
-// awards first when scanning. Source URLs use FWO's library (library.fairwork
-// .gov.au/award/?krn=...) which lands directly on the award page, unlike the
-// FWC search-results redirect which often shows a 404-like search interstitial.
-const COMMON_AWARDS = [
-  { code: 'MA000018', name: 'Aged Care Award' },
-  { code: 'MA000118', name: 'Animal Care and Veterinary Services Award' },
-  { code: 'MA000079', name: 'Architects Award' },
-  { code: 'MA000019', name: 'Banking, Finance and Insurance Award' },
-  { code: 'MA000020', name: 'Building and Construction General On-site Award' },
-  { code: 'MA000120', name: "Children's Services Award" },
-  { code: 'MA000022', name: 'Cleaning Services Award' },
-  { code: 'MA000002', name: 'Clerks - Private Sector Award' },
-  { code: 'MA000076', name: 'Educational Services (Schools) General Staff Award' },
-  { code: 'MA000077', name: 'Educational Services (Teachers) Award' },
-  { code: 'MA000025', name: 'Electrical, Electronic and Communications Contracting Award' },
-  { code: 'MA000003', name: 'Fast Food Industry Award' },
-  { code: 'MA000004', name: 'General Retail Industry Award' },
-  { code: 'MA000005', name: 'Hair and Beauty Industry Award' },
-  { code: 'MA000027', name: 'Health Professionals and Support Services Award' },
-  { code: 'MA000009', name: 'Hospitality Industry (General) Award' },
-  { code: 'MA000116', name: 'Legal Services Award' },
-  { code: 'MA000010', name: 'Manufacturing and Associated Industries and Occupations Award' },
-  { code: 'MA000093', name: 'Marine Tourism and Charter Vessels Award' },
-  { code: 'MA000031', name: 'Medical Practitioners Award' },
-  { code: 'MA000104', name: 'Miscellaneous Award' },
-  { code: 'MA000034', name: 'Nurses Award' },
-  { code: 'MA000012', name: 'Pharmacy Industry Award' },
-  { code: 'MA000036', name: 'Plumbing and Fire Sprinklers Award' },
-  { code: 'MA000119', name: 'Restaurant Industry Award' },
-  { code: 'MA000038', name: 'Road Transport and Distribution Award' },
-  { code: 'MA000016', name: 'Security Services Industry Award' },
-  { code: 'MA000100', name: 'Social, Community, Home Care and Disability Services Industry Award' },
-  { code: 'MA000043', name: 'Waste Management Award' },
-  { code: 'AWARD_FREE', name: 'Award-free / Enterprise agreement' },
-]
-
-// Standard NES full-time week (38 hrs). Hourly = weekly / 38.
-const FT_WEEKLY_HOURS = 38
-const fwoAwardUrl = (code: string) =>
-  code === 'AWARD_FREE'
-    ? 'https://www.fairwork.gov.au/employment-conditions/awards'
-    : `https://library.fairwork.gov.au/award/?krn=${code}`
-
 export default function Step2Extract() {
   const { state, dispatch } = useWizard()
   const profile = state.role_profile
-  const [showAwardDrawer, setShowAwardDrawer] = useState(false)
-  const [editingAward, setEditingAward] = useState(false)
 
   if (!profile) {
     return (
@@ -184,92 +138,6 @@ export default function Step2Extract() {
           </div>
         </FieldRow>
 
-        <FieldRow label="Award">
-          {editingAward ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={profile.award?.code || ''}
-                onChange={e => {
-                  const found = COMMON_AWARDS.find(a => a.code === e.target.value)
-                  if (found) {
-                    patch({
-                      award: {
-                        code: found.code,
-                        name: found.name,
-                        classification: profile.award?.classification || '',
-                        min_weekly_rate: profile.award?.min_weekly_rate || 0,
-                        source_url: fwoAwardUrl(found.code),
-                        confidence: 1,
-                      },
-                    })
-                  }
-                }}
-                className="bg-light text-sm text-charcoal rounded-full px-3 py-1.5 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal max-w-full"
-              >
-                <option value="">Select an award...</option>
-                {COMMON_AWARDS.map(a => (
-                  <option key={a.code} value={a.code}>
-                    {a.code} - {a.name}
-                  </option>
-                ))}
-              </select>
-              <InlineText
-                value={profile.award?.classification || ''}
-                onChange={v =>
-                  patch({
-                    award: profile.award
-                      ? { ...profile.award, classification: v }
-                      : undefined,
-                  })
-                }
-                placeholder="Classification (e.g. Level 4)"
-              />
-              <button
-                onClick={() => setEditingAward(false)}
-                className="text-xs font-bold text-charcoal hover:underline"
-              >
-                Done
-              </button>
-            </div>
-          ) : profile.award ? (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="bg-light text-charcoal text-xs font-bold rounded-full px-3 py-1.5">
-                {profile.award.code} - {profile.award.classification} - $
-                {(profile.award.min_weekly_rate / FT_WEEKLY_HOURS).toFixed(2)}/hr
-              </span>
-              <button
-                onClick={() => setShowAwardDrawer(true)}
-                title="View FWA citation"
-                className="w-6 h-6 rounded-full bg-light hover:bg-border flex items-center justify-center text-mid text-xs font-bold"
-              >
-                i
-              </button>
-              <button
-                onClick={() => setEditingAward(true)}
-                className="text-xs font-bold text-mid hover:text-charcoal hover:underline"
-              >
-                Change award
-              </button>
-              <button
-                onClick={() => patch({ award: undefined })}
-                className="text-xs font-bold text-mid hover:text-danger hover:underline"
-              >
-                Remove from campaign
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted">No award matched</span>
-              <button
-                onClick={() => setEditingAward(true)}
-                className="text-xs font-bold text-mid hover:text-charcoal hover:underline"
-              >
-                Pick award
-              </button>
-            </div>
-          )}
-        </FieldRow>
-
         <FieldRow label="Must-have skills">
           <ChipList
             items={profile.must_have_skills}
@@ -285,53 +153,6 @@ export default function Step2Extract() {
           />
         </FieldRow>
       </div>
-
-      {showAwardDrawer && profile.award && (
-        <div
-          className="fixed inset-0 bg-ink/40 z-40 flex justify-end"
-          onClick={() => setShowAwardDrawer(false)}
-        >
-          <div
-            className="bg-bg-elevated w-full max-w-md h-full overflow-y-auto p-6 shadow-card"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-base font-bold text-charcoal uppercase tracking-wider">
-                {profile.award.code}
-              </h3>
-              <button
-                onClick={() => setShowAwardDrawer(false)}
-                className="w-8 h-8 rounded-full hover:bg-light flex items-center justify-center text-mid"
-              >
-                ×
-              </button>
-            </div>
-            <p className="text-sm text-charcoal font-bold mb-1">{profile.award.name}</p>
-            <p className="text-sm text-mid mb-4">
-              Classification: <strong className="text-charcoal">{profile.award.classification}</strong>
-              <br />
-              Minimum hourly rate:{' '}
-              <strong className="text-charcoal">
-                ${(profile.award.min_weekly_rate / FT_WEEKLY_HOURS).toFixed(2)}/hr
-              </strong>{' '}
-              <span className="text-muted">(full-time week assumed at {FT_WEEKLY_HOURS} hours)</span>
-            </p>
-            <a
-              href={fwoAwardUrl(profile.award.code)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-ink text-ink-on-accent text-sm font-bold rounded-full px-4 py-2 hover:bg-accent-hover"
-            >
-              View on Fair Work
-              <span aria-hidden="true">↗</span>
-            </a>
-            <p className="text-xs text-muted mt-4 leading-relaxed">
-              Source: Fair Work Commission. Always confirm classification with your advisor for
-              ambiguous roles.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

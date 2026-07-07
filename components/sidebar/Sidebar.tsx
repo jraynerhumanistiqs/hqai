@@ -306,22 +306,23 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
                 ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Campaign Coach
             </Link>
-            {/* The standalone CV Scoring Agent has merged into the
-                Shortlist Agent as Step 1. CV scoring now lives inside a
-                role. This entry stays for the ad-hoc "I just want to
-                score a CV, no role yet" use case and points at the same
-                /cv-screening route running without a role anchor. */}
+            {/* CV Scoring Agent comes before the Shortlist Agent - the
+                natural first move is to score the CVs you have, then run the
+                shortlisted pool through the full workflow. The standalone
+                /cv-screening route runs without a role anchor for the ad-hoc
+                "score a CV, no role yet" case; it is also Step 1 inside a
+                role in the Shortlist Agent. */}
+            <Link href="/dashboard/recruit/cv-screening"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
+                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
+              CV Scoring Agent
+              <InfoTooltip text="Score one or more CVs against role criteria - no role setup needed." />
+            </Link>
             <Link href="/dashboard/recruit/shortlist"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Shortlist Agent
-              <InfoTooltip text="Full hiring workflow - score, prescreen, shortlist and decide inside one role." />
-            </Link>
-            <Link href="/dashboard/recruit/cv-screening"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-              Quick CV score
-              <InfoTooltip text="Score one or more CVs without setting up a role first." />
+              <InfoTooltip text="Full hiring workflow - score, prescreen, shortlist and interview inside one role." />
             </Link>
             <Link href="/dashboard/recruit/templates"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all

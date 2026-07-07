@@ -226,12 +226,12 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
                     }}
                   />
                   <p className="text-xs font-bold text-charcoal mb-0.5">
-                    {pdParsing ? 'Reading PD...' : 'Drop a PD here or click to upload'}
+                    {pdParsing ? 'Reading document...' : 'Want to use a different reference source?'}
                   </p>
                   <p className="text-[11px] text-muted">
                     {pdSourceName
                       ? `Loaded from ${pdSourceName}. Edit the text below if you need to.`
-                      : 'PDF, DOCX or plain text. Or paste it straight into the box below.'}
+                      : 'Drag a document in, or click here to upload from a folder. PDF, DOCX or plain text - or just paste it into the box below.'}
                   </p>
                 </label>
 

@@ -18,7 +18,9 @@ export type CoachMessage = {
 }
 
 export type WizardState = {
-  step: 1 | 2 | 3 | 4 | 5
+  // 4 steps since the Distribution stage was removed: 1 Brief, 2 Role
+  // profile, 3 Draft & Coach, 4 Finish (launch/handoff).
+  step: 1 | 2 | 3 | 4
   brief?: RoleBrief
   briefText: string
   role_profile?: RoleProfile

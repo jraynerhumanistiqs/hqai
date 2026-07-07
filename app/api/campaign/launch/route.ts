@@ -22,7 +22,9 @@ type LaunchOptions = {
 type LaunchBody = {
   role_profile: RoleProfile
   job_ad_draft: JobAdDraft
-  distribution_plan: DistributionPlan
+  // Distribution stage was removed from Campaign Coach - optional now, and
+  // defaulted to an empty plan when the campaigns row is written.
+  distribution_plan?: DistributionPlan
   options?: LaunchOptions
 }
 
@@ -114,9 +116,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = (await req.json()) as LaunchBody
-    if (!body?.role_profile || !body?.job_ad_draft || !body?.distribution_plan) {
+    if (!body?.role_profile || !body?.job_ad_draft) {
       return NextResponse.json(
-        { error: 'role_profile, job_ad_draft and distribution_plan are required' },
+        { error: 'role_profile and job_ad_draft are required' },
         { status: 400 },
       )
     }
@@ -186,7 +188,9 @@ export async function POST(req: NextRequest) {
         prescreen_session_id: session.id,
         role_profile: body.role_profile,
         job_ad_draft: body.job_ad_draft,
-        distribution_plan: body.distribution_plan,
+        // distribution_plan column is NOT NULL; default to an empty plan
+        // now that the Distribution stage is gone.
+        distribution_plan: body.distribution_plan ?? { boards: [], total_estimated_cost_aud: 0 },
         coach_score: null,
         status: 'launched',
         launched_at: new Date().toISOString(),

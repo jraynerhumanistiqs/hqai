@@ -64,7 +64,7 @@ export default function Step1Brief() {
     const tips = [
       "Hi - I'll guide you through writing a great ad and getting it live. Tell me about the role on the left and I'll take it from there.",
       "Quick coaching tip while you type: the best-performing AU ads lead with the specific outcome someone will own in their first 90 days, not a generic 'about us' pitch.",
-      "Compliance heads-up: I'll auto-classify the Modern Award and check the rate against the Fair Work Pay Calculator on the next step. No need to know it now.",
+      "Pay transparency wins: ads that show a salary range get more - and better-matched - applicants. Pop a rough range in and I'll format it cleanly.",
       "Plain English wins. Skip the rockstar/ninja/guru words - they discourage women and older candidates from applying and they're not specific enough to filter for skill.",
     ]
     tips.forEach((text, i) => {
@@ -95,8 +95,7 @@ export default function Step1Brief() {
             Step 1 - Tell me about the role
           </h2>
           <p className="text-sm text-mid leading-relaxed max-w-xl">
-            Just rough notes are fine. I'll classify the role, recommend the right Modern Award, and
-            draft an ad you can react to.
+            Just rough notes are fine. I'll pull out the role details and draft an ad you can react to.
           </p>
         </div>
       </div>
