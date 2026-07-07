@@ -130,6 +130,12 @@ export interface CandidateResponse {
   // screening via batch handoff (no video yet).
   cv_screening_id?: string | null
   overall_score?: number | null
+  // Personalised pre-screen questions targeted at this candidate's own
+  // weakest CV criteria. Generated best-effort at handoff time (single or
+  // bulk) - see lib/cv-screening-questions.ts. Falls back to the shared
+  // session `questions` when absent (older rows, or generation failed /
+  // migration prescreen_response_custom_questions.sql not yet applied).
+  custom_questions?: string[] | null
 }
 
 // -- Phase 3 ----------------------------------------------------------------

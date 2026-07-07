@@ -556,6 +556,21 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const showBiasBanner = hasScoredRow && !biasBannerDismissed
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
+  // Seed for the Phone Screen Questions form. Prefers the currently
+  // expanded candidate's own personalised questions (custom_questions -
+  // generated per-candidate at handoff time, see
+  // lib/cv-screening-questions.ts) so a recruiter who expands a candidate
+  // row before recording their phone screen gets that candidate's targeted
+  // questions rather than the session-wide shared set. Falls back to the
+  // session's shared `questions` when no candidate is expanded, or the
+  // expanded candidate has none (older row, or generation didn't land).
+  const sessionQuestionsForPhone = Array.isArray((session as any).questions)
+    ? ((session as any).questions as unknown[]).map((q: any) => typeof q === 'string' ? q : (q?.text ?? q?.question ?? '')).filter((q: string) => q && q.trim())
+    : undefined
+  const phoneInitialQuestions = (Array.isArray(expandedResponse?.custom_questions) && expandedResponse!.custom_questions!.length > 0)
+    ? expandedResponse!.custom_questions!
+    : sessionQuestionsForPhone
+
   return (
     <div className="h-full flex flex-col md:flex-row">
       <RoleStepperRail currentStep={currentStep} onStepChange={setCurrentStep} />
@@ -679,12 +694,12 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           {(session.interview_types?.includes('phone') ?? false) && phoneRecorderOpen && (
             <PhoneRecorder
               sessionId={session.id}
-              // Seed the Phone Screen Questions form from the session's
-              // existing question set so phone + video ask the same
-              // questions and feed the same scoring rubric. Falls back
-              // to a recruiter-editable default seed when the session
-              // has no questions yet.
-              initialQuestions={Array.isArray((session as any).questions) ? ((session as any).questions as unknown[]).map((q: any) => typeof q === 'string' ? q : (q?.text ?? q?.question ?? '')).filter((q: string) => q && q.trim()) : undefined}
+              // Seed the Phone Screen Questions form - see
+              // phoneInitialQuestions above: prefers the expanded
+              // candidate's personalised questions, falls back to the
+              // session's shared set, then to PhoneRecorder's own
+              // recruiter-editable default when the session has none.
+              initialQuestions={phoneInitialQuestions}
               onSubmitted={() => { setPhoneRecorderOpen(false) }}
               onCancel={() => setPhoneRecorderOpen(false)}
             />
@@ -1224,6 +1239,28 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               className="text-xs font-bold px-4 py-2 rounded-full border border-border bg-bg-elevated text-ink hover:bg-bg transition-colors"
                             >Share with hiring manager</button>
                           </div>
+
+                          {/* Personalised questions generated for this
+                              candidate specifically (targeted at their
+                              weakest CV criteria - see
+                              lib/cv-screening-questions.ts). Read-only here;
+                              also seeds the Phone Screen Questions form when
+                              this candidate's row is expanded. Only shown
+                              when they differ from the shared session set,
+                              since that's already visible in the Q&A grid
+                              below. */}
+                          {Array.isArray(r.custom_questions) && r.custom_questions.length > 0 && (
+                            <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-4">
+                              <p className="text-xs font-bold text-ink uppercase tracking-widest mb-1">Tailored screening questions</p>
+                              <p className="text-[11px] text-mid mb-2.5">
+                                Generated for {r.candidate_name} specifically, probing the weaker spots in their CV score.
+                              </p>
+                              <ol className="text-xs text-charcoal space-y-1.5 list-decimal list-inside leading-snug">
+                                {r.custom_questions.map((q, i) => <li key={i}>{q}</li>)}
+                              </ol>
+                            </div>
+                          )}
+
                           <div data-candidate-videos={r.id} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {session.questions.map((q, i) => (
                               <div key={i} className="bg-bg-elevated rounded-2xl border border-border overflow-hidden shadow-card">

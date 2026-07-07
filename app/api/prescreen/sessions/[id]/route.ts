@@ -14,7 +14,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 const CALENDLY_URL_REGEX = /^https:\/\/(www\.)?calendly\.com\//
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
@@ -30,6 +30,31 @@ export async function GET(
 
     if (error || !data) {
       return NextResponse.json({ error: 'Session not found or no longer active' }, { status: 404 })
+    }
+
+    // Optional per-candidate personalisation. When the candidate's link
+    // includes ?response=<id> - currently only CV-imported candidates sent
+    // an individual invite via the per-row "Send invite" action (see
+    // app/api/prescreen/responses/[id]/invite/route.ts and
+    // app/api/cv-screening/batch-handoff/route.ts) - swap the shared
+    // session questions for that candidate's own targeted set, if one was
+    // generated (custom_questions column - see
+    // lib/cv-screening-questions.ts and migration
+    // prescreen_response_custom_questions.sql). Best-effort: any lookup
+    // failure, missing column, or empty custom_questions silently falls
+    // through to the shared session.questions untouched.
+    const responseId = req.nextUrl.searchParams.get('response')
+    if (responseId && UUID_REGEX.test(responseId)) {
+      const { data: response } = await supabaseAdmin
+        .from('prescreen_responses')
+        .select('custom_questions')
+        .eq('id', responseId)
+        .eq('session_id', data.id)
+        .maybeSingle()
+      const custom = (response as { custom_questions?: unknown } | null)?.custom_questions
+      if (Array.isArray(custom) && custom.length > 0) {
+        data.questions = custom as string[]
+      }
     }
 
     return NextResponse.json({ session: data })

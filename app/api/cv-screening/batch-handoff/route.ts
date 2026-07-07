@@ -9,10 +9,16 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
 import type { CandidateScreening, CriterionScore, Rubric } from '@/lib/cv-screening-types'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
+import { generateTargetedQuestions } from '@/lib/cv-screening-questions'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+// Bumped from 120 -> 300 to give the per-candidate personalised-question
+// generation (chunked, CONCURRENCY=4) enough headroom on larger batches -
+// see generatePerCandidateQuestions below. It runs after the core
+// candidate-attach work and is best-effort, but still happens inside this
+// request so the maxDuration budget has to cover it.
+export const maxDuration = 300
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = CLAUDE_MODEL
@@ -175,6 +181,11 @@ export async function POST(req: NextRequest) {
     // rubric_scores) haven't been applied to a particular env.
     let attached = 0
     let lastInsertError: string | null = null
+    // Captures the inserted rows' ids, in the same order as `screenings`
+    // (a single multi-row INSERT ... RETURNING is atomic and preserves
+    // input order), so the per-candidate question generation below can
+    // map each screening back to the response row it created.
+    let insertedRows: Array<{ id: string }> | null = null
 
     const buildRow = (s: CandidateScreening, includeKeys: Set<string>) => {
       const rubricScores = (s.criteria_scores as Array<{ id?: string; label?: string; score: number; evidence?: string }>)
@@ -233,6 +244,7 @@ export async function POST(req: NextRequest) {
         .select('id')
       if (!respErr) {
         attached = inserted?.length ?? 0
+        insertedRows = inserted ?? null
         break
       }
       // Log the FULL Postgres error so production traces show the
@@ -273,6 +285,22 @@ export async function POST(req: NextRequest) {
       }, { status: 500 })
     }
 
+    // Best-effort per-candidate personalisation: generate questions
+    // targeted at each candidate's own weakest CV criteria (same logic the
+    // single-candidate handoff route uses) and store them on that
+    // candidate's response row. This is pure enrichment - the session's
+    // shared `questions` set above already covers every candidate, so a
+    // failure here (API error, missing migration, timeout) must never
+    // fail the handoff. Only runs when the insert fully succeeded, since
+    // insertedRows lines up with `screenings` by index in that case.
+    if (insertedRows && insertedRows.length === screenings.length) {
+      try {
+        await generatePerCandidateQuestions(screenings as CandidateScreening[], insertedRows, rubric)
+      } catch (genErr) {
+        console.warn('[batch-handoff] per-candidate question generation failed, candidates still have the shared session questions:', genErr)
+      }
+    }
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
     const slug = (session.slug as string | null) ?? session.id
     return NextResponse.json({
@@ -298,6 +326,58 @@ function mapCvActionToRecommendation(next: string | null | undefined): 'progress
   if (lower.includes('schedule_panel') || lower.includes('shortlist') || lower.includes('progress')) return 'progress_to_shortlist'
   if (lower.includes('reject') || lower.includes('do_not')) return 'reject'
   return 'consider_with_caution'
+}
+
+// How many candidates' question sets we generate concurrently. Keeps us
+// well under Anthropic's per-account concurrency limits on large batches
+// while still being meaningfully faster than doing them one at a time.
+const QUESTION_GEN_CONCURRENCY = 4
+
+// Generates and stores per-candidate targeted questions (custom_questions
+// column, migration prescreen_response_custom_questions.sql) for every
+// screening that was successfully attached to the Shortlist role. Chunks
+// the work into groups of QUESTION_GEN_CONCURRENCY run in parallel via
+// Promise.all so a batch of, say, 30 candidates doesn't fire 30
+// simultaneous Claude calls.
+//
+// Deliberately best-effort per candidate: a generation failure or a
+// missing custom_questions column (migration not yet applied) is caught
+// and logged, never thrown, so one bad candidate - or an unmigrated env -
+// can't take down the rest of the batch or the handoff itself. Candidates
+// always have the session's shared `questions` as a fallback.
+async function generatePerCandidateQuestions(
+  screenings: CandidateScreening[],
+  insertedRows: Array<{ id: string }>,
+  rubric: Rubric,
+): Promise<void> {
+  const pairs = screenings
+    .map((screening, i) => ({ screening, responseId: insertedRows[i]?.id }))
+    .filter((p): p is { screening: CandidateScreening; responseId: string } => !!p.responseId)
+
+  for (let i = 0; i < pairs.length; i += QUESTION_GEN_CONCURRENCY) {
+    const chunk = pairs.slice(i, i + QUESTION_GEN_CONCURRENCY)
+    await Promise.all(chunk.map(async ({ screening, responseId }) => {
+      try {
+        const questions = await generateTargetedQuestions(screening, rubric.role, rubric.criteria)
+        if (questions.length < 3) {
+          console.warn(`[batch-handoff] question generation returned too few questions for screening ${screening.id}, leaving shared session questions as the fallback.`)
+          return
+        }
+        const { error } = await supabaseAdmin
+          .from('prescreen_responses')
+          .update({ custom_questions: questions })
+          .eq('id', responseId)
+        if (error) {
+          // Most likely cause: custom_questions column not migrated yet
+          // (prescreen_response_custom_questions.sql). Swallow it - the
+          // candidate still has the shared session questions.
+          console.warn(`[batch-handoff] could not save custom_questions for response ${responseId}:`, error.message)
+        }
+      } catch (err) {
+        console.warn(`[batch-handoff] question generation failed for screening ${screening.id}:`, err instanceof Error ? err.message : err)
+      }
+    }))
+  }
 }
 
 async function resolveRubric(rubricId: string): Promise<Rubric | null> {

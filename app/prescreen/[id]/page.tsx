@@ -27,7 +27,16 @@ export default function PrescreenPage() {
   } | null>(null)
 
   useEffect(() => {
-    fetch(`/api/prescreen/sessions/${id}`)
+    // Pass ?response= through so the API can swap in this candidate's own
+    // personalised questions (custom_questions) when one was generated for
+    // them - see the GET handler in app/api/prescreen/sessions/[id]/route.ts.
+    // Falls back to the shared session questions when absent, unset, or the
+    // lookup finds nothing - candidates without a per-response link are
+    // unaffected.
+    const url = responseId
+      ? `/api/prescreen/sessions/${id}?response=${encodeURIComponent(responseId)}`
+      : `/api/prescreen/sessions/${id}`
+    fetch(url)
       .then(r => r.json())
       .then(d => {
         if (d.error) { setErrorMsg(d.error); setStage('error'); return }
@@ -35,7 +44,7 @@ export default function PrescreenPage() {
         setStage('gate')
       })
       .catch(() => { setErrorMsg('Could not load this pre-screen.'); setStage('error') })
-  }, [id])
+  }, [id, responseId])
 
   async function handleGateSubmit(name: string, email: string, consent: boolean, meta?: { text: string; version: string }) {
     setCandidateMeta({ name, email, consent, consent_text: meta?.text, consent_version: meta?.version })
