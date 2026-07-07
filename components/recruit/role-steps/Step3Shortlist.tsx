@@ -2,16 +2,16 @@
 
 // Step 3 of the role workflow stepper - Shortlist.
 //
-// Shows responses the recruiter has explicitly promoted to shortlist
-// (shortlisted_at is set). The intent of this stage is to identify the
-// top N candidates from the Prescreen pool, then hand them off to a
-// decision maker (CEO, client, owner, etc.) to schedule the formal
-// interview.
+// One job: review the scored + pre-screened pool and decide who moves
+// to interview. "Move to interview" is the primary action - it is the
+// same shortlisted_at gate as before (kept separate from the Interviews
+// step below so bulk triage across the whole pool and the deep,
+// per-candidate interview workspace don't have to share one screen).
 //
-// "Promote to shortlist" and "Remove from shortlist" are managed via a
-// PATCH /api/prescreen/responses/[id] with the shortlist_action verb
-// which the route translates into the shortlisted_at + shortlisted_by
-// audit columns.
+// "Move to interview" and "Remove" are managed via a PATCH
+// /api/prescreen/responses/[id] with the shortlist_action verb, which
+// the route translates into the shortlisted_at + shortlisted_by audit
+// columns.
 
 import { useMemo, useState } from 'react'
 import type { CandidateResponse, PrescreenSession } from '@/lib/recruit-types'
@@ -88,20 +88,20 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
       <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-5">
         <p className="text-xs font-bold text-ink uppercase tracking-widest">Shortlist - {session.role_title}</p>
         <p className="text-sm text-mid mt-2 leading-snug">
-          Curate the top picks from Step 2 here, then share with the decision maker
-          (CEO, owner, hiring manager). Each shortlisted candidate gets a shareable
-          read-only link.
+          Review the scored and pre-screened pool below, then move your top candidates
+          to interview. Each one you move gets a shareable read-only link for the
+          decision maker (CEO, owner, hiring manager).
         </p>
       </div>
 
       <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <p className="text-sm font-bold text-ink">On the shortlist ({shortlisted.length})</p>
+          <p className="text-sm font-bold text-ink">Moving to interview ({shortlisted.length})</p>
         </div>
         {shortlisted.length === 0 ? (
           <div className="px-5 py-8 text-center">
-            <p className="text-sm text-mid">No shortlisted candidates yet.</p>
-            <p className="text-xs text-mid mt-1">Promote candidates from the list below to build your shortlist for the decision maker.</p>
+            <p className="text-sm text-mid">No candidates moved to interview yet.</p>
+            <p className="text-xs text-mid mt-1">Move candidates from the pool below to build your interview list.</p>
           </div>
         ) : (
           <ul className="divide-y divide-border">
@@ -142,8 +142,8 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
 
       <div className="bg-bg-elevated rounded-2xl border border-border shadow-card overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
-          <p className="text-sm font-bold text-ink">All other candidates ({otherCandidates.length})</p>
-          <p className="text-xs text-mid mt-1">Promote anyone from Step 2 into your shortlist.</p>
+          <p className="text-sm font-bold text-ink">Candidate pool ({otherCandidates.length})</p>
+          <p className="text-xs text-mid mt-1">Move anyone here into the interview list.</p>
         </div>
         {otherCandidates.length === 0 ? (
           <div className="px-5 py-8 text-center">
@@ -163,9 +163,9 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
                   type="button"
                   disabled={busyId === r.id}
                   onClick={() => toggleShortlist(r.id, 'promote')}
-                  className="text-xs font-bold px-3 py-1.5 rounded-full border border-border bg-bg-elevated text-ink hover:bg-light disabled:opacity-50"
+                  className="text-xs font-bold px-3 py-1.5 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-50"
                 >
-                  Promote to shortlist
+                  Move to interview
                 </button>
               </li>
             ))}

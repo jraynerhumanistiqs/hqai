@@ -39,6 +39,10 @@ export async function PATCH(
       // is a verb translated into shortlisted_at + shortlisted_by below;
       // decision lands directly with the constraint-checked enum.
       'shortlist_action', 'decision', 'decision_reason',
+      // Step 4 (Interviews) - AI guide, interviewer notes, recording
+      // link. Depend on migration prescreen_interview_notes.sql; see the
+      // graceful fallback below if it hasn't been applied yet.
+      'interview_guide', 'interview_notes', 'interview_recording_url',
     ])
     const patch: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(body ?? {})) {
@@ -64,6 +68,12 @@ export async function PATCH(
     if (typeof patch.decision_reason === 'string') {
       patch.decision_reason = (patch.decision_reason as string).trim().slice(0, 1000) || null
     }
+    if (typeof patch.interview_notes === 'string') {
+      patch.interview_notes = (patch.interview_notes as string).trim().slice(0, 5000) || null
+    }
+    if (typeof patch.interview_recording_url === 'string') {
+      patch.interview_recording_url = (patch.interview_recording_url as string).trim().slice(0, 500) || null
+    }
     if (typeof patch.candidate_name === 'string') {
       patch.candidate_name = (patch.candidate_name as string).trim().slice(0, 200)
       if (!patch.candidate_name) {
@@ -80,7 +90,37 @@ export async function PATCH(
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      // Graceful fallback: interview_guide / interview_notes /
+      // interview_recording_url depend on migration
+      // prescreen_interview_notes.sql. If it hasn't been applied yet on
+      // this environment, retry the update without those columns so the
+      // rest of the patch (decision, rating, etc.) still lands - the
+      // interview data just doesn't persist until the migration runs.
+      // Mirrors the pattern in app/api/cv-screening/screenings/[id]/route.ts.
+      const INTERVIEW_COLUMNS = ['interview_guide', 'interview_notes', 'interview_recording_url']
+      const offending = INTERVIEW_COLUMNS.filter(c => c in patch && error.message?.includes(c))
+      if (offending.length > 0) {
+        const retryPatch = { ...patch }
+        for (const c of offending) delete retryPatch[c]
+        const warning = 'Interview guide/notes/recording not saved - apply migration prescreen_interview_notes.sql on Supabase.'
+        if (Object.keys(retryPatch).length === 0) {
+          // Nothing left to persist (the whole patch was interview-only) -
+          // don't fail the request, just report the row unchanged.
+          return NextResponse.json({ response: null, warning })
+        }
+        const retry = await supabaseAdmin
+          .from('candidate_responses')
+          .update(retryPatch)
+          .eq('id', id)
+          .select()
+          .single()
+        if (!retry.error) {
+          return NextResponse.json({ response: retry.data, warning })
+        }
+      }
+      throw error
+    }
     return NextResponse.json({ response: data })
   } catch (err) {
     console.error('[PATCH /api/prescreen/responses/:id]', err)

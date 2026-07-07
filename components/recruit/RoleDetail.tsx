@@ -26,7 +26,7 @@ import { ProcessFlowTracker } from './ProcessFlowTracker'
 import { RoleStepperRail, type RoleStep } from './RoleStepperRail'
 import { Step1ScoreCvs } from './role-steps/Step1ScoreCvs'
 import { Step3Shortlist } from './role-steps/Step3Shortlist'
-import { Step4Decision } from './role-steps/Step4Decision'
+import { Step4Interviews } from './role-steps/Step4Interviews'
 import { PhoneRecorder } from './PhoneRecorder'
 import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
@@ -660,7 +660,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           />
         )}
         {currentStep === 4 && (
-          <Step4Decision
+          <Step4Interviews
             session={session}
             responses={mergedResponses}
             onPatchResponse={onPatchResponse}

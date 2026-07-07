@@ -18,8 +18,8 @@ interface Props {
 const STEPS: FlowStep[] = [
   { id: 1, label: 'Score CVs',  hint: 'Upload and rank CVs' },
   { id: 2, label: 'Prescreen',  hint: 'Video + phone responses' },
-  { id: 3, label: 'Shortlist',  hint: 'Top picks for decision maker' },
-  { id: 4, label: 'Decision',   hint: 'Hire outcome + handoff' },
+  { id: 3, label: 'Shortlist',  hint: 'Confirm who moves to interview' },
+  { id: 4, label: 'Interviews', hint: 'Guide, notes & outcome' },
 ]
 
 export function RoleStepperRail({ currentStep, onStepChange }: Props) {

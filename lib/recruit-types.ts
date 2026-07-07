@@ -100,16 +100,32 @@ export interface CandidateResponse {
   visual_diagnostics?: {
     per_question?: Array<{ q: number; in_frame_pct: number; at_camera_pct: number; face_brightness: number; frames_sampled: number }>
   } | null
-  // -- Shortlist + Decision steps of the role workflow stepper.
-  // shortlisted_at gates the Step 3 "On the shortlist" view; decision
-  // records the Step 4 outcome. Added by migration
+  // -- Shortlist + Interviews steps of the role workflow stepper.
+  // shortlisted_at gates the Step 3 "Moving to interview" view; decision
+  // records the Step 4 (Interviews) outcome. Added by migration
   // prescreen_responses_shortlist_decision.sql.
+  //
+  // 'offer' is retired - offers/contracts belong to HQ People, not HQ
+  // Recruit. It is kept in the type (and the DB check constraint) purely
+  // so existing rows written before the rename keep loading; Step 4 never
+  // writes it again and shows it read-only if encountered.
   shortlisted_at?: string | null
   shortlisted_by?: string | null
   decision?: 'reject' | 'interview_1' | 'interview_2' | 'offer' | null
   decision_reason?: string | null
   decision_at?: string | null
   decision_by?: string | null
+  // -- Interviews step (Step 4) - AI interview guide, freeform notes, and
+  // an optional recording link/note. Added by migration
+  // prescreen_interview_notes.sql.
+  interview_guide?: {
+    role_title: string
+    candidate_name: string
+    generated_at: string
+    questions: Array<{ question: string; good_answer: string }>
+  } | null
+  interview_notes?: string | null
+  interview_recording_url?: string | null
   // CV-import provenance - set when this response was created from a CV
   // screening via batch handoff (no video yet).
   cv_screening_id?: string | null
