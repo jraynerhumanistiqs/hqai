@@ -4,12 +4,12 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 // Carry the plan choice from the marketing pages (/signup?plan=...&cycle=
-// ...&foundation=1) through signup into onboarding so the user's pick
-// isn't lost. Read once, client-side, to avoid a Suspense boundary.
+// ...) through signup into onboarding so the user's pick isn't lost.
+// Read once, client-side, to avoid a Suspense boundary.
 function readPlanQuery(): string {
   if (typeof window === 'undefined') return ''
   const p = new URLSearchParams(window.location.search)
-  const keep = ['plan', 'cycle', 'foundation']
+  const keep = ['plan', 'cycle']
   const out = new URLSearchParams()
   for (const k of keep) { const v = p.get(k); if (v) out.set(k, v) }
   const s = out.toString()
@@ -139,7 +139,7 @@ export default function LoginPage() {
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
           <p className="text-sm text-ink-soft mb-6">
-            {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Start your free trial - no credit card required'}
+            {mode === 'login' ? 'Sign in to your HQ.ai workspace' : 'Create your HQ.ai workspace'}
           </p>
 
           {magicSent ? (

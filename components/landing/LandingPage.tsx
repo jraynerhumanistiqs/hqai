@@ -5,14 +5,13 @@
 //   Hero -> SocialProof -> Problem (Without/With) -> Metrics (deltas) ->
 //   ToolExplorer (animated tabbed centerpiece) -> Persona band ->
 //   Marketplace -> CustomerStory -> Comparison -> Pricing -> FAQ ->
-//   FooterCta -> StickyMobile -> ReserveModal
+//   FooterCta -> StickyMobile
 //
 // The single-tool deep-dives (ProductPillars / People / Recruit) now live
 // on the /product/* subpages; the homepage explains all three tools through
 // the interactive ToolExplorer instead. Renders inside the marketing
 // data-app scope (set by MarketingHeader) so the dark tokens apply.
 
-import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import MarketingHeader from './MarketingHeader'
 import MarketingFooter from './MarketingFooter'
@@ -40,13 +39,8 @@ const ToolExplorer = dynamic(() => import('./ToolExplorer'), {
 const MarketplaceCarousel = dynamic(() => import('./MarketplaceCarousel'), {
   loading: () => <div className="min-h-[420px]" aria-hidden="true" />,
 })
-// Email-capture modal - hidden (renders null) until the user clicks
-// "Reserve", so there's nothing to server-render. Defer it entirely.
-const ReserveSpotModal = dynamic(() => import('./ReserveSpotModal'), { ssr: false })
 
 export default function LandingPage() {
-  const [reserveOpen, setReserveOpen] = useState(false)
-
   return (
     <>
       <MarketingHeader />
@@ -56,14 +50,13 @@ export default function LandingPage() {
         <MetricsStrip />
         <div id="product"><ToolExplorer /></div>
         <PersonaBand />
-        <MarketplaceCarousel onReserve={() => setReserveOpen(true)} />
+        <MarketplaceCarousel />
         <CustomerStory />
         <ComparisonSection />
-        <PricingSection onReserve={() => setReserveOpen(true)} />
+        <PricingSection />
         <FaqSection />
         <FooterCta />
-        <StickyMobileCta onReserve={() => setReserveOpen(true)} />
-        <ReserveSpotModal open={reserveOpen} onClose={() => setReserveOpen(false)} />
+        <StickyMobileCta />
       </main>
       <MarketingFooter />
     </>

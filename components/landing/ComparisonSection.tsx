@@ -23,7 +23,7 @@ export default function ComparisonSection() {
           Don&apos;t lock into a multi-year contract for support you&apos;re not ready to use.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-          The same everyday HR and hiring support, minus the lock-in and the wait. A fraction of the price. Cancel any time.
+          The same everyday HR and hiring support, minus the lock-in contract with exit penalties, and the wait. A fraction of the price. Cancel any time.
         </p>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">

@@ -1,19 +1,15 @@
 'use client'
 
-// Mobile-only sticky bottom bar. Twin CTAs (trial + reserve). Fades in
-// after the user scrolls past 60% of the page. Uses an IntersectionObserver
-// watching a sentinel placed near the 60% mark instead of a scroll
-// listener, per the brief's "use IntersectionObserver, not a scroll
-// listener" rule.
+// Mobile-only sticky bottom bar. A single primary "Get started" CTA.
+// Fades in after the user scrolls past 60% of the page. Uses an
+// IntersectionObserver watching a sentinel placed near the 60% mark
+// instead of a scroll listener, per the brief's "use IntersectionObserver,
+// not a scroll listener" rule.
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
-interface Props {
-  onReserve: () => void
-}
-
-export default function StickyMobileCta({ onReserve }: Props) {
+export default function StickyMobileCta() {
   const [visible, setVisible] = useState(false)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
@@ -58,15 +54,8 @@ export default function StickyMobileCta({ onReserve }: Props) {
             href="/signup"
             className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover"
           >
-            Start the trial
+            Get started
           </Link>
-          <button
-            type="button"
-            onClick={onReserve}
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-accent bg-transparent px-4 text-sm font-semibold text-accent hover:bg-accent-soft"
-          >
-            $25 doc
-          </button>
         </div>
       </div>
     </>

@@ -43,7 +43,7 @@ const TABS: Tab[] = [
   {
     id: 'people',
     tag: 'HQ People',
-    title: 'Answers to any HR question, in plain English.',
+    title: 'Answers to any HR question, in plain English. Based on Australian legislation only.',
     desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute, in plain English.',
     bullets: [
       'Clear answers to your everyday HR questions',
@@ -60,8 +60,8 @@ const TABS: Tab[] = [
   {
     id: 'recruit',
     tag: 'HQ Recruit',
-    title: 'Hire the right person, without the time sink or the agency fees.',
-    desc: 'HQ Recruit runs the grunt work of hiring from start to finish - the job ad, sorting applicants, the first interviews and a clean shortlist - so you fill the role faster and back yourself on the choice, even if hiring is not your day job.',
+    title: 'Hire the right person, without your own time cost or extra spend on agency fees.',
+    desc: 'HQ Recruit runs the grunt work of hiring from start to finish - the job ad, sorting applicants, the first interviews and a clean shortlist - so you fill the role faster and back yourself with the right choice, even if hiring is not your day job.',
     bullets: [
       'Score every CV against what the job needs',
       'Video and phone interviews from one link',
@@ -111,7 +111,7 @@ export default function ToolExplorer() {
           One login. Everything people and hiring.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          Two tools that share one simple home. Tap through to see each one in action.
+          Two tools, one location. Tap through to see each one in action.
         </p>
 
         {/* Tab bar */}

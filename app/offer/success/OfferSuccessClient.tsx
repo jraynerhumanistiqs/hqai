@@ -191,7 +191,7 @@ function UpsellPanel() {
         href="/login?intent=signup"
         className="inline-block text-small font-bold text-ink underline-offset-4 hover:underline hover:text-accent"
       >
-        Start a 14-day trial
+        Get started with HQ.ai
       </Link>
     </div>
   )

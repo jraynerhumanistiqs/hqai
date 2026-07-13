@@ -26,7 +26,7 @@ const TEAM: Person[] = [
   },
   {
     name: 'James Rayner',
-    role: 'Director, HR365',
+    role: 'Director, HR365 & AI',
     linkedin: 'https://www.linkedin.com/in/james-rayner-7a958599/',
     photoUrl: '/team/james-rayner.jpg',
   },
@@ -61,16 +61,18 @@ export default function FounderNote() {
 
         <div className="mt-6 max-w-2xl space-y-4 text-[15px] leading-relaxed text-ink-soft md:text-base">
           <p>
-            HQ.ai is made by Humanistiqs, an Australian HR and recruitment consultancy whose directors
-            bring more than 80 years of combined experience across HR, leadership development,
-            recruitment and business performance.
+            HQ.ai is made by Humanistiqs, an Australian HR, recruitment &amp; management consultancy
+            whose directors bring more than 80 years of combined experience across HR, leadership
+            development, recruitment, business performance and strategy.
           </p>
           <p>
-            For years we answered the same questions for small businesses - and watched them either
-            overpay for a locked-in retainer or guess their way through a 600-page Award. So we built
-            the tool we wished they had: AI that handles the everyday people work in minutes, with a
-            real advisor on hand when the stakes are high. We only do Australian workplaces - no
-            overseas clutter.
+            For years we've been asked and answered the same questions for small to medium Australian
+            businesses, that their locked-in retainer advisor couldn't (or made them read through a
+            600-page Award with little or no support without the premium cost).
+          </p>
+          <p>
+            So, we built a tool that we wished they had: an AI Agent that handles the everyday HR and
+            recruitment work in minutes, with a real advisor on-hand only when the stakes are high.
           </p>
           <p className="text-ink">
             If the AI ever gets something wrong, you reply to a human - not a ticket queue.

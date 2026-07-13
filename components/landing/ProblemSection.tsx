@@ -32,10 +32,10 @@ export default function ProblemSection() {
           id="problem-heading"
           className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
         >
-          Business got busier. HR and hiring didn&apos;t get easier.
+          As your business gets busier, HR and hiring doesn&apos;t get easier.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-          You did not start a business to become an HR manager. Here is the old way, next to the HQ.ai way.
+          You didn&apos;t start a business to become an HR or Recruitment Manager. Here is the old way, next to the HQ.ai way.
         </p>
 
         <div className="mt-12 grid gap-4 md:grid-cols-3 md:gap-6">

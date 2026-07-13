@@ -14,10 +14,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-interface Props {
-  onReserve: () => void
-}
-
 // Example document TYPES, grouped by the most commonly requested HR
 // categories - lifted lighter from the pricing page so the two surfaces
 // read as one system.
@@ -53,7 +49,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
-export default function MarketplaceCarousel({ onReserve }: Props) {
+export default function MarketplaceCarousel() {
   const [cat, setCat] = useState(0)
   const reduced = usePrefersReducedMotion()
   const activeCat = DOC_CATEGORIES[cat]
@@ -127,15 +123,7 @@ export default function MarketplaceCarousel({ onReserve }: Props) {
               >
                 Browse the document marketplace -&gt;
               </Link>
-              <button
-                type="button"
-                onClick={onReserve}
-                className="inline-flex h-11 items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                Reserve your spot -&gt;
-              </button>
             </div>
-            <p className="mt-3 text-xs text-ink-muted">First 100 reservations get $10 off launch pricing.</p>
           </div>
 
           {/* Mock document preview - a believable mini document, not a black box. */}

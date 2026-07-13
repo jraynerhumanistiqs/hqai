@@ -91,7 +91,7 @@ export default function PersonaBand() {
               Built for your industry, not a corporate HR team.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-              HQ.ai knows the everyday calls that small Australian businesses actually face, whatever you do.
+              No matter the industry or the types of everyday people challenges you face, HQ.ai has the answers.
             </p>
           </div>
 

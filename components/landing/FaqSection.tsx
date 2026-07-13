@@ -1,11 +1,8 @@
-'use client'
-
-// FAQ - decision-making rewrite (May 2026). Eight Q&A pairs, less
-// Fair-Work-heavy, more time/cost/trust framing. Single-open
-// accordion with native <details> behaviour for JS-off reachability
-// + custom styling.
-
-import { useState } from 'react'
+// FAQ - decision-making rewrite (May 2026). Nine Q&A pairs, less
+// Fair-Work-heavy, more time/cost/trust framing. Native <details>/<summary>
+// disclosure accordion: one markup block works with or without JS, so the
+// copy is served to the DOM exactly once (no <noscript> duplicate, no
+// client-side state). Shared name="faq" keeps it single-open natively.
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
@@ -18,7 +15,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'I only need one document. Do I have to subscribe?',
-    a: 'No. Reserve a spot for pay-as-you-go. The first 100 people get $10 off the $25 Letter of Offer when it launches. No subscription. No card today.',
+    a: 'No. One-off documents are pay-as-you-go - buy just the document you need from $25, with no subscription and no account.',
   },
   {
     q: 'Can I trust the AI on real decisions?',
@@ -26,7 +23,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it cost?',
-    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has a 14-day free trial, no card, unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
+    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
   },
   {
     q: 'Do you offer a dedicated advisor?',
@@ -47,7 +44,6 @@ const FAQS: Array<{ q: string; a: string }> = [
 ]
 
 export default function FaqSection() {
-  const [open, setOpen] = useState<number | null>(0)
   return (
     <section className="bg-bg py-20 md:py-28" aria-labelledby="faq-heading">
       <div className="mx-auto max-w-3xl px-6 md:px-10">
@@ -59,53 +55,25 @@ export default function FaqSection() {
           The stuff you&apos;re wondering.
         </h2>
 
-        <ul className="mt-10 divide-y divide-border border-y border-border">
-          {FAQS.map((item, i) => {
-            const isOpen = open === i
-            return (
-              <li key={item.q}>
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-6 py-5 text-left transition-colors hover:text-accent"
+        <div className="mt-10 divide-y divide-border border-y border-border">
+          {FAQS.map((item) => (
+            <details key={item.q} name="faq" className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
+                <span className="text-base font-medium text-ink md:text-lg">{item.q}</span>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 20 20"
+                  className="h-5 w-5 shrink-0 text-ink-muted group-open:rotate-180"
                 >
-                  <span className="text-base font-medium text-ink md:text-lg">{item.q}</span>
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 20 20"
-                    className={[
-                      'h-5 w-5 shrink-0 text-ink-muted transition-transform duration-300',
-                      isOpen ? 'rotate-180' : 'rotate-0',
-                    ].join(' ')}
-                  >
-                    <path d="M5 7l5 6 5-6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                <div
-                  className={[
-                    'overflow-hidden transition-[max-height,opacity] duration-300 ease-out',
-                    isOpen ? 'max-h-96 opacity-100 pb-6' : 'max-h-0 opacity-0',
-                  ].join(' ')}
-                >
-                  <p className="text-sm leading-relaxed text-ink-soft md:text-base">{item.a}</p>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-
-        {/* JS-off fallback: show all answers natively below the accordion. */}
-        <noscript>
-          <ul className="mt-10 space-y-6">
-            {FAQS.map((f) => (
-              <li key={f.q}>
-                <p className="font-medium text-ink">{f.q}</p>
-                <p className="mt-1 text-sm text-ink-soft">{f.a}</p>
-              </li>
-            ))}
-          </ul>
-        </noscript>
+                  <path d="M5 7l5 6 5-6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </summary>
+              <div className="pb-6">
+                <p className="text-sm leading-relaxed text-ink-soft md:text-base">{item.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   )

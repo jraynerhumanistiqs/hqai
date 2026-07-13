@@ -38,7 +38,7 @@ export default function CustomerStory() {
             {/* RIGHT (60%): quote + attribution + bullets */}
             <div>
               <blockquote className="font-display text-[22px] font-bold leading-snug tracking-tight text-ink md:text-[26px]">
-                &ldquo;I cancelled our $850 a month retainer in the second week. The AI answers the actual questions I had on hold. Two of my offer letters this quarter went out within an hour of the verbal.&rdquo;
+                &ldquo;I cancelled our $850 a month outsourced HR retainer in the second week. The HQ People Advisor answered my questions in minutes, the same questions I was put on a 20 minute hold for by my previous provider. In that time, I was also able to seamlessly generate two new starter offer letters within 10 minutes of the verbal offer acceptance.&rdquo;
               </blockquote>
               <p className="mt-5 text-sm text-ink-muted">
                 Pat M., owner-operator, 38-person hospitality group, NSW.

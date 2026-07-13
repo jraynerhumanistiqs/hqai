@@ -8,7 +8,7 @@ import PricingPageClient from '@/components/landing/PricingPageClient'
 export const metadata: Metadata = {
   title: 'HQ.ai pricing - HR from $59/mo, or one document from $25',
   description:
-    'Simple Australian pricing for small business HR and recruitment. Pick HR help, hiring help, or both: HQ People from $59/mo, the HQ Business bundle $89-$269/mo, or buy one HR document from $25 with no subscription. 14-day free trial, no card.',
+    'Simple Australian pricing for small business HR and recruitment. Pick HR help, hiring help, or both: HQ People from $59/mo, the HQ Business bundle $89-$269/mo, or buy one HR document from $25 with no subscription.',
   alternates: { canonical: '/pricing' },
   robots: { index: true, follow: true },
 }
@@ -27,8 +27,8 @@ export default function PricingPage() {
             Simple pricing. No surprises.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
-            Pay monthly for everything, or buy one document at a time. Every plan starts with a 14-day
-            free trial. No card needed.
+            Pay monthly for everything, or buy one document at a time. Unlimited logins on every plan.
+            No lock-in.
           </p>
         </section>
         <PricingPageClient />

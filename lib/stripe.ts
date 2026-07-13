@@ -25,7 +25,6 @@ export function getStripe() {
 //   STRIPE_PRICE_ID_SOLO_ANNUAL
 //   STRIPE_PRICE_ID_BUSINESS_MONTHLY
 //   STRIPE_PRICE_ID_BUSINESS_ANNUAL
-//   STRIPE_PRICE_ID_BUSINESS_FOUNDATION   (optional, only for the Foundation 100 lock-in)
 
 export type BillingCycle = 'monthly' | 'annual'
 
@@ -135,11 +134,6 @@ export const PLANS: Record<
   },
 }
 
-// The Foundation 100 offer is a separate annual SKU that locks Business
-// at $179/mo for life. Stored on the Foundation config in pricing-config,
-// surfaced here for the resolver.
-export const FOUNDATION_ANNUAL_ENV_KEY = PRICING.foundation.stripePriceIdAnnual
-
 export type PlanId = keyof typeof PLANS
 
 export function isPlanId(value: unknown): value is PlanId {
@@ -167,24 +161,14 @@ export function isBillingCycle(value: unknown): value is BillingCycle {
  *
  * @param planId  - 'solo' | 'business'
  * @param cycle   - 'monthly' | 'annual'
- * @param foundation - true only when checking out the Foundation 100
- *                     locked annual offer. Valid only with
- *                     planId='business' AND cycle='annual'.
  *
- * Returns null if the corresponding env var is missing OR if the
- * combination is invalid - callers should surface a clear configuration
- * error rather than a 500.
+ * Returns null if the corresponding env var is missing - callers should
+ * surface a clear configuration error rather than a 500.
  */
 export function getStripePriceId(
   planId: PlanId,
   cycle: BillingCycle,
-  foundation: boolean = false,
 ): string | null {
-  if (foundation) {
-    if (planId !== 'business' || cycle !== 'annual') return null
-    const v = process.env[FOUNDATION_ANNUAL_ENV_KEY]
-    return v && v.trim() ? v.trim() : null
-  }
   const envKey = PLANS[planId][cycle].envKey
   const value = process.env[envKey]
   return value && value.trim() ? value.trim() : null

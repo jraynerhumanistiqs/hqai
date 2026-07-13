@@ -75,15 +75,15 @@ export default function HeroSection() {
             id="hero-heading"
             className={`font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px] ${reveal(stage >= 1)}`}
           >
-            HR and hiring are complicated. HQ.ai takes the{' '}
+            HR and hiring are complicated. HQ.ai makes it{' '}
             {stage >= 3 ? (
-              <Cited placement="right" note="From question to finished document in about three minutes.">busywork off your plate.</Cited>
+              <Cited placement="right" note="From question to finished document in about three minutes.">easy, quick and accurate.</Cited>
             ) : (
-              <span className="text-clay">busywork off your plate.</span>
+              <span className="text-clay">easy, quick and accurate.</span>
             )}
           </h1>
           <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
-            AI that handles the everyday people and hiring jobs - the questions, the admin, the documents - so the work that used to eat half a day takes three minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
+            HQ.ai handles the everyday HR work and hiring processes that cost you time and money. All the questions, the admin, the documents, so the work that used to take hours or days, now takes three minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
           </p>
 
           <div className={`mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 ${reveal(stage >= 2)}`}>
@@ -91,7 +91,7 @@ export default function HeroSection() {
               href="/signup"
               className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
-              Start the 14-day trial
+              Get started
             </Link>
             <a
               href="#marketplace"
@@ -100,7 +100,7 @@ export default function HeroSection() {
               See one-off documents from $25 -&gt;
             </a>
           </div>
-          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>No card. Three minutes to first document.</p>
+          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>Three minutes to your first document.</p>
         </div>
 
         {/* Right: HQ People is the star; HQ Recruit is a quiet secondary tile. */}

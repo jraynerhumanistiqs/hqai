@@ -45,7 +45,7 @@ const VALUES = [
   },
   {
     t: 'Australian only',
-    d: 'We do one thing well. Australian workplace law for businesses under 250 staff. Nothing borrowed from overseas.',
+    d: 'We know Australian workplace law inside out. Built for businesses under 250 staff. Nothing borrowed from overseas.',
     icon: FlagIcon,
   },
   {
@@ -74,17 +74,17 @@ export default function AboutPage() {
               Bring out the best in your people. Let AI do the hard yards.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-              HQ.ai is made by Humanistiqs, an Australian HR and management consultancy. For years we
-              gave small businesses real advice on people, structure and performance. Now you get that
-              same advice in your pocket. It is there any time, it takes the busywork off your plate,
-              and our team stands behind it.
+              HQ.ai is powered by Humanistiqs, an Australian HR, recruitment and management
+              consultancy. For years we gave small businesses real advice on people, structure and
+              performance. Now you get that same advice in your pocket. It is there any time, it takes
+              the busy people-management work off your plate, and our team stands behind it.
             </p>
             <div className="mt-8">
               <Link
                 href="/signup"
                 className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
-                Start the trial - it's three minutes
+                Get started - it's three minutes
               </Link>
             </div>
 

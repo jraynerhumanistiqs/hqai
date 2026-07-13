@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
+import { C10_SELF_SERVE } from '@/lib/pricing-config'
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
 const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) Award','Restaurant Industry Award','Pharmacy Industry Award 2020','Aged Care Award','SCHADS Award','Nurses Award','Building & Construction Award','Clerks Private Sector Award','Professional Employees Award','Award-free / Enterprise Agreement','Multiple awards apply','Not sure']
@@ -16,19 +16,12 @@ const AU_STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 // onboarding so the AI prompts can target the right awards for each.
 const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
 // Plans are derived from lib/pricing-config.ts (the single source of
-// truth) - never hardcode prices here. The two paid tiers reuse the C10
+// truth) - never hardcode prices here. The two plans reuse the C10
 // self-serve bundle (which carries the 'solo'/'business' plan ids the
-// /api/onboarding route stores), and the free option reads the trial
-// config. The route stores `plan` as an opaque string, so these ids flow
-// through without a schema change.
+// /api/onboarding route stores). The route stores `plan` as an opaque
+// string, so these ids flow through without a schema change.
 const { bundle } = C10_SELF_SERVE
 const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
-  {
-    id: 'free',
-    label: 'Free Trial',
-    price: `Free for ${PRICING.trial.days} days`,
-    desc: `Full access for ${PRICING.trial.days} days${PRICING.trial.cardRequired ? '' : ', no card required'}`,
-  },
   {
     id: bundle.solo.planId,
     label: `${bundle.name} (${bundle.solo.label})`,
@@ -53,7 +46,7 @@ export default function OnboardingPage() {
   const [form, setForm] = useState({
     bizName: '', industry: '', country: 'Australia', state: [] as string[], awards: [] as string[], headcount: '',
     empTypes: [] as string[],
-    advisorName: 'Hugo', userName: '', plan: 'free'
+    advisorName: 'Hugo', userName: '', plan: 'business'
   })
   const [authReady, setAuthReady] = useState(false)
   const supabase = createClient()
@@ -70,15 +63,13 @@ export default function OnboardingPage() {
   }, [])
 
   // Pre-select the plan the user picked on the marketing pricing page
-  // (carried via /signup?plan=...&foundation=1 -> login -> here) so the
-  // funnel choice isn't lost. Foundation maps to the Business plan.
+  // (carried via /signup?plan=... -> login -> here) so the funnel
+  // choice isn't lost.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const q = new URLSearchParams(window.location.search)
-    const planParam = q.get('plan')
-    const foundation = q.get('foundation') === '1'
-    const wanted = foundation ? 'business' : planParam
-    if (wanted && ['free', 'solo', 'business'].includes(wanted)) {
+    const wanted = q.get('plan')
+    if (wanted && ['solo', 'business'].includes(wanted)) {
       setForm(f => ({ ...f, plan: wanted }))
     }
   }, [])
@@ -411,7 +402,6 @@ export default function OnboardingPage() {
                   className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
                   {saving ? 'Setting up…' : 'Launch HQ.ai →'}
                 </button>
-                <p className="text-[10px] text-ink-muted">14-day free trial. No card required.</p>
               </div>
             )}
           </div>

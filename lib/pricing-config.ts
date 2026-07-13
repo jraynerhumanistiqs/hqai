@@ -46,23 +46,6 @@ export interface OneOffSku {
   description: string
 }
 
-export interface FoundationOffer {
-  enabled: boolean
-  cap: number
-  tierId: 'business'
-  lockedMonthly: number
-  requiresAnnualCommit: boolean
-  perks: string[]
-  stripePriceIdAnnual: string
-}
-
-export interface TrialConfig {
-  days: number
-  cardRequired: boolean
-  creditAllowance: number
-  accessLevel: 'business'
-}
-
 export interface CreditsConfig {
   chatTurn: number
   documentGeneration: number
@@ -172,8 +155,6 @@ export interface PricingShape {
   currency: Currency
   tiers: PricingTier[]
   oneOffs: OneOffSku[]
-  foundation: FoundationOffer
-  trial: TrialConfig
   credits: CreditsConfig
   enterprise: EnterpriseConfig
 }
@@ -204,7 +185,7 @@ export const PRICING: PricingShape = {
         'Pay-as-you-go advisor escalation ($80/session)',
         'Email support',
       ],
-      cta: 'Start the 14-day trial',
+      cta: 'Get started',
       highlight: false,
     },
     {
@@ -231,7 +212,7 @@ export const PRICING: PricingShape = {
         'Founder-led onboarding call (30 min)',
         'Priority Slack support',
       ],
-      cta: 'Start the 14-day trial',
+      cta: 'Get started',
       highlight: true,
       badge: 'Most popular',
     },
@@ -328,26 +309,6 @@ export const PRICING: PricingShape = {
       description: 'A reference request with consent capture and structured questions.',
     },
   ],
-  foundation: {
-    enabled: true,
-    cap: 100,
-    tierId: 'business',
-    lockedMonthly: 189,
-    requiresAnnualCommit: true,
-    perks: [
-      '$189/mo held for your first 12 months (saving over $950)',
-      'Founder Slack and monthly cohort call',
-      'First access to all new modules',
-      'Named on the Foundation 100 wall',
-    ],
-    stripePriceIdAnnual: 'STRIPE_PRICE_ID_BUSINESS_FOUNDATION',
-  },
-  trial: {
-    days: 14,
-    cardRequired: false,
-    creditAllowance: 200,
-    accessLevel: 'business',
-  },
   credits: {
     chatTurn: 1,
     documentGeneration: 5,
@@ -644,7 +605,7 @@ export type PricingTierId = PricingTier['id']
 // reuses the existing 'solo' / 'business' plan ids for checkout (so the
 // Stripe/webhook/settings plumbing is unchanged). Standalone HQ People and
 // HQ Recruit checkout SKUs are a follow-up - until those Stripe products
-// exist, all three start on the same no-card 14-day trial.
+// exist, all three use the HQ Business bundle checkout.
 // -------------------------------------------------------------------------
 
 export interface C10Band { label: string; monthly: number; annualTotal?: number; credits: number }

@@ -4,18 +4,14 @@
 // Three self-serve choices: HQ People (HR-only base), HQ Recruit (metered
 // add-on), and Complete (the bundle, which reuses the existing solo/business
 // plan ids + Stripe prices and keeps the $89 / $269 anchors). Below: the
-// on-demand document library (carousel), the Foundation 100 banner, and the
-// HR365 / RECRUIT365 done-for-you teaser.
+// on-demand document library (carousel) and the HR365 / RECRUIT365
+// done-for-you teaser.
 //
 // All prices source from lib/pricing-config.ts - never duplicate inline.
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
-
-interface Props {
-  onReserve: () => void
-}
 
 // On-demand document library - grouped by the most commonly requested HR
 // categories. No per-document pricing here; this is the self-service AI
@@ -56,14 +52,15 @@ const DOC_CATEGORIES: { title: string; docs: { name: string; desc: string }[] }[
   },
 ]
 
-export default function PricingSection({ onReserve }: Props) {
-  // Team size sets the band shared by HQ People and the Complete bundle.
+export default function PricingSection() {
+  // Team size sets the band for the Complete bundle. HQ People always
+  // leads with its $59 entry price (see below), so the toggle drives the
+  // bundle figure - keeping HQ Business on its $269 (up to 150) anchor.
   const [size, setSize] = useState<0 | 1>(1) // 0 = up to 25, 1 = up to 150
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
   const [cat, setCat] = useState(0) // active document category
 
   const { people, recruit, bundle } = C10_SELF_SERVE
-  const foundation = PRICING.foundation
   const oneOffs = PRICING.oneOffs
 
   const cheapestOneOff = useMemo(
@@ -71,7 +68,6 @@ export default function PricingSection({ onReserve }: Props) {
     [oneOffs],
   )
 
-  const peopleBand = people.bands[size]
   const bundlePlan = size === 0 ? bundle.solo : bundle.business
   const annual = cycle === 'annual'
 
@@ -80,10 +76,22 @@ export default function PricingSection({ onReserve }: Props) {
   // big number is the monthly price with no note.
   const fmt = (n: number) => `$${n.toLocaleString('en-AU')}`
 
-  const peopleAnnual = annual && !!peopleBand.annualTotal
-  const peopleBig = peopleAnnual ? fmt(peopleBand.annualTotal!) : fmt(peopleBand.monthly)
-  const peopleSuffix = peopleAnnual ? '/yr' : '/mo'
-  const peopleNote = peopleAnnual ? `${fmt(Math.round(peopleBand.annualTotal! / 12))} a month, billed annually` : ''
+  // HQ People always leads with its entry price ($59 up to 25) so the
+  // hero's "From $59/month" promise is delivered on-screen. The larger
+  // $179 (up to 150) tier is surfaced as a secondary line, independent of
+  // the team-size toggle (which drives the bundle price).
+  const peopleEntry = people.bands[0]
+  const peopleLarger = people.bands[1]
+  const peopleEntryAnnual = annual && !!peopleEntry.annualTotal
+  const peopleBig = peopleEntryAnnual ? fmt(peopleEntry.annualTotal!) : fmt(peopleEntry.monthly)
+  const peopleSuffix = peopleEntryAnnual ? '/yr' : '/mo'
+  const peopleLargerPrice = annual && peopleLarger.annualTotal
+    ? `${fmt(peopleLarger.annualTotal)}/yr`
+    : `${fmt(peopleLarger.monthly)}/mo`
+  const peopleNote = `${peopleLargerPrice} for a team ${peopleLarger.label} people`
+  const peopleSub = peopleEntryAnnual
+    ? `For a team ${peopleEntry.label} people, ${peopleEntry.credits.toLocaleString('en-AU')} AI actions a month. ${fmt(Math.round(peopleEntry.annualTotal! / 12))} a month, billed annually.`
+    : `For a team ${peopleEntry.label} people, ${peopleEntry.credits.toLocaleString('en-AU')} AI actions a month.`
 
   const bundleBig = annual ? fmt(bundlePlan.annualTotal) : fmt(bundlePlan.monthly)
   const bundleSuffix = annual ? '/yr' : '/mo'
@@ -103,7 +111,7 @@ export default function PricingSection({ onReserve }: Props) {
           Pick what you need: HR, hiring, or both.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-          Start with HR, add hiring when you need it, or take the lot. Every plan starts with a 14-day free trial. No card.
+          Start with HR, add hiring when you need it, or take the lot. Unlimited logins on every plan, with no lock-in.
         </p>
 
         {/* Toggles */}
@@ -133,9 +141,9 @@ export default function PricingSection({ onReserve }: Props) {
             price={peopleBig}
             priceSuffix={peopleSuffix}
             priceNote={peopleNote}
-            sub={`For a team of ${peopleBand.label.replace('up to ', 'up to ')} people, ${peopleBand.credits.toLocaleString('en-AU')} AI actions a month`}
+            sub={peopleSub}
             features={people.features}
-            cta="Start the 14-day trial"
+            cta="Get started"
             href="/signup"
             ctaStyle="ghost"
           />
@@ -162,7 +170,7 @@ export default function PricingSection({ onReserve }: Props) {
             priceNote={bundleNote}
             sub={`For a team of ${bundlePlan.label.replace('up to ', 'up to ')} people`}
             features={bundle.features}
-            cta="Start the 14-day trial"
+            cta="Get started"
             href={`/signup?plan=${bundlePlan.planId}&cycle=${cycle}`}
             ctaStyle="solid"
           />
@@ -231,14 +239,6 @@ export default function PricingSection({ onReserve }: Props) {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={onReserve}
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
-            >
-              Reserve early access -&gt;
-            </button>
-            <p className="mt-3 text-xs text-ink-muted">Launching soon. First 100 reservations get $10 off.</p>
           </div>
 
           {/* HR365 / RECRUIT365 teaser */}
@@ -290,28 +290,6 @@ export default function PricingSection({ onReserve }: Props) {
           </aside>
         </div>
 
-        {/* Foundation 100 banner */}
-        {foundation.enabled && (
-          <div className="mt-10 rounded-3xl border border-clay bg-clay-soft/40 p-7 shadow-card md:p-9">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="max-w-2xl">
-                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Foundation {foundation.cap}</p>
-                <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">
-                  Be one of our first {foundation.cap} customers and lock HQ Business at ${foundation.lockedMonthly}/month for your first 12 months.
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  Your rate held for the first year, plus founder Slack and first access to every new module. A 12-month sign-up.
-                </p>
-              </div>
-              <Link
-                href={`/signup?plan=business&cycle=annual&foundation=1`}
-                className="inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
-              >
-                Reserve a Foundation slot -&gt;
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
       <style jsx>{`

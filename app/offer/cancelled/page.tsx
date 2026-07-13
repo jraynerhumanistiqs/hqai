@@ -42,7 +42,7 @@ export default function OfferCancelledPage() {
               href="/login?intent=signup"
               className="border border-border hover:bg-bg-soft text-ink text-small font-bold rounded-full px-5 py-2.5"
             >
-              Try the 14-day trial instead
+              Explore HQ.ai plans instead
             </Link>
             <a
               href="mailto:support@humanistiqs.com.au"

@@ -7,7 +7,7 @@ export default function FooterCta() {
     <section className="bg-bg py-20 md:py-28" aria-labelledby="footer-cta-heading">
       <div className="mx-auto max-w-4xl px-6 text-center md:px-10">
         <h2 id="footer-cta-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[44px]">
-          Three minutes. No credit card. Better decisions today.
+          Three minutes. Better decisions today.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base text-ink-soft md:text-lg">
           You&apos;ll have your first HR question answered, your first document drafted, and your team set up before the kettle boils.
@@ -17,7 +17,7 @@ export default function FooterCta() {
             href="/signup"
             className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
           >
-            Start the trial - it&apos;s three minutes
+            Get started - it&apos;s three minutes
           </Link>
         </div>
 

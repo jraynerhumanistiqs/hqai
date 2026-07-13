@@ -104,7 +104,7 @@ export default function MarketingHeader() {
             href="/signup"
             className="inline-flex h-10 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
           >
-            Start free trial
+            Get started
           </Link>
         </nav>
 
@@ -160,7 +160,7 @@ export default function MarketingHeader() {
               onClick={() => setOpen(false)}
               className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover"
             >
-              Start free trial
+              Get started
             </Link>
           </div>
         </nav>
