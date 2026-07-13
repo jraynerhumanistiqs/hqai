@@ -10,7 +10,7 @@ import Cited from './Cited'
 
 export default function ComparisonSection() {
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="comparison-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="comparison-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />

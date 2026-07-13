@@ -58,7 +58,7 @@ export default function HeroSection() {
 
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-28 md:pt-12 lg:gap-16">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
         {/* Left: copy block.
             relative z-20 lifts this column's stacking context above the
             right-hand preview column. Both columns get a transform from the

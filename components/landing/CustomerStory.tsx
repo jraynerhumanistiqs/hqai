@@ -3,7 +3,7 @@
 
 export default function CustomerStory() {
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="customer-story-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="customer-story-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -16,7 +16,7 @@ export default function CustomerStory() {
           Pat ran an HR team of one. Now he has HQ.ai.
         </h2>
 
-        <div className="mt-12 rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
+        <div className="mt-10 rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
           <div className="grid items-center gap-10 md:grid-cols-[2fr_3fr] md:gap-14">
             {/* LEFT (40%): abstract quote mark - reads as an editorial
                 pull-quote device, not a missing customer headshot. */}

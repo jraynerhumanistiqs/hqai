@@ -22,7 +22,7 @@ export default function ProblemSection() {
   ]
 
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="problem-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="problem-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -38,7 +38,7 @@ export default function ProblemSection() {
           You didn&apos;t start a business to become an HR or Recruitment Manager. Here is the old way, next to the HQ.ai way.
         </p>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-3 md:gap-6">
+        <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-6">
           {rows.map((r) => (
             <article
               key={r.topic}

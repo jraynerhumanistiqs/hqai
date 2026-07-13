@@ -98,7 +98,7 @@ export default function ToolExplorer() {
   const tab = TABS[active]
 
   return (
-    <section id="tools" className="bg-bg py-20 md:py-28" aria-labelledby="tools-heading">
+    <section id="tools" className="bg-bg py-14 md:py-20" aria-labelledby="tools-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -191,7 +191,7 @@ export default function ToolExplorer() {
 
             <Link
               href={tab.cta.href}
-              className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+              className="mt-7 inline-flex h-11 items-center justify-center rounded-full border border-ink px-6 text-sm font-semibold text-ink transition-colors hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {tab.cta.label} -&gt;
             </Link>

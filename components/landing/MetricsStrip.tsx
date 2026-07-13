@@ -12,7 +12,7 @@ export default function MetricsStrip() {
   ]
 
   return (
-    <section className="bg-bg py-16 md:py-20" aria-labelledby="metrics-heading">
+    <section className="bg-bg py-12 md:py-16" aria-labelledby="metrics-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p
           id="metrics-heading"

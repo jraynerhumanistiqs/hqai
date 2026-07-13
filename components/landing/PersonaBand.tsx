@@ -76,7 +76,7 @@ export default function PersonaBand() {
   const shown = PERSONAS.slice(start, start + PER_PAGE)
 
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="persona-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="persona-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -108,7 +108,7 @@ export default function PersonaBand() {
           aria-label="Industries HQ.ai is built for"
           tabIndex={0}
           onKeyDown={onKeyDown}
-          className="mt-12 rounded-3xl outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          className="mt-10 rounded-3xl outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
         >
           <div
             key={page}

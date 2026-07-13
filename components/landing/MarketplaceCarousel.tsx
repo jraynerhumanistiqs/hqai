@@ -56,7 +56,7 @@ export default function MarketplaceCarousel() {
   const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
 
   return (
-    <section id="marketplace" className="bg-bg py-20 md:py-28" aria-labelledby="marketplace-heading">
+    <section id="marketplace" className="bg-bg py-14 md:py-20" aria-labelledby="marketplace-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -70,7 +70,7 @@ export default function MarketplaceCarousel() {
         </p>
 
         {/* Two columns: category carousel left, mock document preview right. */}
-        <div className="mt-12 grid items-stretch gap-8 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-10 grid items-stretch gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* Category carousel - mirrors the pricing page pattern. */}
           <div className="flex flex-col rounded-3xl border border-border bg-bg-soft p-7 md:p-8">
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Examples you can buy</p>
@@ -119,7 +119,7 @@ export default function MarketplaceCarousel() {
             <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link
                 href="/marketplace"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-ink px-6 text-sm font-semibold text-ink transition-colors hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 Browse the document marketplace -&gt;
               </Link>

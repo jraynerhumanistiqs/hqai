@@ -101,7 +101,7 @@ export default function PricingSection() {
   const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
 
   return (
-    <section id="pricing" className="bg-bg py-20 md:py-28" aria-labelledby="pricing-heading">
+    <section id="pricing" className="bg-bg py-14 md:py-20" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -181,7 +181,7 @@ export default function PricingSection() {
         </p>
 
         {/* Bottom row: on-demand document library (carousel) + HR365/RECRUIT365 teaser */}
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* On-demand documents - AI Administrator */}
           <div className="rounded-2xl border border-border bg-bg-soft p-7 md:p-8">
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">On-demand documents</p>
