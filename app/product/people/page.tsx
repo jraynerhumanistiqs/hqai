@@ -79,7 +79,7 @@ export default function ProductPeoplePage() {
           </div>
 
           {/* Stat touch */}
-          <div className="mx-auto mt-14 grid max-w-3xl gap-4 sm:grid-cols-3 md:gap-6">
+          <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-3 md:gap-6">
             {STATS.map((s) => (
               <div
                 key={s.label}
@@ -97,7 +97,7 @@ export default function ProductPeoplePage() {
         <PeopleDeepDive />
 
         {/* Feature grid */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="people-features-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="people-features-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -113,7 +113,7 @@ export default function ProductPeoplePage() {
               The everyday HR work, taken off your plate - the questions answered, the documents drafted.
             </p>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 md:gap-6">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">
               {FEATURES.map((f) => {
                 const Icon = f.icon
                 return (

@@ -3,7 +3,7 @@
 
 export default function PeopleDeepDive() {
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="people-deepdive-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="people-deepdive-heading">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[3fr_2fr] md:gap-16 md:px-10">
         {/* LEFT (60%): product mock */}
         <div className="order-2 md:order-1">

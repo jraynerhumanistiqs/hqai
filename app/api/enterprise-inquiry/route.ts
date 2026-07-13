@@ -9,8 +9,8 @@
 //   1. Founder notification to jrayner@humanistiqs.com.au for triage.
 //   2. Inquirer confirmation signed by the founder.
 //
-// Pattern mirrors app/api/marketplace/reserve/route.ts (service-role
-// write + email side-effect, no auth required).
+// Uses the service-role admin client for the write + email side-effect,
+// with no auth required (same pattern as the public prescreen routes).
 
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'

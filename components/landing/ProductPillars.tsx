@@ -5,7 +5,7 @@
 
 export default function ProductPillars() {
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="pillars-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="pillars-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -21,7 +21,7 @@ export default function ProductPillars() {
           HQ People handles your staff. HQ Recruit handles your hiring. Both built for Australian workplaces, so you never have to wade through the fine print yourself.
         </p>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {/* CARD A - HQ PEOPLE */}
           <article className="flex flex-col rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-10">
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HQ People</p>

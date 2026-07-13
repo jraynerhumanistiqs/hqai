@@ -71,7 +71,7 @@ export default function ProductRecruitPage() {
           </div>
 
           {/* Stat strip - quick proof under the hero */}
-          <div className="mx-auto mt-14 grid max-w-3xl gap-4 sm:grid-cols-3 md:gap-6">
+          <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-3 md:gap-6">
             {STATS.map((s) => (
               <div
                 key={s.figure}
@@ -87,7 +87,7 @@ export default function ProductRecruitPage() {
         <RecruitDeepDive />
 
         {/* Feature grid */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="features-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="features-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -103,7 +103,7 @@ export default function ProductRecruitPage() {
               Four steps that used to live in your inbox, spreadsheets and gut feel - now one tidy workflow.
             </p>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 md:gap-6">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">
               {FEATURES.map((f) => {
                 const Icon = f.icon
                 return (

@@ -46,7 +46,7 @@ const TEAM: Person[] = [
 
 export default function FounderNote() {
   return (
-    <section className="bg-bg py-20 md:py-28" aria-labelledby="founder-heading">
+    <section className="bg-bg py-14 md:py-20" aria-labelledby="founder-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -82,7 +82,7 @@ export default function FounderNote() {
         {/* The directors - editorial masthead. Larger photos, names in
             Fraunces, roles in mono, a top hairline rule per person. No
             shadowed tiles - the faces are the brand's strongest asset. */}
-        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
           {TEAM.map((p) => (
             <div key={p.name} className="flex flex-col items-start border-t border-border pt-5">
               <Image

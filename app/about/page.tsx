@@ -61,7 +61,7 @@ export default function AboutPage() {
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
         {/* Hero */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="about-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="about-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -89,7 +89,7 @@ export default function AboutPage() {
             </div>
 
             {/* Stat strip - delta-style callouts from the homepage MetricsStrip */}
-            <div className="mt-14 grid gap-4 sm:grid-cols-3 md:gap-6">
+            <div className="mt-10 grid gap-4 sm:grid-cols-3 md:gap-6">
               {STATS.map((s) => (
                 <article
                   key={s.label}
@@ -106,7 +106,7 @@ export default function AboutPage() {
         </section>
 
         {/* What we stand for - values grid with icon-in-rounded-square + tick */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="values-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="values-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -123,7 +123,7 @@ export default function AboutPage() {
               that matter.
             </p>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 md:gap-6">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">
               {VALUES.map((v) => {
                 const Icon = v.icon
                 return (
@@ -147,7 +147,7 @@ export default function AboutPage() {
         <FounderNote />
 
         {/* Enterprise nudge - in a card so it reads as part of the system */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="enterprise-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <article className="rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
               <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">HR365 &amp; Recruit365</p>

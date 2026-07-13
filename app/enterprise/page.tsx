@@ -158,7 +158,7 @@ export default function EnterprisePage() {
         </section>
 
         {/* Plan cards */}
-        <section id="variants" className="bg-bg py-20 md:py-28" aria-labelledby="variants-heading">
+        <section id="variants" className="bg-bg py-14 md:py-20" aria-labelledby="variants-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -222,7 +222,7 @@ export default function EnterprisePage() {
         </section>
 
         {/* Who this is for */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="who-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="who-heading">
           <div className="mx-auto max-w-5xl px-6 md:px-10">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -265,7 +265,7 @@ export default function EnterprisePage() {
         </section>
 
         {/* How it works */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="how-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="how-heading">
           <div className="mx-auto max-w-6xl px-6 md:px-10">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -298,7 +298,7 @@ export default function EnterprisePage() {
         </section>
 
         {/* Inquiry form */}
-        <section id="inquiry" className="bg-bg py-20 md:py-28" aria-labelledby="inquiry-heading">
+        <section id="inquiry" className="bg-bg py-14 md:py-20" aria-labelledby="inquiry-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
@@ -319,7 +319,7 @@ export default function EnterprisePage() {
         </section>
 
         {/* FAQ */}
-        <section className="bg-bg py-20 md:py-28" aria-labelledby="enterprise-faq-heading">
+        <section className="bg-bg py-14 md:py-20" aria-labelledby="enterprise-faq-heading">
           <div className="mx-auto max-w-3xl px-6 md:px-10">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
               <span aria-hidden className="h-px w-5 bg-clay" />
