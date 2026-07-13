@@ -15,7 +15,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import HeroChatPreview from './HeroChatPreview'
-import Cited from './Cited'
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false)
@@ -76,11 +75,7 @@ export default function HeroSection() {
             className={`font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px] ${reveal(stage >= 1)}`}
           >
             HR and hiring are complicated. HQ.ai makes it{' '}
-            {stage >= 3 ? (
-              <Cited placement="right" note="From question to finished document in about three minutes.">easy, quick and accurate.</Cited>
-            ) : (
-              <span className="text-clay">easy, quick and accurate.</span>
-            )}
+            <span className="text-clay">easy, quick and accurate.</span>
           </h1>
           <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
             HQ.ai handles the everyday HR work and hiring processes that cost you time and money. All the questions, the admin, the documents, so the work that used to take hours or days, now takes three minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
