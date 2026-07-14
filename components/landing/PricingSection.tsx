@@ -10,7 +10,7 @@
 // All prices source from lib/pricing-config.ts - never duplicate inline.
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
 
 // On-demand document library - grouped by the most commonly requested HR
@@ -111,7 +111,8 @@ export default function PricingSection() {
           Pick what you need: HR, hiring, or both.
         </h2>
         <p className="mt-4 max-w-2xl text-base text-ink-soft md:text-lg">
-          Start with HR, add hiring when you need it, or take the lot. Unlimited logins on every plan, with no lock-in.
+          HR only with HQ People, hiring only with HQ Recruit, or both with HQ Business - the best-value
+          way to get the lot. Unlimited logins on every plan, with no lock-in.
         </p>
 
         {/* Toggles */}
@@ -130,14 +131,17 @@ export default function PricingSection() {
           />
         </div>
 
-        {/* Three self-serve choices. The bundle is structurally lifted -
-            a feature surface that scales up and rises above the other two
-            (lg:-mt-4) so it leads on shape, not just a badge. */}
-        <div className="mt-10 grid items-end gap-4 lg:grid-cols-3 md:gap-6">
+        {/* Three self-serve choices, three equal-sized containers. The bundle
+            leads on the "Best value" badge + a clay accent border, NOT on a
+            bigger footprint - all three share HQ People's card dimensions.
+            The kicker on each names the path in parallel (HR only / Hiring
+            only / HR + hiring) so a first-time visitor can tell them apart at
+            a glance. */}
+        <div className="mt-10 grid items-stretch gap-4 lg:grid-cols-3 md:gap-6">
           <PlanCard
-            kicker={people.kicker}
+            kicker="HR only"
             name={people.name}
-            desc={people.desc}
+            desc="The AI HR assistant, a full document library and the everyday HR jobs handled - no hiring tools."
             price={peopleBig}
             priceSuffix={peopleSuffix}
             priceNote={peopleNote}
@@ -151,24 +155,29 @@ export default function PricingSection() {
             kicker={recruit.kicker}
             name={recruit.name}
             desc={recruit.desc}
-            price={`+$${recruit.bands[0].monthly}`}
-            priceSuffix="/mo on top"
-            sub={`Added to a plan. Light +$${recruit.bands[0].monthly} (1 open role) or Pro +$${recruit.bands[1].monthly} (unlimited). Already included in HQ Business.`}
+            price={fmt(recruit.standaloneMonthly)}
+            priceSuffix="/mo"
+            sub={`Hiring on its own, billed monthly. Go Pro for unlimited roles at ${fmt(recruit.bands[1].monthly)}/mo.`}
             features={recruit.features}
-            cta="Add to a plan"
+            cta="Get started"
             href="/signup"
             ctaStyle="ghost"
+            info={
+              <PricingInfoDot label="HQ People subscriber add-on">
+                {recruit.subscriberAddOnNote}
+              </PricingInfoDot>
+            }
           />
           <PlanCard
             highlight
             badge="Best value"
             kicker={bundle.kicker}
             name={bundle.name}
-            desc={bundle.desc}
+            desc="HR and hiring in one plan - the best-value way to get both."
             price={bundleBig}
             priceSuffix={bundleSuffix}
             priceNote={bundleNote}
-            sub={`For a team of ${bundlePlan.label.replace('up to ', 'up to ')} people`}
+            sub={`For a team ${bundlePlan.label} people. Everything in HQ People and HQ Recruit, together.`}
             features={bundle.features}
             cta="Get started"
             href={`/signup?plan=${bundlePlan.planId}&cycle=${cycle}`}
@@ -348,7 +357,7 @@ function Toggle<T extends string | number>({
 }
 
 function PlanCard({
-  kicker, name, desc, price, priceSuffix, priceNote, sub, features, cta, href, ctaStyle, highlight, badge,
+  kicker, name, desc, price, priceSuffix, priceNote, sub, features, cta, href, ctaStyle, highlight, badge, info,
 }: {
   kicker: string
   name: string
@@ -363,25 +372,29 @@ function PlanCard({
   ctaStyle: 'solid' | 'ghost'
   highlight?: boolean
   badge?: string
+  info?: React.ReactNode
 }) {
   return (
     <article
       className={[
-        'flex flex-col p-6 md:p-7',
-        highlight
-          // Tier B feature surface: elevated, shadowed, lifted + scaled.
-          ? 'rounded-3xl border border-clay bg-bg-elevated shadow-float lg:-mt-4 lg:scale-[1.03]'
-          // Tier A quiet tile: soft surface, hairline, no shadow.
-          : 'rounded-2xl border border-border bg-bg-soft',
+        // All three cards share one footprint (HQ People's dimensions):
+        // same radius, padding, surface and full height. Emphasis on the
+        // bundle comes from the badge + a clay accent border, never a
+        // bigger container.
+        'flex h-full flex-col rounded-2xl border bg-bg-soft p-6 md:p-7',
+        highlight ? 'border-clay' : 'border-border',
       ].join(' ')}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{kicker}</p>
-        {badge && (
-          <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-accent">
-            {badge}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {badge && (
+            <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-accent">
+              {badge}
+            </span>
+          )}
+          {info}
+        </div>
       </div>
       <h3 className="mt-3 font-display text-xl font-bold tracking-tight text-ink">{name}</h3>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">{desc}</p>
@@ -401,17 +414,60 @@ function PlanCard({
           </li>
         ))}
       </ul>
-      <Link
-        href={href}
-        className={[
-          'mt-6 inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-          ctaStyle === 'solid'
-            ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
-            : 'border border-ink text-ink hover:bg-bg-soft focus-visible:outline-accent',
-        ].join(' ')}
-      >
-        {cta} -&gt;
-      </Link>
+      {/* mt-auto pins the CTA to the bottom so all three align regardless of
+          how many feature rows each card has. */}
+      <div className="mt-auto pt-6">
+        <Link
+          href={href}
+          className={[
+            'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+            ctaStyle === 'solid'
+              ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
+              : 'border border-ink text-ink hover:bg-bg-soft focus-visible:outline-accent',
+          ].join(' ')}
+        >
+          {cta} -&gt;
+        </Link>
+      </div>
     </article>
+  )
+}
+
+// Small, accessible info affordance for the HQ Recruit card. Opens on
+// hover, focus or tap; dismissible via the button, blur or Escape. Mirrors
+// the InfoDot in components/recruit/campaign-coach/Step5Launch.tsx but
+// token-styled for the marketing surface and wired with aria-expanded +
+// aria-describedby. Anchored to the top-right, so the popover opens from the
+// right edge to avoid overflowing the card.
+function PricingInfoDot({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const id = useId()
+  return (
+    <span className="relative inline-block leading-none">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-describedby={open ? id : undefined}
+        onClick={() => setOpen((v) => !v)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-bg text-[11px] font-bold leading-none text-ink-soft transition-colors hover:border-ink hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+      >
+        i
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          id={id}
+          className="absolute right-0 top-full z-30 mt-2 w-60 max-w-[75vw] rounded-xl border border-border bg-bg-elevated px-3 py-2.5 text-left shadow-modal"
+        >
+          <span className="block text-xs font-normal leading-relaxed text-ink-soft">{children}</span>
+        </span>
+      )}
+    </span>
   )
 }

@@ -628,8 +628,22 @@ export const C10_SELF_SERVE = {
   },
   recruit: {
     name: 'HQ Recruit',
-    kicker: 'Hiring add-on',
-    desc: 'Add hiring on top of HQ People - or get it included in HQ Business.',
+    kicker: 'Hiring only',
+    desc: 'Post roles, screen and shortlist - hiring on its own, no HR subscription needed.',
+    // Standalone monthly price for a hiring-only buyer (no HQ People
+    // subscription required). This is the headline price on the Plans page -
+    // HQ Recruit is now a real standalone plan, not just a "+$40" bolt-on.
+    // Standalone Recruit checkout is not wired in Stripe yet, so the card
+    // still routes through /signup onboarding like the others (do not
+    // fabricate a dedicated checkout route).
+    standaloneMonthly: 65,
+    // Exclusive add-on: an existing HQ People subscriber can bolt on 1 open
+    // role at this lower rate - a loyalty perk, cheaper than the standalone
+    // plan. Surfaced via the info icon on the HQ Recruit card, NOT as the
+    // headline price. Same figure as the Light band below.
+    subscriberAddOnMonthly: 40,
+    subscriberAddOnNote:
+      'Already on HQ People? Add 1 open role for just $40/month - exclusive to HQ People subscribers.',
     bands: [
       { label: 'Light - 1 role', monthly: 40, credits: 500 },
       { label: 'Pro - unlimited roles', monthly: 120, credits: 2000 },
