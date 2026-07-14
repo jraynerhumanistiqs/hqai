@@ -637,6 +637,11 @@ export const C10_SELF_SERVE = {
     // still routes through /signup onboarding like the others (do not
     // fabricate a dedicated checkout route).
     standaloneMonthly: 65,
+    // Plan id for the standalone HQ Recruit checkout/onboarding path (a
+    // hiring-only buyer, no HQ People subscription required). Distinct from
+    // the bundle's solo/business ids; resolved to a Stripe price by
+    // lib/stripe.ts PLANS.recruit.
+    standalonePlanId: 'recruit' as const,
     // Exclusive add-on: an existing HQ People subscriber can bolt on 1 open
     // role at this lower rate - a loyalty perk, cheaper than the standalone
     // plan. Surfaced via the info icon on the HQ Recruit card, NOT as the

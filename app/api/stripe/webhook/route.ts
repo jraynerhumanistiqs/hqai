@@ -42,11 +42,15 @@ export async function POST(req: NextRequest) {
           // both People and Recruit surfaces). Source: lib/pricing-config.ts
           // §enterprise and the strategy doc §2.x.
           const allocationByPlan: Record<
-            'solo' | 'business' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+            'solo' | 'business' | 'recruit' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
             number
           > = {
             solo:                  500,
             business:              2500,
+            // Standalone HQ Recruit (hiring only) - mirrors the recruit
+            // standalone credit allowance in lib/stripe.ts PLANS.recruit
+            // (C10_SELF_SERVE.recruit.bands[0].credits).
+            recruit:               500,
             'enterprise-people':   2500,
             'enterprise-recruit':  2500,
             'enterprise-full':     5000,

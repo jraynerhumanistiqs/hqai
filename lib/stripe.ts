@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { PRICING } from '@/lib/pricing-config'
+import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
 
 let _stripe: Stripe | null = null
 
@@ -25,6 +25,8 @@ export function getStripe() {
 //   STRIPE_PRICE_ID_SOLO_ANNUAL
 //   STRIPE_PRICE_ID_BUSINESS_MONTHLY
 //   STRIPE_PRICE_ID_BUSINESS_ANNUAL
+//   STRIPE_PRICE_ID_RECRUIT_MONTHLY   (standalone HQ Recruit - hiring only)
+//   STRIPE_PRICE_ID_RECRUIT_ANNUAL    (optional; annual not surfaced in UI yet)
 
 export type BillingCycle = 'monthly' | 'annual'
 
@@ -59,7 +61,7 @@ interface PlanCatalogueEntry {
 //   STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL
 //   STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY
 export const PLANS: Record<
-  'solo' | 'business' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+  'solo' | 'business' | 'recruit' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
   PlanCatalogueEntry
 > = {
   solo: {
@@ -86,6 +88,28 @@ export const PLANS: Record<
     annual: {
       price: PRICING.tiers[1].priceAnnualMonthly,
       envKey: 'STRIPE_PRICE_ID_BUSINESS_ANNUAL',
+    },
+  },
+  // Standalone HQ Recruit - hiring only, no HQ People subscription required.
+  // A real self-serve plan (NOT sales-assisted), so the public checkout route
+  // will start a Stripe Checkout Session for it. The Stripe product/prices
+  // must be created and STRIPE_PRICE_ID_RECRUIT_* set before live billing
+  // works; until then getStripePriceId returns null and the checkout route
+  // surfaces a clear "billing not configured" 503 rather than charging.
+  recruit: {
+    name: C10_SELF_SERVE.recruit.name,
+    seats: 3,
+    credits: C10_SELF_SERVE.recruit.bands[0].credits,
+    monthly: {
+      price: C10_SELF_SERVE.recruit.standaloneMonthly,
+      envKey: 'STRIPE_PRICE_ID_RECRUIT_MONTHLY',
+    },
+    annual: {
+      // 2-months-free equivalent, monthly rate. Annual is not surfaced in the
+      // UI yet - the recruit card is monthly-only - but the slot exists so the
+      // catalogue is complete if annual recruit is added later.
+      price: Math.round((C10_SELF_SERVE.recruit.standaloneMonthly * 10) / 12),
+      envKey: 'STRIPE_PRICE_ID_RECRUIT_ANNUAL',
     },
   },
   // Enterprise variants - sales-assisted. Both annual-contract AND

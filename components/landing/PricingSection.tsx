@@ -160,7 +160,7 @@ export default function PricingSection() {
             sub={`Hiring on its own, billed monthly. Go Pro for unlimited roles at ${fmt(recruit.bands[1].monthly)}/mo.`}
             features={recruit.features}
             cta="Get started"
-            href="/signup"
+            href={`/signup?plan=${recruit.standalonePlanId}`}
             ctaStyle="ghost"
             info={
               <PricingInfoDot label="HQ People subscriber add-on">

@@ -16,11 +16,13 @@ const AU_STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
 // onboarding so the AI prompts can target the right awards for each.
 const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
 // Plans are derived from lib/pricing-config.ts (the single source of
-// truth) - never hardcode prices here. The two plans reuse the C10
-// self-serve bundle (which carries the 'solo'/'business' plan ids the
-// /api/onboarding route stores). The route stores `plan` as an opaque
-// string, so these ids flow through without a schema change.
-const { bundle } = C10_SELF_SERVE
+// truth) - never hardcode prices here. The bundle options reuse the C10
+// self-serve bundle (the 'solo'/'business' plan ids); HQ Recruit is a
+// standalone hiring-only plan (its own 'recruit' plan id) so a non-People
+// user can subscribe to hiring on its own. The /api/onboarding route
+// stores `plan` as an opaque string, so these ids flow through without a
+// schema change.
+const { bundle, recruit } = C10_SELF_SERVE
 const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
   {
     id: bundle.solo.planId,
@@ -34,6 +36,12 @@ const PLANS: Array<{ id: string; label: string; price: string; desc: string; rec
     price: `$${bundle.business.monthly}/month`,
     desc: `HR and hiring, for teams ${bundle.business.label}, unlimited logins, founder-led onboarding`,
     recommended: true,
+  },
+  {
+    id: recruit.standalonePlanId,
+    label: `${recruit.name} (hiring only)`,
+    price: `$${recruit.standaloneMonthly}/month`,
+    desc: 'Hiring tools only - CV scoring, interviews and Campaign Coach. No HR subscription needed.',
   },
 ]
 
@@ -69,7 +77,7 @@ export default function OnboardingPage() {
     if (typeof window === 'undefined') return
     const q = new URLSearchParams(window.location.search)
     const wanted = q.get('plan')
-    if (wanted && ['solo', 'business'].includes(wanted)) {
+    if (wanted && ['solo', 'business', 'recruit'].includes(wanted)) {
       setForm(f => ({ ...f, plan: wanted }))
     }
   }, [])

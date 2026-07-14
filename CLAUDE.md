@@ -122,6 +122,8 @@ STRIPE_PRICE_ID_SOLO_MONTHLY      # HQ Business bundle, Solo up to 25 ($89/mo)
 STRIPE_PRICE_ID_SOLO_ANNUAL       # ($890/yr)
 STRIPE_PRICE_ID_BUSINESS_MONTHLY  # HQ Business bundle, up to 150 ($269/mo)
 STRIPE_PRICE_ID_BUSINESS_ANNUAL   # ($2,690/yr)
+STRIPE_PRICE_ID_RECRUIT_MONTHLY   # standalone HQ Recruit, hiring only ($65/mo)
+STRIPE_PRICE_ID_RECRUIT_ANNUAL    # optional; annual recruit not surfaced in UI yet
 # Human-advisor layer - sales-assisted only, invoiced (never public checkout)
 STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_ANNUAL    # HR365 annual ($9,588/yr = $799/mo equiv)
 STRIPE_PRICE_ID_ENTERPRISE_PEOPLE_MONTHLY   # HR365 monthly-rolling ($950/mo, 30-day notice)
