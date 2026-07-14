@@ -4,3 +4,4 @@
 
 import './stripe.test'
 import './funnel-events.test'
+import './plan-suggest.test'

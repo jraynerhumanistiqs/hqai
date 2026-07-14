@@ -61,7 +61,8 @@ interface PlanCatalogueEntry {
 //   STRIPE_PRICE_ID_ENTERPRISE_FULL_ANNUAL
 //   STRIPE_PRICE_ID_ENTERPRISE_FULL_MONTHLY
 export const PLANS: Record<
-  'solo' | 'business' | 'recruit' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+  | 'solo' | 'business' | 'recruit' | 'people-solo' | 'people-business'
+  | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
   PlanCatalogueEntry
 > = {
   solo: {
@@ -110,6 +111,37 @@ export const PLANS: Record<
       // catalogue is complete if annual recruit is added later.
       price: Math.round((C10_SELF_SERVE.recruit.standaloneMonthly * 10) / 12),
       envKey: 'STRIPE_PRICE_ID_RECRUIT_ANNUAL',
+    },
+  },
+  // Standalone HQ People - HR only, banded by team size like the bundle.
+  // The env-var keys match the ones scripts/stripe-c10-setup.py already
+  // generated (PEOPLE_SOLO_* / PEOPLE_BUSINESS_*), so wiring these plans
+  // is a paste-the-ids job, not a new Stripe catalogue build. Same
+  // missing-env behaviour as recruit: a friendly 503, never a charge.
+  'people-solo': {
+    name: C10_SELF_SERVE.people.name,
+    seats: 3,
+    credits: C10_SELF_SERVE.people.bands[0].credits,
+    monthly: {
+      price: C10_SELF_SERVE.people.bands[0].monthly,
+      envKey: 'STRIPE_PRICE_ID_PEOPLE_SOLO_MONTHLY',
+    },
+    annual: {
+      price: Math.round((C10_SELF_SERVE.people.bands[0].annualTotal ?? C10_SELF_SERVE.people.bands[0].monthly * 10) / 12),
+      envKey: 'STRIPE_PRICE_ID_PEOPLE_SOLO_ANNUAL',
+    },
+  },
+  'people-business': {
+    name: C10_SELF_SERVE.people.name,
+    seats: 15,
+    credits: C10_SELF_SERVE.people.bands[1].credits,
+    monthly: {
+      price: C10_SELF_SERVE.people.bands[1].monthly,
+      envKey: 'STRIPE_PRICE_ID_PEOPLE_BUSINESS_MONTHLY',
+    },
+    annual: {
+      price: Math.round((C10_SELF_SERVE.people.bands[1].annualTotal ?? C10_SELF_SERVE.people.bands[1].monthly * 10) / 12),
+      envKey: 'STRIPE_PRICE_ID_PEOPLE_BUSINESS_ANNUAL',
     },
   },
   // Enterprise variants - sales-assisted. Both annual-contract AND

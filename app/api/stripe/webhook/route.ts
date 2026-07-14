@@ -17,6 +17,8 @@ const PLAN_DISPLAY: Record<string, { name: string; band: string }> = {
   solo:     { name: C10_SELF_SERVE.bundle.name,  band: C10_SELF_SERVE.bundle.solo.label },
   business: { name: C10_SELF_SERVE.bundle.name,  band: C10_SELF_SERVE.bundle.business.label },
   recruit:  { name: C10_SELF_SERVE.recruit.name, band: 'hiring only' },
+  'people-solo':     { name: C10_SELF_SERVE.people.name, band: C10_SELF_SERVE.people.bands[0].label },
+  'people-business': { name: C10_SELF_SERVE.people.name, band: C10_SELF_SERVE.people.bands[1].label },
 }
 
 export async function POST(req: NextRequest) {
@@ -62,7 +64,8 @@ export async function POST(req: NextRequest) {
           // both People and Recruit surfaces). Source: lib/pricing-config.ts
           // §enterprise and the strategy doc §2.x.
           const allocationByPlan: Record<
-            'solo' | 'business' | 'recruit' | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
+            | 'solo' | 'business' | 'recruit' | 'people-solo' | 'people-business'
+            | 'enterprise-people' | 'enterprise-recruit' | 'enterprise-full',
             number
           > = {
             solo:                  500,
@@ -71,6 +74,9 @@ export async function POST(req: NextRequest) {
             // standalone credit allowance in lib/stripe.ts PLANS.recruit
             // (C10_SELF_SERVE.recruit.bands[0].credits).
             recruit:               500,
+            // Standalone HQ People bands - C10_SELF_SERVE.people.bands credits.
+            'people-solo':         400,
+            'people-business':     1500,
             'enterprise-people':   2500,
             'enterprise-recruit':  2500,
             'enterprise-full':     5000,

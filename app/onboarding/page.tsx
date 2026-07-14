@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import PlanSummaryCard, { getPlanMeta, isCheckoutPlanId, planPriceLine } from '@/components/onboarding/PlanSummaryCard'
+import ProductPicker from '@/components/onboarding/ProductPicker'
+import { planToNeeds, suggestPlanId, type ProductNeeds } from '@/lib/plan-suggest'
+import { PRICING } from '@/lib/pricing-config'
 import { trackFunnelEvent } from '@/lib/analytics'
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
@@ -59,12 +62,22 @@ export default function OnboardingPage() {
     advisorName: 'Hugo', userName: '', plan: 'business'
   })
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
+  // Product needs drive the plan suggestion (ProductPicker). Default
+  // mirrors the default 'business' plan: both products on.
+  const [needs, setNeeds] = useState<ProductNeeds>({ people: true, recruit: true })
+  // Outsourced-help interest (HR365 / Recruit365) - the Support step.
+  const [outsourced, setOutsourced] = useState({ hr365: false, recruit365: false })
+  const [userEmail, setUserEmail] = useState('')
   const [authReady, setAuthReady] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<'' | 'unconfigured' | 'generic'>('')
   const headingRef = useRef<HTMLHeadingElement>(null)
   const firstRender = useRef(true)
   const paymentViewed = useRef(false)
+  // True once the buyer picked an exact plan (pricing-page param, resume
+  // guard, or the payment step's Change plan list) - the headcount/product
+  // suggestion must not overwrite an explicit choice.
+  const planManual = useRef(false)
   const supabase = createClient()
 
   // Auth guard + prefill + resume guard: a user who already has a
@@ -82,6 +95,7 @@ export default function OnboardingPage() {
       }
       const fullName = (user.user_metadata?.full_name as string) || ''
       setForm(f => ({ ...f, userName: f.userName || fullName }))
+      setUserEmail(user.email || '')
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -100,10 +114,13 @@ export default function OnboardingPage() {
         // Unpaid but onboarded - resume at the payment step. Prefer the
         // plan on the business row unless a query param overrides it.
         const q = new URLSearchParams(window.location.search)
-        if (!q.get('plan') && isCheckoutPlanId(biz?.plan)) {
-          setForm(f => ({ ...f, plan: biz!.plan! }))
+        const bizPlan = biz?.plan
+        if (!q.get('plan') && isCheckoutPlanId(bizPlan)) {
+          planManual.current = true
+          setForm(f => ({ ...f, plan: bizPlan }))
+          setNeeds(planToNeeds(bizPlan))
         }
-        setStep(3)
+        setStep(4)
       }
       setAuthReady(true)
       trackFunnelEvent('onboarding_started', {
@@ -124,13 +141,28 @@ export default function OnboardingPage() {
     const q = new URLSearchParams(window.location.search)
     const wanted = q.get('plan')
     if (isCheckoutPlanId(wanted)) {
+      // The pricing-page pick seeds the plan AND the product toggles,
+      // but does NOT lock the band - the headcount typed on step 1 is
+      // the stronger signal, so the suggestion may re-band (e.g. a
+      // business pick with a team of 12 becomes the up-to-25 bundle).
       setForm(f => ({ ...f, plan: wanted }))
+      setNeeds(planToNeeds(wanted))
     }
     const wantedCycle = q.get('cycle')
     if (wantedCycle === 'monthly' || wantedCycle === 'annual') {
       setCycle(wantedCycle)
     }
   }, [])
+
+  // Re-suggest the plan whenever the product needs or headcount change,
+  // unless the buyer explicitly picked one (planManual). Toggling a
+  // product IS a fresh signal - the toggle handler clears the flag.
+  useEffect(() => {
+    if (planManual.current) return
+    const n = parseInt(form.headcount.replace(/[^0-9]/g, ''), 10)
+    const suggested = suggestPlanId(needs, Number.isFinite(n) ? n : undefined)
+    if (suggested) setForm(f => (f.plan === suggested ? f : { ...f, plan: suggested }))
+  }, [needs, form.headcount])
 
   // Move focus to the step headline on step change so screen readers
   // announce the new step (skip the initial render).
@@ -140,7 +172,7 @@ export default function OnboardingPage() {
   }, [step])
 
   useEffect(() => {
-    if (step === 3 && authReady && !paymentViewed.current) {
+    if (step === 4 && authReady && !paymentViewed.current) {
       paymentViewed.current = true
       trackFunnelEvent('payment_step_viewed', { plan: form.plan, cycle })
     }
@@ -150,6 +182,7 @@ export default function OnboardingPage() {
   const steps = [
     { label: 'Business' },
     { label: 'Advisor' },
+    { label: 'Support' },
     { label: 'Payment' },
   ]
 
@@ -196,6 +229,7 @@ export default function OnboardingPage() {
         return
       }
 
+
       const json = await res.json().catch(() => ({}))
 
       if (!res.ok) {
@@ -220,6 +254,47 @@ export default function OnboardingPage() {
       setError('Something went wrong: ' + (err?.message ?? 'unknown'))
       setSaving(false)
     }
+  }
+
+  // Continue past the Support step. If the buyer ticked outsourced help,
+  // record it as an enterprise inquiry (founder triage + confirmation
+  // email, same funnel as /enterprise) - but a capture failure must
+  // never block the path to payment.
+  async function submitSupportThenPay() {
+    trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 3 })
+    const wantsAny = outsourced.hr365 || outsourced.recruit365
+    if (wantsAny && userEmail) {
+      const variant = outsourced.hr365 && outsourced.recruit365 ? 'full' : outsourced.hr365 ? 'people' : 'recruit'
+      trackFunnelEvent('outsourced_interest', {
+        plan: form.plan,
+        hr365: outsourced.hr365,
+        recruit365: outsourced.recruit365,
+        variant,
+      })
+      const n = parseInt(form.headcount.replace(/[^0-9]/g, ''), 10)
+      const bucket = !Number.isFinite(n) || n < 30 ? 'Under 30' : n <= 50 ? '30-50' : n <= 150 ? '50-150' : '150+'
+      setSaving(true)
+      try {
+        await fetch('/api/enterprise-inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: form.userName || form.bizName || 'HQ.ai signup',
+            work_email: userEmail,
+            business_name: form.bizName || 'My Business',
+            staff_headcount: bucket,
+            variant_interest: variant,
+            urgency: 'exploring',
+            consent: true,
+            notes: `Submitted from self-serve onboarding (Support step). Self-serve plan: ${form.plan} (${cycle}).`,
+          }),
+        })
+      } catch {
+        // Interest capture is best-effort - never block payment on it.
+      }
+      setSaving(false)
+    }
+    setStep(4)
   }
 
   async function startCheckout() {
@@ -341,7 +416,12 @@ export default function OnboardingPage() {
                         <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
                       </svg>
                       <p className="text-xs leading-relaxed text-ink-soft">
-                        Looks like the <strong className="font-semibold text-ink">{detectedAward}</strong> applies to you. We&apos;ll use it from day one - fine-tune any time in Settings.
+                        {/* Explicit {' '} both sides of the award name - the plain
+                            inter-element space was lost in the rendered output
+                            ("...Awardapplies..."), per tester feedback 2026-07-14. */}
+                        Looks like the{' '}
+                        <strong className="font-semibold text-ink">{detectedAward}</strong>
+                        {' '}applies to you. We&apos;ll use it from day one - fine-tune any time in Settings.
                       </p>
                     </div>
                   )}
@@ -401,20 +481,95 @@ export default function OnboardingPage() {
                   <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="Hugo, Sarah, anything you like" />
                   <p className="text-[10px] text-muted mt-1">Pick something friendly - this is what shows up in chat when your AI Advisor talks to you. You can change it any time in Settings.</p>
                 </div>
-                <PlanSummaryCard
-                  planId={form.plan}
-                  cycle={cycle}
-                  onPlanChange={id => update('plan', id)}
+                <ProductPicker
+                  needs={needs}
                   headcount={parseInt(form.headcount.replace(/[^0-9]/g, ''), 10) || undefined}
+                  planId={isCheckoutPlanId(form.plan) ? form.plan : null}
+                  cycle={cycle}
+                  onNeedsChange={n => {
+                    // A product toggle is a fresh signal - re-enable the
+                    // suggestion even after an explicit earlier pick.
+                    planManual.current = false
+                    setNeeds(n)
+                  }}
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3 - Payment. Rendered only after POST /api/onboarding
+          {/* Step 3 - Support (outsourced help). Interest capture only -
+              the self-serve plan still starts today; Jimmy follows up on
+              HR365/Recruit365 personally. */}
+          {step === 3 && (
+            <div>
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Want it done for you?</h2>
+              <p className="text-sm text-mid mb-6">
+                Most teams run HQ.ai themselves. If you would rather hand the work to a person, a dedicated Humanistiqs advisor can run it for you - the AI still does the admin. Tick what interests you, or just continue.
+              </p>
+              <div className="space-y-2">
+                {([
+                  {
+                    key: 'hr365' as const,
+                    name: PRICING.enterprise.variants[0].name,
+                    label: 'Outsourced HR',
+                    desc: `A dedicated HR advisor on call, the same person every time. From $${PRICING.enterprise.variants[0].priceMonthlyDisplay.toLocaleString('en-AU')} a month.`,
+                  },
+                  {
+                    key: 'recruit365' as const,
+                    name: PRICING.enterprise.variants[1].name,
+                    label: 'Outsourced recruitment',
+                    desc: `A dedicated talent advisor running your hiring end to end. From $${PRICING.enterprise.variants[1].priceMonthlyDisplay.toLocaleString('en-AU')} a month.`,
+                  },
+                ]).map(opt => {
+                  const on = outsourced[opt.key]
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={on}
+                      onClick={() => setOutsourced(o => ({ ...o, [opt.key]: !on }))}
+                      className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
+                        ${on ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
+                    >
+                      <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
+                        ${on ? 'border-ink bg-ink' : 'border-border'}`}>
+                        {on && (
+                          <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-ink">{opt.label}</span>
+                          <span className="text-[10px] bg-bg-soft text-ink-soft border border-border px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">{opt.name}</span>
+                        </div>
+                        <p className="text-xs text-ink-muted mt-0.5">{opt.desc}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <div aria-live="polite">
+                {outsourced.hr365 && outsourced.recruit365 && (
+                  <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+                    Both together - {PRICING.enterprise.variants[2].name} - from ${PRICING.enterprise.variants[2].priceMonthlyDisplay.toLocaleString('en-AU')} a month.
+                  </p>
+                )}
+                {(outsourced.hr365 || outsourced.recruit365) && (
+                  <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+                    Jimmy will reach out within one business day to talk it through. No obligation - your plan on the next step still starts today.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 4 - Payment. Rendered only after POST /api/onboarding
               succeeds (or via the resume guard). No Back button - the
               business row exists; changes belong to Change plan/Settings. */}
-          {step === 3 && (
+          {step === 4 && (
             <div>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Last step: start your plan</h2>
               <p className="text-sm text-mid mb-6">
@@ -424,7 +579,14 @@ export default function OnboardingPage() {
               <PlanSummaryCard
                 planId={form.plan}
                 cycle={cycle}
-                onPlanChange={id => update('plan', id)}
+                onPlanChange={id => {
+                  // An exact pick from the list is authoritative - stop
+                  // the suggestion overwriting it, and mirror the pick
+                  // back into the product toggles for consistency.
+                  planManual.current = true
+                  update('plan', id)
+                  if (isCheckoutPlanId(id)) setNeeds(planToNeeds(id))
+                }}
                 onCycleChange={setCycle}
                 showAnnualNudge
               />
@@ -459,23 +621,23 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Error message (steps 1-2) */}
-          {error && step < 3 && (
+          {/* Error message (steps 1-3) */}
+          {error && step < 4 && (
             <div className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}
 
-          {/* Actions (steps 1-2; the payment step carries its own CTA) */}
-          {step < 3 && (
+          {/* Actions (steps 1-3; the payment step carries its own CTA) */}
+          {step < 4 && (
             <div className="flex justify-between mt-8">
-              {step === 2 ? (
-                <button type="button" onClick={() => setStep(1)}
+              {step > 1 ? (
+                <button type="button" onClick={() => setStep(s => s - 1)}
                   className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors">
                   ← Back
                 </button>
               ) : <div />}
-              {step === 1 ? (
+              {step === 1 && (
                 <button type="button"
                   onClick={() => {
                     trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 1 })
@@ -484,10 +646,18 @@ export default function OnboardingPage() {
                   className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors">
                   Continue →
                 </button>
-              ) : (
-                <button type="button" onClick={submitOnboardingThenPay} disabled={saving}
+              )}
+              {step === 2 && (
+                <button type="button" onClick={submitOnboardingThenPay}
+                  disabled={saving || (!needs.people && !needs.recruit)}
                   className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
                   {saving ? 'Setting up…' : 'Continue →'}
+                </button>
+              )}
+              {step === 3 && (
+                <button type="button" onClick={submitSupportThenPay} disabled={saving}
+                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
+                  {saving ? 'One moment…' : 'Continue →'}
                 </button>
               )}
             </div>

@@ -347,13 +347,13 @@
     },
     {
       "id": "mk-01",
-      "name": "pricing: HQ People CTA renders with plain /signup href (no People checkout exists yet - by design)",
+      "name": "pricing: HQ People CTA carries plan=people-solo (standalone People checkout wired 2026-07-14)",
       "category": "marketing-surface",
       "input": { "method": "GET", "path": "/pricing" },
       "assertions": [
         { "type": "status", "equals": 200 },
         { "type": "body-contains", "value": "Start with HQ People" },
-        { "type": "body-contains", "value": "href=\"/signup\"" }
+        { "type": "body-contains", "value": "/signup?plan=people-solo" }
       ]
     },
     {

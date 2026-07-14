@@ -12,19 +12,18 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { C10_SELF_SERVE } from '@/lib/pricing-config'
+import { isCheckoutPlanId, type CheckoutPlanId } from '@/lib/plan-suggest'
 import { trackFunnelEvent } from '@/lib/analytics'
 
-const { bundle, recruit } = C10_SELF_SERVE
+const { bundle, recruit, people } = C10_SELF_SERVE
 
-export type CheckoutPlanId = 'solo' | 'business' | 'recruit'
+// Plan taxonomy lives in lib/plan-suggest.ts (pure, node:test-able);
+// re-exported here so existing importers keep working.
+export { isCheckoutPlanId, type CheckoutPlanId }
 
-export function isCheckoutPlanId(value: unknown): value is CheckoutPlanId {
-  return value === 'solo' || value === 'business' || value === 'recruit'
-}
-
-// The selectable plan rows (moved here from app/onboarding/page.tsx so
-// the list lives beside PLAN_META). The bundle reuses the existing
-// solo/business plan ids; recruit is the standalone hiring-only plan.
+// The selectable plan rows. The bundle reuses the existing solo/business
+// plan ids; people-solo/people-business are the standalone HQ People
+// bands; recruit is the standalone hiring-only plan.
 export const PLANS: Array<{ id: CheckoutPlanId; label: string; price: string; desc: string; recommended?: boolean }> = [
   {
     id: bundle.solo.planId,
@@ -40,6 +39,18 @@ export const PLANS: Array<{ id: CheckoutPlanId; label: string; price: string; de
     recommended: true,
   },
   {
+    id: 'people-solo',
+    label: `${people.name} (${people.bands[0].label})`,
+    price: `$${people.bands[0].monthly}/month`,
+    desc: `HR only - the AI HR assistant and document library, for teams ${people.bands[0].label}.`,
+  },
+  {
+    id: 'people-business',
+    label: `${people.name} (${people.bands[1].label})`,
+    price: `$${people.bands[1].monthly}/month`,
+    desc: `HR only - the AI HR assistant and document library, for teams ${people.bands[1].label}.`,
+  },
+  {
     id: recruit.standalonePlanId,
     label: `${recruit.name} (hiring only)`,
     price: `$${recruit.standaloneMonthly}/month`,
@@ -51,6 +62,8 @@ const PLAN_META: Record<CheckoutPlanId, { name: string; band: string; monthly: n
   solo:     { name: bundle.name,  band: bundle.solo.label,     monthly: bundle.solo.monthly,     annualTotal: bundle.solo.annualTotal },
   business: { name: bundle.name,  band: bundle.business.label, monthly: bundle.business.monthly, annualTotal: bundle.business.annualTotal },
   recruit:  { name: recruit.name, band: 'hiring only',         monthly: recruit.standaloneMonthly },
+  'people-solo':     { name: people.name, band: people.bands[0].label, monthly: people.bands[0].monthly, annualTotal: people.bands[0].annualTotal },
+  'people-business': { name: people.name, band: people.bands[1].label, monthly: people.bands[1].monthly, annualTotal: people.bands[1].annualTotal },
 }
 
 export function getPlanMeta(planId: CheckoutPlanId) {
@@ -108,13 +121,15 @@ export default function PlanSummaryCard({
   }
 
   const linkCls = 'font-semibold text-ink underline underline-offset-2 hover:text-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded-sm'
-  const nudgeEligible = showAnnualNudge && (safeId === 'solo' || safeId === 'business') && !!meta.annualTotal
+  const nudgeEligible = showAnnualNudge && !!meta.annualTotal
 
   return (
     <div>
       <div className="rounded-xl border border-border bg-bg-soft p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Your plan</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+            {expanded ? 'Choose your plan' : 'Your plan'}
+          </p>
           {onPlanChange && (
             <button
               ref={linkRef}
@@ -124,15 +139,20 @@ export default function PlanSummaryCard({
               aria-controls={pickerId}
               className="text-xs font-semibold text-ink-soft underline underline-offset-2 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded-sm"
             >
-              Change plan
+              {expanded ? 'Cancel' : 'Change plan'}
             </button>
           )}
         </div>
-        <p className="mt-1.5 text-sm text-ink">
-          <strong className="font-semibold">{meta.name} ({meta.band})</strong>
-          {' - '}{planPriceLine(safeId, cycle)}. Unlimited logins, cancel any time.
-        </p>
-        {showSoloHint && (
+        {/* While the picker is open the card would repeat the selected
+            plan right above its own radio row - hide the line and let the
+            checked row carry the state (tester feedback, 2026-07-14). */}
+        {!expanded && (
+          <p className="mt-1.5 text-sm text-ink">
+            <strong className="font-semibold">{meta.name} ({meta.band})</strong>
+            {' - '}{planPriceLine(safeId, cycle)}. Unlimited logins, cancel any time.
+          </p>
+        )}
+        {!expanded && showSoloHint && (
           <p className="mt-2 border-t border-border pt-2 text-xs leading-relaxed text-ink-soft">
             You mentioned {headcount} staff - your plan covers teams {PLAN_META.solo.band}. {PLAN_META.business.name} ({PLAN_META.business.band}) is ${PLAN_META.business.monthly} a month.{' '}
             <button

@@ -23,7 +23,7 @@ describe('isPlanId', () => {
   })
 
   test('rejects unknown and non-string values', () => {
-    assert.equal(isPlanId('people'), false, "'people' is not a checkout plan id yet - wiring it needs a real Stripe price first")
+    assert.equal(isPlanId('people'), false, "bare 'people' is not a plan id - the People bands are people-solo / people-business")
     assert.equal(isPlanId('growth'), false)
     assert.equal(isPlanId('free'), false)
     assert.equal(isPlanId(''), false)
@@ -42,6 +42,8 @@ describe('isSalesAssistedPlan', () => {
     assert.equal(isSalesAssistedPlan('solo'), false)
     assert.equal(isSalesAssistedPlan('business'), false)
     assert.equal(isSalesAssistedPlan('recruit'), false)
+    assert.equal(isSalesAssistedPlan('people-solo'), false)
+    assert.equal(isSalesAssistedPlan('people-business'), false)
   })
 })
 
@@ -113,6 +115,19 @@ describe('plan catalogue consistency with lib/pricing-config.ts', () => {
     assert.equal(PLANS.recruit.monthly.price, C10_SELF_SERVE.recruit.standaloneMonthly)
   })
 
+  test('people standalone prices and credits match the C10 bands', () => {
+    assert.equal(PLANS['people-solo'].monthly.price, C10_SELF_SERVE.people.bands[0].monthly)
+    assert.equal(PLANS['people-solo'].credits, C10_SELF_SERVE.people.bands[0].credits)
+    assert.equal(PLANS['people-business'].monthly.price, C10_SELF_SERVE.people.bands[1].monthly)
+    assert.equal(PLANS['people-business'].credits, C10_SELF_SERVE.people.bands[1].credits)
+    // Annual = the band's annual total as a monthly-equivalent rate.
+    assert.equal(PLANS['people-solo'].annual.price, Math.round(C10_SELF_SERVE.people.bands[0].annualTotal! / 12))
+    assert.equal(PLANS['people-business'].annual.price, Math.round(C10_SELF_SERVE.people.bands[1].annualTotal! / 12))
+    // Env keys match the ones scripts/stripe-c10-setup.py generated.
+    assert.equal(PLANS['people-solo'].monthly.envKey, 'STRIPE_PRICE_ID_PEOPLE_SOLO_MONTHLY')
+    assert.equal(PLANS['people-business'].monthly.envKey, 'STRIPE_PRICE_ID_PEOPLE_BUSINESS_MONTHLY')
+  })
+
   test('every plan (checkout-able and enterprise) declares env keys for both cycles', () => {
     for (const [id, entry] of Object.entries(PLANS)) {
       for (const cycle of ['monthly', 'annual'] as const) {
@@ -125,7 +140,7 @@ describe('plan catalogue consistency with lib/pricing-config.ts', () => {
 
   test('every checkout-able plan has a positive price for both cycles', () => {
     const checkoutable = (Object.keys(PLANS) as PlanId[]).filter(id => !isSalesAssistedPlan(id))
-    assert.deepEqual(checkoutable.sort(), ['business', 'recruit', 'solo'])
+    assert.deepEqual(checkoutable.sort(), ['business', 'people-business', 'people-solo', 'recruit', 'solo'])
     for (const id of checkoutable) {
       assert.ok(PLANS[id].monthly.price > 0, `${id} monthly price must be positive`)
       assert.ok(PLANS[id].annual.price > 0, `${id} annual price must be positive`)

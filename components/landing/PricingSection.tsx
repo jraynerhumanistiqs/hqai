@@ -192,9 +192,12 @@ export default function PricingSection() {
             sub={peopleSub}
             features={people.features}
             cta="Start with HQ People"
-            href="/signup"
+            // people-solo matches the $59 entry price this card leads
+            // with; the wizard re-suggests the up-to-150 band from the
+            // buyer's headcount.
+            href={`/signup?plan=people-solo&cycle=${cycle}`}
             ctaStyle="ghost"
-            onCtaClick={() => trackPlanSelected('people', cycle)}
+            onCtaClick={() => trackPlanSelected('people-solo', cycle)}
           />
           <PlanCard
             kicker={recruit.kicker}

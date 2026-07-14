@@ -21,6 +21,7 @@ export const FUNNEL_EVENTS = [
   'onboarding_started',
   'onboarding_step_completed',
   'onboarding_completed',
+  'outsourced_interest',
   'payment_step_viewed',
   'annual_nudge_accepted',
   'checkout_started',
