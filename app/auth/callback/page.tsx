@@ -18,7 +18,21 @@ function CallbackInner() {
 
   useEffect(() => {
     const supabase = createClient()
-    const next = searchParams.get('next') ?? '/dashboard'
+    // Plan/cycle ride the callback URL from a funnel magic-link signup
+    // (see app/login/page.tsx handleMagicLink). When present, land on
+    // /onboarding with the choice preserved - its resume guard sends
+    // already-onboarded paid users straight to the dashboard, so an
+    // existing customer clicking a funnel magic link ends up in the
+    // right place either way. An explicit ?next= always wins.
+    const explicitNext = searchParams.get('next')
+    const planParam = searchParams.get('plan')
+    let next = explicitNext ?? '/dashboard'
+    if (!explicitNext && planParam) {
+      const carry = new URLSearchParams({ plan: planParam })
+      const cycleParam = searchParams.get('cycle')
+      if (cycleParam) carry.set('cycle', cycleParam)
+      next = `/onboarding?${carry.toString()}`
+    }
 
     async function run() {
       try {

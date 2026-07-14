@@ -180,6 +180,44 @@ export function isBillingCycle(value: unknown): value is BillingCycle {
   return value === 'monthly' || value === 'annual'
 }
 
+// Where the buyer is returned after Stripe Checkout. 'settings' is the
+// original dashboard billing flow (unchanged); 'onboarding' is the
+// self-serve funnel, which returns to the standalone /welcome screen.
+export type CheckoutReturnTo = 'onboarding' | 'settings'
+
+export function isCheckoutReturnTo(value: unknown): value is CheckoutReturnTo {
+  return value === 'onboarding' || value === 'settings'
+}
+
+/**
+ * Build the Stripe Checkout success/cancel URLs for a return context.
+ *
+ * 'settings' (the default) preserves the pre-existing dashboard
+ * billing behaviour exactly. 'onboarding' sends the buyer to /welcome
+ * with the plan and cycle carried in the query string so the cancelled
+ * variant can re-create the same checkout. {CHECKOUT_SESSION_ID} is a
+ * literal Stripe template token - Stripe substitutes the real session
+ * id at redirect time, so it must NOT be URL-encoded.
+ */
+export function buildCheckoutReturnUrls(
+  origin: string,
+  returnTo: CheckoutReturnTo,
+  planId: string,
+  cycle: string,
+): { successUrl: string; cancelUrl: string } {
+  if (returnTo === 'onboarding') {
+    const planQuery = `plan=${encodeURIComponent(planId)}&cycle=${encodeURIComponent(cycle)}`
+    return {
+      successUrl: `${origin}/welcome?state=success&${planQuery}&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${origin}/welcome?state=cancelled&${planQuery}`,
+    }
+  }
+  return {
+    successUrl: `${origin}/dashboard/settings?billing=success`,
+    cancelUrl: `${origin}/dashboard/settings?billing=cancelled`,
+  }
+}
+
 /**
  * Resolve a plan id and cycle to its Stripe price id at request time.
  *

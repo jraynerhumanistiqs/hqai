@@ -7,7 +7,7 @@
 // the browser there.
 
 import { createClient } from '@/lib/supabase/server'
-import { getStripe, getStripePriceId, isBillingCycle, isPlanId, isSalesAssistedPlan } from '@/lib/stripe'
+import { buildCheckoutReturnUrls, getStripe, getStripePriceId, isBillingCycle, isCheckoutReturnTo, isPlanId, isSalesAssistedPlan } from '@/lib/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  let body: { planId?: unknown; cycle?: unknown }
+  let body: { planId?: unknown; cycle?: unknown; returnTo?: unknown }
   try {
     body = await req.json()
   } catch {
@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
   // Default to monthly if the caller forgot to send a cycle. New clients
   // always send one; the default keeps any legacy callers limping along.
   const cycle = isBillingCycle(body.cycle) ? body.cycle : 'monthly'
+
+  // Where to send the buyer after Stripe. Unknown or missing values fall
+  // back to 'settings' so the pre-existing dashboard billing callers keep
+  // their exact behaviour; only the onboarding funnel opts into /welcome.
+  const returnTo = isCheckoutReturnTo(body.returnTo) ? body.returnTo : 'settings'
 
   const priceId = getStripePriceId(planId, cycle)
   if (!priceId) {
@@ -91,13 +96,15 @@ export async function POST(req: NextRequest) {
     || process.env.NEXT_PUBLIC_BASE_URL
     || 'https://www.humanistiqs.ai'
 
+  const { successUrl, cancelUrl } = buildCheckoutReturnUrls(origin, returnTo, planId, cycle)
+
   try {
     const session = await getStripe().checkout.sessions.create({
       customer: customerId!,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/dashboard/settings?billing=success`,
-      cancel_url: `${origin}/dashboard/settings?billing=cancelled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
       subscription_data: {

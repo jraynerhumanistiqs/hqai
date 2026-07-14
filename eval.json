@@ -1,0 +1,426 @@
+{
+  "suite": "self-serve-sales-flow",
+  "version": 1,
+  "baseUrl": "http://localhost:3000",
+  "notes": [
+    "Run with: npm run eval:selfserve [-- <baseUrl>] against a running dev server.",
+    "Every expected value is pinned to the implemented behaviour (code is the contract).",
+    "checkout-api: auth is checked BEFORE body validation in app/api/stripe/checkout/route.ts, so ALL unauthenticated POSTs return 401 regardless of payload - the 400 branches (invalid planId, enterprise redirect, bad JSON) are only reachable with a session and are pinned here as 401s to assert no validator detail leaks to anonymous callers.",
+    "telemetry-api: /api/telemetry/funnel soft-fails by design - always HTTP 200 with a boolean ok ({ok:true} when the funnel_events table exists, {ok:false} when unmigrated or the payload is rejected).",
+    "auth-guard: /welcome and /onboarding are client components - the guard runs client-side, so unauthenticated GETs return 200 with the pre-auth 'Loading...' shell and none of the authed copy. /dashboard is a server component and 307-redirects to /login.",
+    "__PAD_12000__ in a body is expanded by the runner to 12000 'x' characters (oversized-payload case)."
+  ],
+  "cases": [
+    {
+      "id": "rt-01",
+      "name": "/pricing renders (200)",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 }
+      ]
+    },
+    {
+      "id": "rt-02",
+      "name": "/login renders (200)",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/login" },
+      "assertions": [
+        { "type": "status", "equals": 200 }
+      ]
+    },
+    {
+      "id": "rt-03",
+      "name": "/login?mode=signup renders (200)",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/login?mode=signup" },
+      "assertions": [
+        { "type": "status", "equals": 200 }
+      ]
+    },
+    {
+      "id": "rt-04",
+      "name": "/signup redirects to /login?mode=signup",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/signup" },
+      "assertions": [
+        { "type": "status", "equals": 307 },
+        { "type": "redirect-location", "contains": "/login?mode=signup" }
+      ]
+    },
+    {
+      "id": "rt-05",
+      "name": "/signup preserves plan + cycle params through the redirect",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/signup?plan=business&cycle=annual" },
+      "assertions": [
+        { "type": "status", "equals": 307 },
+        { "type": "redirect-location", "contains": "mode=signup" },
+        { "type": "redirect-location", "contains": "plan=business" },
+        { "type": "redirect-location", "contains": "cycle=annual" }
+      ]
+    },
+    {
+      "id": "rt-06",
+      "name": "/signup?plan=recruit preserves the recruit plan param",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/signup?plan=recruit" },
+      "assertions": [
+        { "type": "status", "equals": 307 },
+        { "type": "redirect-location", "contains": "plan=recruit" }
+      ]
+    },
+    {
+      "id": "rt-07",
+      "name": "/enterprise exists (target of the checkout enterprise redirect hint)",
+      "category": "routing",
+      "input": { "method": "GET", "path": "/enterprise" },
+      "assertions": [
+        { "type": "status", "equals": 200 }
+      ]
+    },
+    {
+      "id": "ag-01",
+      "name": "/welcome?state=success unauthenticated serves the pre-auth shell only (client-side guard)",
+      "category": "auth-guard",
+      "input": { "method": "GET", "path": "/welcome?state=success" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Loading..." },
+        { "type": "body-not-contains", "value": "Your plan is active" }
+      ]
+    },
+    {
+      "id": "ag-02",
+      "name": "/welcome?state=cancelled unauthenticated serves the pre-auth shell only",
+      "category": "auth-guard",
+      "input": { "method": "GET", "path": "/welcome?state=cancelled" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Loading..." },
+        { "type": "body-not-contains", "value": "No payment taken" }
+      ]
+    },
+    {
+      "id": "ag-03",
+      "name": "/welcome with no state param serves the shell (client redirects to /dashboard)",
+      "category": "auth-guard",
+      "input": { "method": "GET", "path": "/welcome" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Loading..." }
+      ]
+    },
+    {
+      "id": "ag-04",
+      "name": "/onboarding unauthenticated serves the pre-auth shell only (client-side guard)",
+      "category": "auth-guard",
+      "input": { "method": "GET", "path": "/onboarding" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Loading..." },
+        { "type": "body-not-contains", "value": "Tell us about your business" }
+      ]
+    },
+    {
+      "id": "ag-05",
+      "name": "/dashboard unauthenticated redirects to /login (server-side guard)",
+      "category": "auth-guard",
+      "input": { "method": "GET", "path": "/dashboard" },
+      "assertions": [
+        { "type": "status", "equals": 307 },
+        { "type": "redirect-location", "contains": "/login" }
+      ]
+    },
+    {
+      "id": "ag-06",
+      "name": "POST /api/onboarding unauthenticated returns 401",
+      "category": "auth-guard",
+      "input": {
+        "method": "POST",
+        "path": "/api/onboarding",
+        "body": { "bizName": "Eval Test Co", "industry": "Retail", "plan": "business" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 },
+        { "type": "json-field", "field": "error", "contains": "Not signed in" }
+      ]
+    },
+    {
+      "id": "co-01",
+      "name": "checkout: unauthenticated POST with a valid body returns 401 Unauthorised",
+      "category": "checkout-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/stripe/checkout",
+        "body": { "planId": "business", "cycle": "monthly", "returnTo": "onboarding" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 },
+        { "type": "json-field", "field": "error", "contains": "Unauthorised" }
+      ]
+    },
+    {
+      "id": "co-02",
+      "name": "checkout: invalid planId still 401s unauthenticated (auth precedes validation - no validator detail leaks)",
+      "category": "checkout-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/stripe/checkout",
+        "body": { "planId": "yacht", "cycle": "monthly" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 },
+        { "type": "json-field", "field": "error", "contains": "Unauthorised" },
+        { "type": "body-not-contains", "value": "Invalid planId" }
+      ]
+    },
+    {
+      "id": "co-03",
+      "name": "checkout: enterprise planId still 401s unauthenticated (the 400 + /enterprise redirect hint is authed-only)",
+      "category": "checkout-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/stripe/checkout",
+        "body": { "planId": "enterprise-full", "cycle": "annual" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 },
+        { "type": "body-not-contains", "value": "/enterprise" }
+      ]
+    },
+    {
+      "id": "co-04",
+      "name": "checkout: malformed JSON body still 401s unauthenticated (auth precedes body parse)",
+      "category": "checkout-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/stripe/checkout",
+        "body": "{not valid json"
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 }
+      ]
+    },
+    {
+      "id": "co-05",
+      "name": "checkout: empty body still 401s unauthenticated",
+      "category": "checkout-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/stripe/checkout",
+        "body": ""
+      },
+      "assertions": [
+        { "type": "status", "equals": 401 }
+      ]
+    },
+    {
+      "id": "co-06",
+      "name": "checkout: GET method is not allowed (405)",
+      "category": "checkout-api",
+      "input": { "method": "GET", "path": "/api/stripe/checkout" },
+      "assertions": [
+        { "type": "status", "equals": 405 }
+      ]
+    },
+    {
+      "id": "tm-01",
+      "name": "telemetry: valid pricing_viewed event returns 200 with boolean ok",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": { "event": "pricing_viewed", "anon_id": "eval-anon-1", "source": "pricing_page", "props": { "device": "desktop" } }
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field-one-of", "field": "ok", "oneOf": [true, false] }
+      ]
+    },
+    {
+      "id": "tm-02",
+      "name": "telemetry: valid plan_selected event with plan + cycle returns 200 with boolean ok",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": { "event": "plan_selected", "anon_id": "eval-anon-1", "plan": "business", "cycle": "monthly", "source": "pricing_page" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field-one-of", "field": "ok", "oneOf": [true, false] }
+      ]
+    },
+    {
+      "id": "tm-03",
+      "name": "telemetry: unknown event name is rejected softly (200 {ok:false})",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": { "event": "made_up_event", "anon_id": "eval-anon-1" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field", "field": "ok", "equals": false }
+      ]
+    },
+    {
+      "id": "tm-04",
+      "name": "telemetry: malformed JSON is rejected softly (200 {ok:false}, never 500)",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": "garbage{{{not json"
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field", "field": "ok", "equals": false }
+      ]
+    },
+    {
+      "id": "tm-05",
+      "name": "telemetry: oversized payload (>10KB) is rejected softly (200 {ok:false}, never 500)",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": { "event": "pricing_viewed", "anon_id": "eval-anon-1", "props": { "pad": "__PAD_12000__" } }
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field", "field": "ok", "equals": false }
+      ]
+    },
+    {
+      "id": "tm-06",
+      "name": "telemetry: JSON array body is rejected softly (200 {ok:false})",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": "[1,2,3]"
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field", "field": "ok", "equals": false }
+      ]
+    },
+    {
+      "id": "tm-07",
+      "name": "telemetry: empty body is rejected softly (200 {ok:false})",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": ""
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field", "field": "ok", "equals": false }
+      ]
+    },
+    {
+      "id": "tm-08",
+      "name": "telemetry: payload-supplied user_id is ignored without breaking ingest (user resolved from session only)",
+      "category": "telemetry-api",
+      "input": {
+        "method": "POST",
+        "path": "/api/telemetry/funnel",
+        "body": { "event": "signup_completed", "anon_id": "eval-anon-1", "user_id": "00000000-0000-0000-0000-000000000000", "plan": "business", "cycle": "monthly" }
+      },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "json-field-one-of", "field": "ok", "oneOf": [true, false] }
+      ]
+    },
+    {
+      "id": "tm-09",
+      "name": "telemetry: GET method is not allowed (405)",
+      "category": "telemetry-api",
+      "input": { "method": "GET", "path": "/api/telemetry/funnel" },
+      "assertions": [
+        { "type": "status", "equals": 405 }
+      ]
+    },
+    {
+      "id": "mk-01",
+      "name": "pricing: HQ People CTA renders with plain /signup href (no People checkout exists yet - by design)",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Start with HQ People" },
+        { "type": "body-contains", "value": "href=\"/signup\"" }
+      ]
+    },
+    {
+      "id": "mk-02",
+      "name": "pricing: HQ Recruit CTA carries plan=recruit (monthly-only card, no cycle param - by design)",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Start with HQ Recruit" },
+        { "type": "body-contains", "value": "/signup?plan=recruit" }
+      ]
+    },
+    {
+      "id": "mk-03",
+      "name": "pricing: HQ Business CTA carries plan + cycle params",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Start with HQ Business" },
+        { "type": "body-contains", "value": "/signup?plan=business" },
+        { "type": "body-contains", "value": "cycle=monthly" }
+      ]
+    },
+    {
+      "id": "mk-04",
+      "name": "pricing: journey-expectation microcopy line renders under the plan cards",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "Three minutes from here: create your account" }
+      ]
+    },
+    {
+      "id": "mk-05",
+      "name": "pricing: one-off document section is present",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-contains", "value": "On-demand documents" },
+        { "type": "body-contains", "value": "No subscription needed" }
+      ]
+    },
+    {
+      "id": "mk-06",
+      "name": "pricing: rendered page contains no em dashes (U+2014) or en dashes (U+2013)",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/pricing" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-not-contains", "value": "—" },
+        { "type": "body-not-contains", "value": "–" }
+      ]
+    },
+    {
+      "id": "mk-07",
+      "name": "login: rendered page contains no em dashes (U+2014) or en dashes (U+2013)",
+      "category": "marketing-surface",
+      "input": { "method": "GET", "path": "/login?mode=signup" },
+      "assertions": [
+        { "type": "status", "equals": 200 },
+        { "type": "body-not-contains", "value": "—" },
+        { "type": "body-not-contains", "value": "–" }
+      ]
+    }
+  ]
+}

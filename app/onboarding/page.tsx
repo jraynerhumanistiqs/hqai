@@ -1,104 +1,159 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { C10_SELF_SERVE } from '@/lib/pricing-config'
+import PlanSummaryCard, { getPlanMeta, isCheckoutPlanId, planPriceLine } from '@/components/onboarding/PlanSummaryCard'
+import { trackFunnelEvent } from '@/lib/analytics'
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
+// The value domain for award detection AND the Settings fine-tune picker.
+// INDUSTRY_AWARD values below MUST be members of this list so the
+// /api/onboarding payload contract (awards: string[]) is unchanged and
+// Settings round-trips cleanly.
 const AWARDS = ['General Retail Industry Award','Hospitality Industry (General) Award','Restaurant Industry Award','Pharmacy Industry Award 2020','Aged Care Award','SCHADS Award','Nurses Award','Building & Construction Award','Clerks Private Sector Award','Professional Employees Award','Award-free / Enterprise Agreement','Multiple awards apply','Not sure']
 // HQ.ai is Australia-only - Fair Work Act, NES and Modern Awards. The
 // onboarding only ever needs AU states, so there is no country toggle.
 const AU_STATES = ['QLD','NSW','VIC','SA','WA','TAS','ACT','NT']
-// Multi-select. A business can run any mix of employment types in
-// parallel - many SMEs have a few FT employees, a couple of PT, and a
-// pool of casuals or contractors all at once. Mirror that reality at
-// onboarding so the AI prompts can target the right awards for each.
-const EMP_TYPES = ['Full-time','Part-time','Casual','Fixed-term contract','Independent contractor','Apprentice or trainee']
-// Plans are derived from lib/pricing-config.ts (the single source of
-// truth) - never hardcode prices here. The bundle options reuse the C10
-// self-serve bundle (the 'solo'/'business' plan ids); HQ Recruit is a
-// standalone hiring-only plan (its own 'recruit' plan id) so a non-People
-// user can subscribe to hiring on its own. The /api/onboarding route
-// stores `plan` as an opaque string, so these ids flow through without a
-// schema change.
-const { bundle, recruit } = C10_SELF_SERVE
-const PLANS: Array<{ id: string; label: string; price: string; desc: string; recommended?: boolean }> = [
-  {
-    id: bundle.solo.planId,
-    label: `${bundle.name} (${bundle.solo.label})`,
-    price: `$${bundle.solo.monthly}/month`,
-    desc: `HR and hiring, for teams ${bundle.solo.label}, unlimited logins`,
-  },
-  {
-    id: bundle.business.planId,
-    label: `${bundle.name} (${bundle.business.label})`,
-    price: `$${bundle.business.monthly}/month`,
-    desc: `HR and hiring, for teams ${bundle.business.label}, unlimited logins, founder-led onboarding`,
-    recommended: true,
-  },
-  {
-    id: recruit.standalonePlanId,
-    label: `${recruit.name} (hiring only)`,
-    price: `$${recruit.standaloneMonthly}/month`,
-    desc: 'Hiring tools only - CV scoring, interviews and Campaign Coach. No HR subscription needed.',
-  },
-]
+
+// Likely Modern Award per industry. Replaces the retired Employment
+// step's 13-row multi-select: the detected award is confirmed inline on
+// step 1 and fine-tuned any time in Settings. 'Other' maps to null - no
+// award is guessed when we have nothing to go on.
+const INDUSTRY_AWARD: Record<string, string | null> = {
+  'Retail': 'General Retail Industry Award',
+  'Hospitality & Food Service': 'Hospitality Industry (General) Award',
+  'Healthcare & Aged Care': 'Aged Care Award',
+  'Pharmacy': 'Pharmacy Industry Award 2020',
+  'Construction & Trades': 'Building & Construction Award',
+  'Professional Services': 'Clerks Private Sector Award',
+  'Education & Childcare': 'SCHADS Award',
+  'Community Services & NFP': 'SCHADS Award',
+  'Technology': 'Professional Employees Award',
+  'Other': null,
+}
+// Guard against typos drifting the map away from the AWARDS domain.
+if (process.env.NODE_ENV !== 'production') {
+  Object.values(INDUSTRY_AWARD).forEach(a => { if (a && !AWARDS.includes(a)) console.warn(`[onboarding] INDUSTRY_AWARD value not in AWARDS: ${a}`) })
+}
+
+function headcountBand(raw: string): string {
+  const n = parseInt(raw.replace(/[^0-9]/g, ''), 10)
+  if (!Number.isFinite(n)) return 'unknown'
+  if (n <= 10) return '1-10'
+  if (n <= 25) return '11-25'
+  if (n <= 150) return '26-150'
+  return '151+'
+}
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  // country is fixed to Australia (HQ.ai is AU-only) but kept in form
-  // state so the /api/onboarding payload contract is unchanged.
+  // country stays fixed to Australia and awards/empTypes/userName stay
+  // in form state so the /api/onboarding payload contract is unchanged:
+  // awards is filled by the industry auto-detect, empTypes stays []
+  // (deferred to Settings), userName prefills from auth metadata.
   const [form, setForm] = useState({
     bizName: '', industry: '', country: 'Australia', state: [] as string[], awards: [] as string[], headcount: '',
     empTypes: [] as string[],
     advisorName: 'Hugo', userName: '', plan: 'business'
   })
+  const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
   const [authReady, setAuthReady] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<'' | 'unconfigured' | 'generic'>('')
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const firstRender = useRef(true)
+  const paymentViewed = useRef(false)
   const supabase = createClient()
-  const router = useRouter()
 
+  // Auth guard + prefill + resume guard: a user who already has a
+  // business (onboarded earlier, abandoned payment) resumes at the
+  // payment step instead of re-running the wizard and 409-ing; paid
+  // accounts go straight to the dashboard.
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    let cancelled = false
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (cancelled) return
       if (!user) {
         window.location.href = '/login'
-      } else {
-        setAuthReady(true)
+        return
       }
-    })
+      const fullName = (user.user_metadata?.full_name as string) || ''
+      setForm(f => ({ ...f, userName: f.userName || fullName }))
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('business_id, businesses(plan, subscription_status, stripe_subscription_id)')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (cancelled) return
+
+      if (profile?.business_id) {
+        const biz = profile.businesses as unknown as { plan?: string; subscription_status?: string; stripe_subscription_id?: string | null } | null
+        const paid = biz?.subscription_status === 'active' || !!biz?.stripe_subscription_id
+        if (paid) {
+          window.location.replace('/dashboard')
+          return
+        }
+        // Unpaid but onboarded - resume at the payment step. Prefer the
+        // plan on the business row unless a query param overrides it.
+        const q = new URLSearchParams(window.location.search)
+        if (!q.get('plan') && isCheckoutPlanId(biz?.plan)) {
+          setForm(f => ({ ...f, plan: biz!.plan! }))
+        }
+        setStep(3)
+      }
+      setAuthReady(true)
+      trackFunnelEvent('onboarding_started', {
+        plan: new URLSearchParams(window.location.search).get('plan') || undefined,
+        cycle: new URLSearchParams(window.location.search).get('cycle') || undefined,
+      })
+    }
+    init()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Pre-select the plan the user picked on the marketing pricing page
-  // (carried via /signup?plan=... -> login -> here) so the funnel
-  // choice isn't lost.
+  // Pre-select the plan + cycle the user picked on the marketing pricing
+  // page (carried via /signup?plan=...&cycle=... -> login -> here) so the
+  // funnel choice isn't lost.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const q = new URLSearchParams(window.location.search)
     const wanted = q.get('plan')
-    if (wanted && ['solo', 'business', 'recruit'].includes(wanted)) {
+    if (isCheckoutPlanId(wanted)) {
       setForm(f => ({ ...f, plan: wanted }))
+    }
+    const wantedCycle = q.get('cycle')
+    if (wantedCycle === 'monthly' || wantedCycle === 'annual') {
+      setCycle(wantedCycle)
     }
   }, [])
 
+  // Move focus to the step headline on step change so screen readers
+  // announce the new step (skip the initial render).
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    headingRef.current?.focus()
+  }, [step])
+
+  useEffect(() => {
+    if (step === 3 && authReady && !paymentViewed.current) {
+      paymentViewed.current = true
+      trackFunnelEvent('payment_step_viewed', { plan: form.plan, cycle })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, authReady])
+
   const steps = [
     { label: 'Business' },
-    { label: 'Employment' },
     { label: 'Advisor' },
+    { label: 'Payment' },
   ]
 
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-
-  function toggleAward(award: string) {
-    setForm(f => {
-      const current = f.awards
-      if (current.includes(award)) {
-        return { ...f, awards: current.filter(a => a !== award) }
-      }
-      return { ...f, awards: [...current, award] }
-    })
-  }
 
   function toggleState(s: string) {
     setForm(f => {
@@ -110,29 +165,18 @@ export default function OnboardingPage() {
     })
   }
 
-  function toggleEmpType(t: string) {
-    setForm(f => {
-      const current = f.empTypes
-      if (current.includes(t)) {
-        return { ...f, empTypes: current.filter(x => x !== t) }
-      }
-      return { ...f, empTypes: [...current, t] }
-    })
-  }
-
-  async function completeOnboarding() {
+  // Submit the wizard, then reveal the payment step. A 409 means this
+  // user already has a business (an earlier attempt saved it) - treat it
+  // as "already onboarded, proceed to payment", never as a failure.
+  async function submitOnboardingThenPay() {
     setSaving(true)
     setError('')
+    trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 2 })
 
     try {
-      // Server-side route uses service-role to insert the business row and
-      // link the profile, sidestepping client-side RLS races during the
-      // single moment in the user's lifecycle when profile.business_id is
-      // still null. See app/api/onboarding/route.ts.
-      // The /api/onboarding route stores `state` as a single text column.
-      // Join the multi-select array into a comma-separated string so the
-      // API contract stays identical to its current shape (matches the
-      // same pattern already used for awards and empTypes server side).
+      // Service-role insert server-side (see app/api/onboarding/route.ts).
+      // `state` joins to a comma-separated string - the API contract's
+      // existing shape.
       const payload = { ...form, state: form.state.join(', ') }
       const res = await fetch('/api/onboarding', {
         method: 'POST',
@@ -146,6 +190,12 @@ export default function OnboardingPage() {
         return
       }
 
+      if (res.status === 409) {
+        setStep(3)
+        setSaving(false)
+        return
+      }
+
       const json = await res.json().catch(() => ({}))
 
       if (!res.ok) {
@@ -155,7 +205,16 @@ export default function OnboardingPage() {
         return
       }
 
-      window.location.replace('/dashboard')
+      trackFunnelEvent('onboarding_completed', {
+        plan: form.plan,
+        cycle,
+        industry: form.industry,
+        headcount_band: headcountBand(form.headcount),
+        states_count: form.state.length,
+        advisor_renamed: form.advisorName.trim() !== 'Hugo',
+      })
+      setStep(3)
+      setSaving(false)
     } catch (err: any) {
       console.error('Onboarding error:', err)
       setError('Something went wrong: ' + (err?.message ?? 'unknown'))
@@ -163,11 +222,38 @@ export default function OnboardingPage() {
     }
   }
 
-  // Text inputs use the underline pattern; selects keep a subtle box
-  // because a bare underline + browser chevron reads inconsistently
-  // across OSes.
-  const inputCls = "w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-ink focus:ring-2 focus:ring-accent/30"
+  async function startCheckout() {
+    setCheckoutLoading(true)
+    setCheckoutError('')
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId: form.plan, cycle, returnTo: 'onboarding' }),
+      })
+      const json = await res.json().catch(() => ({} as { url?: string }))
+      if (res.ok && (json as { url?: string }).url) {
+        trackFunnelEvent('checkout_started', { plan: form.plan, cycle, source: 'onboarding_payment_step' })
+        // Stay disabled while the browser navigates - a double-click
+        // must not open two checkout sessions.
+        window.location.href = (json as { url: string }).url
+        return
+      }
+      setCheckoutError(res.status === 503 ? 'unconfigured' : 'generic')
+    } catch {
+      setCheckoutError('generic')
+    }
+    setCheckoutLoading(false)
+  }
+
+  // Underline inputs; selects keep a subtle box (a bare underline +
+  // browser chevron reads inconsistently across OSes).
+  const inputCls ="w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-ink focus:ring-2 focus:ring-accent/30"
   const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus:border-ink focus:ring-2 focus:ring-accent/30"
+  const headingCls = "font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5 focus:outline-none"
+
+  const detectedAward = INDUSTRY_AWARD[form.industry] ?? null
+  const meta = getPlanMeta(isCheckoutPlanId(form.plan) ? form.plan : 'business')
 
   if (!authReady) {
     return (
@@ -188,11 +274,8 @@ export default function OnboardingPage() {
 
         <div className="bg-bg-elevated rounded-3xl border border-border p-8">
 
-          {/* Progress.
-              Below sm: a plain "Step N of 3" label + thin linear bar -
-              the per-step dot/segment indicator compresses badly on
-              narrow screens. At sm and up: the richer hairline-connector
-              + ink-pill indicator. */}
+          {/* Progress. "Payment" is visible as step 3 of 3 from the first
+              render - setting the expectation early kills the surprise. */}
           <div className="mb-8">
             {/* Mobile: text label + linear progress bar */}
             <div className="sm:hidden">
@@ -226,8 +309,8 @@ export default function OnboardingPage() {
           {/* Step 1 - Business */}
           {step === 1 && (
             <div>
-              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Tell us about your business</h2>
-              <p className="text-sm text-mid mb-6">HQ uses this to tailor every response to your specific situation.</p>
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Tell us about your business</h2>
+              <p className="text-sm text-mid mb-6">HQ uses this to tailor every answer and document to your business. Takes about a minute.</p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Business name</label>
@@ -235,10 +318,33 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Industry</label>
-                  <select className={selectCls} value={form.industry} onChange={e => update('industry', e.target.value)}>
+                  <select
+                    className={selectCls}
+                    value={form.industry}
+                    onChange={e => {
+                      // Populate awards as the retired multi-select would
+                      // have - a single detected award, or none.
+                      const v = e.target.value
+                      setForm(f => ({ ...f, industry: v, awards: INDUSTRY_AWARD[v] ? [INDUSTRY_AWARD[v]!] : [] }))
+                    }}
+                  >
                     <option value="">Select industry</option>
                     {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
                   </select>
+                  {detectedAward && (
+                    <div
+                      className="mt-2 flex items-start gap-2 rounded-xl border border-border bg-bg-soft px-3 py-2.5 animate-in fade-in duration-base motion-reduce:animate-none"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-soft" aria-hidden>
+                        <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
+                      </svg>
+                      <p className="text-xs leading-relaxed text-ink-soft">
+                        Looks like the <strong className="font-semibold text-ink">{detectedAward}</strong> applies to you. We&apos;ll use it from day one - fine-tune any time in Settings.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">State / Territory</label>
@@ -271,68 +377,12 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2 - Employment */}
+          {/* Step 2 - Advisor */}
           {step === 2 && (
             <div>
-              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Employment details</h2>
-              <p className="text-sm text-mid mb-6">HQ already detects the likely award from your industry. Confirm or fine-tune it here so every response is accurate from day one - you can change all of this any time in Settings.</p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">Applicable Modern Awards (select all that apply)</label>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin pr-1">
-                    {AWARDS.map(a => (
-                      <button key={a} type="button" onClick={() => toggleAward(a)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.awards.includes(a) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
-                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                          ${form.awards.includes(a) ? 'border-ink bg-ink' : 'border-border'}`}>
-                          {form.awards.includes(a) && (
-                            <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm text-charcoal">{a}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {form.awards.length > 0 && (
-                    <p className="text-[10px] text-ink font-bold mt-2">{form.awards.length} award{form.awards.length > 1 ? 's' : ''} selected</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-mid mb-2">Employment types in your business (select all that apply)</label>
-                  <div className="space-y-2">
-                    {EMP_TYPES.map(t => (
-                      <button key={t} type="button" onClick={() => toggleEmpType(t)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.empTypes.includes(t) ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
-                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                          ${form.empTypes.includes(t) ? 'border-ink bg-ink' : 'border-border'}`}>
-                          {form.empTypes.includes(t) && (
-                            <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm text-charcoal">{t}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {form.empTypes.length > 0 && (
-                    <p className="text-[10px] text-ink font-bold mt-2">{form.empTypes.length} type{form.empTypes.length > 1 ? 's' : ''} selected</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 - Advisor */}
-          {step === 3 && (
-            <div>
-              <h2 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">Meet your AI Advisor</h2>
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Meet your AI Advisor</h2>
               <p className="text-sm text-mid mb-6">
-                Give your AI Advisor a name - it&apos;s the assistant that handles your day-to-day HR questions inside HQ.ai. When something complex comes up, your AI Advisor hands off to your real Humanistiqs human advisor automatically.
+                This is the assistant that handles your day-to-day HR questions. Give it a name you like - you can change it any time in Settings.
                 <span
                   className="group relative ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-ink/30 align-middle text-[10px] font-bold text-ink-muted"
                   tabIndex={0}
@@ -347,72 +397,101 @@ export default function OnboardingPage() {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">Your name</label>
-                  <input className={inputCls} value={form.userName} onChange={e => update('userName', e.target.value)} placeholder="e.g. James" />
-                </div>
-                <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Name your AI Advisor</label>
                   <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="Hugo, Sarah, anything you like" />
                   <p className="text-[10px] text-muted mt-1">Pick something friendly - this is what shows up in chat when your AI Advisor talks to you. You can change it any time in Settings.</p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-mid mb-2">Your HQ.ai plan</label>
-                  <div className="space-y-2">
-                    {PLANS.map(p => (
-                      <button key={p.id} type="button" onClick={() => update('plan', p.id)}
-                        className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
-                          ${form.plan === p.id ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}>
-                        <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                          ${form.plan === p.id ? 'border-ink bg-ink' : 'border-border'}`}>
-                          {form.plan === p.id && <div className="w-1.5 h-1.5 bg-bg-elevated rounded-full" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-ink">{p.label}</span>
-                            {p.recommended && <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>}
-                            <span className="text-sm font-semibold text-ink ml-auto">{p.price}</span>
-                          </div>
-                          <p className="text-xs text-ink-muted mt-0.5">{p.desc}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <PlanSummaryCard
+                  planId={form.plan}
+                  cycle={cycle}
+                  onPlanChange={id => update('plan', id)}
+                  headcount={parseInt(form.headcount.replace(/[^0-9]/g, ''), 10) || undefined}
+                />
               </div>
             </div>
           )}
 
-          {/* Error message */}
-          {error && (
+          {/* Step 3 - Payment. Rendered only after POST /api/onboarding
+              succeeds (or via the resume guard). No Back button - the
+              business row exists; changes belong to Change plan/Settings. */}
+          {step === 3 && (
+            <div>
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Last step: start your plan</h2>
+              <p className="text-sm text-mid mb-6">
+                {meta.name} ({meta.band}) - {planPriceLine(isCheckoutPlanId(form.plan) ? form.plan : 'business', cycle)}. Unlimited logins for your whole team.
+              </p>
+
+              <PlanSummaryCard
+                planId={form.plan}
+                cycle={cycle}
+                onPlanChange={id => update('plan', id)}
+                onCycleChange={setCycle}
+                showAnnualNudge
+              />
+
+              {checkoutError === 'unconfigured' && (
+                <div role="alert" className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2.5 text-sm text-danger">
+                  Card payments for this plan aren&apos;t switched on just yet. Nothing has been charged and everything you set up is saved.{' '}
+                  <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">Email us</a>
+                  {' '}and we&apos;ll sort it, or{' '}
+                  <a href="/dashboard" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">have a look around first</a>.
+                </div>
+              )}
+              {checkoutError === 'generic' && (
+                <div role="alert" className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2.5 text-sm text-danger">
+                  Something went wrong starting checkout. No payment was taken. Please try again.
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={startCheckout}
+                disabled={checkoutLoading}
+                aria-busy={checkoutLoading}
+                className="mt-6 w-full bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {checkoutLoading ? 'Taking you to secure checkout...' : 'Continue to secure checkout'}
+              </button>
+
+              <p className="mt-3 text-xs leading-relaxed text-ink-muted text-center">
+                Cancel any time. No lock-in, no notice period, no per-person charges. Payment is handled by Stripe - we never see your card details.
+              </p>
+            </div>
+          )}
+
+          {/* Error message (steps 1-2) */}
+          {error && step < 3 && (
             <div className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-between mt-8">
-            {step > 1 ? (
-              <button type="button" onClick={() => setStep(s => s - 1)}
-                className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors">
-                ← Back
-              </button>
-            ) : <div />}
-            {step < 3 ? (
-              <button type="button" onClick={() => setStep(s => s + 1)}
-                className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors">
-                Continue →
-              </button>
-            ) : (
-              // Final celebratory CTA - the ONE Clay accent moment in
-              // the whole wizard (rule 4 of the kit).
-              <div className="flex flex-col items-end gap-1.5">
-                <button type="button" onClick={completeOnboarding} disabled={saving}
-                  className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
-                  {saving ? 'Setting up…' : 'Launch HQ.ai →'}
+          {/* Actions (steps 1-2; the payment step carries its own CTA) */}
+          {step < 3 && (
+            <div className="flex justify-between mt-8">
+              {step === 2 ? (
+                <button type="button" onClick={() => setStep(1)}
+                  className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors">
+                  ← Back
                 </button>
-              </div>
-            )}
-          </div>
+              ) : <div />}
+              {step === 1 ? (
+                <button type="button"
+                  onClick={() => {
+                    trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 1 })
+                    setStep(2)
+                  }}
+                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors">
+                  Continue →
+                </button>
+              ) : (
+                <button type="button" onClick={submitOnboardingThenPay} disabled={saving}
+                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
+                  {saving ? 'Setting up…' : 'Continue →'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

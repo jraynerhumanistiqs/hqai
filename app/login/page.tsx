@@ -1,11 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { trackFunnelEvent } from '@/lib/analytics'
 
 // Carry the plan choice from the marketing pages (/signup?plan=...&cycle=
 // ...) through signup into onboarding so the user's pick isn't lost.
-// Read once, client-side, to avoid a Suspense boundary.
+// Read at event time (submit/focus), when the URL is committed.
 function readPlanQuery(): string {
   if (typeof window === 'undefined') return ''
   const p = new URLSearchParams(window.location.search)
@@ -16,15 +18,30 @@ function readPlanQuery(): string {
   return s ? `?${s}` : ''
 }
 
-export default function LoginPage() {
+// Funnel event props - the plan/cycle riding the query string, if any.
+function planProps(): { plan?: string; cycle?: string } {
+  if (typeof window === 'undefined') return {}
+  const p = new URLSearchParams(window.location.search)
+  return { plan: p.get('plan') || undefined, cycle: p.get('cycle') || undefined }
+}
+
+function LoginInner() {
   // Default to signup when the marketing CTAs link here as /signup (which
   // redirects to /login?mode=signup). Falls back to login otherwise.
-  const [mode, setMode] = useState<'login' | 'signup'>(() => {
-    if (typeof window !== 'undefined') {
-      if (new URLSearchParams(window.location.search).get('mode') === 'signup') return 'signup'
-    }
-    return 'login'
-  })
+  // useSearchParams (not window.location) - during an App Router client
+  // navigation the window URL commits after first render, so reading it
+  // in the initializer showed sign-in mode to buyers arriving from the
+  // pricing CTAs.
+  const searchParams = useSearchParams()
+  const [mode, setMode] = useState<'login' | 'signup'>(() =>
+    searchParams.get('mode') === 'signup' ? 'signup' : 'login')
+
+  // Re-sync on client navigation to this page with new params (the
+  // component stays mounted, so the initializer never re-runs). Does not
+  // fight the manual toggle - it only runs when the params object changes.
+  useEffect(() => {
+    if (searchParams.get('mode') === 'signup') setMode('signup')
+  }, [searchParams])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -32,7 +49,15 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [magicSent, setMagicSent] = useState(false)
   const [sentToEmail, setSentToEmail] = useState('')
+  const signupStartTracked = useRef(false)
   const supabase = createClient()
+
+  // signup_started - first focus on any signup field, once per visit.
+  function handleSignupFocus() {
+    if (mode !== 'signup' || signupStartTracked.current) return
+    signupStartTracked.current = true
+    trackFunnelEvent('signup_started', planProps())
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -55,6 +80,7 @@ export default function LoginPage() {
 
         if (!signUpData.session) {
           if (signUpData.user && (!signUpData.user.identities || signUpData.user.identities.length === 0)) {
+            trackFunnelEvent('signup_email_exists', planProps())
             setError('An account with this email already exists. Try signing in instead.')
           } else {
             setError('Check your email to confirm your account, then sign in.')
@@ -63,6 +89,7 @@ export default function LoginPage() {
           return
         }
 
+        trackFunnelEvent('signup_completed', { ...planProps(), method: 'password' })
         window.location.href = `/onboarding${readPlanQuery()}`
         return
 
@@ -104,8 +131,11 @@ export default function LoginPage() {
   async function handleMagicLink() {
     if (!email) { setError('Enter your email first'); return }
     setLoading(true)
+    // Carry plan/cycle on the callback URL so a magic-link signup still
+    // lands in /onboarding with the funnel choice preserved - the
+    // callback passes them through its redirect.
     const callback = typeof window !== 'undefined'
-      ? `${window.location.origin}/auth/callback`
+      ? `${window.location.origin}/auth/callback${readPlanQuery()}`
       : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'}/auth/callback`
     const { error: magicError } = await supabase.auth.signInWithOtp({
       email,
@@ -114,6 +144,7 @@ export default function LoginPage() {
     if (magicError) {
       setError(magicError.message)
     } else {
+      trackFunnelEvent('magic_link_sent', planProps())
       setSentToEmail(email)
       setMagicSent(true)
     }
@@ -169,7 +200,7 @@ export default function LoginPage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} onFocusCapture={handleSignupFocus} className="space-y-4">
               {mode === 'signup' && (
                 <div>
                   <label className="block text-xs font-bold text-ink-muted mb-1.5">Full name</label>
@@ -254,5 +285,14 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+// useSearchParams requires a Suspense boundary at the page level.
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
   )
 }

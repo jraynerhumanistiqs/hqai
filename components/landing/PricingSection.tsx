@@ -10,8 +10,16 @@
 // All prices source from lib/pricing-config.ts - never duplicate inline.
 
 import Link from 'next/link'
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
+import { trackFunnelEvent } from '@/lib/analytics'
+
+// The section renders on both the landing page and /pricing - derive the
+// event source from the path so the two mount points need no prop.
+function funnelSource(): string {
+  if (typeof window === 'undefined') return 'landing_section'
+  return window.location.pathname.startsWith('/pricing') ? 'pricing_page' : 'landing_section'
+}
 
 // On-demand document library - grouped by the most commonly requested HR
 // categories. No per-document pricing here; this is the self-service AI
@@ -63,6 +71,42 @@ export default function PricingSection() {
   const { people, recruit, bundle } = C10_SELF_SERVE
   const oneOffs = PRICING.oneOffs
 
+  // pricing_viewed - once, when the section enters the viewport. The
+  // refs keep the toggle values current without re-observing.
+  const sectionRef = useRef<HTMLElement>(null)
+  const sizeRef = useRef(size)
+  useEffect(() => {
+    sizeRef.current = size
+  }, [size])
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    let fired = false
+    const observer = new IntersectionObserver(entries => {
+      if (fired || !entries.some(e => e.isIntersecting)) return
+      fired = true
+      trackFunnelEvent('pricing_viewed', {
+        source: funnelSource(),
+        device: window.innerWidth < 640 ? 'mobile' : 'desktop',
+        team_size_toggle: sizeRef.current === 0 ? 'up to 25' : 'up to 150',
+      })
+      observer.disconnect()
+      // threshold 0: the section is far taller than any viewport, so a
+      // ratio threshold would never be reached - fire on first pixel.
+    }, { threshold: 0 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const trackPlanSelected = (plan: string, planCycle: string) => {
+    trackFunnelEvent('plan_selected', {
+      plan,
+      cycle: planCycle,
+      source: funnelSource(),
+      team_size_toggle: sizeRef.current === 0 ? 'up to 25' : 'up to 150',
+    })
+  }
+
   const cheapestOneOff = useMemo(
     () => oneOffs.reduce((min, sku) => (sku.price < min.price ? sku : min), oneOffs[0]),
     [oneOffs],
@@ -101,7 +145,7 @@ export default function PricingSection() {
   const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
 
   return (
-    <section id="pricing" className="bg-bg py-14 md:py-20" aria-labelledby="pricing-heading">
+    <section id="pricing" ref={sectionRef} className="bg-bg py-14 md:py-20" aria-labelledby="pricing-heading">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
@@ -147,9 +191,10 @@ export default function PricingSection() {
             priceNote={peopleNote}
             sub={peopleSub}
             features={people.features}
-            cta="Get started"
+            cta="Start with HQ People"
             href="/signup"
             ctaStyle="ghost"
+            onCtaClick={() => trackPlanSelected('people', cycle)}
           />
           <PlanCard
             kicker={recruit.kicker}
@@ -159,9 +204,10 @@ export default function PricingSection() {
             priceSuffix="/mo"
             sub={`Hiring on its own, billed monthly. Go Pro for unlimited roles at ${fmt(recruit.bands[1].monthly)}/mo.`}
             features={recruit.features}
-            cta="Get started"
+            cta="Start with HQ Recruit"
             href={`/signup?plan=${recruit.standalonePlanId}`}
             ctaStyle="ghost"
+            onCtaClick={() => trackPlanSelected('recruit', 'monthly')}
             info={
               <PricingInfoDot label="HQ People subscriber add-on">
                 {recruit.subscriberAddOnNote}
@@ -179,14 +225,15 @@ export default function PricingSection() {
             priceNote={bundleNote}
             sub={`For a team ${bundlePlan.label} people. Everything in HQ People and HQ Recruit, together.`}
             features={bundle.features}
-            cta="Get started"
+            cta="Start with HQ Business"
             href={`/signup?plan=${bundlePlan.planId}&cycle=${cycle}`}
             ctaStyle="solid"
+            onCtaClick={() => trackPlanSelected(bundlePlan.planId, cycle)}
           />
         </div>
 
         <p className="mt-5 text-xs leading-relaxed text-ink-muted">
-          One question at sign-up: HR help, hiring help, or both? Unlimited logins on every plan - you are never charged per person.
+          Three minutes from here: create your account, answer a few questions about your business, start your plan. Unlimited logins on every plan - you are never charged per person.
         </p>
 
         {/* Bottom row: on-demand document library (carousel) + HR365/RECRUIT365 teaser */}
@@ -357,7 +404,7 @@ function Toggle<T extends string | number>({
 }
 
 function PlanCard({
-  kicker, name, desc, price, priceSuffix, priceNote, sub, features, cta, href, ctaStyle, highlight, badge, info,
+  kicker, name, desc, price, priceSuffix, priceNote, sub, features, cta, href, ctaStyle, highlight, badge, info, onCtaClick,
 }: {
   kicker: string
   name: string
@@ -373,6 +420,7 @@ function PlanCard({
   highlight?: boolean
   badge?: string
   info?: React.ReactNode
+  onCtaClick?: () => void
 }) {
   return (
     <article
@@ -419,6 +467,7 @@ function PlanCard({
       <div className="mt-auto pt-6">
         <Link
           href={href}
+          onClick={onCtaClick}
           className={[
             'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
             ctaStyle === 'solid'

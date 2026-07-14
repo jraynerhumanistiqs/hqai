@@ -12,6 +12,8 @@
     "ingest:fwo": "tsx scripts/ingest/ingest-fwo.ts",
     "ingest:act": "tsx scripts/ingest/ingest-act.ts",
     "eval": "tsx tests/eval/run-eval.ts",
+    "test:checkout": "tsx --test tests/checkout/",
+    "eval:selfserve": "node scripts/eval-selfserve.mjs",
     "smoke:chat": "node scripts/smoke-chat.mjs",
     "smoke:doc": "node scripts/smoke-doc-engine.mjs",
     "axe": "node scripts/axe-scan.mjs",

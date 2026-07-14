@@ -615,6 +615,168 @@ export async function sendEnterpriseInquiryConfirmation({
   }
 }
 
+// -- Self-serve funnel: welcome email (first successful checkout) ----------
+// Sent once from the Stripe webhook when checkout.session.completed
+// lands for a business with no prior subscription. Email failures are
+// logged and swallowed - they must NEVER fail the webhook.
+
+export async function sendWelcomeEmail({
+  toEmail,
+  firstName,
+  dashboardUrl,
+}: {
+  toEmail: string
+  firstName: string
+  dashboardUrl: string
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const greeting = firstName ? `Hi ${firstName},` : 'Hi,'
+  const text = [
+    greeting,
+    '',
+    'Your workspace is set up. The fastest way to see what HQ can do:',
+    '',
+    'Ask it one real question. Something on your plate right now - a leave',
+    'question, a pay question, or "draft a letter of offer for a part-time',
+    'retail assistant."',
+    '',
+    "You'll have an answer in about 30 seconds, and your first document in",
+    'about three minutes.',
+    '',
+    `Open your workspace: ${dashboardUrl}`,
+    '',
+    'Worth knowing:',
+    '- Unlimited logins. Add your managers at no extra cost.',
+    '- No lock-in. Cancel any time from Settings > Billing.',
+    '- When something is genuinely hard, a real Humanistiqs advisor is one',
+    '  step away.',
+    '',
+    'Reply to this email if you get stuck - a real person reads it.',
+    '',
+    'Jimmy Rayner',
+    'Founder, HQ.ai (Humanistiqs)',
+  ].join('\n')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: 'jrayner@humanistiqs.com.au',
+      subject: 'Your HQ.ai workspace is ready',
+      text,
+      html: renderEmailShell({
+        heading: 'Your workspace is ready',
+        bodyHtml: `
+          <p style="margin:0 0 14px 0;">${escapeHtml(greeting)}</p>
+          <p style="margin:0 0 14px 0;">Your workspace is set up. The fastest way to see what HQ can do:</p>
+          <p style="margin:0 0 14px 0;"><strong>Ask it one real question.</strong> Something on your plate right now - a leave question, a pay question, or "draft a letter of offer for a part-time retail assistant."</p>
+          <p style="margin:0 0 14px 0;">You'll have an answer in about 30 seconds, and your first document in about three minutes.</p>
+          <p style="margin:0 0 8px 0;">Worth knowing:</p>
+          <ul style="margin:0 0 14px 0;padding-left:18px;line-height:1.7;">
+            <li>Unlimited logins. Add your managers at no extra cost.</li>
+            <li>No lock-in. Cancel any time from Settings &gt; Billing.</li>
+            <li>When something is genuinely hard, a real Humanistiqs advisor is one step away.</li>
+          </ul>
+          <p style="margin:0 0 14px 0;">Reply to this email if you get stuck - a real person reads it.</p>
+          <p style="margin:18px 0 0 0;">Jimmy Rayner<br/><span style="color:${BRAND.body};">Founder, HQ.ai (Humanistiqs)</span></p>
+        `,
+        cta: { label: 'Open your workspace', url: dashboardUrl },
+      }),
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendWelcomeEmail failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
+  }
+}
+
+// -- Self-serve funnel: payment confirmation (checkout completed) -----------
+// Sent from the Stripe webhook on every completed subscription checkout.
+// The Stripe receipt arrives separately - this one confirms the plan in
+// HQ.ai's own voice. Failures are logged and swallowed.
+
+export async function sendPaymentConfirmationEmail({
+  toEmail,
+  firstName,
+  planName,
+  bandLabel,
+  amountAud,
+  cycle,
+  nextBillDate,
+  dashboardUrl,
+}: {
+  toEmail: string
+  firstName: string
+  planName: string
+  bandLabel: string
+  amountAud: number | null
+  cycle: 'monthly' | 'annual'
+  nextBillDate: string | null
+  dashboardUrl: string
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const greeting = firstName ? `Hi ${firstName},` : 'Hi,'
+  const billedLabel = cycle === 'annual' ? 'annually' : 'monthly'
+  const amountLine = amountAud !== null
+    ? `Amount: $${amountAud.toLocaleString('en-AU')} AUD, billed ${billedLabel}`
+    : `Billed ${billedLabel}`
+  const nextBillLine = nextBillDate ? `Next bill: ${nextBillDate}` : ''
+
+  const text = [
+    greeting,
+    '',
+    'Thanks - your payment went through and your plan is active.',
+    '',
+    `Plan: ${planName} (${bandLabel})`,
+    amountLine,
+    ...(nextBillLine ? [nextBillLine] : []),
+    '',
+    'Your Stripe receipt arrives in a separate email.',
+    '',
+    'You can change or cancel your plan any time in Settings > Billing.',
+    'No lock-in, no notice period.',
+    '',
+    `Open your workspace: ${dashboardUrl}`,
+    '',
+    'Jimmy Rayner',
+    'Founder, HQ.ai (Humanistiqs)',
+  ].join('\n')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: 'jrayner@humanistiqs.com.au',
+      subject: `Payment received - your ${planName} plan is active`,
+      text,
+      html: renderEmailShell({
+        heading: 'Payment received',
+        bodyHtml: `
+          <p style="margin:0 0 14px 0;">${escapeHtml(greeting)}</p>
+          <p style="margin:0 0 14px 0;">Thanks - your payment went through and your plan is active.</p>
+          <div style="background:${BRAND.bg};border:1px solid ${BRAND.divider};border-radius:10px;padding:16px;margin:0 0 14px 0;font-size:14px;line-height:1.8;">
+            <div>Plan: <strong>${escapeHtml(planName)} (${escapeHtml(bandLabel)})</strong></div>
+            <div>${escapeHtml(amountLine)}</div>
+            ${nextBillLine ? `<div>${escapeHtml(nextBillLine)}</div>` : ''}
+          </div>
+          <p style="margin:0 0 14px 0;">Your Stripe receipt arrives in a separate email.</p>
+          <p style="margin:0 0 14px 0;">You can change or cancel your plan any time in Settings &gt; Billing. No lock-in, no notice period.</p>
+          <p style="margin:18px 0 0 0;">Jimmy Rayner<br/><span style="color:${BRAND.body};">Founder, HQ.ai (Humanistiqs)</span></p>
+        `,
+        cta: { label: 'Open your workspace', url: dashboardUrl },
+      }),
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendPaymentConfirmationEmail failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
+  }
+}
+
 export async function sendCandidateOutcomeEmail({
   toEmail,
   toName,
