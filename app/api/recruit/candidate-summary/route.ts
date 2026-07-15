@@ -20,8 +20,6 @@ import {
   Paragraph,
   TextRun,
   HeadingLevel,
-  AlignmentType,
-  PageBreak,
 } from 'docx'
 import JSZip from 'jszip'
 import { NextRequest } from 'next/server'
@@ -91,8 +89,10 @@ export async function POST(req: NextRequest) {
       ) ?? (cvScreenings ?? []).find((c: any) => c.prescreen_session_id === r.session_id) ?? null
 
       const children: Paragraph[] = []
+      // Title rule: every per-candidate CV score summary is
+      // "{Candidate Full Name} - CV Score Summary".
       children.push(new Paragraph({
-        text: `Candidate Summary - ${r.candidate_name ?? 'Unnamed candidate'}`,
+        text: `${r.candidate_name ?? 'Candidate'} - CV Score Summary`,
         heading: HeadingLevel.HEADING_1,
       }))
       children.push(new Paragraph({
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
 
       const doc = new Document({
         creator: 'HQ.ai Shortlist Agent',
-        title: `Candidate Summary - ${r.candidate_name ?? 'Candidate'}`,
+        title: `${r.candidate_name ?? 'Candidate'} - CV Score Summary`,
         sections: [{ children }],
       })
       const blob = await Packer.toBlob(doc)
@@ -206,45 +206,45 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Single candidate -> return one Word doc.
+    // Single candidate -> return one Word doc, named per the title rule.
     if (responses.length === 1) {
       const { buffer, candidateName } = await buildOneDoc(responses[0])
-      const safe = candidateName.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 60) || 'candidate'
+      const filename = `${safeFilename(candidateName)} - CV Score Summary.docx`
       return new Response(buffer as unknown as ArrayBuffer, {
         status: 200,
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'Content-Disposition': `attachment; filename="Candidate_Summary_-_${safe}.docx"`,
+          'Content-Disposition': contentDisposition(filename),
         },
       })
     }
 
     // Multiple candidates -> zip of individual DOCX files, one folder per
     // role title. Naming matches the CV Scoring Agent zip convention:
-    // "[Role Title] - Candidate CV Scoring Reports".
+    // "[Role Title] - CV Score Summaries".
     const built = await Promise.all(responses.map(r => buildOneDoc(r)))
     const roles = new Set<string>()
     for (const b of built) roles.add(b.roleTitle)
     const folderRole = roles.size === 1 ? [...roles][0] : 'Mixed roles'
-    const folderLabel = `${folderRole} - Candidate CV Scoring Reports`
+    const folderLabel = `${safeFilename(folderRole)} - CV Score Summaries`
 
     const zip = new JSZip()
     const seen = new Map<string, number>()
     for (const { buffer, candidateName } of built) {
-      const base = candidateName.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 60) || 'candidate'
+      const base = `${safeFilename(candidateName)} - CV Score Summary`
       const n = (seen.get(base) ?? 0) + 1
       seen.set(base, n)
-      const filename = n === 1 ? `${base}.docx` : `${base}-${n}.docx`
+      const filename = n === 1 ? `${base}.docx` : `${base} (${n}).docx`
       zip.file(`${folderLabel}/${filename}`, buffer)
     }
     const zipBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
     const today = new Date().toISOString().slice(0, 10)
-    const zipName = `${folderLabel.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 80)}_${today}.zip`
+    const zipName = `${folderLabel} ${today}.zip`
     return new Response(zipBuf as unknown as ArrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${zipName}"`,
+        'Content-Disposition': contentDisposition(zipName),
       },
     })
   } catch (err) {
@@ -300,6 +300,18 @@ function nextStepsFromCombined(band: string): string[] {
     'Send a respectful "not progressed at this stage" email - keep candidate in talent pool for future roles.',
     'Note the specific reasons in your ATS for audit trail.',
   ]
+}
+
+// Human-readable filesystem-safe name: keeps spaces and hyphens, strips
+// only characters that are illegal in filenames.
+function safeFilename(s: string): string {
+  return s.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Candidate'
+}
+
+// filename* carries the exact UTF-8 name (candidate names can hold
+// accented characters); plain filename is the ASCII-safe fallback.
+function contentDisposition(filename: string): string {
+  return `attachment; filename="${filename.replace(/[^\x20-\x7E]+/g, '_')}"; filename*=UTF-8''${encodeURIComponent(filename)}`
 }
 
 function jsonError(message: string, status: number) {

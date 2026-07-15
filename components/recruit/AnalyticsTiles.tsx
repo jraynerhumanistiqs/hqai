@@ -6,17 +6,12 @@ interface FunnelData {
 }
 interface DimStat { name: string; mean: number; p25: number; p50: number; p75: number; min: number; max: number; n: number }
 interface Agreement { accept: number; adjust: number; reject: number; pending: number }
-interface BiasAudit { protected_attr_violations: number; insufficient_evidence_count: number; low_confidence_count: number }
 interface Analytics {
   funnel: FunnelData
   avgTimeToScoreSec: number | null
   dimensionStats: DimStat[]
   aiAgreement: Agreement
-  biasAudit: BiasAudit
 }
-
-// Verbatim Claude guardrail paragraph from lib/claude-scoring.ts SYSTEM_PROMPT.
-const GUARDRAIL_PARAGRAPH = `You MUST NOT infer or reference protected attributes (age, gender, ethnicity, accent, national origin, religion, disability, health, sexual orientation, family status). You MUST NOT score emotion, personality, confidence-as-a-trait, or culture fit. Score only task-relevant behaviour as evidenced by the candidate's own words in the transcript. Every score must cite a verbatim quote from the transcript and its start-second timestamp. If evidence is insufficient, return confidence < 0.5 and mark the dimension insufficient_evidence=true.`
 
 function prettyDimName(raw: string): string {
   const cleaned = raw.replace(/[_-]+/g, ' ').trim()
@@ -27,7 +22,6 @@ function prettyDimName(raw: string): string {
 export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
   const [data, setData] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
-  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -49,31 +43,12 @@ export function AnalyticsTiles({ sessionId }: { sessionId: string }) {
   if (!data) return <p className="text-sm text-mid">Couldn&apos;t load analytics.</p>
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <FunnelTile funnel={data.funnel} />
-        <TimeToScoreTile seconds={data.avgTimeToScoreSec} />
-        <DimensionTile stats={data.dimensionStats} />
-        <AgreementTile agreement={data.aiAgreement} />
-        <BiasTile audit={data.biasAudit} onOpenEvidence={() => setDrawerOpen(true)} />
-      </div>
-
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4"
-          onClick={() => setDrawerOpen(false)}
-        >
-          <div className="bg-bg-elevated rounded-2xl shadow-modal max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-serif text-lg font-bold text-ink">Claude system-prompt guardrail</h3>
-              <button onClick={() => setDrawerOpen(false)} className="text-mid hover:text-ink text-lg leading-none" aria-label="Close">&times;</button>
-            </div>
-            <p className="text-xs text-mid mb-3">Verbatim guardrail paragraph used for every scoring request:</p>
-            <pre className="text-xs text-charcoal bg-bg border border-border rounded-lg p-3 whitespace-pre-wrap font-mono">{GUARDRAIL_PARAGRAPH}</pre>
-          </div>
-        </div>
-      )}
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <FunnelTile funnel={data.funnel} />
+      <TimeToScoreTile seconds={data.avgTimeToScoreSec} />
+      <DimensionTile stats={data.dimensionStats} />
+      <AgreementTile agreement={data.aiAgreement} />
+    </div>
   )
 }
 
@@ -227,30 +202,6 @@ function AgreementTile({ agreement }: { agreement: Agreement }) {
           ))}
         </div>
       </div>
-    </Tile>
-  )
-}
-
-function BiasTile({ audit, onOpenEvidence }: { audit: BiasAudit; onOpenEvidence: () => void }) {
-  return (
-    <Tile title="Bias audit">
-      <ul className="space-y-2 text-sm">
-        <li className="flex items-start gap-2">
-          <span className="text-success mt-0.5">&#10003;</span>
-          <span className="text-charcoal">
-            Protected-attribute inference: prevented by design.{' '}
-            <button onClick={onOpenEvidence} className="text-accent hover:underline font-bold">View system-prompt evidence</button>
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-warning mt-0.5">&#9888;</span>
-          <span className="text-charcoal">Low-confidence dimensions flagged: <span className="font-bold text-ink">{audit.low_confidence_count}</span></span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-warning mt-0.5">&#9888;</span>
-          <span className="text-charcoal">Insufficient-evidence dimensions: <span className="font-bold text-ink">{audit.insufficient_evidence_count}</span></span>
-        </li>
-      </ul>
     </Tile>
   )
 }

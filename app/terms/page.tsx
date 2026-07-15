@@ -94,8 +94,8 @@ export default function TermsPage() {
           </P>
           <P>
             We have invested significant work to ensure AI outputs are grounded in
-            cited Australian sources, blinded against demographic signals where
-            possible, and audited for adverse impact. <strong className="text-charcoal">Despite this, AI
+            cited Australian sources and instructed to assess job-relevant
+            information only. <strong className="text-charcoal">Despite this, AI
             outputs can be wrong</strong> and must be reviewed by a human. We do not
             warrant that any AI output is accurate, complete, or fit for any
             specific decision you make using it.

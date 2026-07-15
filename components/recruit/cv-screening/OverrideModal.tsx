@@ -8,6 +8,7 @@ import { useState } from 'react'
 import {
   BAND_LABELS,
   ACTION_LABELS,
+  BAND_CATEGORY_LABEL,
   type CandidateBand,
   type CandidateScreening,
   type NextAction,
@@ -131,7 +132,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
 
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Score band</label>
+            <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">{BAND_CATEGORY_LABEL}</label>
             <div className="flex flex-wrap gap-2">
               {BAND_OPTIONS.map(b => (
                 <button

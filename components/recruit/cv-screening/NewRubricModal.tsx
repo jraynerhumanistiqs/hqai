@@ -1,6 +1,19 @@
 'use client'
+// Create new scoring criteria. Stage 1 ('input'): paste a job ad / upload
+// a PD; the AI drafts a weighted criteria set. Stage 2 ('reviewing'): the
+// user lands in the FULL criteria editor (CriteriaEditor.tsx - the same
+// surface EditRubricModal uses) prefilled with the AI recommendation.
+// The common path is "AI recommended set -> Save" with zero edits; the
+// per-criterion power controls live behind each card's Advanced settings.
+
 import { useRef, useState } from 'react'
 import type { Rubric } from '@/lib/cv-screening-types'
+import CriteriaEditor, {
+  type DraftCriterion,
+  toDraft,
+  draftsToCriteria,
+  validateCriteriaDraft,
+} from './CriteriaEditor'
 
 interface SavedRubric {
   id: string
@@ -19,9 +32,9 @@ interface Props {
   initialJd?: string
   /** True when the modal was opened from the Campaign Coach -> CV
    *  Scoring Agent handoff (Step 5 "Finalise Campaign"). Shows an
-   *  explanatory banner at the top of the input stage so the
-   *  recruiter knows the draft criteria came from their just-built
-   *  brief and that they can edit anything before saving. */
+   *  explanatory banner so the recruiter knows the draft criteria came
+   *  from their just-built brief and that they can edit anything
+   *  before saving. */
   fromCampaignCoach?: boolean
 }
 
@@ -31,7 +44,11 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
   const [stage, setStage] = useState<'input' | 'reviewing'>('input')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The AI draft, split into the full-editor state shape: the base rubric
+  // (ids/version/etc), an editable role title and editable criteria.
   const [draftRubric, setDraftRubric] = useState<Rubric | null>(null)
+  const [draftRole, setDraftRole] = useState('')
+  const [draftCriteria, setDraftCriteria] = useState<DraftCriterion[]>([])
   // PD upload state - drag-and-drop populates the JD textarea so the
   // recruiter doesn't have to copy-paste from Word / Adobe / Notion.
   // The textarea stays the source of truth so they can still tweak
@@ -60,15 +77,16 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
 
   async function suggest() {
     if (!jd.trim() || !label.trim()) {
-      setError('Add a label and the job description')
+      setError('Add a name and the job description')
       return
     }
     setBusy(true)
     setError(null)
     try {
       // Backend takes either source_jd or rubric. We send source_jd in the
-      // first call, get the AI-suggested rubric back, let the user tweak,
-      // then send the edited rubric in the save call.
+      // first call, get the AI-suggested rubric back, let the user review
+      // it in the full editor, then send the (possibly edited) rubric in
+      // the save call.
       const res = await fetch('/api/cv-screening/suggest-rubric', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,291 +94,194 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-      setDraftRubric(data.rubric as Rubric)
+      const rubric = data.rubric as Rubric
+      setDraftRubric(rubric)
+      setDraftRole(rubric.role)
+      setDraftCriteria(rubric.criteria.map(toDraft))
       setStage('reviewing')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not suggest rubric')
+      setError(err instanceof Error ? err.message : 'Could not suggest criteria')
     }
     setBusy(false)
   }
 
   async function save() {
     if (!draftRubric) return
-    setBusy(true)
     setError(null)
+    const invalid = validateCriteriaDraft(draftCriteria)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+    setBusy(true)
     try {
+      const hardGates = draftCriteria.filter(c => c.hard_gate).map(c => c.id)
+      const rubric: Rubric = {
+        ...draftRubric,
+        role: draftRole.trim() || draftRubric.role,
+        criteria: draftsToCriteria(draftCriteria),
+        hard_gates: hardGates,
+      }
       const res = await fetch('/api/cv-screening/rubrics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label, source_jd: jd, rubric: draftRubric }),
+        body: JSON.stringify({ label, source_jd: jd, rubric }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       onCreated(data.rubric as SavedRubric)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save rubric')
+      setError(err instanceof Error ? err.message : 'Could not save the criteria')
     }
     setBusy(false)
   }
 
-  function updateCriterionWeight(id: string, weight: number) {
-    if (!draftRubric) return
-    const next = {
-      ...draftRubric,
-      criteria: draftRubric.criteria.map(c => c.id === id ? { ...c, weight } : c),
-    }
-    setDraftRubric(next)
-  }
-
-  function removeCriterion(id: string) {
-    if (!draftRubric) return
-    setDraftRubric({ ...draftRubric, criteria: draftRubric.criteria.filter(c => c.id !== id) })
-  }
-
-  function updateCriterionLabel(id: string, label: string) {
-    if (!draftRubric) return
-    setDraftRubric({
-      ...draftRubric,
-      criteria: draftRubric.criteria.map(c => c.id === id ? { ...c, label } : c),
-    })
-  }
-
-  function addCriterion() {
-    if (!draftRubric) return
-    const newId = `custom_${Date.now().toString(36)}`
-    setDraftRubric({
-      ...draftRubric,
-      criteria: [
-        ...draftRubric.criteria,
-        {
-          id: newId,
-          label: 'New criterion',
-          weight: 0.10,
-          type: 'ordinal_5' as const,
-        },
-      ],
-    })
-  }
-
-  const totalWeight = draftRubric?.criteria.reduce((acc, c) => acc + c.weight, 0) ?? 0
-  const weightOff = Math.abs(totalWeight - 1) > 0.01
-
   return (
     <div
-      className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-3 sm:p-4"
       onClick={() => !busy && onClose()}
     >
       <div
-        className="bg-bg-elevated w-full max-w-2xl rounded-3xl border border-border ring-1 ring-ink/5 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className={`bg-bg-elevated w-full ${stage === 'reviewing' ? 'max-w-4xl' : 'max-w-2xl'} rounded-3xl border border-border ring-1 ring-ink/5 shadow-2xl max-h-[92vh] flex flex-col`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-bg-elevated z-10">
-          <h3 className="font-display text-h3 font-bold text-charcoal">
-            {stage === 'input' ? 'New rubric' : 'Review and adjust'}
+        <div className="px-5 sm:px-8 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
+          <h3 className="font-display text-h3 font-bold text-ink">
+            {stage === 'input' ? 'New scoring criteria' : 'Review your scoring criteria'}
           </h3>
           <button
             onClick={() => !busy && onClose()}
-            className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+            className="min-h-touch min-w-touch rounded-full hover:bg-bg-soft flex items-center justify-center text-ink-soft text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             aria-label="Close"
           >
             ×
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-4">
-          {stage === 'input' && fromCampaignCoach && (
-            <div className="rounded-2xl border border-accent/30 bg-accent-soft/40 px-4 py-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
-                From your Campaign Coach brief
-              </p>
-              <p className="text-sm text-charcoal leading-relaxed">
-                We&apos;ve drafted your scoring criteria from the role and ad you just finalised. Review the label and job description below, then click <span className="font-bold">Suggest criteria</span> to generate the rubric. Edit anything that needs adjusting before you save - this is the source of truth for how each CV is judged.
-              </p>
+        {stage === 'input' && (
+          <div className="px-5 sm:px-8 py-5 space-y-4 overflow-y-auto">
+            {fromCampaignCoach && (
+              <div className="rounded-2xl border border-accent/30 bg-accent-soft/40 px-4 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
+                  From your Campaign Coach brief
+                </p>
+                <p className="text-sm text-ink leading-relaxed">
+                  We&apos;ve carried over the role and ad you just finalised. Review the name and job description below, then click <span className="font-bold">Suggest criteria</span> - the AI drafts the scoring criteria and you land in the full editor to check them before saving.
+                </p>
+              </div>
+            )}
+            <div>
+              <label className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
+                Criteria name
+              </label>
+              <input
+                value={label}
+                onChange={e => setLabel(e.target.value)}
+                placeholder="e.g. Senior Project Manager (Construction, Brisbane)"
+                className="w-full bg-bg-soft text-sm text-ink rounded-full px-4 py-2 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-ink"
+              />
             </div>
-          )}
-          {stage === 'input' && (
-            <>
-              <div>
-                <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
-                  Rubric label
-                </label>
+
+            <div>
+              <label className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">
+                Job description
+              </label>
+
+              {/* Drop zone for PD/JD file upload. Same visual idiom as
+                  the CV dropzone on the main page so the experience is
+                  consistent. After parse, text lands in the textarea
+                  below and the user can edit before clicking Suggest. */}
+              <label
+                onDragOver={e => { e.preventDefault(); setPdDragOver(true) }}
+                onDragLeave={() => setPdDragOver(false)}
+                onDrop={e => {
+                  e.preventDefault()
+                  setPdDragOver(false)
+                  const f = e.dataTransfer.files?.[0]
+                  if (f) handlePdFile(f)
+                }}
+                className={`block border-2 border-dashed rounded-2xl px-4 py-5 text-center cursor-pointer transition-colors mb-2 ${
+                  pdDragOver ? 'border-ink bg-bg-soft' : 'border-border hover:border-ink-soft hover:bg-bg-soft'
+                } ${pdParsing ? 'opacity-60 pointer-events-none' : ''}`}
+              >
                 <input
-                  value={label}
-                  onChange={e => setLabel(e.target.value)}
-                  placeholder="e.g. Senior Project Manager (Construction, Brisbane)"
-                  className="w-full bg-light text-sm text-charcoal rounded-full px-4 py-2 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1.5">
-                  Job description
-                </label>
-
-                {/* Drop zone for PD/JD file upload. Same visual idiom as
-                    the CV dropzone on the main page so the experience is
-                    consistent. After parse, text lands in the textarea
-                    below and the user can edit before clicking Suggest. */}
-                <label
-                  onDragOver={e => { e.preventDefault(); setPdDragOver(true) }}
-                  onDragLeave={() => setPdDragOver(false)}
-                  onDrop={e => {
-                    e.preventDefault()
-                    setPdDragOver(false)
-                    const f = e.dataTransfer.files?.[0]
+                  ref={pdFileInput}
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={e => {
+                    const f = e.target.files?.[0]
                     if (f) handlePdFile(f)
+                    e.target.value = ''
                   }}
-                  className={`block border-2 border-dashed rounded-2xl px-4 py-5 text-center cursor-pointer transition-colors mb-2 ${
-                    pdDragOver ? 'border-charcoal bg-light' : 'border-border hover:border-mid hover:bg-light'
-                  } ${pdParsing ? 'opacity-60 pointer-events-none' : ''}`}
-                >
-                  <input
-                    ref={pdFileInput}
-                    type="file"
-                    accept=".pdf,.docx,.txt"
-                    className="hidden"
-                    onChange={e => {
-                      const f = e.target.files?.[0]
-                      if (f) handlePdFile(f)
-                      e.target.value = ''
-                    }}
-                  />
-                  <p className="text-xs font-bold text-charcoal mb-0.5">
-                    {pdParsing ? 'Reading document...' : 'Want to use a different reference source?'}
-                  </p>
-                  <p className="text-[11px] text-muted">
-                    {pdSourceName
-                      ? `Loaded from ${pdSourceName}. Edit the text below if you need to.`
-                      : 'Drag a document in, or click here to upload from a folder. PDF, DOCX or plain text - or just paste it into the box below.'}
-                  </p>
-                </label>
-
-                <textarea
-                  value={jd}
-                  onChange={e => setJd(e.target.value)}
-                  placeholder="Paste the job ad, position description, or your passive-search brief. The AI will pull out the criteria that matter most and weight them for you."
-                  rows={10}
-                  className="w-full bg-light text-sm text-charcoal rounded-2xl px-4 py-3 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-charcoal resize-none leading-relaxed"
                 />
-              </div>
-
-              {error && (
-                <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
-              )}
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={onClose}
-                  disabled={busy}
-                  className="flex-1 bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={suggest}
-                  disabled={busy || !jd.trim() || !label.trim()}
-                  className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
-                >
-                  {busy ? 'Generating...' : 'Suggest rubric'}
-                </button>
-              </div>
-            </>
-          )}
-
-          {stage === 'reviewing' && draftRubric && (
-            <>
-              <div className="bg-light rounded-2xl px-4 py-3">
-                <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                  Suggested for
+                <p className="text-xs font-bold text-ink mb-0.5">
+                  {pdParsing ? 'Reading document...' : 'Want to use a different reference source?'}
                 </p>
-                <p className="text-sm font-bold text-charcoal">{draftRubric.role}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-                  Criteria - tweak weights if you want
+                <p className="text-[11px] text-ink-muted">
+                  {pdSourceName
+                    ? `Loaded from ${pdSourceName}. Edit the text below if you need to.`
+                    : 'Drag a document in, or click here to upload from a folder. PDF, DOCX or plain text - or just paste it into the box below.'}
                 </p>
-                <ul className="space-y-3">
-                  {draftRubric.criteria.map(c => (
-                    <li key={c.id} className="bg-light rounded-2xl px-4 py-3">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex-1">
-                          <input
-                            value={c.label}
-                            onChange={e => updateCriterionLabel(c.id, e.target.value)}
-                            className="text-sm font-bold text-charcoal bg-transparent border-b border-transparent focus:border-charcoal outline-none w-full"
-                          />
-                          {c.hard_gate && (
-                            <span className="inline-block mt-0.5 text-[10px] font-bold uppercase tracking-wider bg-warning/10 text-warning rounded-full px-2 py-0.5">
-                              Consideration
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeCriterion(c.id)}
-                          className="text-xs text-mid hover:text-danger flex-shrink-0"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="range"
-                          min={0}
-                          max={0.4}
-                          step={0.01}
-                          value={c.weight}
-                          onChange={e => updateCriterionWeight(c.id, Number(e.target.value))}
-                          className="flex-1"
-                        />
-                        <span className="text-xs font-bold text-charcoal w-12 text-right">
-                          {Math.round(c.weight * 100)}%
-                        </span>
-                      </div>
-                      {c.anchors?.['3'] && (
-                        <p className="text-xs text-mid mt-2 leading-relaxed">
-                          Score 3: {c.anchors['3']}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={addCriterion}
-                  className="mt-3 w-full bg-bg-elevated border border-dashed border-border text-charcoal text-sm font-bold rounded-2xl px-4 py-3 hover:bg-light hover:border-charcoal"
-                >
-                  + Add criterion
-                </button>
-              </div>
+              </label>
 
-              <div className={`rounded-2xl px-4 py-3 text-sm ${weightOff ? 'bg-warning/10 text-warning' : 'bg-light text-mid'}`}>
-                Total weight: <strong>{Math.round(totalWeight * 100)}%</strong>
-                {weightOff && ' - the system normalises this to 100% automatically when scoring.'}
-              </div>
+              <textarea
+                value={jd}
+                onChange={e => setJd(e.target.value)}
+                placeholder="Paste the job ad, position description, or your passive-search brief. The AI will pull out the criteria that matter most and weight them for you."
+                rows={10}
+                className="w-full bg-bg-soft text-sm text-ink rounded-2xl px-4 py-3 outline-none focus:bg-bg-elevated focus:ring-1 focus:ring-ink resize-none leading-relaxed"
+              />
+            </div>
 
-              {error && (
-                <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
-              )}
+            {error && (
+              <div className="bg-danger/10 text-danger text-sm rounded-2xl px-4 py-3">{error}</div>
+            )}
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setStage('input')}
-                  disabled={busy}
-                  className="bg-bg-elevated border border-border text-charcoal text-sm font-bold rounded-full px-4 py-2.5 hover:bg-light disabled:opacity-50"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={save}
-                  disabled={busy || !draftRubric.criteria.length}
-                  className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
-                >
-                  {busy ? 'Saving...' : 'Save and use this rubric'}
-                </button>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={onClose}
+                disabled={busy}
+                className="flex-1 bg-bg-elevated border border-border text-ink text-sm font-bold rounded-full px-4 py-2.5 hover:bg-bg-soft disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={suggest}
+                disabled={busy || !jd.trim() || !label.trim()}
+                className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
+              >
+                {busy ? 'Drafting your criteria...' : 'Suggest criteria'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {stage === 'reviewing' && draftRubric && (
+          <CriteriaEditor
+            role={draftRole}
+            onRoleChange={setDraftRole}
+            criteria={draftCriteria}
+            onCriteriaChange={setDraftCriteria}
+            intro={
+              <div className="rounded-2xl border border-accent/30 bg-accent-soft/40 px-4 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
+                  {fromCampaignCoach ? 'Drafted from your Campaign Coach brief' : 'AI recommended criteria'}
+                </p>
+                <p className="text-sm text-ink leading-relaxed">
+                  The AI has read your job description and drafted a weighted set of criteria. Most people save it as-is - if you want to fine-tune how a criterion is judged, open its <span className="font-bold">Advanced settings</span>.
+                </p>
               </div>
-            </>
-          )}
-        </div>
+            }
+            error={error}
+            saving={busy}
+            saveLabel="Save and use these criteria"
+            onSave={save}
+            onCancel={() => { setError(null); setStage('input') }}
+            cancelLabel="Back"
+            footerNote="Saved to your criteria library so you can reuse it for future roles."
+          />
+        )}
       </div>
     </div>
   )

@@ -5,19 +5,17 @@ import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
 import {
   bandFromScore,
   defaultActionForBand,
+  thinExperienceConsideration,
   type CandidateScreening,
-  type FairnessChecks,
   type Rubric,
 } from '@/lib/cv-screening-types'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
-import { detectBiasSignals } from '@/lib/bias-detect'
+import { randomUUID } from 'node:crypto'
 import {
   scoreCv,
   computeOverall,
-  blindPII,
-  blindNameInText,
   extractEmail,
 } from '@/lib/cv-screening/score'
 
@@ -83,40 +81,29 @@ export async function POST(req: NextRequest) {
     // the candidate's identifying details sit in the first page anyway.
     const cvText = cvTextRaw.length > MAX_CV_CHARS ? cvTextRaw.slice(0, MAX_CV_CHARS) : cvTextRaw
 
-    // Mask common PII before sending to model. Belt-and-braces with the prompt
-    // instruction below telling the model to score on substance only.
-    // Extract the candidate's real full name BEFORE we blind the CV. The
-    // recruiter sees the full name in the pipeline; the model only sees the
-    // blinded version when actually scoring so demographic signals can't
-    // influence the score.
+    // Extract the candidate's full name + email up front so the pipeline,
+    // reports and video-interview invites can use them without the
+    // recruiter retyping anything.
     const realName = extractRealName(cvText, filename)
-    // Pull the candidate's real email BEFORE blindPII rewrites it to [EMAIL].
-    // We persist it on the screening row so the Shortlist Agent video invite
-    // can auto-fill the recipient without the recruiter retyping it. The
-    // model still only sees the blinded CV when scoring.
     const candidateEmail = extractEmail(cvText)
-    const blinded = blindNameInText(blindPII(cvText), realName)
 
-    const scoreResult = await scoreCv(blinded, rubric.role, rubric.criteria)
+    // Keep the original upload so the recruiter can download the exact
+    // file later (private 'cvs' bucket). Upload failure never blocks
+    // scoring - we log and carry on without a storage path.
+    const cvStoragePath = businessId
+      ? await uploadOriginalCv(buffer, businessId, filename, file.type || null)
+      : null
+
+    const scoreResult = await scoreCv(cvText, rubric.role, rubric.criteria)
 
     const overall = computeOverall(scoreResult.criteria_scores, rubric.criteria)
     const band = bandFromScore(overall)
     const next_action = defaultActionForBand(band)
 
-    const fairness: FairnessChecks = {
-      name_blinded: true,
-      demographic_inference_suppressed: true,
-      tenure_gap_explained: scoreResult.tenure_note ?? undefined,
-    }
-
-    // Bias-trigger rule: if the candidate record contains subconscious-
-    // bias signals (ethnic name pattern, photo, DOB, etc.) we flag the
-    // screening so the UI can flip the role into anonymise-all-candidates
-    // mode automatically. See lib/bias-detect.ts for the heuristic.
-    const biasReport = detectBiasSignals({
-      candidate_name: realName || scoreResult.candidate_label,
-      cv_text: cvText,
-    })
+    // Experience entries with a title + employer + dates but no
+    // responsibilities become a post-score consideration instead of a
+    // silent penalty - the recruiter asks about them at phone screen.
+    const thinConsideration = thinExperienceConsideration(scoreResult.thin_experience)
 
     let savedId = `local-${Math.random().toString(36).slice(2, 10)}`
     let createdAt = new Date().toISOString()
@@ -126,34 +113,56 @@ export async function POST(req: NextRequest) {
     let persistenceError: string | null = null
 
     if (businessId) {
-      const { data: inserted, error } = await supabase
+      const insertPayload: Record<string, unknown> = {
+        business_id: businessId,
+        user_id: user.id,
+        rubric_id: rubricId,
+        // Prefer the extracted CV name. If extraction failed, prefer the filename
+        // over Claude's literal "Candidate" placeholder so the user sees something
+        // meaningful rather than a generic word.
+        candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
+        candidate_email: candidateEmail,
+        cv_text: cvText,
+        cv_filename: filename,
+        overall_score: overall,
+        band,
+        next_action,
+        rationale_short: scoreResult.rationale_short,
+        criteria_scores: scoreResult.criteria_scores,
+        status: 'scored',
+        // Optional role anchor - only set when upload came from Step 1
+        // of the role workflow. NULL keeps the row in the standalone
+        // CV Scoring pool.
+        ...(prescreenSessionId ? { prescreen_session_id: prescreenSessionId } : {}),
+        // Optional columns (additive migrations) - stripped and retried
+        // below if the migration hasn't been applied yet.
+        ...(cvStoragePath ? { cv_storage_path: cvStoragePath } : {}),
+        ...(thinConsideration
+          ? { thin_experience: scoreResult.thin_experience, considerations: [thinConsideration] }
+          : {}),
+      }
+
+      // Insert with a graceful retry: if an optional column from an
+      // unapplied migration is rejected, strip the offending columns and
+      // try again (same pattern as screenings/[id] PATCH).
+      const OPTIONAL_COLUMNS = ['cv_storage_path', 'thin_experience', 'considerations']
+      let attempt = await supabase
         .from('cv_screenings')
-        .insert({
-          business_id: businessId,
-          user_id: user.id,
-          rubric_id: rubricId,
-          // Prefer the extracted CV name. If extraction failed, prefer the filename
-// over Claude's literal "Candidate" placeholder so the user sees something
-// meaningful rather than a generic word.
-candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
-          candidate_email: candidateEmail,
-          cv_text: cvText,
-          cv_filename: filename,
-          overall_score: overall,
-          band,
-          next_action,
-          rationale_short: scoreResult.rationale_short,
-          criteria_scores: scoreResult.criteria_scores,
-          fairness_checks: fairness,
-          bias_signals: biasReport.signals.length > 0 ? biasReport.signals : null,
-          status: 'scored',
-          // Optional role anchor - only set when upload came from Step 1
-          // of the role workflow. NULL keeps the row in the standalone
-          // CV Scoring pool.
-          ...(prescreenSessionId ? { prescreen_session_id: prescreenSessionId } : {}),
-        })
+        .insert(insertPayload)
         .select('id, created_at')
         .single()
+      for (let i = 0; i < OPTIONAL_COLUMNS.length && attempt.error; i++) {
+        const msg = attempt.error.message?.toLowerCase() ?? ''
+        const offending = OPTIONAL_COLUMNS.filter(c => msg.includes(c) && c in insertPayload)
+        if (offending.length === 0) break
+        for (const c of offending) delete insertPayload[c]
+        attempt = await supabase
+          .from('cv_screenings')
+          .insert(insertPayload)
+          .select('id, created_at')
+          .single()
+      }
+      const { data: inserted, error } = attempt
       if (!error && inserted) {
         savedId = inserted.id
         createdAt = inserted.created_at
@@ -169,21 +178,6 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
         })
         persistenceError = error.message
       }
-
-      // If the bias detector tripped on this candidate AND the business
-      // hasn't yet opted out of auto-anonymise, flip the global default
-      // on. This is a "ratchet" - once any candidate trips the rule for
-      // a business, anonymise stays on until a recruiter manually
-      // turns it off. Cheap, defensible default.
-      if (biasReport.has_signal && businessId) {
-        await supabaseAdmin
-          .from('businesses')
-          .update({ auto_anonymise_candidates: true })
-          .eq('id', businessId)
-          .then(({ error: e }) => {
-            if (e) console.warn('[cv-screening/score] auto-anonymise flip failed:', e.message)
-          })
-      }
     }
 
     const screening: CandidateScreening = {
@@ -192,9 +186,9 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
       user_id: user.id,
       rubric_id: rubricId,
       // Prefer the extracted CV name. If extraction failed, prefer the filename
-// over Claude's literal "Candidate" placeholder so the user sees something
-// meaningful rather than a generic word.
-candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
+      // over Claude's literal "Candidate" placeholder so the user sees something
+      // meaningful rather than a generic word.
+      candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_label,
       candidate_email: candidateEmail,
       cv_text: cvText,
       overall_score: overall,
@@ -202,7 +196,9 @@ candidate_label: realName || filenameToLabel(filename) || scoreResult.candidate_
       next_action,
       rationale_short: scoreResult.rationale_short,
       criteria_scores: scoreResult.criteria_scores,
-      fairness_checks: fairness,
+      considerations: thinConsideration ? [thinConsideration] : null,
+      thin_experience: thinConsideration ? scoreResult.thin_experience : null,
+      cv_storage_path: cvStoragePath,
       status: 'scored',
       created_at: createdAt,
     }
@@ -228,6 +224,53 @@ async function resolveRubric(rubricId: string): Promise<Rubric | null> {
     .eq('id', rubricId)
     .single()
   return (data?.rubric as Rubric | undefined) ?? null
+}
+
+// Store the original uploaded CV in the private 'cvs' bucket so the
+// recruiter can download the exact file later (GET
+// /api/cv-screening/screenings/[id]/cv). Mirrors the bucket-ensure
+// pattern in app/api/upload-logo/route.ts. Never throws - a failed
+// upload logs a warning and scoring continues without a storage path.
+const CV_BUCKET = 'cvs'
+
+async function uploadOriginalCv(
+  buffer: Buffer,
+  businessId: string,
+  filename: string,
+  contentType: string | null,
+): Promise<string | null> {
+  try {
+    const safeName = filename
+      .replace(/[^\w.\- ]+/g, '_')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 120) || 'cv'
+    const path = `${businessId}/${randomUUID()}/${safeName}`
+    const opts = { contentType: contentType || 'application/octet-stream', upsert: false }
+
+    let { error } = await supabaseAdmin.storage.from(CV_BUCKET).upload(path, buffer, opts)
+    if (error && (error.message?.includes('not found') || error.message?.includes('Bucket'))) {
+      // Bucket missing - create it (private) and retry once.
+      const { error: bucketError } = await supabaseAdmin.storage.createBucket(CV_BUCKET, {
+        public: false,
+        fileSizeLimit: 10 * 1024 * 1024,
+      })
+      if (bucketError && !bucketError.message?.includes('already exists')) {
+        console.warn('[cv-screening/score] cvs bucket create failed:', bucketError.message)
+        return null
+      }
+      const retry = await supabaseAdmin.storage.from(CV_BUCKET).upload(path, buffer, opts)
+      error = retry.error
+    }
+    if (error) {
+      console.warn('[cv-screening/score] original CV upload failed:', error.message)
+      return null
+    }
+    return path
+  } catch (err) {
+    console.warn('[cv-screening/score] original CV upload threw:', (err as Error).message)
+    return null
+  }
 }
 
 async function extractText(buffer: Buffer, ext: string): Promise<string> {
@@ -386,7 +429,6 @@ function filenameToLabel(filename: string): string {
   return filename.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 80)
 }
 
-// scoreCv, computeOverall, blindPII, blindNameInText all moved to
-// @/lib/cv-screening/score so the rescore endpoint reuses the same
-// pipeline. This route only owns file I/O, name extraction, and DB
-// persistence.
+// scoreCv and computeOverall live in @/lib/cv-screening/score so the
+// rescore endpoint reuses the same pipeline. This route only owns file
+// I/O, name extraction, original-file storage, and DB persistence.

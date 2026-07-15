@@ -16,9 +16,12 @@ import {
   useRecruitKeyboardShortcuts,
   RECRUIT_SHORTCUTS,
 } from '@/hooks/useRecruitKeyboardShortcuts'
-import { AiSuggestionCard, BiasDisclaimer } from './RoleDetailParts'
-import { buildAnonMap } from '@/lib/recruit-anon'
+import { AiSuggestionCard } from './RoleDetailParts'
 import { NotesPanel } from './NotesPanel'
+import { TailoredQuestionsEditor } from './TailoredQuestionsEditor'
+import { ScreenMethodControls, screenMethodsFor } from './ScreenMethodControls'
+import { CandidateEmailInvite } from './CandidateEmailInvite'
+import CvDownloadButton from './cv-screening/CvDownloadButton'
 import { ShareDialog } from './ShareDialog'
 import { CompareView } from './CompareView'
 import { BulkActionFooter } from './BulkActionFooter'
@@ -101,7 +104,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   // Stepper state - default to Step 2 (Shortlist) so today's behaviour
   // is unchanged. Steps 1, 3, 4 are scaffold-only in this preview.
   const [currentStep, setCurrentStep]     = useState<RoleStep>(2)
-  const [phoneRecorderOpen, setPhoneRecorderOpen] = useState(false)
+  // Phone recorder context. responseId null = role-level recording (new
+  // response row); a string binds the recording to that candidate's row.
+  const [phoneRecorder, setPhoneRecorder] = useState<{ responseId: string | null } | null>(null)
+  const phoneRecorderRef = useRef<HTMLDivElement | null>(null)
   const [filter, setFilter]               = useState<Filter>('all')
   const [expanded, setExpanded]           = useState<string | null>(null)
   const [shareUrls, setShareUrls]         = useState<Record<string, string>>({})
@@ -116,51 +122,11 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [sendingInvite, setSendingInvite] = useState(false)
   const [inviteSent, setInviteSent]       = useState(false)
 
-  // Per-row invite state. Used for CV-imported candidates (video_ids
-  // empty, placeholder email like cv-*@no-email.local) - the recruiter
-  // opens an inline form on the row, supplies the candidate's real
-  // email + name, and we POST /api/prescreen/responses/[id]/invite which
-  // updates the row + emails an invite link with ?response= so the
-  // submission updates the placeholder in place.
+  // Candidate rename state (per-row inline editor). The per-row email
+  // invite flow lives in CandidateEmailInvite.tsx.
   const [renamingId, setRenamingId]       = useState<string | null>(null)
   const [renameDraft, setRenameDraft]     = useState('')
   const [renameError, setRenameError]     = useState('')
-  const [rowInviteFor, setRowInviteFor]   = useState<string | null>(null)
-  const [rowInviteEmail, setRowInviteEmail] = useState('')
-  const [rowInviteName, setRowInviteName] = useState('')
-  const [rowInviteBusy, setRowInviteBusy] = useState(false)
-  const [rowInviteSentFor, setRowInviteSentFor] = useState<string | null>(null)
-  const [rowInviteError, setRowInviteError] = useState<string | null>(null)
-
-  async function sendRowInvite(responseId: string) {
-    const email = rowInviteEmail.trim()
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setRowInviteError('Please enter a valid email address.')
-      return
-    }
-    setRowInviteBusy(true)
-    setRowInviteError(null)
-    try {
-      const res = await fetch(`/api/prescreen/responses/${responseId}/invite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate_email: email, candidate_name: rowInviteName.trim() }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
-      setRowInviteSentFor(responseId)
-      setRowInviteFor(null)
-      setRowInviteEmail('')
-      setRowInviteName('')
-      // Optimistic local update so the row shows the real email and
-      // the recruiter can see invite-sent state without a reload.
-      onPatchResponse(responseId, { candidate_email: email, candidate_name: rowInviteName.trim() || undefined })
-      window.setTimeout(() => setRowInviteSentFor(null), 4000)
-    } catch (err) {
-      setRowInviteError(err instanceof Error ? err.message : 'Could not send')
-    }
-    setRowInviteBusy(false)
-  }
 
   const [editingSlug, setEditingSlug]   = useState(false)
   const [slugDraft, setSlugDraft]       = useState('')
@@ -168,9 +134,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [slugError, setSlugError]       = useState('')
 
   const [viewMode, setViewMode]         = useState<ViewMode>('list')
-  const [anonymise, setAnonymise]       = useState(false)
   const [legendOpen, setLegendOpen]     = useState(false)
-  const [biasBannerDismissed, setBiasBannerDismissed] = useState(false)
   const [transcriptOpen, setTranscriptOpen] = useState<Record<string, boolean>>({})
   const [transcriptByResponse, setTranscriptByResponse] = useState<Record<string, Utterance[] | null>>({})
   const [transcriptTextByResponse, setTranscriptTextByResponse] = useState<Record<string, string | null>>({})
@@ -197,34 +161,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.humanistiqs.ai'
   const candidateUrl = initialCandidateUrl || `${origin}/prescreen/${pathSegment}`
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const a = window.localStorage.getItem(`hqrecruit:anon:${session.id}`)
-      if (a === '1') queueMicrotask(() => setAnonymise(true))
-    } catch { /* no-op */ }
-    try {
-      const b = window.localStorage.getItem(`hqrecruit:bias-banner:${session.id}`)
-      if (b === '1') queueMicrotask(() => setBiasBannerDismissed(true))
-    } catch { /* no-op */ }
-  }, [session.id])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try { window.localStorage.setItem(`hqrecruit:anon:${session.id}`, anonymise ? '1' : '0') } catch { /* no-op */ }
-  }, [anonymise, session.id])
-
   const [prevSessionId, setPrevSessionId] = useState(session.id)
   if (prevSessionId !== session.id) {
     setPrevSessionId(session.id)
     if (selectedIds.size > 0) setSelectedIds(new Set())
-  }
-
-  function dismissBiasBanner() {
-    setBiasBannerDismissed(true)
-    if (typeof window !== 'undefined') {
-      try { window.localStorage.setItem(`hqrecruit:bias-banner:${session.id}`, '1') } catch { /* no-op */ }
-    }
   }
 
   useEffect(() => {
@@ -262,14 +202,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const mergedResponses: CandidateResponse[] = useMemo(() => {
     return responses.map(r => rtOverride[r.id] ? { ...r, ...rtOverride[r.id] } as CandidateResponse : r)
   }, [responses, rtOverride])
-
-  const anonNameById = useMemo(() => {
-    return buildAnonMap(mergedResponses.map(r => ({ id: r.id, created_at: r.submitted_at })))
-  }, [mergedResponses])
-
-  const displayNameFor = useCallback((r: CandidateResponse) => {
-    return anonymise ? (anonNameById[r.id] ?? 'Candidate') : r.candidate_name
-  }, [anonymise, anonNameById])
 
   useEffect(() => {
     if (!expanded) return
@@ -552,24 +484,31 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [headerMenuOpen])
 
-  const hasScoredRow = filtered.some(r => (r.status as string) === 'scored' || (r.status as string) === 'staff_reviewed')
-  const showBiasBanner = hasScoredRow && !biasBannerDismissed
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
-  // Seed for the Phone Screen Questions form. Prefers the currently
-  // expanded candidate's own personalised questions (custom_questions -
-  // generated per-candidate at handoff time, see
-  // lib/cv-screening-questions.ts) so a recruiter who expands a candidate
-  // row before recording their phone screen gets that candidate's targeted
-  // questions rather than the session-wide shared set. Falls back to the
-  // session's shared `questions` when no candidate is expanded, or the
-  // expanded candidate has none (older row, or generation didn't land).
+  // Seed for the Phone Screen Questions form. Prefers the target
+  // candidate's own personalised questions (custom_questions - generated
+  // per-candidate at handoff time and editable via
+  // TailoredQuestionsEditor) so recording a candidate's phone screen uses
+  // that candidate's targeted, recruiter-edited questions rather than the
+  // session-wide shared set. Falls back to the session's shared
+  // `questions` when there is no target candidate, or they have none
+  // (older row, or generation didn't land).
   const sessionQuestionsForPhone = Array.isArray((session as any).questions)
     ? ((session as any).questions as unknown[]).map((q: any) => typeof q === 'string' ? q : (q?.text ?? q?.question ?? '')).filter((q: string) => q && q.trim())
     : undefined
-  const phoneInitialQuestions = (Array.isArray(expandedResponse?.custom_questions) && expandedResponse!.custom_questions!.length > 0)
-    ? expandedResponse!.custom_questions!
+  const phoneTarget = phoneRecorder?.responseId
+    ? mergedResponses.find(r => r.id === phoneRecorder.responseId) ?? null
+    : expandedResponse
+  const phoneInitialQuestions = (Array.isArray(phoneTarget?.custom_questions) && phoneTarget!.custom_questions!.length > 0)
+    ? phoneTarget!.custom_questions!
     : sessionQuestionsForPhone
+
+  // Bring the recorder into view when it opens from a candidate card
+  // further down the page - otherwise the recruiter may not notice it.
+  useEffect(() => {
+    if (phoneRecorder) phoneRecorderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [phoneRecorder])
 
   return (
     <div className="h-full flex flex-col md:flex-row">
@@ -600,17 +539,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 }`}
               >Kanban</button>
             </div>
-            <button
-              onClick={() => setAnonymise(v => !v)}
-              className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
-                anonymise
-                  ? 'bg-accent text-ink-on-accent border-accent'
-                  : 'bg-bg-elevated text-mid border-border hover:text-ink'
-              }`}
-              title="Hide candidate names + emails. Quotes from transcript are not anonymised."
-            >
-              {anonymise ? 'Anonymised' : 'Anonymise'}
-            </button>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
               session.status === 'active'
                 ? 'bg-success/10 text-success border-success/20'
@@ -687,22 +615,29 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
           {/* Process flow tracker - visible state of the role's funnel */}
           <ProcessFlowTracker session={session} responses={mergedResponses} />
 
-          {/* Phone screen recorder - shown when session permits phone OR
-              if no interview_types are set (legacy session, default
-              behaviour). The button to open is below the candidate
-              invite card. */}
-          {(session.interview_types?.includes('phone') ?? false) && phoneRecorderOpen && (
-            <PhoneRecorder
-              sessionId={session.id}
-              // Seed the Phone Screen Questions form - see
-              // phoneInitialQuestions above: prefers the expanded
-              // candidate's personalised questions, falls back to the
-              // session's shared set, then to PhoneRecorder's own
-              // recruiter-editable default when the session has none.
-              initialQuestions={phoneInitialQuestions}
-              onSubmitted={() => { setPhoneRecorderOpen(false) }}
-              onCancel={() => setPhoneRecorderOpen(false)}
-            />
+          {/* Phone screen recorder - opened from the role-level "Record
+              phone screen" button (when the role includes phone) or from
+              a candidate card's "Record phone screen" (when phone is
+              available for that candidate via ScreenMethodControls).
+              When bound to a candidate, the recording PATCHes their row
+              instead of creating a new response. */}
+          {phoneRecorder && (
+            <div ref={phoneRecorderRef}>
+              <PhoneRecorder
+                key={phoneRecorder.responseId ?? 'session'}
+                sessionId={session.id}
+                responseId={phoneRecorder.responseId}
+                candidateName={phoneRecorder.responseId ? (phoneTarget?.candidate_name ?? undefined) : undefined}
+                // Seed the Phone Screen Questions form - see
+                // phoneInitialQuestions above: prefers the target
+                // candidate's personalised questions, falls back to the
+                // session's shared set, then to PhoneRecorder's own
+                // recruiter-editable default when the session has none.
+                initialQuestions={phoneInitialQuestions}
+                onSubmitted={() => { setPhoneRecorder(null) }}
+                onCancel={() => setPhoneRecorder(null)}
+              />
+            </div>
           )}
 
           <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-5">
@@ -765,22 +700,28 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
               </div>
             )}
             {slugError && <p className="text-xs text-danger mt-1">{slugError}</p>}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2.5 mt-3 flex-wrap">
               <button
                 onClick={() => setShowInvite(!showInvite)}
-                className="text-xs font-bold text-accent hover:text-accent2 transition-colors"
+                aria-expanded={showInvite}
+                className="text-xs font-bold text-ink inline-flex items-center gap-1.5 bg-bg-elevated border border-border rounded-full px-3 py-1.5 hover:bg-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                Email invite to candidate
+                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                </svg>
+                Email candidate
               </button>
-              <span className="text-mid text-xs">&middot;</span>
-              <p className="text-xs text-mid">Or copy and share the link above</p>
+              <p className="text-[11px] text-mid leading-snug">
+                Sends a candidate their video pre-screen invitation by email - or copy and share the link above yourself.
+              </p>
             </div>
 
             {/* Phone screen - shown as its own clear option whenever the role
                 includes phone screening, so when a recruiter picked BOTH
                 video + phone in Campaign Coach / role setup, both methods are
                 visible here (not just the video link). Opens the recorder. */}
-            {(session.interview_types?.includes('phone') ?? false) && !phoneRecorderOpen && (
+            {(session.interview_types?.includes('phone') ?? false) && !phoneRecorder && (
               <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-ink uppercase tracking-widest">Phone screen</p>
@@ -789,7 +730,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   </p>
                 </div>
                 <button
-                  onClick={() => setPhoneRecorderOpen(true)}
+                  onClick={() => setPhoneRecorder({ responseId: null })}
                   className="flex-shrink-0 text-xs font-bold px-4 py-2 rounded-full bg-ink text-bg-elevated hover:bg-charcoal transition-colors"
                 >
                   Record phone screen
@@ -805,7 +746,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                     <input aria-label="Candidate name" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1">Email address</label>
+                    <label className="block text-xs font-bold text-ink mb-1">To (email address)</label>
                     <input type="email" aria-label="Candidate email address" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
                   </div>
                 </div>
@@ -824,6 +765,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   </div>
                 ) : (
                   <div className="space-y-2 bg-light rounded-2xl p-3">
+                    <p className="text-[11px] text-mid">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-mid">To</span>{' '}
+                      <span className="text-charcoal">{inviteEmail.trim() || 'add the candidate email above'}</span>
+                    </p>
                     <div>
                       <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1">Subject</label>
                       <input
@@ -960,15 +905,8 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
             {!loadingResponses && filtered.length > 0 && viewMode === 'kanban' && (
               <div className="p-4">
-                {showBiasBanner && (
-                  <div className="mb-3">
-                    <BiasDisclaimer onDismiss={dismissBiasBanner} />
-                  </div>
-                )}
                 <ResponsesKanban
                   responses={mergedResponses}
-                  anonymise={anonymise}
-                  displayNameFor={displayNameFor}
                   evaluations={evalByResponse}
                   onStageChange={updateStage}
                   onSelect={setExpanded}
@@ -980,27 +918,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
 
             {!loadingResponses && filtered.length > 0 && viewMode === 'list' && (
               <div className="divide-y divide-border">
-                {showBiasBanner && (
-                  <div className="px-5 pt-4">
-                    <BiasDisclaimer onDismiss={dismissBiasBanner} />
-                  </div>
-                )}
                 {filtered.map(r => {
                   const evaluation = evalByResponse[r.id] ?? null
                   const statusLabel = STATUS_LABEL[r.status as string] ?? String(r.status)
                   const pillCls = STATUS_PILL[r.status as string] ?? 'bg-light text-mid border-border'
-                  const name = displayNameFor(r)
+                  const name = r.candidate_name
                   const checked = selectedIds.has(r.id)
                   const disabled = !checked && selectedIds.size >= 4
                   // CV-imported placeholder rows have an empty video_ids
                   // array AND a synthetic email like cv-*@no-email.local
-                  // (assigned by batch-handoff). Surface a "Send video
-                  // invite" affordance for these rows so the recruiter
-                  // can email the candidate the prescreen link.
+                  // (assigned by batch-handoff). These get the "Awaiting
+                  // video" pill; the "Email candidate" affordance below
+                  // covers any row that can still receive a video invite.
                   const videoCount = Array.isArray(r.video_ids) ? r.video_ids.filter(Boolean).length : 0
                   const isCvImport = videoCount === 0 && /@no-email\.local$/i.test(r.candidate_email ?? '')
-                  const inviteOpen = rowInviteFor === r.id
-                  const inviteSentForRow = rowInviteSentFor === r.id
+                  const canEmailVideoInvite = videoCount === 0
+                    && r.response_type !== 'phone'
+                    && screenMethodsFor(session, r).includes('video')
 
                   return (
                     <div key={r.id}>
@@ -1023,11 +957,9 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                           onClick={() => setExpanded(expanded === r.id ? null : r.id)}
                           aria-expanded={expanded === r.id}
                         >
-                          {!anonymise && (
-                            <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-xs font-bold text-ink flex-shrink-0">
-                              {initials(name)}
-                            </div>
-                          )}
+                          <div className="w-8 h-8 rounded-full bg-light flex items-center justify-center text-xs font-bold text-ink flex-shrink-0">
+                            {initials(name)}
+                          </div>
                           <div className="flex-1 min-w-0 group">
                             <p className="text-sm font-bold text-ink truncate flex items-center gap-1.5">
                               {renamingId === r.id ? (
@@ -1080,32 +1012,30 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               ) : (
                                 <>
                                   <span className="truncate">{name}</span>
-                                  {!anonymise && (
-                                    <span
-                                      role="button"
-                                      tabIndex={0}
-                                      aria-label="Rename candidate"
-                                      title="Rename candidate"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setRenamingId(r.id)
-                                        setRenameDraft(r.candidate_name ?? '')
-                                        setRenameError('')
-                                      }}
-                                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { (e.currentTarget as HTMLElement).click() } }}
-                                      className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-[10px] text-mid hover:text-ink rounded p-0.5 transition-opacity cursor-pointer flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-                                    >
-                                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                        <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
-                                        <path d="M10 3l3 3" />
-                                      </svg>
-                                    </span>
-                                  )}
+                                  <span
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Rename candidate"
+                                    title="Rename candidate"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setRenamingId(r.id)
+                                      setRenameDraft(r.candidate_name ?? '')
+                                      setRenameError('')
+                                    }}
+                                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { (e.currentTarget as HTMLElement).click() } }}
+                                    className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-[10px] text-mid hover:text-ink rounded p-0.5 transition-opacity cursor-pointer flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                  >
+                                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                      <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                                      <path d="M10 3l3 3" />
+                                    </svg>
+                                  </span>
                                 </>
                               )}
                             </p>
                             <p className="text-xs text-mid truncate">
-                              {anonymise ? '' : `${r.candidate_email} - `}{new Date(r.submitted_at).toLocaleDateString('en-AU')}
+                              {`${r.candidate_email} - `}{new Date(r.submitted_at).toLocaleDateString('en-AU')}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
@@ -1127,95 +1057,23 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             </svg>
                           </div>
                         </button>
+                        {r.cv_screening_id && (
+                          <CvDownloadButton screeningId={r.cv_screening_id} candidateName={name || 'candidate'} />
+                        )}
                       </div>
 
-                      {/* CV-imported invite affordance - inline form just
-                          under the row header. Visible only on rows
-                          where we're awaiting a video response from a
-                          candidate imported via batch-handoff. */}
-                      {isCvImport && !inviteOpen && !inviteSentForRow && (
-                        <div className="px-5 pb-3 -mt-1">
-                          <button
-                            onClick={() => {
-                              setRowInviteFor(r.id)
-                              // Pre-fill from the CV-extracted email when we
-                              // have one (item 11). The placeholder pattern
-                              // for CV-imported rows is `cv-<id>@no-email.local`
-                              // - we explicitly ignore that so the recruiter
-                              // sees an empty box and types one in rather than
-                              // accidentally emailing the placeholder.
-                              const e = r.candidate_email
-                              setRowInviteEmail(e && !e.endsWith('@no-email.local') ? e : '')
-                              setRowInviteName(r.candidate_name ?? '')
-                              setRowInviteError(null)
-                            }}
-                            className="text-xs font-bold text-charcoal hover:text-ink inline-flex items-center gap-1.5 bg-bg-elevated border border-border rounded-full px-3 py-1.5 hover:bg-light transition-colors"
-                          >
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                            </svg>
-                            Send video interview invite
-                          </button>
-                        </div>
-                      )}
-                      {inviteOpen && (
-                        <div className="px-5 pb-4 -mt-1 bg-bg/40 border-t border-border">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted mt-3 mb-2">
-                            Send video interview link to {r.candidate_name || 'this candidate'}
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                            <input
-                              type="text"
-                              aria-label="Candidate full name"
-                              value={rowInviteName}
-                              onChange={e => setRowInviteName(e.target.value)}
-                              placeholder="Candidate full name"
-                              className="text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
-                            />
-                            <input
-                              type="email"
-                              aria-label="Candidate email address"
-                              autoFocus
-                              value={rowInviteEmail}
-                              onChange={e => setRowInviteEmail(e.target.value)}
-                              placeholder="candidate@example.com"
-                              className="text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
-                              onKeyDown={e => { if (e.key === 'Enter' && !rowInviteBusy) sendRowInvite(r.id) }}
-                            />
-                          </div>
-                          {rowInviteError && (
-                            <p className="text-xs text-danger mb-2">{rowInviteError}</p>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => sendRowInvite(r.id)}
-                              disabled={rowInviteBusy || !rowInviteEmail.trim()}
-                              className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-3 py-1.5 hover:bg-accent-hover disabled:opacity-50"
-                            >
-                              {rowInviteBusy ? 'Sending...' : 'Send invite email'}
-                            </button>
-                            <button
-                              onClick={() => { setRowInviteFor(null); setRowInviteError(null) }}
-                              className="text-xs font-bold text-mid hover:text-charcoal px-2 py-1.5"
-                            >
-                              Cancel
-                            </button>
-                            <p className="text-[10px] text-muted ml-auto leading-tight">
-                              The candidate will receive an email with a unique link. When they submit, their video replaces the placeholder on this row.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {inviteSentForRow && (
-                        <div className="px-5 pb-3 -mt-1">
-                          <p className="text-xs font-bold text-success inline-flex items-center gap-1.5">
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                            </svg>
-                            Invite sent. The candidate&apos;s video will appear here when they complete the pre-screen.
-                          </p>
-                        </div>
+                      {/* Per-candidate email invite - labelled button +
+                          compose card explaining exactly what gets sent.
+                          Shown while the candidate can still receive a
+                          video invite (no video yet, video method
+                          available for them). See CandidateEmailInvite. */}
+                      {canEmailVideoInvite && (
+                        <CandidateEmailInvite
+                          response={r}
+                          session={session}
+                          candidateUrl={candidateUrl}
+                          onSent={patch => onPatchResponse(r.id, patch)}
+                        />
                       )}
 
                       {expanded === r.id && (
@@ -1240,26 +1098,31 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                             >Share with hiring manager</button>
                           </div>
 
+                          {/* Per-candidate screening methods - the union of
+                              the role default and this candidate's opt-ins.
+                              Lets the recruiter add a phone screen or video
+                              interview for THIS candidate only, and record
+                              a phone screen bound to this row. */}
+                          <ScreenMethodControls
+                            session={session}
+                            response={r}
+                            onPatch={patch => onPatchResponse(r.id, patch)}
+                            onRecordPhone={() => setPhoneRecorder({ responseId: r.id })}
+                          />
+
                           {/* Personalised questions generated for this
                               candidate specifically (targeted at their
                               weakest CV criteria - see
-                              lib/cv-screening-questions.ts). Read-only here;
-                              also seeds the Phone Screen Questions form when
-                              this candidate's row is expanded. Only shown
-                              when they differ from the shared session set,
-                              since that's already visible in the Q&A grid
-                              below. */}
-                          {Array.isArray(r.custom_questions) && r.custom_questions.length > 0 && (
-                            <div className="bg-bg-elevated rounded-2xl border border-border shadow-card p-4">
-                              <p className="text-xs font-bold text-ink uppercase tracking-widest mb-1">Tailored screening questions</p>
-                              <p className="text-[11px] text-mid mb-2.5">
-                                Generated for {r.candidate_name} specifically, probing the weaker spots in their CV score.
-                              </p>
-                              <ol className="text-xs text-charcoal space-y-1.5 list-decimal list-inside leading-snug">
-                                {r.custom_questions.map((q, i) => <li key={i}>{q}</li>)}
-                              </ol>
-                            </div>
-                          )}
+                              lib/cv-screening-questions.ts). Editable -
+                              changes persist to custom_questions and seed
+                              the Phone Screen Questions form for this
+                              candidate. */}
+                          <TailoredQuestionsEditor
+                            candidateName={r.candidate_name || 'this candidate'}
+                            questions={r.custom_questions}
+                            seedQuestions={sessionQuestionsForPhone}
+                            onSave={next => onPatchResponse(r.id, { custom_questions: next.length ? next : null })}
+                          />
 
                           <div data-candidate-videos={r.id} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {session.questions.map((q, i) => (
@@ -1271,26 +1134,16 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                                   </p>
                                 </div>
                                 {r.video_ids[i] ? (
-                                  anonymise ? (
-                                    <div className="aspect-video bg-light flex flex-col items-center justify-center text-center px-4">
-                                      <div className="text-2xl mb-1.5">🔒</div>
-                                      <p className="text-xs text-mid font-bold">Video hidden</p>
-                                      <p className="text-[11px] text-muted mt-0.5">
-                                        Anonymise mode is on. Review the AI summary and scores below first, then turn anonymise off to watch.
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <div className="p-2">
-                                      <VideoPlayer
-                                        cloudflareUid={r.video_ids[i]}
-                                        onTimeUpdate={(sec) =>
-                                          setVideoTimeByResponse(prev => ({ ...prev, [r.id]: sec }))
-                                        }
-                                        seekToSec={videoSeekByResponse[r.id]}
-                                        title={`${name} Q${i + 1}`}
-                                      />
-                                    </div>
-                                  )
+                                  <div className="p-2">
+                                    <VideoPlayer
+                                      cloudflareUid={r.video_ids[i]}
+                                      onTimeUpdate={(sec) =>
+                                        setVideoTimeByResponse(prev => ({ ...prev, [r.id]: sec }))
+                                      }
+                                      seekToSec={videoSeekByResponse[r.id]}
+                                      title={`${name} Q${i + 1}`}
+                                    />
+                                  </div>
                                 ) : (
                                   <div className="aspect-video bg-light flex items-center justify-center">
                                     <p className="text-xs text-mid">No response recorded</p>
@@ -1352,7 +1205,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                               alreadyReviewed={(r.status as string) === 'staff_reviewed'}
                               busy={decisionBusy}
                               onDecision={submitDecision}
-                              anonymise={anonymise}
                               onQuoteClick={(sec) => setVideoSeekByResponse(prev => ({ ...prev, [r.id]: sec }))}
                             />
                           ) : ((r.status as string) === 'transcribing' || (r.status as string) === 'evaluating') ? (
@@ -1471,7 +1323,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
       {compareOpen && (
         <CompareView
           ids={Array.from(selectedIds)}
-          anonymise={anonymise}
           onClose={() => setCompareOpen(false)}
         />
       )}

@@ -16,7 +16,7 @@ const TILES = [
     href: '/dashboard/recruit/cv-screening',
     emoji: '📄',
     title: 'CV Scoring Agent',
-    blurb: 'Drop the CVs in. Get a ranked, blind-by-default scorecard with verbatim evidence per criterion and a recommended next step per candidate.',
+    blurb: 'Drop the CVs in. Get a ranked scorecard with verbatim evidence per criterion and a recommended next step per candidate.',
     order: 2,
   },
   {

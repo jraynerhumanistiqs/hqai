@@ -43,6 +43,10 @@ export async function PATCH(
       // link. Depend on migration prescreen_interview_notes.sql; see the
       // graceful fallback below if it hasn't been applied yet.
       'interview_guide', 'interview_notes', 'interview_recording_url',
+      // Shortlist Agent per-candidate editing: tailored screening
+      // questions and screening-method opt-ins. Both depend on optional
+      // migrations covered by the same graceful fallback below.
+      'custom_questions', 'preferred_screen_methods',
     ])
     const patch: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(body ?? {})) {
@@ -80,37 +84,73 @@ export async function PATCH(
         return NextResponse.json({ error: 'candidate_name must be a non-empty string' }, { status: 400 })
       }
     }
+    // Tailored screening questions - an array of non-empty strings, or
+    // null to fall back to the session's shared set. Bounded so a
+    // hostile payload can't stuff megabytes into the row.
+    if ('custom_questions' in patch && patch.custom_questions !== null) {
+      if (!Array.isArray(patch.custom_questions)) {
+        return NextResponse.json({ error: 'custom_questions must be an array of strings or null' }, { status: 400 })
+      }
+      const cleaned = (patch.custom_questions as unknown[])
+        .filter((q): q is string => typeof q === 'string')
+        .map(q => q.trim().slice(0, 500))
+        .filter(Boolean)
+        .slice(0, 20)
+      patch.custom_questions = cleaned.length ? cleaned : null
+    }
+    // Per-candidate screening-method opt-ins - only 'video' / 'phone'
+    // land; an empty array collapses to null (= inherit the role default).
+    if ('preferred_screen_methods' in patch && patch.preferred_screen_methods !== null) {
+      if (!Array.isArray(patch.preferred_screen_methods)) {
+        return NextResponse.json({ error: 'preferred_screen_methods must be an array or null' }, { status: 400 })
+      }
+      const methods = Array.from(new Set(
+        (patch.preferred_screen_methods as unknown[]).filter(m => m === 'video' || m === 'phone'),
+      ))
+      patch.preferred_screen_methods = methods.length ? methods : null
+    }
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
+    // Write to prescreen_responses directly (candidate_responses is a
+    // back-compat view created before the newer optional columns existed,
+    // so updates through it would fail for custom_questions /
+    // preferred_screen_methods even when the migrations ARE applied).
     const { data, error } = await supabaseAdmin
-      .from('candidate_responses')
+      .from('prescreen_responses')
       .update(patch)
       .eq('id', id)
       .select()
       .single()
 
     if (error) {
-      // Graceful fallback: interview_guide / interview_notes /
-      // interview_recording_url depend on migration
-      // prescreen_interview_notes.sql. If it hasn't been applied yet on
-      // this environment, retry the update without those columns so the
-      // rest of the patch (decision, rating, etc.) still lands - the
-      // interview data just doesn't persist until the migration runs.
-      // Mirrors the pattern in app/api/cv-screening/screenings/[id]/route.ts.
-      const INTERVIEW_COLUMNS = ['interview_guide', 'interview_notes', 'interview_recording_url']
-      const offending = INTERVIEW_COLUMNS.filter(c => c in patch && error.message?.includes(c))
+      // Graceful fallback: several columns are added by later, optional
+      // migrations and may not exist yet on this environment. If the
+      // update failed on one of them, retry without those columns so the
+      // rest of the patch (decision, rating, etc.) still lands, and tell
+      // the caller which migration to apply. Mirrors the pattern in
+      // app/api/cv-screening/screenings/[id]/route.ts.
+      const OPTIONAL_COLUMN_MIGRATIONS: Record<string, string> = {
+        interview_guide: 'prescreen_interview_notes.sql',
+        interview_notes: 'prescreen_interview_notes.sql',
+        interview_recording_url: 'prescreen_interview_notes.sql',
+        custom_questions: 'prescreen_response_custom_questions.sql',
+        preferred_screen_methods: 'prescreen_responses_preferred_screen_methods.sql',
+      }
+      const offending = Object.keys(OPTIONAL_COLUMN_MIGRATIONS)
+        .filter(c => c in patch && error.message?.includes(c))
       if (offending.length > 0) {
         const retryPatch = { ...patch }
         for (const c of offending) delete retryPatch[c]
-        const warning = 'Interview guide/notes/recording not saved - apply migration prescreen_interview_notes.sql on Supabase.'
+        const migrations = Array.from(new Set(offending.map(c => OPTIONAL_COLUMN_MIGRATIONS[c])))
+        const warning = `Not saved: ${offending.join(', ')} - apply migration${migrations.length === 1 ? '' : 's'} ${migrations.join(', ')} on Supabase.`
         if (Object.keys(retryPatch).length === 0) {
-          // Nothing left to persist (the whole patch was interview-only) -
+          // Nothing left to persist (the whole patch was optional-only) -
           // don't fail the request, just report the row unchanged.
           return NextResponse.json({ response: null, warning })
         }
         const retry = await supabaseAdmin
-          .from('candidate_responses')
+          .from('prescreen_responses')
           .update(retryPatch)
           .eq('id', id)
           .select()

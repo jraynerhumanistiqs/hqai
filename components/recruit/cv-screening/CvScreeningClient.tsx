@@ -9,9 +9,12 @@ import {
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
+  BAND_CATEGORY_LABEL,
   effectiveBand,
   effectiveNextAction,
 } from '@/lib/cv-screening-types'
+import ScoreMeaningGuide from './ScoreMeaningGuide'
+import CvDownloadButton from './CvDownloadButton'
 // The scorecard drawer (944 lines) and the three rubric/override modals only
 // render on interaction (click a candidate / edit a rubric / override a
 // score). Code-split them with next/dynamic so their JS stays out of the CV
@@ -242,6 +245,26 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     try {
       await fetch(`/api/cv-screening/rubrics/${id}`, { method: 'DELETE' })
     } catch {}
+  }
+
+  // Step-1 card delete - a card is a criteria FAMILY, so deleting removes
+  // every version. The card shows a disabled state until the DELETEs land.
+  const [deletingFamilyId, setDeletingFamilyId] = useState<string | null>(null)
+  async function deleteCustomRubricFamily(familyId: string, versionIds: string[]) {
+    setConfirmDeleteRubricId(null)
+    setDeletingFamilyId(familyId)
+    try {
+      await Promise.all(versionIds.map(id =>
+        fetch(`/api/cv-screening/rubrics/${id}`, { method: 'DELETE' }).catch(() => null),
+      ))
+    } catch {}
+    setCustomRubrics(prev => prev.filter(r => !versionIds.includes(r.id)))
+    if (versionIds.includes(rubricId)) {
+      // The active criteria are gone - back to a deliberate empty choice.
+      setRubricId('')
+      setSelectedIds(new Set())
+    }
+    setDeletingFamilyId(null)
   }
 
   async function batchSendToShortlist() {
@@ -587,6 +610,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
     // intact (clearing rubricId would discard the cohort filter and the
     // criteria-confirm state); the chooser simply shows the library again
     // with the current selection highlighted.
+    // Leaving Review drops the multi-select so a stale selection (and its
+    // sticky action bar) never follows the user to another stage.
+    if (standaloneStep === 3 && id !== 3) clearSelected()
     setStandaloneStep(id)
   }
 
@@ -715,18 +741,28 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         const familyIds = new Set(fam.versions.map(v => v.id))
                         const cohort = screenings.filter(s => familyIds.has(s.rubric_id)).length
                         const isActive = familyIds.has(rubricId)
+                        const deletingThis = deletingFamilyId === fam.familyId
+                        const confirmingDelete = confirmDeleteRubricId === fam.familyId
                         return (
-                          <li key={fam.familyId}>
+                          <li key={fam.familyId} className="relative">
                             <button
                               type="button"
-                              onClick={() => { setRubricId(latest.id); setMobileShowList(false) }}
-                              className={`group relative w-full text-left rounded-2xl border px-4 py-3.5 min-h-touch transition-colors ${
+                              // Select AND advance explicitly - the false->true
+                              // auto-advance can't fire on re-selection.
+                              onClick={() => {
+                                if (confirmingDelete || deletingThis) return
+                                setRubricId(latest.id)
+                                setMobileShowList(false)
+                                goToStep(2)
+                              }}
+                              disabled={deletingThis}
+                              className={`group relative w-full text-left rounded-2xl border px-4 py-3.5 min-h-touch transition-colors disabled:opacity-50 ${
                                 isActive
                                   ? 'border-accent bg-accent-soft'
                                   : 'border-border bg-bg hover:bg-bg-soft'
                               }`}
                             >
-                              <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-start justify-between gap-2 pr-8">
                                 <p className="text-sm font-bold text-ink truncate flex-1">{fam.familyLabel}</p>
                                 {fam.versions.length > 1 && (
                                   <span className="text-[9px] font-bold uppercase tracking-wider bg-bg-soft text-ink-soft rounded-full px-1.5 py-0.5 flex-shrink-0">
@@ -735,9 +771,45 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 )}
                               </div>
                               <p className="text-[11px] text-ink-muted mt-1">
-                                {cohort > 0 ? `${cohort} scored` : 'No candidates yet'} - updated {new Date(latest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                                {deletingThis
+                                  ? 'Deleting...'
+                                  : `${cohort > 0 ? `${cohort} scored` : 'No candidates yet'} - updated ${new Date(latest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
                               </p>
                             </button>
+                            {/* Ghost delete - sibling, never nested in the card button. */}
+                            <button
+                              type="button"
+                              onClick={e => { e.stopPropagation(); setConfirmDeleteRubricId(fam.familyId) }}
+                              disabled={deletingThis}
+                              aria-label={`Delete criteria - ${fam.familyLabel}`}
+                              title="Delete these criteria"
+                              className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center text-ink-muted hover:text-danger hover:bg-danger/10 transition-colors disabled:opacity-50"
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+                              </svg>
+                            </button>
+                            {confirmingDelete && (
+                              <div className="absolute inset-x-2 bottom-2 z-10 bg-bg-elevated border border-border rounded-xl shadow-card px-3 py-2 flex items-center gap-2 text-[11px]">
+                                <span className="text-ink-soft flex-1 truncate">
+                                  Delete {fam.versions.length > 1 ? 'all versions of these criteria' : 'these criteria'}?
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteCustomRubricFamily(fam.familyId, fam.versions.map(v => v.id))}
+                                  className="font-bold text-danger hover:underline flex-shrink-0"
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteRubricId(null)}
+                                  className="font-bold text-ink-soft hover:underline flex-shrink-0"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            )}
                           </li>
                         )
                       })}
@@ -945,6 +1017,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   </a>
                 </header>
 
+                {/* What the CV score means - derived from live thresholds. */}
+                {counts.all > 0 && <ScoreMeaningGuide />}
+
                 {/* Candidates */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl">
                   <div className="px-6 py-4 border-b border-border flex flex-wrap items-center gap-2">
@@ -967,7 +1042,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                     <div className="px-6 py-12 text-center">
                       <p className="text-sm text-ink-soft">
                         {bandFilter !== 'all'
-                          ? `No candidates in the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} band.`
+                          ? `No candidates with the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} recommendation.`
                           : 'No candidates yet. Upload some CVs in the previous step to get started.'}
                       </p>
                     </div>
@@ -990,7 +1065,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                           <span className="col-span-1" />
                           <span className="col-span-3">Candidate</span>
                           <span className="col-span-1">Score</span>
-                          <span className="col-span-2">Band</span>
+                          <span className="col-span-2">{BAND_CATEGORY_LABEL}</span>
                           <span className="col-span-2">Next step</span>
                           <span className="col-span-2 hidden sm:block">Comments</span>
                           <span className="col-span-1 text-right">View</span>
@@ -1088,7 +1163,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 </button>
                                 <button
                                   onClick={() => setOverrideTarget(s)}
-                                  title="Click to override the AI's band"
+                                  title="Click to override the AI's recommendation"
                                   className={`sm:col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-ink transition-all justify-start w-fit ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
                                 >
                                   {BAND_LABELS[band as keyof typeof BAND_LABELS] ?? band}
@@ -1109,12 +1184,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 >
                                   {s.override_comment ? s.override_comment : 'Add comment...'}
                                 </button>
-                                <button
-                                  onClick={() => setSelectedId(s.id)}
-                                  className="sm:col-span-1 text-xs text-ink-muted text-left sm:text-right hover:text-ink"
-                                >
-                                  View
-                                </button>
+                                <div className="sm:col-span-1 flex items-center gap-1 sm:justify-end">
+                                  <CvDownloadButton screeningId={s.id} candidateName={s.candidate_label} align="right" />
+                                  <button
+                                    onClick={() => setSelectedId(s.id)}
+                                    className="text-xs text-ink-muted hover:text-ink"
+                                  >
+                                    View
+                                  </button>
+                                </div>
                               </li>
                             )
                           })}
@@ -1136,7 +1214,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       <p className="text-sm font-bold text-ink mb-2">What the agent does</p>
                       <ul className="space-y-2 text-xs text-ink-soft leading-relaxed list-disc pl-4">
                         <li>Scores each CV against your chosen criteria, weighted by importance.</li>
-                        <li>Masks names, photos, addresses, dates of birth and graduation years before scoring - the model judges substance, not signal.</li>
+                        <li>Reads the whole CV against each criterion with real reasoning - not a keyword match.</li>
                         <li>Backs every score with a verbatim line from the CV so you can see exactly why.</li>
                         <li>Recommends a next step (Schedule Interview, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
                       </ul>
@@ -1147,7 +1225,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       <ol className="space-y-2 text-xs text-ink-soft leading-relaxed list-decimal pl-4">
                         <li><strong className="text-ink">Open a candidate.</strong> Click a row to read their scorecard with the evidence quoted from their CV.</li>
                         <li><strong className="text-ink">Override the AI if you disagree.</strong> Click the score band or next-step on any row to change it and add a short comment explaining why.</li>
-                        <li><strong className="text-ink">Run a fairness check.</strong> In any scorecard, use <em>Run name probe</em> under Fairness checks to test if the score moves when the candidate&apos;s name is swapped to a different cultural background.</li>
+                        <li><strong className="text-ink">Download the original CV.</strong> Use the download icon on any row (or in the scorecard) to save the exact file the candidate submitted.</li>
                         <li><strong className="text-ink">Send your shortlist forward.</strong> Tick the candidates you want and use <em>Send to Shortlist Agent</em> to bundle them as one campaign with their CV scoring carried through.</li>
                         <li><strong className="text-ink">Save criteria you&apos;ll reuse.</strong> If you hired for the same role last quarter, save the scoring criteria from Step 1 so you don&apos;t rebuild it from scratch next time.</li>
                       </ol>
@@ -1312,6 +1390,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               setRubricId(row.id)
               setShowNewRubric(false)
               setCampaignHandoff(null)
+              // Straight to upload, even if a rubric was already selected
+              // (the auto-advance only fires on first selection).
+              goToStep(2)
             }}
           />
         )}
@@ -1449,8 +1530,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           />
         )}
 
-        {/* Sticky selection bar */}
-        {selectedCount > 0 && (
+        {/* Sticky selection bar - Review step only, so it can never float
+            over Choose criteria / Upload. */}
+        {standaloneStep === 3 && selectedCount > 0 && (
           <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
             <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-ink-on-accent rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
               <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
@@ -1816,6 +1898,9 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                   )}
                 </section>
 
+                {/* What the CV score means - derived from live thresholds. */}
+                {counts.all > 0 && <ScoreMeaningGuide />}
+
                 {/* Candidates */}
                 <section className="bg-bg-elevated shadow-card rounded-3xl">
                   <div className="px-6 py-4 border-b border-border flex flex-wrap items-center gap-2">
@@ -1840,7 +1925,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                         {!criteriaConfirmed
                           ? 'Confirm your scoring criteria above before uploading CVs.'
                           : bandFilter !== 'all'
-                            ? `No candidates in the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} band.`
+                            ? `No candidates with the ${bandFilter === 'strong' ? 'Strong yes' : bandFilter === 'yes' ? 'Yes' : bandFilter === 'maybe' ? 'Maybe' : 'No'} recommendation.`
                             : 'No candidates yet. Upload some CVs above to get started.'}
                       </p>
                     </div>
@@ -1863,7 +1948,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                           <span className="col-span-1" />
                           <span className="col-span-3">Candidate</span>
                           <span className="col-span-1">Score</span>
-                          <span className="col-span-2">Band</span>
+                          <span className="col-span-2">{BAND_CATEGORY_LABEL}</span>
                           <span className="col-span-2">Next step</span>
                           <span className="col-span-2 hidden sm:block">Comments</span>
                           <span className="col-span-1 text-right">View</span>
@@ -1969,7 +2054,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 </button>
                                 <button
                                   onClick={() => setOverrideTarget(s)}
-                                  title="Click to override the AI's band"
+                                  title="Click to override the AI's recommendation"
                                   className={`sm:col-span-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-3 py-1 hover:ring-1 hover:ring-charcoal transition-all justify-start w-fit ${BAND_COLOURS[band as keyof typeof BAND_COLOURS] ?? ''}`}
                                 >
                                   {BAND_LABELS[band as keyof typeof BAND_LABELS] ?? band}
@@ -1990,12 +2075,15 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                 >
                                   {s.override_comment ? s.override_comment : 'Add comment...'}
                                 </button>
-                                <button
-                                  onClick={() => setSelectedId(s.id)}
-                                  className="sm:col-span-1 text-xs text-muted text-left sm:text-right hover:text-charcoal"
-                                >
-                                  View
-                                </button>
+                                <div className="sm:col-span-1 flex items-center gap-1 sm:justify-end">
+                                  <CvDownloadButton screeningId={s.id} candidateName={s.candidate_label} align="right" />
+                                  <button
+                                    onClick={() => setSelectedId(s.id)}
+                                    className="text-xs text-muted hover:text-charcoal"
+                                  >
+                                    View
+                                  </button>
+                                </div>
                               </li>
                             )
                           })}
@@ -2017,7 +2105,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       <p className="text-sm font-bold text-charcoal mb-2">What the agent does</p>
                       <ul className="space-y-2 text-xs text-mid leading-relaxed list-disc pl-4">
                         <li>Scores each CV against the criteria on the left, weighted by importance.</li>
-                        <li>Masks names, photos, addresses, dates of birth and graduation years before scoring - the model judges substance, not signal.</li>
+                        <li>Reads the whole CV against each criterion with real reasoning - not a keyword match.</li>
                         <li>Backs every score with a verbatim line from the CV so you can see exactly why.</li>
                         <li>Recommends a next step (Schedule Interview, Phone screen, Hold for review, etc.) but never auto-rejects a candidate.</li>
                       </ul>
@@ -2028,7 +2116,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                       <ol className="space-y-2 text-xs text-mid leading-relaxed list-decimal pl-4">
                         <li><strong className="text-charcoal">Open a candidate.</strong> Click a row to read their scorecard with the evidence quoted from their CV.</li>
                         <li><strong className="text-charcoal">Override the AI if you disagree.</strong> Click the score band or next-step on any row to change it and add a short comment explaining why.</li>
-                        <li><strong className="text-charcoal">Run a fairness check.</strong> In any scorecard, use <em>Run name probe</em> under Fairness checks to test if the score moves when the candidate&apos;s name is swapped to a different cultural background.</li>
+                        <li><strong className="text-charcoal">Download the original CV.</strong> Use the download icon on any row (or in the scorecard) to save the exact file the candidate submitted.</li>
                         <li><strong className="text-charcoal">Send your shortlist forward.</strong> Tick the candidates you want and use <em>Send to Shortlist Agent</em> to bundle them as one campaign with their CV scoring carried through.</li>
                         <li><strong className="text-charcoal">Save criteria you&apos;ll reuse.</strong> If you hired for the same role last quarter, save the scoring criteria from the left panel so you don&apos;t rebuild it from scratch next time.</li>
                       </ol>
@@ -2726,99 +2814,9 @@ function statusLabel(status: PendingUpload['status']): string {
   }
 }
 
-// Disparate Impact Dashboard removed in May 2026 - the surface
-// confused clients more than it helped, and the population data we'd
-// need to make it meaningful (opt-in demographic capture) doesn't
-// exist yet. Adverse impact monitoring is now an internal operational
-// task per docs/AI-FAIRNESS-FAIR-WORK.md Section 7. If we revisit this
-// later, the implementation lives in git history at commit 476c6e9.
-
-function _archivedDisparateImpactCard_unused({ screenings: _ }: { screenings: CandidateScreening[] }) {
-  return null
-}
-// Below: original implementation kept commented for reference.
-function _UNUSED_DisparateImpactCardImpl({ screenings }: { screenings: CandidateScreening[] }) {
-  // Group screenings by rubric and compute selection rates per detected
-  // cohort. A screening is "selected" if band is yes or strong_yes.
-  const byRubric = new Map<string, CandidateScreening[]>()
-  for (const s of screenings) {
-    const arr = byRubric.get(s.rubric_id) ?? []
-    arr.push(s)
-    byRubric.set(s.rubric_id, arr)
-  }
-
-  type FlagRow = { rubricId: string; cohortLabel: string; rate: number; topRate: number; ratio: number; n: number }
-  const flags: FlagRow[] = []
-  for (const [rubricId, rows] of byRubric.entries()) {
-    if (rows.length < 5) continue
-    // Cohort proxy = first token of candidate_label (so "Candidate A1", "A2"
-    // - in production this comes from name_probe_outcomes).
-    const cohortBuckets = new Map<string, { selected: number; total: number }>()
-    for (const r of rows) {
-      const key = (r.candidate_label ?? 'unknown').split(/[\s\-_]/)[0] ?? 'unknown'
-      const cur = cohortBuckets.get(key) ?? { selected: 0, total: 0 }
-      cur.total += 1
-      if (r.band === 'yes' || r.band === 'strong_yes') cur.selected += 1
-      cohortBuckets.set(key, cur)
-    }
-    const cohortRates = [...cohortBuckets.entries()]
-      .filter(([, v]) => v.total >= 3)
-      .map(([label, v]) => ({ label, rate: v.selected / v.total, n: v.total }))
-    if (cohortRates.length < 2) continue
-    const topRate = Math.max(...cohortRates.map(c => c.rate))
-    if (topRate === 0) continue
-    for (const c of cohortRates) {
-      const ratio = c.rate / topRate
-      if (ratio < 0.8) flags.push({ rubricId, cohortLabel: c.label, rate: c.rate, topRate, ratio, n: c.n })
-    }
-  }
-
-  const sampled = screenings.length
-  const monitored = [...byRubric.values()].filter(rows => rows.length >= 5).length
-
-  return (
-    <div className="bg-bg-elevated shadow-card rounded-3xl p-6 text-xs text-muted leading-relaxed">
-      <div className="flex items-center justify-between mb-2">
-        <p className="font-bold text-charcoal text-sm">Disparate impact dashboard</p>
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-light text-mid rounded-full px-2 py-0.5">
-          v2.5
-        </span>
-      </div>
-      <p className="text-mid">
-        Four-fifths rule monitor across rubrics. Flags any rubric where a cohort's selection rate is below 80% of the top cohort. Only rubrics with at least 5 screenings are monitored.
-      </p>
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="bg-light rounded-xl px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wider text-muted font-bold">Screenings</p>
-          <p className="text-sm font-bold text-charcoal">{sampled}</p>
-        </div>
-        <div className="bg-light rounded-xl px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wider text-muted font-bold">Monitored rubrics</p>
-          <p className="text-sm font-bold text-charcoal">{monitored}</p>
-        </div>
-        <div className={`rounded-xl px-3 py-2 ${flags.length > 0 ? 'bg-warning/10' : 'bg-success/10'}`}>
-          <p className={`text-[10px] uppercase tracking-wider font-bold ${flags.length > 0 ? 'text-warning' : 'text-success'}`}>Flags</p>
-          <p className={`text-sm font-bold ${flags.length > 0 ? 'text-warning' : 'text-success'}`}>{flags.length}</p>
-        </div>
-      </div>
-      {flags.length > 0 && (
-        <ul className="mt-3 space-y-1.5">
-          {flags.slice(0, 5).map((f, i) => (
-            <li key={i} className="bg-warning/5 rounded-lg px-3 py-2 text-[11px]">
-              <p className="font-bold text-charcoal">{f.rubricId} - cohort {f.cohortLabel}</p>
-              <p className="text-mid">Selection {(f.rate * 100).toFixed(0)}% vs top {(f.topRate * 100).toFixed(0)}% (ratio {(f.ratio * 100).toFixed(0)}%, n={f.n}). Review the rubric for adverse impact.</p>
-            </li>
-          ))}
-        </ul>
-      )}
-      {monitored === 0 && (
-        <p className="mt-3 text-mid">
-          Process at least 5 candidates per rubric to enable monitoring. Per-candidate name-swap robustness is live now via the scorecard probe.
-        </p>
-      )}
-    </div>
-  )
-}
+// Disparate Impact Dashboard removed in May 2026 (surface confused
+// clients; needed opt-in demographic data that doesn't exist). The
+// archived implementation lives in git history at commit 476c6e9.
 
 function FilterChip({ label, active, onClick }: { label: string; active?: boolean; onClick?: () => void }) {
   return (

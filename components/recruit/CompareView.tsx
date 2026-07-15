@@ -1,7 +1,6 @@
 ﻿'use client'
 import { useEffect, useState } from 'react'
 import { VideoPlayer } from './VideoPlayer'
-import { buildAnonMap } from '@/lib/recruit-anon'
 
 interface CompareCandidate {
   id: string
@@ -32,7 +31,6 @@ interface CompareCandidate {
 
 interface Props {
   ids: string[]
-  anonymise: boolean
   onClose: () => void
 }
 
@@ -40,7 +38,7 @@ const STAGE_LABEL: Record<string, string> = {
   new: 'New', in_review: 'In review', shortlisted: 'Shortlisted', rejected: 'Rejected',
 }
 
-export function CompareView({ ids, anonymise, onClose }: Props) {
+export function CompareView({ ids, onClose }: Props) {
   const [candidates, setCandidates] = useState<CompareCandidate[]>([])
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState('')
@@ -77,13 +75,6 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
     return names
   })()
 
-  const anonMap = buildAnonMap(candidates.map(c => ({ id: c.id, created_at: c.submitted_at })))
-
-  function displayName(c: CompareCandidate) {
-    if (!anonymise) return c.candidate_name
-    return anonMap[c.id] ?? 'Candidate'
-  }
-
   return (
     <div className="fixed inset-0 bg-bg-elevated z-50 flex flex-col print:static print:bg-white">
       <style>{`
@@ -100,7 +91,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
         <div>
           <p className="text-xs font-bold text-ink uppercase tracking-widest">Compare candidates</p>
           <p className="text-xs text-mid mt-0.5">
-            {candidates.length} side-by-side - {anonymise ? 'Anonymised' : 'Named'}
+            {candidates.length} side-by-side
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -134,7 +125,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                 </th>
                 {candidates.map(c => (
                   <th key={c.id} className="compare-col text-left px-3 py-2 border-b border-border align-top min-w-[260px]">
-                    <p className="font-serif text-lg font-bold text-ink">{displayName(c)}</p>
+                    <p className="font-serif text-lg font-bold text-ink">{c.candidate_name}</p>
                     <p className="text-xs text-mid">{c.role_title} - {c.company}</p>
                   </th>
                 ))}
@@ -145,7 +136,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                 <th className="sticky left-0 bg-bg-elevated text-left text-xs font-bold text-mid uppercase tracking-widest px-3 py-2 align-top">Candidate</th>
                 {candidates.map(c => (
                   <td key={c.id} className="px-3 py-2 align-top">
-                    <p className="text-sm text-charcoal">{anonymise ? '-' : c.candidate_email}</p>
+                    <p className="text-sm text-charcoal">{c.candidate_email}</p>
                     <p className="text-xs text-mid">Submitted {new Date(c.submitted_at).toLocaleDateString('en-AU')}</p>
                   </td>
                 ))}
@@ -166,7 +157,7 @@ export function CompareView({ ids, anonymise, onClose }: Props) {
                               Play
                             </summary>
                             <div className="mt-2">
-                              <VideoPlayer cloudflareUid={uid} title={`${displayName(c)} Q${qi + 1}`} />
+                              <VideoPlayer cloudflareUid={uid} title={`${c.candidate_name} Q${qi + 1}`} />
                             </div>
                           </details>
                         ) : (

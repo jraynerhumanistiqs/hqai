@@ -1,6 +1,6 @@
 // GET /api/prescreen/sessions/[id]/analytics
 // Role-level analytics tiles: funnel, avg time-to-score, dimension distribution,
-// AI-agreement donut, bias audit summary.
+// AI-agreement donut.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -41,7 +41,6 @@ export async function GET(
       avgTimeToScoreSec: null,
       dimensionStats: [],
       aiAgreement: { accept: 0, adjust: 0, reject: 0, pending: 0 },
-      biasAudit: { protected_attr_violations: 0, insufficient_evidence_count: 0, low_confidence_count: 0 },
     })
   }
 
@@ -87,10 +86,8 @@ export async function GET(
     if (diffs.length) avgTimeToScoreSec = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length)
   }
 
-  // Dimension distribution + bias counts
+  // Dimension distribution
   const dimensionStats: DimStat[] = []
-  let insufficientEvidenceCount = 0
-  let lowConfidenceCount = 0
   if (responseIds.length) {
     const { data: evalsFull } = await supabaseAdmin
       .from('prescreen_evaluations')
@@ -110,8 +107,6 @@ export async function GET(
         if (!name) continue
         const score = Number(d?.score)
         if (Number.isFinite(score)) (scoresByDim[name] ||= []).push(score)
-        if (d?.insufficient_evidence) insufficientEvidenceCount++
-        if (Number(d?.confidence) < 0.5) lowConfidenceCount++
       }
     }
     for (const [name, arr] of Object.entries(scoresByDim)) {
@@ -151,10 +146,5 @@ export async function GET(
     avgTimeToScoreSec,
     dimensionStats,
     aiAgreement: { accept, adjust, reject, pending },
-    biasAudit: {
-      protected_attr_violations: 0,
-      insufficient_evidence_count: insufficientEvidenceCount,
-      low_confidence_count: lowConfidenceCount,
-    },
   })
 }

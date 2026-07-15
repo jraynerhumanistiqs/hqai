@@ -5,11 +5,13 @@ import {
   type CandidateScreening,
   type CriterionScore,
   type Rubric,
+  BAND_CATEGORY_LABEL,
   BAND_LABELS,
   ACTION_LABELS,
   CONSIDERATION_LABELS,
   deriveConsiderations,
 } from '@/lib/cv-screening-types'
+import { buildLogoHeader } from '@/lib/report-logo'
 import {
   Document,
   Packer,
@@ -22,8 +24,6 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
-  PageBreak,
-  ImageRun,
   Header,
 } from 'docx'
 import JSZip from 'jszip'
@@ -50,16 +50,6 @@ export async function POST(req: NextRequest) {
       .single()
     const business = (profile?.businesses as unknown as { id: string; name: string; logo_url?: string | null } | null)
     if (!business?.id) return NextResponse.json({ error: 'No business profile' }, { status: 400 })
-
-    // Fetch the business logo for letterhead. Failure to fetch falls back to
-    // a text-only letterhead so the report still renders.
-    let logoBuffer: Buffer | null = null
-    if (business.logo_url) {
-      try {
-        const r = await fetch(business.logo_url)
-        if (r.ok) logoBuffer = Buffer.from(await r.arrayBuffer())
-      } catch {}
-    }
 
     const body = await req.json() as Body
     const inlineScreenings = Array.isArray(body.screenings) ? body.screenings : []
@@ -122,30 +112,17 @@ export async function POST(req: NextRequest) {
     const today = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
 
     // Letterhead is shared across every per-candidate document so the run of
-    // files in a zip reads as one branded set.
-    const headerChildren: Paragraph[] = []
-    if (logoBuffer) {
-      try {
-        headerChildren.push(new Paragraph({
-          spacing: { after: 80 },
-          children: [new ImageRun({
-            data: logoBuffer,
-            transformation: { width: 140, height: 56 },
-            type: 'png',
-          })],
-        }))
-      } catch {
-        headerChildren.push(new Paragraph({
-          spacing: { after: 80 },
-          children: [new TextRun({ text: business.name, bold: true, size: 24, font: FONT, color: CHARCOAL })],
-        }))
-      }
-    } else {
-      headerChildren.push(new Paragraph({
+    // files in a zip reads as one branded set. The shared helper scales the
+    // uploaded logo into a bounding box (aspect ratio preserved) so it can
+    // never render oversized and overlap the heading; a missing or broken
+    // logo falls back to a text-only letterhead.
+    const logoHeader = await buildLogoHeader(business.logo_url ?? null, '[cv-screening/report]')
+    const letterhead = logoHeader ?? new Header({
+      children: [new Paragraph({
         spacing: { after: 80 },
         children: [new TextRun({ text: business.name, bold: true, size: 24, font: FONT, color: CHARCOAL })],
-      }))
-    }
+      })],
+    })
 
     // Build a single per-candidate Word document buffer. Used for both the
     // single-candidate response and as a member of the zip when multiple
@@ -165,17 +142,16 @@ export async function POST(req: NextRequest) {
       const considerations = rubric ? deriveConsiderations(rubric.criteria, allScores, s.considerations) : []
       const sections: Paragraph[] = []
 
-      sections.push(coverParagraph('Candidate CV Scoring Report', 28))
+      // Title rule: every per-candidate CV score summary is
+      // "{Candidate Full Name} - CV Score Summary".
+      sections.push(coverParagraph(`${s.candidate_label} - CV Score Summary`, 28))
       sections.push(meta(`${business.name} - Generated ${today}`))
-      sections.push(spacer(200))
-
-      sections.push(coverParagraph(s.candidate_label, 24))
       sections.push(meta(`${rubric?.role ?? 'Custom role'}`))
-      sections.push(spacer(120))
+      sections.push(spacer(160))
 
       sections.push(headlineRow([
         ['Overall score', Number(s.overall_score).toFixed(2)],
-        ['Band', BAND_LABELS[s.band as keyof typeof BAND_LABELS] ?? s.band],
+        [BAND_CATEGORY_LABEL, BAND_LABELS[s.band as keyof typeof BAND_LABELS] ?? s.band],
         ['Recommended next step', ACTION_LABELS[s.next_action as keyof typeof ACTION_LABELS] ?? s.next_action],
       ]))
       sections.push(spacer(180))
@@ -204,19 +180,12 @@ export async function POST(req: NextRequest) {
         sections.push(spacer(180))
       }
 
-      sections.push(sectionHeading('Fairness checks'))
-      sections.push(bodyPara(`Name blinded from scorer: ${s.fairness_checks?.name_blinded ? 'yes' : 'no'}`))
-      sections.push(bodyPara(`Demographic inference suppressed: ${s.fairness_checks?.demographic_inference_suppressed ? 'yes' : 'no'}`))
-      if (s.fairness_checks?.tenure_gap_explained) {
-        sections.push(bodyPara(`Tenure gap noted: ${s.fairness_checks.tenure_gap_explained}`))
-      }
-      sections.push(bodyPara('No candidate is auto-rejected. Recommendations require a human click before any adverse action is taken.'))
-
       sections.push(spacer(400))
       sections.push(sectionHeading('Methodology'))
       sections.push(bodyPara(
-        'CVs are scored against a structured rubric of 6-8 weighted criteria. Names, photos, addresses, dates of birth and graduation years are masked from the model so it scores on substance, not signal. Every score is backed by a verbatim CV span quoted in the evidence section. Where a criterion is not addressed in the CV at all, the score defaults to 0 unless a transferable skill from another domain is explicitly identified.',
+        'CVs are scored against a structured rubric of 6-8 weighted criteria, on substance only. Every score is backed by a verbatim CV span quoted in the evidence section. Where a criterion is not addressed in the CV at all, the score defaults to 0 unless a transferable skill from another domain is explicitly identified.',
       ))
+      sections.push(bodyPara('No candidate is auto-rejected. Recommendations require a human click before any adverse action is taken.'))
       sections.push(bodyPara(
         'This report supports a hiring decision. It does not replace the recruiter\'s judgement, a structured interview, or formal reference checks.',
       ))
@@ -225,12 +194,12 @@ export async function POST(req: NextRequest) {
 
       const doc = new Document({
         creator: 'HQ.ai by Humanistiqs',
-        title: `Candidate CV Scoring Report - ${s.candidate_label}`,
+        title: `${s.candidate_label} - CV Score Summary`,
         sections: [{
           properties: {
             page: { margin: { top: 1440, right: 720, bottom: 720, left: 720 } },
           },
-          headers: { default: new Header({ children: headerChildren }) },
+          headers: { default: letterhead },
           children: sections,
         }],
       })
@@ -241,11 +210,11 @@ export async function POST(req: NextRequest) {
     if (screenings.length === 1) {
       const s = screenings[0]
       const buffer = await buildCandidateDocx(s)
-      const filename = `Candidate_CV_Scoring_Report_-_${safeFilename(s.candidate_label)}.docx`
+      const filename = `${safeFilename(s.candidate_label)} - CV Score Summary.docx`
       return new NextResponse(buffer as unknown as ArrayBuffer, {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Content-Disposition': contentDisposition(filename),
         },
       })
     }
@@ -259,7 +228,7 @@ export async function POST(req: NextRequest) {
       if (r?.role) rubricRoles.add(r.role)
     }
     const roleForFolder = rubricRoles.size === 1 ? [...rubricRoles][0] : 'Mixed roles'
-    const folderLabel = `${roleForFolder} - Candidate CV Scoring Reports`
+    const folderLabel = `${safeFilename(roleForFolder)} - CV Score Summaries`
     const zip = new JSZip()
     // Deduplicate filenames if two candidates share a label (e.g. two rows
     // both labelled "Candidate") by suffixing -2, -3, etc.
@@ -268,19 +237,19 @@ export async function POST(req: NextRequest) {
     // even when 10-20 candidates are selected.
     const builds = await Promise.all(screenings.map(async s => ({ s, buf: await buildCandidateDocx(s) })))
     for (const { s, buf } of builds) {
-      const base = safeFilename(s.candidate_label) || 'candidate'
+      const base = `${safeFilename(s.candidate_label)} - CV Score Summary`
       const n = (seen.get(base) ?? 0) + 1
       seen.set(base, n)
-      const filename = n === 1 ? `${base}.docx` : `${base}-${n}.docx`
+      const filename = n === 1 ? `${base}.docx` : `${base} (${n}).docx`
       zip.file(`${folderLabel}/${filename}`, buf)
     }
     const zipBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
-    const zipName = `${safeFilename(folderLabel) || 'Candidate_CV_Scoring_Reports'}_${dateStamp()}.zip`
+    const zipName = `${folderLabel} ${dateStamp()}.zip`
 
     return new NextResponse(zipBuf as unknown as ArrayBuffer, {
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${zipName}"`,
+        'Content-Disposition': contentDisposition(zipName),
       },
     })
   } catch (err) {
@@ -436,8 +405,15 @@ function evidenceItem(label: string, cs: CriterionScore): Paragraph {
   })
 }
 
+// Human-readable filesystem-safe name: keeps spaces and hyphens, strips
+// only characters that are illegal in filenames.
 function safeFilename(s: string): string {
-  return s.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_').slice(0, 60) || 'candidate'
+  return s.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Candidate'
+}
+// filename* carries the exact UTF-8 name (candidate names can hold
+// accented characters); plain filename is the ASCII-safe fallback.
+function contentDisposition(filename: string): string {
+  return `attachment; filename="${filename.replace(/[^\x20-\x7E]+/g, '_')}"; filename*=UTF-8''${encodeURIComponent(filename)}`
 }
 function dateStamp(): string {
   const d = new Date()

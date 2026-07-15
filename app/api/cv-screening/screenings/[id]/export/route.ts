@@ -22,24 +22,21 @@ import {
   CONSIDERATION_LABELS,
   deriveConsiderations,
 } from '@/lib/cv-screening-types'
+import { buildLogoHeader } from '@/lib/report-logo'
 import {
   Document,
   Packer,
   Paragraph,
   TextRun,
   HeadingLevel,
-  AlignmentType,
   Table,
   TableRow,
   TableCell,
   WidthType,
   BorderStyle,
   PageBreak,
-  Header,
-  ImageRun,
   TabStopType,
   TabStopPosition,
-  VerticalAlign,
   ShadingType,
 } from 'docx'
 import { NextRequest, NextResponse } from 'next/server'
@@ -236,8 +233,9 @@ function buildScoreSummarySection(opts: {
 
   // H1 - forced black so it doesn't inherit Word's default heading
   // theme colour. businessName text removed: the logo Header on every
-  // page is the issuer attribution.
-  out.push(h(`Candidate Score Summary - ${screening.candidate_label ?? 'Candidate'}`, 1, 30, '111111'))
+  // page is the issuer attribution. Title rule: every per-candidate CV
+  // score summary is "{Candidate Full Name} - CV Score Summary".
+  out.push(h(`${screening.candidate_label ?? 'Candidate'} - CV Score Summary`, 1, 30, '111111'))
 
   // Role / rubric eyebrow line - label bold, value regular.
   const roleValue = rubric?.role ? rubric.role : (screening.rubric_id ?? '-')
@@ -477,74 +475,6 @@ function buildFormattedCvSection(payload: CvPayload): Array<Paragraph | Table> {
   return out
 }
 
-// ── client logo header ─────────────────────────────────────────────
-// Fetches the customer's uploaded brand logo (businesses.logo_url) and
-// returns a docx Header that places it top-right of every page in the
-// final downloads. The image-size probe reads the natural dimensions
-// of the uploaded image so we can scale it to fit a bounding box
-// without stretching (fix: tall or square logos previously came out
-// squashed because the transformation hard-coded 120x40).
-//
-// Fails gracefully: missing URL, fetch error, undecodable image, or
-// natural dimensions unavailable -> no header rather than failing
-// the export.
-async function buildLogoHeader(logoUrl: string | null): Promise<Header | null> {
-  if (!logoUrl) return null
-  try {
-    const res = await fetch(logoUrl, { cache: 'no-store' })
-    if (!res.ok) {
-      console.warn(`[cv-screening/export] logo fetch failed (${res.status}) for ${logoUrl}`)
-      return null
-    }
-    const buf = Buffer.from(await res.arrayBuffer())
-    const ct = (res.headers.get('content-type') ?? '').toLowerCase()
-    const type: 'png' | 'jpg' | 'gif' | 'bmp' =
-        ct.includes('png')  ? 'png'
-      : ct.includes('jpeg') ? 'jpg'
-      : ct.includes('jpg')  ? 'jpg'
-      : ct.includes('gif')  ? 'gif'
-      : ct.includes('bmp')  ? 'bmp'
-      : 'png'
-
-    // Probe natural dimensions so we can scale proportionally inside
-    // a bounding box. image-size is already in node_modules (transitive
-    // dep). If the probe fails, fall back to the previous hard-coded
-    // 120x40 so the header still renders, just slightly squashed.
-    const BOX_W = 160
-    const BOX_H = 56
-    let drawW = 120
-    let drawH = 40
-    try {
-      const probe = (await import('image-size')).default(buf) as { width?: number; height?: number }
-      if (probe?.width && probe?.height) {
-        const scale = Math.min(BOX_W / probe.width, BOX_H / probe.height)
-        drawW = Math.max(1, Math.round(probe.width * scale))
-        drawH = Math.max(1, Math.round(probe.height * scale))
-      }
-    } catch (err) {
-      console.warn('[cv-screening/export] image-size probe failed, using default 120x40:', (err as Error).message)
-    }
-
-    return new Header({
-      children: [
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          children: [
-            new ImageRun({
-              data: buf,
-              transformation: { width: drawW, height: drawH },
-              type,
-            } as ConstructorParameters<typeof ImageRun>[0]),
-          ],
-        }),
-      ],
-    })
-  } catch (err) {
-    console.warn('[cv-screening/export] logo embed failed:', (err as Error).message)
-    return null
-  }
-}
-
 // ── handler ─────────────────────────────────────────────────────────
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -636,11 +566,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // one is set on the business profile. Falls back to no header if no
   // logo - the rest of the document still renders with the issuer
   // name line in the body so the brand attribution stays intact.
-  const logoHeader = await buildLogoHeader(businessLogoUrl)
+  const logoHeader = await buildLogoHeader(businessLogoUrl, '[cv-screening/export]')
+
+  // Title rule: per-candidate score summaries are named
+  // "{Candidate Full Name} - CV Score Summary". The formatted-CV-only
+  // download keeps its own descriptive name so the two files can sit
+  // side by side in a download folder without colliding.
+  const candidateName = String(screening.candidate_label ?? 'Candidate')
+  const docTitle =
+      mode === 'score'     ? `${candidateName} - CV Score Summary`
+    : mode === 'formatted' ? `${candidateName} - Formatted CV`
+    : `${candidateName} - CV Score Summary and CV`
 
   const doc = new Document({
     creator: 'HQ.ai CV Scoring Agent',
-    title: `${screening.candidate_label ?? 'Candidate'} - ${mode}`,
+    title: docTitle,
     sections: [{
       properties: {},
       headers: logoHeader ? { default: logoHeader } : undefined,
@@ -648,11 +588,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }],
   })
   const buffer = await Packer.toBuffer(doc)
-  const filename = `${(screening.candidate_label ?? 'candidate').replace(/[^a-zA-Z0-9]+/g, '_')}_${mode}.docx`
+  // Human-readable filename: keep spaces and hyphens, strip only
+  // characters that are illegal in filenames.
+  const filename = `${docTitle.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120)}.docx`
   return new Response(buffer as unknown as BodyInit, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      // filename* carries the exact UTF-8 name (candidate names can hold
+      // accented characters); plain filename is the ASCII-safe fallback.
+      'Content-Disposition': `attachment; filename="${filename.replace(/[^\x20-\x7E]+/g, '_')}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
       'Cache-Control': 'private, no-store',
     },
   })

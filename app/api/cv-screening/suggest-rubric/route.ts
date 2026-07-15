@@ -144,6 +144,5 @@ Output only via the submit_rubric tool.`,
     criteria,
     minimum_score_to_advance: 3.4,
     hard_gates: hardGates,
-    blind_fields: ['name', 'photo', 'address', 'dob', 'gender_inferred', 'graduation_year', 'school_name'],
   }
 }

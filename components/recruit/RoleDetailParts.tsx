@@ -8,34 +8,17 @@ function fmtTs(sec: number) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function BiasDisclaimer({ onDismiss }: { onDismiss: () => void }) {
-  return (
-    <div className="bg-warning/10 border border-warning/40 text-charcoal rounded-2xl px-4 py-2 text-xs flex items-start gap-3">
-      <span className="flex-1">
-        AI scores are suggestions only. Always apply your own judgement. Scores ignore protected attributes and do not assess personality or emotion.
-      </span>
-      <button
-        onClick={onDismiss}
-        aria-label="Dismiss bias disclaimer"
-        className="text-mid hover:text-ink text-sm leading-none flex-shrink-0 mt-0.5"
-      >&times;</button>
-    </div>
-  )
-}
-
 export function AiSuggestionCard({
   evaluation,
   alreadyReviewed,
   busy,
   onDecision,
-  anonymise,
   onQuoteClick,
 }: {
   evaluation: PrescreenEvaluation | null
   alreadyReviewed: boolean
   busy: string | null
   onDecision: (evaluationId: string, decision: 'accept' | 'adjust' | 'reject') => void
-  anonymise: boolean
   onQuoteClick?: (sec: number) => void
 }) {
   if (!evaluation) {
@@ -88,7 +71,6 @@ export function AiSuggestionCard({
             {d.evidence_quote && (
               <p
                 className="text-xs text-mid italic cursor-pointer hover:text-ink transition-colors"
-                title={anonymise ? 'Quotes from transcript may include identifying information' : undefined}
                 onClick={() => onQuoteClick?.(d.evidence_timestamp_sec)}
               >
                 &ldquo;{d.evidence_quote}&rdquo;

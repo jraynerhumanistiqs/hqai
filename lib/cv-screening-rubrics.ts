@@ -1,7 +1,5 @@
 import type { Rubric } from './cv-screening-types'
 
-const STANDARD_BLIND_FIELDS = ['name', 'photo', 'address', 'dob', 'gender_inferred', 'graduation_year', 'school_name']
-
 export const RUBRIC_CI_ANALYST: Rubric = {
   rubric_id: 'rub_ci_analyst_au_v1',
   role: 'Continuous Improvement Analyst (Customer Service, Contract)',
@@ -87,7 +85,6 @@ export const RUBRIC_CI_ANALYST: Rubric = {
   ],
   minimum_score_to_advance: 3.4,
   hard_gates: ['location_eligibility'],
-  blind_fields: STANDARD_BLIND_FIELDS,
 }
 
 export const RUBRIC_SALES_AE: Rubric = {
@@ -149,7 +146,6 @@ export const RUBRIC_SALES_AE: Rubric = {
   ],
   minimum_score_to_advance: 3.4,
   hard_gates: ['location_eligibility'],
-  blind_fields: STANDARD_BLIND_FIELDS,
 }
 
 export const RUBRIC_OPS_MANAGER: Rubric = {
@@ -206,7 +202,6 @@ export const RUBRIC_OPS_MANAGER: Rubric = {
   ],
   minimum_score_to_advance: 3.4,
   hard_gates: ['location_eligibility'],
-  blind_fields: STANDARD_BLIND_FIELDS,
 }
 
 export const ALL_RUBRICS: Rubric[] = [

@@ -77,7 +77,7 @@ export default function ProductPillars() {
               </li>
               <li className="flex items-start gap-3">
                 <Tick />
-                <span>Hides names and photos to keep hiring fair</span>
+                <span>Every CV scored the same way, with the evidence shown</span>
               </li>
             </ul>
           </article>

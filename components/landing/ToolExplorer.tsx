@@ -65,7 +65,7 @@ const TABS: Tab[] = [
     bullets: [
       'Score every CV against what the job needs',
       'Video and phone interviews from one link',
-      'Hides names and photos to keep hiring fair',
+      'Every CV scored the same way, with the evidence shown',
     ],
     tools: [
       { name: 'CV scoring', desc: 'Rank every applicant against the role, the same way.' },

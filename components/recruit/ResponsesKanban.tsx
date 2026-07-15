@@ -46,8 +46,6 @@ const STATUS_PILL: Record<string, string> = {
 
 interface Props {
   responses: CandidateResponse[]
-  anonymise: boolean
-  displayNameFor: (r: CandidateResponse) => string
   evaluations: Record<string, PrescreenEvaluation | null>
   onStageChange: (id: string, stage: KanbanStage) => void
   onSelect?: (id: string) => void
@@ -57,8 +55,6 @@ interface Props {
 
 export function ResponsesKanban({
   responses,
-  anonymise,
-  displayNameFor,
   evaluations,
   onStageChange,
   onSelect,
@@ -155,16 +151,12 @@ export function ResponsesKanban({
                       </label>
                     )}
                     <div className="flex items-center gap-2 pr-6 pl-2.5">
-                      {!anonymise && (
-                        <div className="w-7 h-7 rounded-full bg-bg-soft flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
-                          {displayNameFor(r).split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
-                        </div>
-                      )}
+                      <div className="w-7 h-7 rounded-full bg-bg-soft flex items-center justify-center text-[10px] font-bold text-ink flex-shrink-0">
+                        {r.candidate_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-ink truncate">{displayNameFor(r)}</p>
-                        {!anonymise && (
-                          <p className="text-[11px] text-ink-soft truncate">{r.candidate_email}</p>
-                        )}
+                        <p className="text-sm font-bold text-ink truncate">{r.candidate_name}</p>
+                        <p className="text-[11px] text-ink-soft truncate">{r.candidate_email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 mt-2 flex-wrap">

@@ -30,7 +30,6 @@ export interface Rubric {
   criteria: RubricCriterion[]
   minimum_score_to_advance: number
   hard_gates: string[]
-  blind_fields: string[]
 }
 
 export interface EvidenceSpan {
@@ -80,12 +79,16 @@ export function statusFromGateScore(score: number): ConsiderationStatus {
 // criteria. The AI read comes from the gate criteria_scores; any value the
 // recruiter has confirmed (persisted on the row) overrides it. Pure - used
 // by the scorecard so we don't need to persist the AI read separately.
+// Persisted considerations that are NOT hard-gate criteria (e.g. the
+// thin-experience item seeded at score time) pass straight through so
+// they render in the same pill list with no extra UI wiring.
 export function deriveConsiderations(
   criteria: RubricCriterion[],
   scores: CriterionScore[],
   persisted?: Consideration[] | null,
 ): Consideration[] {
-  return criteria
+  const gateIds = new Set(criteria.filter(c => c.hard_gate).map(c => c.id))
+  const gates = criteria
     .filter(c => c.hard_gate)
     .map(c => {
       const cs = scores.find(s => s.id === c.id)
@@ -99,6 +102,25 @@ export function deriveConsiderations(
         note: saved?.note ?? cs?.rationale,
       }
     })
+  const extras = (persisted ?? []).filter(p => p && !gateIds.has(p.id))
+  return [...gates, ...extras]
+}
+
+// Consideration seeded when a CV's experience entries carry only a job
+// title, employer and date range - the missing responsibilities are a
+// question for the phone screen, not a silent score penalty.
+export const THIN_EXPERIENCE_CONSIDERATION_ID = 'thin_experience'
+
+export function thinExperienceConsideration(roles: string[] | null | undefined): Consideration | null {
+  const list = (roles ?? []).map(r => String(r).trim()).filter(Boolean)
+  if (list.length === 0) return null
+  return {
+    id: THIN_EXPERIENCE_CONSIDERATION_ID,
+    label: `Responsibilities not listed for: ${list.join(', ')}`,
+    status: 'unclear',
+    ai_status: 'unclear',
+    note: 'Score may improve once responsibilities are learned - worth asking at phone screen.',
+  }
 }
 
 export type CandidateBand = 'strong_yes' | 'yes' | 'maybe' | 'likely_no' | 'reject'
@@ -112,12 +134,6 @@ export type NextAction =
   | 'request_more_info'
   | 'hold_for_review'
   | 'reject'
-
-export interface FairnessChecks {
-  name_blinded: boolean
-  tenure_gap_explained?: string
-  demographic_inference_suppressed: boolean
-}
 
 export interface CandidateScreening {
   id: string
@@ -136,7 +152,12 @@ export interface CandidateScreening {
   // and the standalone read path derive these on the fly from the
   // hard-gate criteria_scores + rubric when the column is absent.
   considerations?: Consideration[] | null
-  fairness_checks: FairnessChecks
+  // Role titles whose experience entries had no responsibility detail
+  // (title + employer + dates only). Optional - additive column.
+  thin_experience?: string[] | null
+  // Storage path of the original uploaded CV file in the private 'cvs'
+  // bucket. Optional - additive column; null for historical candidates.
+  cv_storage_path?: string | null
   status: 'parsing' | 'scoring' | 'scored' | 'failed'
   error_message?: string | null
   created_at: string
@@ -175,6 +196,12 @@ export function defaultActionForBand(band: CandidateBand): NextAction {
     case 'reject': return 'reject'
   }
 }
+
+// Printed category label for the band value. The band is presented to
+// users as the AI's "Recommendation" - use this constant anywhere the
+// category name is printed (reports, scorecards) so the wording stays
+// consistent. Code identifiers (band, bandFromScore) are unchanged.
+export const BAND_CATEGORY_LABEL = 'Recommendation'
 
 export const BAND_LABELS: Record<CandidateBand, string> = {
   strong_yes: 'Strong yes',

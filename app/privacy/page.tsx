@@ -64,8 +64,9 @@ export default function PrivacyPage() {
           <P>
             We do not collect sensitive information (as defined by the Privacy Act)
             unless it is volunteered in a candidate-supplied document or video answer.
-            HQ.ai is configured to mask names, photos, addresses, dates of birth and
-            graduation years before any AI scoring runs.
+            Our AI scoring is instructed to assess job-relevant skills and experience
+            only, and not to infer or use protected attributes such as age, gender
+            or ethnicity.
           </P>
         </Section>
 
@@ -73,7 +74,7 @@ export default function PrivacyPage() {
           <Ul items={[
             'To provide the HQ.ai service to our business clients - hosting role campaigns, scoring CVs, hosting video pre-screens, and producing scoring reports.',
             'To verify identity, manage accounts, process billing, and provide customer support.',
-            'To improve the platform - including bias auditing of our AI models (we use aggregate metrics and never use a single individual\'s data to train any AI model).',
+            'To improve the platform (we use aggregate metrics and never use a single individual\'s data to train any AI model).',
             'To meet legal obligations, including responses to lawful requests from regulators or law enforcement.',
           ]} />
           <P>

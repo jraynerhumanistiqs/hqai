@@ -20,10 +20,6 @@ interface Props {
   /** Hide the pencil glyph until the row is hovered (parent must
    *  apply group / group-hover). Default true. */
   hoverOnly?: boolean
-  /** Disabled when the row is anonymised (bias rule active). The
-   *  recruiter sees a tooltip explaining why. */
-  disabled?: boolean
-  disabledTooltip?: string
 }
 
 export default function EditableCandidateName({
@@ -32,8 +28,6 @@ export default function EditableCandidateName({
   className,
   inputClassName,
   hoverOnly = true,
-  disabled = false,
-  disabledTooltip,
 }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -79,18 +73,16 @@ export default function EditableCandidateName({
   return (
     <span
       className={(className ?? 'inline-flex items-center gap-1.5') + (hoverOnly ? ' group' : '')}
-      title={disabled ? disabledTooltip ?? 'Renaming is locked while anonymise mode is on.' : 'Click to rename'}
+      title="Click to rename"
     >
       <span>{value}</span>
       <button
         type="button"
-        onClick={e => { e.stopPropagation(); if (!disabled) setEditing(true) }}
-        disabled={disabled}
+        onClick={e => { e.stopPropagation(); setEditing(true) }}
         aria-label="Edit candidate name"
         className={
           'text-[10px] font-bold text-ink-muted hover:text-ink rounded p-0.5 transition-opacity ' +
-          (hoverOnly ? 'opacity-0 group-hover:opacity-100 ' : '') +
-          (disabled ? 'cursor-not-allowed opacity-30 hover:text-ink-muted' : '')
+          (hoverOnly ? 'opacity-0 group-hover:opacity-100' : '')
         }
       >
         {/* Pencil icon */}

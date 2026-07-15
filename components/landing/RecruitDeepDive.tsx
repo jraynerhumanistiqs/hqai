@@ -27,7 +27,7 @@ export default function RecruitDeepDive() {
               Send one link for a video or phone interview. The AI scores the answers for you. Compare people side by side, and download a tidy CV with the scores attached.
             </p>
             <p>
-              Turn a rough brief into a SEEK-ready job ad in three steps. And when bias could creep in, it quietly hides names and photos so everyone gets a fair go.
+              Turn a rough brief into a SEEK-ready job ad in three steps. Every candidate is scored against the same criteria, with the evidence shown, so decisions are easy to stand behind.
             </p>
           </div>
         </div>

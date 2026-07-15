@@ -23,41 +23,18 @@ export interface ScoreResult {
   criteria_scores: CriterionScore[]
   rationale_short: string
   tenure_note?: string | null
+  /** Role titles whose experience entries list only a job title,
+   *  employer and date range - no responsibilities or detail. Surfaced
+   *  as a post-score consideration rather than a silent penalty. */
+  thin_experience: string[]
 }
 
-// Heuristic email pull from raw CV text. Run BEFORE blindPII so we
-// capture the candidate's real email before the masker rewrites it
-// to [EMAIL]. Used by score/route.ts to persist candidate_email on
-// the cv_screenings row so video-interview invites can be addressed
-// without the recruiter retyping the email.
+// Heuristic email pull from raw CV text. Used by score/route.ts to
+// persist candidate_email on the cv_screenings row so video-interview
+// invites can be addressed without the recruiter retyping the email.
 export function extractEmail(rawCvText: string): string | null {
   const match = rawCvText.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)
   return match?.[0] ?? null
-}
-
-// Light-touch PII redaction. Pre-empts the obvious leaks before the
-// model even sees the CV. Mirrors the scrubber that previously lived
-// in score/route.ts so the rescore endpoint applies the same masking.
-export function blindPII(text: string): string {
-  return text
-    .replace(/\b\d{3}\s?\d{3}\s?\d{3,4}\b/g, '[PHONE]')
-    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[EMAIL]')
-    .replace(/\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/g, '[CARD]')
-    .replace(/Date of Birth[:\s]*\S+/gi, 'Date of Birth: [REDACTED]')
-    .replace(/DOB[:\s]*\S+/gi, 'DOB: [REDACTED]')
-}
-
-export function blindNameInText(text: string, name: string | null): string {
-  if (!name) return text
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const re = new RegExp(`\\b${escaped}\\b`, 'gi')
-  let blinded = text.replace(re, '[NAME]')
-  for (const part of name.split(/\s+/)) {
-    if (part.length < 3) continue
-    const partRe = new RegExp(`\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g')
-    blinded = blinded.replace(partRe, '[NAME]')
-  }
-  return blinded
 }
 
 export async function scoreCv(
@@ -74,7 +51,7 @@ export async function scoreCv(
       properties: {
         candidate_label: {
           type: 'string',
-          description: 'A short blinded label like "Candidate-8f21" or a first name only if no full identification is possible. Do NOT use the candidate\'s real full name.',
+          description: 'The candidate\'s full name exactly as written in the CV, e.g. "Jane Smith". If the CV does not state a name, use "Candidate".',
         },
         criteria_scores: {
           type: 'array',
@@ -107,6 +84,11 @@ export async function scoreCv(
           type: 'string',
           description: 'If the CV shows a tenure gap, briefly note any explanation given (e.g. caregiving, study, illness). Empty string if no gap or no explanation.',
         },
+        thin_experience: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Job titles (add the employer in brackets if it helps identify the role) of experience entries that list ONLY a title, employer and date range - no responsibilities, achievements or detail. Empty array when every role carries detail.',
+        },
       },
       required: ['candidate_label', 'criteria_scores', 'rationale_short'],
     },
@@ -119,7 +101,7 @@ export async function scoreCv(
   const systemPrompt = `You are an Australian recruitment assistant scoring CVs against a structured rubric for the role: ${role}.
 
 RULES:
-1. Score on substance only. The candidate's name has been replaced with [NAME] in the CV. Photos, addresses, dates of birth, gender, ethnicity, school name, and graduation year MUST NOT influence the score.
+1. Score on substance only. Personal attributes - photos, addresses, dates of birth, gender, ethnicity, school name, and graduation year - MUST NOT influence the score.
 2. Scoring scale (0-5):
    - 5: Strong, well-evidenced match
    - 4: Solid match, multiple evidence points
@@ -135,13 +117,14 @@ RULES:
    - Score 0 (not eligible) only if the CV explicitly states no Australian work rights, or explicitly rules out the location/relocation.
    - Never penalise a candidate's location on its own.
 6. Tenure gaps are not penalties unless the candidate had no work history. Note any reason given (caregiving, study, illness) in tenure_note rather than reducing any tenure score.
-7. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
-8. No em-dashes or en-dashes in your output. Plain hyphens only.
+7. Some CVs list a role as just a job title, employer and date range with no responsibilities or achievements. Add each such role title to thin_experience. Score the affected criteria on the evidence that IS in the CV - the absent evidence already limits the score, so do not penalise the same gap a second time. The recruiter will ask about these roles at phone screen.
+8. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
+9. No em-dashes or en-dashes in your output. Plain hyphens only.
 
 The criteria you must score:
 ${criteriaPrompt}
 
-For candidate_label, use a generic placeholder like "Candidate" - the system already has the real name from a separate extraction pass.
+For candidate_label, return the candidate's full name as written at the top of the CV.
 
 Output only via the submit_score tool.`
 
@@ -165,6 +148,9 @@ Output only via the submit_score tool.`
   const candidate_label = String(input.candidate_label ?? 'Candidate')
   const rationale_short = String(input.rationale_short ?? '')
   const tenure_note = input.tenure_note ? String(input.tenure_note) : null
+  const thin_experience = Array.isArray(input.thin_experience)
+    ? (input.thin_experience as unknown[]).map(v => String(v).trim()).filter(Boolean)
+    : []
   const rawScores = Array.isArray(input.criteria_scores) ? input.criteria_scores : []
   const criteria_scores: CriterionScore[] = rawScores.map((c: { id?: unknown; score?: unknown; confidence?: unknown; evidence?: unknown; rationale?: unknown }) => ({
     id: String(c.id),
@@ -182,6 +168,7 @@ Output only via the submit_score tool.`
     criteria_scores,
     rationale_short,
     tenure_note: tenure_note || null,
+    thin_experience,
   }
 }
 

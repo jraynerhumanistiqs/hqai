@@ -15,6 +15,7 @@
 
 import { useMemo, useState } from 'react'
 import type { CandidateResponse, PrescreenSession } from '@/lib/recruit-types'
+import CvDownloadButton from '../cv-screening/CvDownloadButton'
 
 interface Props {
   session: PrescreenSession
@@ -150,6 +151,9 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  {r.cv_screening_id && (
+                    <CvDownloadButton screeningId={r.cv_screening_id} candidateName={r.candidate_name || 'candidate'} />
+                  )}
                   <button
                     type="button"
                     disabled={busyId === r.id}
@@ -225,6 +229,9 @@ export function Step3Shortlist({ session, responses, onPatchResponse, onShareRes
                       {friendlyStatus(r)}{r.rating ? ` - ${r.rating}/5` : ''}
                     </p>
                   </div>
+                  {r.cv_screening_id && (
+                    <CvDownloadButton screeningId={r.cv_screening_id} candidateName={r.candidate_name || 'candidate'} />
+                  )}
                   <button
                     type="button"
                     disabled={busyId === r.id || bulkBusy}

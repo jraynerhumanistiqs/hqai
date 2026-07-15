@@ -8,10 +8,13 @@ import {
   BAND_LABELS,
   ACTION_LABELS,
   BAND_COLOURS,
+  BAND_CATEGORY_LABEL,
   CONSIDERATION_LABELS,
   deriveConsiderations,
 } from '@/lib/cv-screening-types'
 import { getRubric } from '@/lib/cv-screening-rubrics'
+import ScoreMeaningGuide from './ScoreMeaningGuide'
+import CvDownloadButton from './CvDownloadButton'
 
 interface CustomRubricRow {
   id: string
@@ -47,14 +50,6 @@ interface Props {
 interface HandoffResult {
   candidate_url: string
   questions: string[]
-}
-
-interface ProbeResult {
-  original: { name: string; overall: number }
-  probes: Array<{ name: string; overall: number | null; error: string | null }>
-  max_delta: number
-  flagged: boolean
-  verdict: string
 }
 
 export default function CandidateScorecardPanel({ screening, customRubrics, onClose, onRenameCandidate, onDeleteCandidate, inRole, onSendToPrescreen, onRejectCandidate }: Props) {
@@ -181,10 +176,6 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
   const [resending, setResending] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const [probeBusy, setProbeBusy] = useState(false)
-  const [probeError, setProbeError] = useState<string | null>(null)
-  const [probeResult, setProbeResult] = useState<ProbeResult | null>(null)
-
   // Download state. Previously we used plain <a href> links which
   // sent the user to the export route directly - so when the route
   // returned an error JSON the browser rendered it as raw text and
@@ -250,25 +241,6 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
       setDownloadError(`Could not generate ${label} - ${err instanceof Error ? err.message : 'unknown'}`)
     }
     setDownloadBusy(null)
-  }
-
-  async function runCounterfactual() {
-    setProbeBusy(true)
-    setProbeError(null)
-    setProbeResult(null)
-    try {
-      const res = await fetch('/api/cv-screening/counterfactual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ screening_id: screening.id }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-      setProbeResult(data as ProbeResult)
-    } catch (err) {
-      setProbeError(err instanceof Error ? err.message : 'Probe failed')
-    }
-    setProbeBusy(false)
   }
 
   const canSendVideo = ['strong_yes', 'yes', 'maybe'].includes(screening.band)
@@ -435,13 +407,20 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               </h2>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 flex-shrink-0"
-            aria-label="Close scorecard"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <CvDownloadButton
+              screeningId={screening.id}
+              candidateName={screening.candidate_label}
+              align="right"
+            />
+            <button
+              onClick={onClose}
+              className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+              aria-label="Close scorecard"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <div className="px-6 py-6 space-y-6">
@@ -449,7 +428,10 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
             <span className="text-3xl sm:text-4xl font-bold text-charcoal leading-none tabular-nums">
               {Number(screening.overall_score).toFixed(2)}
             </span>
-            <span className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 ${BAND_COLOURS[screening.band as keyof typeof BAND_COLOURS] ?? ''}`}>
+            <span
+              title={BAND_CATEGORY_LABEL}
+              className={`inline-flex items-center text-xs font-bold rounded-full px-3 py-1.5 ${BAND_COLOURS[screening.band as keyof typeof BAND_COLOURS] ?? ''}`}
+            >
               {BAND_LABELS[screening.band as keyof typeof BAND_LABELS] ?? screening.band}
             </span>
             {/* In-role: the legacy single "Send to Shortlist Agent"
@@ -470,6 +452,20 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               )
             )}
           </div>
+
+          {/* One-click explainer of the 0-5 score, summoned on demand so
+              the scorecard itself stays calm. */}
+          <details className="group">
+            <summary className="inline-flex items-center gap-1.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden text-[11px] font-bold text-mid hover:text-charcoal transition-colors">
+              <svg className="w-3 h-3 transition-transform group-open:rotate-90" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M7.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+              What does this score mean?
+            </summary>
+            <div className="mt-2">
+              <ScoreMeaningGuide variant="flat" />
+            </div>
+          </details>
 
           {screening.rationale_short && (
             <p className="text-sm text-charcoal leading-relaxed">
@@ -654,6 +650,11 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                         <span className="text-[10px] font-bold text-mid">edited</span>
                       )}
                     </div>
+                    {/* The thin-experience note is informational - it flags
+                        missing responsibility detail, not an eligibility
+                        judgement, so the Eligible/Not eligible pills would
+                        mislead. Note only. */}
+                    {c.id !== 'thin_experience' && (
                     <div
                       role="radiogroup"
                       aria-label={`${c.label} eligibility`}
@@ -689,6 +690,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                         )
                       })}
                     </div>
+                    )}
                     {c.note && (
                       <p className="text-xs text-mid mt-2 leading-relaxed">{c.note}</p>
                     )}
@@ -697,60 +699,6 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
               </ul>
               {considerError && (
                 <p className="text-[11px] text-danger mt-2">{considerError}</p>
-              )}
-            </div>
-          )}
-
-          {screening.fairness_checks && (
-            <div className="bg-light rounded-2xl px-4 py-3 text-xs text-mid space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-bold text-charcoal text-sm">Bias checks</p>
-                <button
-                  onClick={runCounterfactual}
-                  disabled={probeBusy}
-                  title="Re-scores this CV with a few different names to check the AI's score doesn't change based on the candidate's name."
-                  className="bg-accent text-ink-on-accent text-xs font-bold rounded-full px-3 py-1.5 hover:bg-accent-hover disabled:opacity-50"
-                >
-                  {probeBusy ? 'Checking...' : 'Check for name bias'}
-                </button>
-              </div>
-              <p>Candidate name hidden from the scorer: {screening.fairness_checks.name_blinded ? 'yes' : 'no'}</p>
-              <p>Age, gender and background ignored: {screening.fairness_checks.demographic_inference_suppressed ? 'yes' : 'no'}</p>
-              {screening.fairness_checks.tenure_gap_explained && (
-                <p>Career gap noted: {screening.fairness_checks.tenure_gap_explained}</p>
-              )}
-
-              {probeError && (
-                <p className="text-danger">Bias check failed: {probeError}</p>
-              )}
-
-              {probeResult && (
-                <div className="mt-2 pt-2 border-t border-border space-y-1.5">
-                  <p className={`font-bold text-sm ${probeResult.flagged ? 'text-warning' : 'text-success'}`}>
-                    {probeResult.flagged
-                      ? 'Possible name bias detected'
-                      : 'No name bias detected'}
-                  </p>
-                  <p className="leading-relaxed">
-                    We re-scored this CV with different names. The biggest change to the overall score was{' '}
-                    <strong className="text-charcoal">{probeResult.max_delta.toFixed(2)} out of 5</strong>
-                    {probeResult.flagged
-                      ? ' - large enough to be worth a manual look.'
-                      : ' - small enough that the name is not swaying the score.'}
-                  </p>
-                  <ul className="space-y-0.5 mt-1.5">
-                    <li className="flex justify-between">
-                      <span className="text-charcoal font-bold">{probeResult.original.name} (original)</span>
-                      <span className="text-charcoal font-bold">{probeResult.original.overall.toFixed(2)}</span>
-                    </li>
-                    {probeResult.probes.map(p => (
-                      <li key={p.name} className="flex justify-between">
-                        <span>{p.name}</span>
-                        <span>{p.overall != null ? p.overall.toFixed(2) : '-'}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               )}
             </div>
           )}
