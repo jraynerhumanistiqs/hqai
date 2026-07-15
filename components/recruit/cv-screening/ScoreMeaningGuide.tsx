@@ -67,17 +67,18 @@ export default function ScoreMeaningGuide({ variant = 'card', className = '' }: 
         {SEGMENTS.map(s => `A score from ${fmt(s.from)} to ${fmt(s.to)} means ${BAND_LABELS[s.band]}. ${BAND_MEANING[s.band]}`).join(' ')}
       </p>
 
-      {/* One glanceable strip (sm and up) - segment widths are
-          proportional to each band's share of the 0-5 scale. */}
+      {/* One glanceable strip (sm and up) - five equal-width segments
+          filling the container (tester feedback 2026-07-15: proportional
+          widths squeezed the narrow bands and read unevenly). Ranges in
+          mono so the decimal point is unmistakable (3.59, not 359). */}
       <div className="hidden sm:flex w-full gap-1" aria-hidden="true">
         {SEGMENTS.map(s => (
           <div
             key={s.band}
-            style={{ flexGrow: Math.max(s.to - s.from, 0.6), flexBasis: 0 }}
-            className={`rounded-xl px-2 py-1.5 text-center min-w-0 ${BAND_COLOURS[s.band]}`}
+            className={`flex-1 rounded-xl px-2 py-1.5 text-center min-w-0 ${BAND_COLOURS[s.band]}`}
           >
             <p className="text-[11px] font-bold truncate">{BAND_LABELS[s.band]}</p>
-            <p className="text-[10px] opacity-80 tabular-nums truncate">{fmt(s.from)} - {fmt(s.to)}</p>
+            <p className="font-mono text-[11px] opacity-90 whitespace-nowrap">{fmt(s.from)} - {fmt(s.to)}</p>
           </div>
         ))}
       </div>
@@ -89,7 +90,7 @@ export default function ScoreMeaningGuide({ variant = 'card', className = '' }: 
             <span className={`text-[11px] font-bold rounded-full px-2.5 py-0.5 ${BAND_COLOURS[s.band]}`}>
               {BAND_LABELS[s.band]}
             </span>
-            <span className="text-[11px] text-ink-soft tabular-nums">{fmt(s.from)} - {fmt(s.to)}</span>
+            <span className="font-mono text-[11px] text-ink-soft">{fmt(s.from)} - {fmt(s.to)}</span>
           </li>
         ))}
       </ul>
@@ -103,8 +104,8 @@ export default function ScoreMeaningGuide({ variant = 'card', className = '' }: 
         </summary>
         <ul className="mt-2 space-y-1.5">
           {[...SEGMENTS].reverse().map(s => (
-            <li key={s.band} className="flex items-start gap-2 text-xs leading-relaxed">
-              <span className={`flex-shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 mt-0.5 ${BAND_COLOURS[s.band]}`}>
+            <li key={s.band} className="flex items-center gap-2 text-xs leading-relaxed">
+              <span className={`flex-shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 ${BAND_COLOURS[s.band]}`}>
                 {BAND_LABELS[s.band]}
               </span>
               <span className="text-ink-soft">{BAND_MEANING[s.band]}</span>
