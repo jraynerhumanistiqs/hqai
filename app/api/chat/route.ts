@@ -12,12 +12,18 @@ import { parseCitations } from '@/lib/parse-citations'
 // cacheable and let the variable suffix ride along uncached.
 import { withPromptCache, withPromptCacheBlocks } from '@/lib/router'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
+// A10 - 3-tier model routing (Haiku / Sonnet / Opus) for the HQ People
+// path. Pure heuristics, no classification LLM call. Standard (Sonnet)
+// is the fallback; ANTHROPIC_ROUTER_DISABLED=1 forces standard.
+import { routeModel } from '@/lib/model-router'
 import { NextRequest, after } from 'next/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 180
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// Static default (Sonnet). The HQ People path routes per-turn via
+// routeModel; the legacy non-people path stays pinned to this.
 const MODEL = CLAUDE_MODEL
 // 2 iterations: iter 0 forced search (model can emit multiple parallel
 // search_knowledge calls in one turn via Promise.all dispatch), iter 1
@@ -202,6 +208,17 @@ export async function POST(req: NextRequest) {
     // tool_choice loop and go straight to streaming - cuts latency ~50%.
     const skipRag = isSimpleQuery(lastUserMsg, claudeMessages)
 
+    // A10 - pick the Claude tier for this turn. Document generation and
+    // escalation language never drop below standard; hard-triage turns
+    // never reach here (short-circuited above with no LLM call at all).
+    const routed = routeModel({
+      message: lastUserMsg,
+      historyLength: claudeMessages.length,
+      hasDocumentIntent: !!requestedDoc,
+    })
+    const model = routed.model
+    console.log(`[chat] model route tier=${routed.tier} model=${routed.model} reason="${routed.reason}"`)
+
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
@@ -237,7 +254,7 @@ export async function POST(req: NextRequest) {
             const fastRes = await withTimeout(
               anthropic.messages.create(
                 {
-                  model: MODEL,
+                  model,
                   max_tokens: 1500,
                   // B3 - cache the system prompt across turns.
                   system: withPromptCache(systemPrompt),
@@ -288,7 +305,7 @@ export async function POST(req: NextRequest) {
               controller, encoder, supabase, conversationId,
               fullResponse: cleanText, lastUserMsg, module: mod,
               user, business, citations, toolCalls: [],
-              latencyMs: Date.now() - started,
+              latencyMs: Date.now() - started, model,
             })
             return
           }
@@ -325,7 +342,7 @@ export async function POST(req: NextRequest) {
               const res = await withHeartbeat(controller, encoder, () =>
                 withTimeout(
                   anthropic.messages.create({
-                    model: MODEL,
+                    model,
                     max_tokens: 768,
                     // B3 - same MASTER prompt used every iter, cache it.
                     system: withPromptCache(systemPrompt),
@@ -356,7 +373,7 @@ export async function POST(req: NextRequest) {
                   controller, encoder, supabase, conversationId,
                   fullResponse: cleanText, lastUserMsg, module: mod,
                   user, business, citations: finalCitations, toolCalls: accumulatedToolCalls,
-                  latencyMs: Date.now() - started,
+                  latencyMs: Date.now() - started, model,
                 })
                 return
               }
@@ -431,7 +448,7 @@ export async function POST(req: NextRequest) {
                   lastUserMsg, module: mod,
                   user, business, citations: accumulatedCitations,
                   toolCalls: accumulatedToolCalls,
-                  latencyMs: Date.now() - started,
+                  latencyMs: Date.now() - started, model,
                 })
                 return
               }
@@ -461,7 +478,7 @@ export async function POST(req: NextRequest) {
             // the search results.
             const streamPromise = anthropic.messages.create(
               {
-                model: MODEL,
+                model,
                 max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
                 // B3 - keep the stable MASTER prefix cacheable; iter-1
                 // steering text rides along uncached so it doesn't bust
@@ -570,7 +587,7 @@ export async function POST(req: NextRequest) {
                 const retry = await withTimeout(
                   anthropic.messages.create(
                     {
-                      model: MODEL,
+                      model,
                       max_tokens: 1500,
                       // B3 - cached MASTER prefix + uncached retry steering.
                       system: withPromptCacheBlocks([
@@ -622,7 +639,7 @@ export async function POST(req: NextRequest) {
               controller, encoder, supabase, conversationId,
               fullResponse: cleanText, lastUserMsg, module: mod,
               user, business, citations: finalCitations, toolCalls: accumulatedToolCalls,
-              latencyMs: Date.now() - started,
+              latencyMs: Date.now() - started, model,
             })
             return
           }
@@ -733,10 +750,12 @@ async function finalise(opts: {
   citations: Array<{ n: number; label: string; url?: string; source?: string; chunkId?: number }>
   toolCalls: Array<{ name: string; input: unknown; output_summary: string }>
   latencyMs: number
+  /** A10 - the routed model actually used for this turn (audit/telemetry). */
+  model: string
 }) {
   const {
     controller, encoder, supabase, conversationId, fullResponse, lastUserMsg,
-    module, user, business, citations, toolCalls, latencyMs,
+    module, user, business, citations, toolCalls, latencyMs, model,
   } = opts
   const escalate = detectEscalation(lastUserMsg + ' ' + fullResponse)
   const docType = detectDocumentRequest(lastUserMsg)
@@ -783,7 +802,7 @@ async function finalise(opts: {
           escalated: escalate,
           doc_type: docType,
           latency_ms: latencyMs,
-          model: MODEL,
+          model,
         })
       } catch (err) {
         console.warn('[chat] audit log insert failed:', (err as Error).message)
@@ -800,7 +819,7 @@ async function finalise(opts: {
         tools_called: toolCalls.map(t => t.name),
         retrieval_chunks: inputTokens > 0 ? Math.ceil(inputTokens / 1500) : 0,
         total_ms: latencyMs,
-        model: MODEL,
+        model,
         triage_category: null,
         errored: false,
       })

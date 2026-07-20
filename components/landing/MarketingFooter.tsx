@@ -30,6 +30,8 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     heading: 'Resources',
     links: [
       { label: 'Pricing', href: '/pricing' },
+      { label: 'Roadmap', href: '/roadmap' },
+      { label: 'Changelog', href: '/changelog' },
       { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Contact', href: '/contact' },
       { label: 'Sign in', href: '/login' },
@@ -39,6 +41,8 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     heading: 'Company',
     links: [
       { label: 'About', href: '/about' },
+      { label: 'Roadmap', href: '/roadmap' },
+      { label: 'Changelog', href: '/changelog' },
       { label: 'Outsourced HR & Recruitment', href: '/enterprise' },
       { label: 'Contact', href: '/contact' },
     ],
