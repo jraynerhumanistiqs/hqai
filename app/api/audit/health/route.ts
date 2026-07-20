@@ -33,9 +33,13 @@ export async function GET() {
       })
     }
 
+    // Supabase's generated types widen the rpc().select() result into a
+    // union that includes a cast-mismatch error shape - narrow to the row
+    // array before mapping so the access is sound.
+    const rows = Array.isArray(data) ? data : []
     return NextResponse.json({
       ok: true,
-      tables: (data ?? []).map((r) => r.table_name),
+      tables: rows.map((r) => r.table_name),
     })
   } catch (err) {
     return NextResponse.json({

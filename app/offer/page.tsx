@@ -1,4 +1,4 @@
-// /offer - one-off "Letter of Offer, $25, no signup" landing page.
+// /offer - one-off "Letter of Offer, $49, no signup" landing page.
 //
 // Marketing route, Option 2 (Ivory & Clay) styling inherited from
 // :root in app/globals.css. The page is intentionally single-purpose:
@@ -20,7 +20,7 @@ import OfferLandingClient from './OfferLandingClient'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Letter of Offer - $25, ready in three minutes - HQ.ai',
+  title: 'Letter of Offer - $49, ready in three minutes - HQ.ai',
   description: 'A Fair Work compliant Letter of Offer for one new hire. No subscription. No consultant. Emailed to you as a Word doc and a PDF.',
 }
 

@@ -15,7 +15,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'I only need one document. Do I have to subscribe?',
-    a: 'No. One-off documents are pay-as-you-go - buy just the document you need from $25, with no subscription and no account.',
+    a: 'No. One-off documents are pay-as-you-go - buy just the document you need from $39, with no subscription and no account.',
   },
   {
     q: 'Can I trust the AI on real decisions?',
@@ -23,7 +23,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it cost?',
-    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has unlimited logins. Cancel any time. One-off documents start at $25 with no signup.',
+    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has unlimited logins. Cancel any time. One-off documents start at $39 with no signup.',
   },
   {
     q: 'Do you offer a dedicated advisor?',

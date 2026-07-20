@@ -188,13 +188,16 @@ export async function POST(req: NextRequest) {
     let insertedRows: Array<{ id: string }> | null = null
 
     const buildRow = (s: CandidateScreening, includeKeys: Set<string>) => {
-      const rubricScores = (s.criteria_scores as Array<{ id?: string; label?: string; score: number; evidence?: string }>)
+      // criteria_scores is already typed CriterionScore[] - no cast needed.
+      // CriterionScore carries `id` (not `label`) and `evidence` is an
+      // EvidenceSpan[], so the quote comes from the first span's text.
+      const rubricScores = s.criteria_scores
         .filter(cs => typeof cs.score === 'number')
         .map(cs => ({
-          name: cs.label ?? cs.id ?? 'Criterion',
+          name: cs.id ?? 'Criterion',
           score: cs.score,
-          confidence: 1,
-          evidence_quote: cs.evidence ?? '',
+          confidence: cs.confidence ?? 1,
+          evidence_quote: cs.evidence?.[0]?.text ?? '',
           evidence_timestamp_sec: 0,
           insufficient_evidence: false,
         }))

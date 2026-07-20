@@ -114,13 +114,13 @@ export default function OfferLandingClient() {
         {/* Left: copy */}
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-accent mb-3">
-            One letter. No signup. $25.
+            One letter. No signup. $49.
           </p>
           <h1 className="font-display text-display sm:text-[64px] font-bold leading-[1.05] text-ink mb-5">
             I'll draft a Fair Work compliant Letter of Offer for your new hire.
           </h1>
           <p className="text-body text-ink-soft mb-3 max-w-xl">
-            Fill the form. Pay $25. I'll email you a Word doc and a PDF
+            Fill the form. Pay $49. I'll email you a Word doc and a PDF
             in around three minutes. Every clause references the Fair
             Work Act, the National Employment Standards, or the
             relevant Modern Award.
@@ -287,7 +287,7 @@ export default function OfferLandingClient() {
               disabled={busy}
               className="w-full min-h-touch bg-accent hover:bg-accent-hover text-ink-on-accent font-bold rounded-full text-small px-5 py-3 transition-colors disabled:opacity-60"
             >
-              {busy ? 'Redirecting to Stripe...' : 'Pay $25 and email me the letter'}
+              {busy ? 'Redirecting to Stripe...' : 'Pay $49 and email me the letter'}
             </button>
 
             <p className="text-xs text-ink-muted text-center">
@@ -301,7 +301,7 @@ export default function OfferLandingClient() {
       <section className="border-t border-border bg-bg-soft">
         <div className="max-w-5xl mx-auto px-6 py-12 grid sm:grid-cols-3 gap-8">
           <div>
-            <p className="font-display text-h3 font-bold text-ink mb-2">Why $25?</p>
+            <p className="font-display text-h3 font-bold text-ink mb-2">Why $49?</p>
             <p className="text-small text-ink-soft">
               That is what a single document costs to run through our
               pipeline plus the Stripe fee. Subscriptions get cheaper

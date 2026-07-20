@@ -8,7 +8,7 @@
 // Document names + fixed prices come from the one-off SKU list in
 // lib/pricing-config.ts. Additional realistic names + the category grouping
 // come from lib/template-ip.ts (ALL_TEMPLATES / TEMPLATE_CATEGORIES). Items
-// without a fixed SKU price show "from $25". Never duplicate prices inline -
+// without a fixed SKU price show "from $39". Never duplicate prices inline -
 // the SKU map below is keyed straight off PRICING.oneOffs.
 
 import Link from 'next/link'

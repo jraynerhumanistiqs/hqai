@@ -46,15 +46,19 @@ export async function renderPdf(
   const chromium = await getChromium()
 
   const browser = await puppeteer.default.launch({
+    // @sparticuz/chromium v148 dropped the defaultViewport/headless getters -
+    // launch with a null viewport and the shell headless mode it recommends.
     args:            chromium.args,
-    defaultViewport: chromium.defaultViewport,
+    defaultViewport: null,
     executablePath:  await chromium.executablePath(),
-    headless:        chromium.headless,
+    headless:        'shell',
   })
 
   try {
     const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'networkidle0' })
+    // 'load' is the closest valid lifecycle event - setContent no longer
+    // accepts 'networkidle0' in puppeteer-core v25.
+    await page.setContent(html, { waitUntil: 'load' })
     const pdf = await page.pdf({
       format: options.format ?? 'A4',
       printBackground: true,

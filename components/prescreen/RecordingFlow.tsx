@@ -610,24 +610,23 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
         </div>
       )}
 
-      {/* Navigation */}
-      {recState !== 'self_view_prompt' && (
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => { stopTts(); setCurrentQ(q => q - 1); setRecState('idle'); setElapsed(0) }}
-            className={`text-sm text-gray-500 hover:text-gray-800 transition-colors ${currentQ === 0 ? 'invisible' : ''}`}
-          >
-            ← Back
-          </button>
-          <button
-            disabled={recState !== 'review' || submitting}
-            onClick={nextQuestion}
-            className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
-          >
-            {submitting ? 'Submitting…' : isLast ? 'Submit →' : 'Next →'}
-          </button>
-        </div>
-      )}
+      {/* Navigation - the self_view_prompt state is handled by the early
+          return above, so recState can never be that value here. */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => { stopTts(); setCurrentQ(q => q - 1); setRecState('idle'); setElapsed(0) }}
+          className={`text-sm text-gray-500 hover:text-gray-800 transition-colors ${currentQ === 0 ? 'invisible' : ''}`}
+        >
+          ← Back
+        </button>
+        <button
+          disabled={recState !== 'review' || submitting}
+          onClick={nextQuestion}
+          className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
+        >
+          {submitting ? 'Submitting…' : isLast ? 'Submit →' : 'Next →'}
+        </button>
+      </div>
     </div>
   )
 }

@@ -349,7 +349,10 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
   onOpenLink: () => void
   onTogglePageMenu: () => void
 }) {
-  const isActive = (name: string, attrs?: Record<string, unknown>) => editor.isActive(name, attrs)
+  // Tiptap's editor.isActive accepts either a node/mark name (with optional
+  // attrs) or an attributes-only object (used for textAlign) - mirror both.
+  const isActive = (nameOrAttrs: string | Record<string, unknown>, attrs?: Record<string, unknown>) =>
+    typeof nameOrAttrs === 'string' ? editor.isActive(nameOrAttrs, attrs) : editor.isActive(nameOrAttrs)
   // Fix #2 (H3 touch): bump button hit-area toward 44px on touch via min-h-touch.
   // min-w-[28px] is kept for narrow glyphs; min-h-touch handles the vertical tap target.
   const btn = (active: boolean) =>

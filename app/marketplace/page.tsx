@@ -10,9 +10,9 @@ import MarketingFooter from '@/components/landing/MarketingFooter'
 import DocumentMarketplace from '@/components/landing/DocumentMarketplace'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai Document Marketplace - HR documents from $25, no subscription',
+  title: 'HQ.ai Document Marketplace - HR documents from $39, no subscription',
   description:
-    'Buy individual HR and recruitment documents pay-as-you-go. Pick a document, answer a few questions, and it is ready to sign in three minutes. From $25, no subscription. Offer letters, contracts, warnings, performance plans and more.',
+    'Buy individual HR and recruitment documents pay-as-you-go. Pick a document, answer a few questions, and it is ready to sign in three minutes. From $39, no subscription. Offer letters, contracts, warnings, performance plans and more.',
   alternates: { canonical: '/marketplace' },
   robots: { index: true, follow: true },
 }

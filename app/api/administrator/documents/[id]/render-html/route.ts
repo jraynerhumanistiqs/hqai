@@ -125,14 +125,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const chromiumMod = await import('@sparticuz/chromium')
     const chromium = chromiumMod.default
     const browser = await puppeteer.default.launch({
+      // @sparticuz/chromium v148 dropped the defaultViewport/headless getters -
+      // launch with a null viewport and the shell headless mode it recommends.
       args:            chromium.args,
-      defaultViewport: chromium.defaultViewport,
+      defaultViewport: null,
       executablePath:  await chromium.executablePath(),
-      headless:        chromium.headless,
+      headless:        'shell',
     })
     try {
       const page = await browser.newPage()
-      await page.setContent(fullHtml, { waitUntil: 'networkidle0' })
+      // 'load' is the closest valid lifecycle event - setContent no longer
+      // accepts 'networkidle0' in puppeteer-core v25.
+      await page.setContent(fullHtml, { waitUntil: 'load' })
       const pdf = await page.pdf({
         format: pageSize,
         printBackground: true,

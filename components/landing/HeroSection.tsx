@@ -92,7 +92,7 @@ export default function HeroSection() {
               href="#marketplace"
               className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
-              See one-off documents from $25 -&gt;
+              See one-off documents from $39 -&gt;
             </a>
           </div>
           <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>Three minutes to your first document.</p>

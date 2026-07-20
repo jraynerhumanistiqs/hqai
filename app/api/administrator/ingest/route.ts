@@ -39,8 +39,10 @@ async function extractText(file: File): Promise<string> {
     // surfaces "Could not extract text" before any user PDF is even
     // parsed. Importing the lib bypasses the debug block entirely.
     type PdfParseFn = (buf: Buffer) => Promise<{ text?: string }>
-    const mod = (await import('pdf-parse/lib/pdf-parse.js')) as unknown as { default?: PdfParseFn } & PdfParseFn
-    const pdf: PdfParseFn = typeof mod === 'function' ? (mod as PdfParseFn) : (mod.default as PdfParseFn)
+    // Union (not intersection) so the typeof narrowing has a live else
+    // branch - the CJS module is either the function itself or { default }.
+    const mod = (await import('pdf-parse/lib/pdf-parse.js')) as unknown as PdfParseFn | { default: PdfParseFn }
+    const pdf: PdfParseFn = typeof mod === 'function' ? mod : mod.default
     const data = await pdf(buf)
     return (data?.text ?? '').trim()
   }

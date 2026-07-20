@@ -63,7 +63,7 @@ export default function MarketplaceCarousel() {
           Pay-as-you-go - launching soon
         </p>
         <h2 id="marketplace-heading" className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-          Just need one document today? From $25.
+          Just need one document today? From $39.
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
           Buy a single HR document without a subscription. Answer a few questions and it is ready to sign in three minutes.

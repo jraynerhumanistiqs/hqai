@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
     responseHeaders['Access-Control-Expose-Headers'] = 'X-Document-Id'
   }
 
-  return new NextResponse(buffer, { headers: responseHeaders })
+  return new NextResponse(new Uint8Array(buffer), { headers: responseHeaders })
 }
 
 function contractToParagraphs(content: string): Paragraph[] {

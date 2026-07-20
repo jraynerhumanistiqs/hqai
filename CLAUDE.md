@@ -95,8 +95,10 @@ Full set + inline notes live in lib/stripe.ts and .env.local. Categories:
 Supabase, ANTHROPIC_API_KEY (+ optional ANTHROPIC_MODEL_*), Cloudflare
 Stream, Resend, Stripe (STRIPE_SECRET_KEY / _WEBHOOK_SECRET / publishable +
 per-plan price ids: SOLO/BUSINESS/RECRUIT monthly+annual, the six ENTERPRISE
-keys, and the one-off document SKUs). NB standalone HQ Recruit needs
-STRIPE_PRICE_ID_RECRUIT_MONTHLY created before its checkout can charge.
+keys, and the one-off document SKUs incl. the two packs
+STRIPE_PRICE_ID_EMPLOYMENT_PACK / _AWARD_PACK). NB standalone HQ Recruit
+needs STRIPE_PRICE_ID_RECRUIT_MONTHLY, and the re-priced one-off ladder +
+packs need their Stripe prices (re)created, before those checkouts can charge.
 
 ## Pricing (C10 - live; single source lib/pricing-config.ts)
 No free trial and no Foundation offer (both removed July 2026). Unlimited

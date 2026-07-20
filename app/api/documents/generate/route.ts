@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
   const buffer = await Packer.toBuffer(document)
   const filename = `${docTitle.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'Content-Disposition': `attachment; filename="${filename}"`,

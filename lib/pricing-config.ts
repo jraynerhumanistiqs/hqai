@@ -221,7 +221,7 @@ export const PRICING: PricingShape = {
     {
       id: 'letter-of-offer',
       name: 'Letter of Offer',
-      price: 25,
+      price: 49,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_LETTER_OF_OFFER',
       noSignupRequired: true,
@@ -230,7 +230,7 @@ export const PRICING: PricingShape = {
     {
       id: 'termination-letter',
       name: 'Termination Letter',
-      price: 45,
+      price: 99,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_TERMINATION',
       noSignupRequired: true,
@@ -239,7 +239,7 @@ export const PRICING: PricingShape = {
     {
       id: 'employment-contract',
       name: 'Employment Contract',
-      price: 49,
+      price: 129,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_EMPLOYMENT_CONTRACT',
       noSignupRequired: true,
@@ -248,7 +248,7 @@ export const PRICING: PricingShape = {
     {
       id: 'first-and-final-warning',
       name: 'First-and-Final Warning',
-      price: 35,
+      price: 59,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_FIRST_FINAL_WARNING',
       noSignupRequired: true,
@@ -257,7 +257,7 @@ export const PRICING: PricingShape = {
     {
       id: 'position-description',
       name: 'Position Description',
-      price: 29,
+      price: 49,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_POSITION_DESCRIPTION',
       noSignupRequired: true,
@@ -266,7 +266,7 @@ export const PRICING: PricingShape = {
     {
       id: 'performance-plan',
       name: 'Performance Improvement Plan',
-      price: 39,
+      price: 69,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_PERFORMANCE_PLAN',
       noSignupRequired: true,
@@ -275,7 +275,7 @@ export const PRICING: PricingShape = {
     {
       id: 'casual-conversion-letter',
       name: 'Casual Conversion Letter',
-      price: 29,
+      price: 49,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_CASUAL_CONVERSION',
       noSignupRequired: true,
@@ -284,7 +284,7 @@ export const PRICING: PricingShape = {
     {
       id: 'resignation-acceptance',
       name: 'Resignation Acceptance',
-      price: 25,
+      price: 39,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_RESIGNATION_ACCEPTANCE',
       noSignupRequired: true,
@@ -293,7 +293,7 @@ export const PRICING: PricingShape = {
     {
       id: 'probation-outcome',
       name: 'Probation Outcome Letter',
-      price: 35,
+      price: 59,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_PROBATION_OUTCOME',
       noSignupRequired: true,
@@ -302,11 +302,29 @@ export const PRICING: PricingShape = {
     {
       id: 'reference-check-request',
       name: 'Reference Check Request',
-      price: 25,
+      price: 39,
       currency: 'AUD',
       stripePriceId: 'STRIPE_PRICE_ID_REFERENCE_CHECK',
       noSignupRequired: true,
       description: 'A reference request with consent capture and structured questions.',
+    },
+    {
+      id: 'employment-pack',
+      name: 'Employment Pack',
+      price: 349,
+      currency: 'AUD',
+      stripePriceId: 'STRIPE_PRICE_ID_EMPLOYMENT_PACK',
+      noSignupRequired: true,
+      description: 'The core hiring-to-onboarding set - employment contract, position description, letter of offer and onboarding checklist - filled in with your details.',
+    },
+    {
+      id: 'award-pack',
+      name: 'Award Pack',
+      price: 599,
+      currency: 'AUD',
+      stripePriceId: 'STRIPE_PRICE_ID_AWARD_PACK',
+      noSignupRequired: true,
+      description: 'A tailored bundle for your Modern Award - pay and classification summary, a compliant contract and the key policies, matched to your industry.',
     },
   ],
   credits: {

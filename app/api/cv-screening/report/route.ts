@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
       const allScores = (s.criteria_scores as CriterionScore[]) ?? []
       const criteriaScores = allScores.filter(cs => !gateIds.has(cs.id))
       const considerations = rubric ? deriveConsiderations(rubric.criteria, allScores, s.considerations) : []
-      const sections: Paragraph[] = []
+      const sections: (Paragraph | Table)[] = []
 
       // Title rule: every per-candidate CV score summary is
       // "{Candidate Full Name} - CV Score Summary".
