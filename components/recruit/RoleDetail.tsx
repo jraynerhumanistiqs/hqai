@@ -172,7 +172,6 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     const channel = supa
       .channel(`prescreen_responses:${session.id}`)
       .on(
-        // @ts-expect-error - ssr client types don't include postgres_changes payload generics
         'postgres_changes',
         { event: '*', schema: 'public', table: 'prescreen_responses', filter: `session_id=eq.${session.id}` },
         (payload: any) => {

@@ -130,6 +130,7 @@ export interface CandidateResponse {
   // screening via batch handoff (no video yet).
   cv_screening_id?: string | null
   overall_score?: number | null
+  rubric_scores?: unknown[] | null
   // Personalised pre-screen questions targeted at this candidate's own
   // weakest CV criteria. Generated best-effort at handoff time (single or
   // bulk) - see lib/cv-screening-questions.ts. Falls back to the shared

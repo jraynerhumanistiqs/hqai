@@ -72,7 +72,6 @@ export function NotesPanel({ responseId }: Props) {
     const channel = supa
       .channel(`prescreen_notes:${responseId}`)
       .on(
-        // @ts-expect-error - generic types for postgres_changes
         'postgres_changes',
         { event: '*', schema: 'public', table: 'prescreen_notes', filter: `response_id=eq.${responseId}` },
         (payload: any) => {

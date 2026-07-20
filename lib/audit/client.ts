@@ -11,9 +11,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
  *
  * Server-only - bypasses RLS. Never import into a client component.
  */
-let _audit: SupabaseClient | null = null
+let _audit: SupabaseClient<any, any, any> | null = null
 
-export function getAuditAdmin(): SupabaseClient {
+export function getAuditAdmin(): SupabaseClient<any, any, any> {
   if (!_audit) {
     _audit = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,7 +31,7 @@ export function getAuditAdmin(): SupabaseClient {
  * Lazy proxy alias - mirrors the supabaseAdmin pattern in lib/supabase/admin.ts
  * so callsites read like `auditAdmin.from('assessments').select(...)`.
  */
-export const auditAdmin = new Proxy({} as SupabaseClient, {
+export const auditAdmin = new Proxy({} as SupabaseClient<any, any, any>, {
   get(_target, prop) {
     return (getAuditAdmin() as any)[prop]
   },
