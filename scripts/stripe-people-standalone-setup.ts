@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import Stripe from 'stripe'
+import { resolveStripeKey } from './stripe-key'
 import { C10_SELF_SERVE } from '../lib/pricing-config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -54,13 +55,14 @@ interface PriceSpec {
 }
 
 async function main() {
-  const key = loadEnvKey('STRIPE_SECRET_KEY') ?? loadEnvKey('STRIPE_API_KEY')
+  const _r = resolveStripeKey(ENV_LOCAL)
+  const key = _r.key
   if (!key) {
     console.error('No STRIPE_SECRET_KEY in .env.local or environment. Aborting.')
     process.exit(1)
   }
-  const mode = key.startsWith('sk_live') ? 'LIVE' : key.startsWith('sk_test') ? 'TEST' : 'UNKNOWN'
-  console.log(`Stripe mode: ${mode}`)
+  const mode = _r.mode
+  console.log(`Stripe mode: ${mode}  (candidates -> live:${_r.liveCount} test:${_r.testCount} other:${_r.otherCount})`)
 
   const stripe = new Stripe(key, { apiVersion: '2024-04-10' })
 
