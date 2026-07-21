@@ -47,7 +47,7 @@ function envHasKey(name: string): boolean {
 }
 
 async function main() {
-  const key = loadEnvKey('STRIPE_API_KEY') ?? loadEnvKey('STRIPE_SECRET_KEY')
+  const key = loadEnvKey('STRIPE_SECRET_KEY') ?? loadEnvKey('STRIPE_API_KEY')
   if (!key) {
     console.error('No STRIPE_SECRET_KEY in .env.local or environment. Aborting.')
     process.exit(1)

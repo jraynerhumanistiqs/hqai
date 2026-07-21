@@ -1,0 +1,138 @@
+// Create the HQ Business bundle subscription prices (Solo + Business) in Stripe.
+//
+// A .ts sibling to the standalone setup scripts so the Stripe key stays in
+// .env.local and is never passed on a command line. Replaces the need to run
+// the Stripe-CLI-based stripe-c10-setup.py for the base solo/business plans.
+// Creates, per tier in PRICING.tiers (Solo, HQ Business):
+//   - a monthly recurring AUD price  (tier.priceMonthly)
+//   - an annual  recurring AUD price (tier.priceAnnualTotal)
+// mapped to the env keys the checkout resolver already uses
+// (STRIPE_PRICE_ID_SOLO_MONTHLY / _ANNUAL, _BUSINESS_MONTHLY / _ANNUAL).
+//
+// Amounts come from lib/pricing-config.ts - never hardcoded. Idempotent via
+// lookup_keys. Reads STRIPE_SECRET_KEY from .env.local (or the environment);
+// the key is never printed, only its live/test mode. Run from hqai/:
+//   npx tsx scripts/stripe-subscriptions-setup.ts
+//
+// Output: scripts/stripe-subscriptions-price-ids.env (paste into Vercel), and
+// any missing keys are appended to .env.local.
+
+import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import Stripe from 'stripe'
+import { PRICING } from '../lib/pricing-config'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const ENV_LOCAL = join(__dirname, '..', '.env.local')
+
+function loadEnvKey(name: string): string | null {
+  if (process.env[name]?.trim()) return process.env[name]!.trim()
+  if (!existsSync(ENV_LOCAL)) return null
+  for (const line of readFileSync(ENV_LOCAL, 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^([A-Z0-9_]+)=(.*)$/)
+    if (m && m[1] === name) return m[2].trim().replace(/^["']|["']$/g, '')
+  }
+  return null
+}
+
+function envHasKey(name: string): boolean {
+  if (!existsSync(ENV_LOCAL)) return false
+  return readFileSync(ENV_LOCAL, 'utf8').split(/\r?\n/).some((l) => l.startsWith(`${name}=`))
+}
+
+async function ensurePrice(
+  stripe: Stripe,
+  opts: { lookup: string; productName: string; productDesc: string; amount: number; interval: 'month' | 'year'; nickname: string },
+): Promise<string> {
+  const existing = (await stripe.prices.list({ lookup_keys: [opts.lookup], limit: 1 })).data[0] ?? null
+  if (existing && existing.active && existing.unit_amount === opts.amount * 100) {
+    console.log(`  reuse   ${opts.nickname} -> ${existing.id}`)
+    return existing.id
+  }
+  let productId = (existing?.product as string | undefined) ?? null
+  if (!productId) {
+    const found = await stripe.products.search({ query: `name:'${opts.productName}'`, limit: 1 })
+    productId = found.data[0]?.id ?? null
+  }
+  if (!productId) {
+    const product = await stripe.products.create({ name: opts.productName, description: opts.productDesc })
+    productId = product.id
+    console.log(`  product created: ${opts.productName} -> ${productId}`)
+  }
+  const price = await stripe.prices.create({
+    product: productId,
+    unit_amount: opts.amount * 100,
+    currency: 'aud',
+    recurring: { interval: opts.interval },
+    nickname: opts.nickname,
+    lookup_key: opts.lookup,
+    ...(existing ? { transfer_lookup_key: true } : {}),
+  })
+  if (existing) await stripe.prices.update(existing.id, { active: false })
+  console.log(`  ${existing ? 'reprice' : 'create '} ${opts.nickname} -> ${price.id}`)
+  return price.id
+}
+
+async function main() {
+  const key = loadEnvKey('STRIPE_SECRET_KEY') ?? loadEnvKey('STRIPE_API_KEY')
+  if (!key) {
+    console.error('No STRIPE_SECRET_KEY in .env.local or environment. Aborting.')
+    process.exit(1)
+  }
+  const mode = key.startsWith('sk_live') ? 'LIVE' : key.startsWith('sk_test') ? 'TEST' : 'UNKNOWN'
+  console.log(`Stripe mode: ${mode}`)
+  if (mode === 'LIVE') console.log('WARNING: operating on your LIVE Stripe account.\n')
+
+  const stripe = new Stripe(key, { apiVersion: '2024-04-10' })
+  const results: { envKey: string; priceId: string }[] = []
+
+  for (const tier of PRICING.tiers) {
+    const productName = `HQ.ai ${tier.name}` // "HQ.ai Solo", "HQ.ai HQ Business"
+    const monthlyId = await ensurePrice(stripe, {
+      lookup: `${tier.id}_monthly`,
+      productName,
+      productDesc: tier.tagline,
+      amount: tier.priceMonthly,
+      interval: 'month',
+      nickname: `${tier.name} monthly ($${tier.priceMonthly})`,
+    })
+    results.push({ envKey: tier.stripePriceIdMonthly, priceId: monthlyId })
+    const annualId = await ensurePrice(stripe, {
+      lookup: `${tier.id}_annual`,
+      productName,
+      productDesc: tier.tagline,
+      amount: tier.priceAnnualTotal,
+      interval: 'year',
+      nickname: `${tier.name} annual ($${tier.priceAnnualTotal}/yr)`,
+    })
+    results.push({ envKey: tier.stripePriceIdAnnual, priceId: annualId })
+  }
+
+  const outPath = join(__dirname, 'stripe-subscriptions-price-ids.env')
+  writeFileSync(
+    outPath,
+    [
+      '# HQ Business bundle (Solo + Business) subscription Stripe price ids.',
+      '# Generated by scripts/stripe-subscriptions-setup.ts',
+      '# Paste into Vercel env (Production + Preview + Development), then redeploy.',
+      ...results.map((r) => `${r.envKey}=${r.priceId}`),
+      '',
+    ].join('\n'),
+    'utf8',
+  )
+  console.log(`\nWrote ${results.length} price ids to ${outPath}`)
+
+  const toAppend = results.filter((r) => !envHasKey(r.envKey)).map((r) => `${r.envKey}=${r.priceId}`)
+  if (toAppend.length && existsSync(ENV_LOCAL)) {
+    appendFileSync(ENV_LOCAL, `\n# Subscriptions (stripe-subscriptions-setup.ts)\n${toAppend.join('\n')}\n`)
+    console.log(`Appended ${toAppend.length} key(s) to .env.local`)
+  } else {
+    console.log('.env.local already has these keys (or file missing) - nothing appended')
+  }
+}
+
+main().catch((err) => {
+  console.error('FAILED:', err?.message ?? err)
+  process.exit(1)
+})
