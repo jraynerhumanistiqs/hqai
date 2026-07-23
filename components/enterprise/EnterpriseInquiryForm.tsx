@@ -79,7 +79,7 @@ export default function EnterpriseInquiryForm() {
       >
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">Received</p>
         <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink">
-          Thanks - Jimmy will be in touch within 48 hours.
+          Thanks - our HQ.ai team will be in touch within 48 hours.
         </h3>
         <p className="mt-3 text-sm text-ink-soft">
           A confirmation has gone to your inbox. If you don&apos;t see it within five minutes, check spam or
@@ -279,7 +279,7 @@ export default function EnterpriseInquiryForm() {
           disabled={status === 'submitting'}
           className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {status === 'submitting' ? 'Sending...' : 'Send to Jimmy ->'}
+          {status === 'submitting' ? 'Sending...' : 'Send to our team ->'}
         </button>
         <p className="text-[11px] leading-relaxed text-ink-muted">
           We use this only to contact you about HR365 and Recruit365. No marketing emails.

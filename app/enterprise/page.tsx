@@ -95,7 +95,7 @@ const FAQS: Array<{ q: string; a: string }> = [
 ]
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'First call', body: '30 minutes. We work out where you are now, what the problem looks like, and whether HR365, Recruit365, or both is the right fit. Jimmy runs this himself for the first 10 customers.' },
+  { step: '01', title: 'First call', body: '30 minutes. We work out where you are now, what the problem looks like, and whether HR365, Recruit365, or both is the right fit. Our founding team runs these first calls personally.' },
   { step: '02', title: 'Written scope', body: 'Within 5 business days of the call. We put the work, the hours, the rhythm and your dedicated advisor in writing. A PDF plus a draft invoice.' },
   { step: '03', title: 'Setup', body: 'A tour of the tools, getting us up to speed on your business, setting your goals, and your first session. Everything settled by week three.' },
   { step: '04', title: 'Ongoing', body: 'Regular calls, advice between them, and your monthly advisor hours. The same person every time.' },
@@ -305,10 +305,10 @@ export default function EnterprisePage() {
               Book a call
             </p>
             <h2 id="inquiry-heading" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-              Tell Jimmy what is going on.
+              Tell us what is going on.
             </h2>
             <p className="mt-4 text-base text-ink-soft md:text-lg">
-              Two minutes to fill in. Jimmy reads every message himself and replies within 48 hours to
+              Two minutes to fill in. Our team reads every message and replies within 48 hours to
               book a 30-minute call.
             </p>
 

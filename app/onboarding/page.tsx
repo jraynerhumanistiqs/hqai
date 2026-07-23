@@ -498,13 +498,13 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 3 - Support (outsourced help). Interest capture only -
-              the self-serve plan still starts today; Jimmy follows up on
-              HR365/Recruit365 personally. */}
+              the self-serve plan still starts today; our team follows up on
+              HR365/Recruit365. */}
           {step === 3 && (
             <div>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Want it done for you?</h2>
               <p className="text-sm text-mid mb-6">
-                Most teams run HQ.ai themselves. If you would rather hand the work to a person, a dedicated Humanistiqs advisor can run it for you - the AI still does the admin. Tick what interests you, or just continue.
+                Most teams run HQ.ai themselves. If you would rather outsource the hard parts, our HR365 and Recruit365 advisory team can run your HR or your hiring for you - a dedicated Humanistiqs advisor does the work, the AI does the admin. Tick what interests you, or just continue.
               </p>
               <div className="space-y-2">
                 {([
@@ -559,7 +559,7 @@ export default function OnboardingPage() {
                 )}
                 {(outsourced.hr365 || outsourced.recruit365) && (
                   <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-                    Jimmy will reach out within one business day to talk it through. No obligation - your plan on the next step still starts today.
+                    Our HQ.ai team will reach out within one business day to talk it through. No obligation - your plan on the next step still starts today.
                   </p>
                 )}
               </div>
@@ -594,9 +594,8 @@ export default function OnboardingPage() {
               {checkoutError === 'unconfigured' && (
                 <div role="alert" className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2.5 text-sm text-danger">
                   Card payments for this plan aren&apos;t switched on just yet. Nothing has been charged and everything you set up is saved.{' '}
-                  <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">Email us</a>
-                  {' '}and we&apos;ll sort it, or{' '}
-                  <a href="/dashboard" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">have a look around first</a>.
+                  <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">Talk to our team</a>
+                  {' '}and we&apos;ll get your plan started - it only takes a minute.
                 </div>
               )}
               {checkoutError === 'generic' && (
