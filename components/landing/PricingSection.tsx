@@ -311,7 +311,7 @@ export default function PricingSection() {
               AI does the admin. From ${PRICING.enterprise.variants[0].priceMonthlyDisplay}/month.
             </p>
             <Link
-              href="/enterprise"
+              href="/outsourcing"
               className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
             >
               See HR365 and RECRUIT365 -&gt;

@@ -34,7 +34,7 @@ export default function ContactPage() {
           </p>
           <p className="mt-3 text-sm text-ink-muted">
             Want a dedicated advisor on call?{' '}
-            <Link href="/enterprise" className="font-semibold text-accent hover:underline">
+            <Link href="/outsourcing" className="font-semibold text-accent hover:underline">
               See outsourced HR &amp; recruitment
             </Link>{' '}
             and book a call.

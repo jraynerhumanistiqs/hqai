@@ -457,7 +457,7 @@ export const PRICING: PricingShape = {
           'Everything in HR365 AND Recruit365',
           'Single dedicated partner team - one Advisor and one Talent Partner who coordinate',
           'Monthly Executive Review across workforce posture, hiring pipeline and compliance risk',
-          'Founder check-in twice yearly (Jimmy Rayner personally)',
+          'Founder check-in twice yearly',
           'Priority on new module access (Hospitality, Trades, Allied Health Packs)',
         ],
         notIncluded: [

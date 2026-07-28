@@ -74,5 +74,12 @@ const nextConfig = {
       },
     ]
   },
+  async redirects() {
+    return [
+      // Route renamed July 2026: /enterprise -> /outsourcing. Permanent so
+      // existing links, already-sent discovery emails, and SEO forward cleanly.
+      { source: '/enterprise', destination: '/outsourcing', permanent: true },
+    ]
+  },
 }
 module.exports = nextConfig

@@ -163,7 +163,7 @@ export default function AboutPage() {
               </p>
               <div className="mt-7">
                 <Link
-                  href="/enterprise"
+                  href="/outsourcing"
                   className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-7 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   Explore outsourced HR &amp; recruitment

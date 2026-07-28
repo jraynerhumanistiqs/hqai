@@ -23,12 +23,12 @@ const PAGE_DESCRIPTION =
 export const metadata: Metadata = {
   title: 'HR365 + Recruit365 - AI does the admin, a real person makes the call',
   description: PAGE_DESCRIPTION,
-  alternates: { canonical: '/enterprise' },
+  alternates: { canonical: '/outsourcing' },
   robots: { index: true, follow: true },
   openGraph: {
     title: 'HR365 + Recruit365 - AI does the admin, a real person makes the call',
     description: PAGE_DESCRIPTION,
-    url: '/enterprise',
+    url: '/outsourcing',
     siteName: 'HQ.ai',
     locale: 'en_AU',
     type: 'website',

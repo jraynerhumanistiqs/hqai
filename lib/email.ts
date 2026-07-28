@@ -584,7 +584,7 @@ export async function sendEnterpriseInquiryConfirmation({
     '',
     'Thanks for reaching out. I personally read every inquiry, so this has landed with me.',
     '',
-    `I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the plan detail at humanistiqs.ai/enterprise so the call gets straight to the specifics for ${businessName}.`,
+    `I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the plan detail at humanistiqs.ai/outsourcing so the call gets straight to the specifics for ${businessName}.`,
     '',
     'Speak soon,',
     'Jimmy Rayner',
@@ -603,7 +603,7 @@ export async function sendEnterpriseInquiryConfirmation({
         bodyHtml: `
           <p style="margin:0 0 14px 0;">Hi ${escapeHtml(fullName)},</p>
           <p style="margin:0 0 14px 0;">Thanks for reaching out. I personally read every Enterprise inquiry, so this has landed with me.</p>
-          <p style="margin:0 0 14px 0;">I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at <a href="https://humanistiqs.ai/enterprise" style="color:${BRAND.accent};text-decoration:underline;">humanistiqs.ai/enterprise</a> so the call gets straight to the specifics for ${escapeHtml(businessName)}.</p>
+          <p style="margin:0 0 14px 0;">I'll come back to you within 48 hours to book a 30-minute discovery call. Before then, have a look at the variant detail at <a href="https://humanistiqs.ai/outsourcing" style="color:${BRAND.accent};text-decoration:underline;">humanistiqs.ai/outsourcing</a> so the call gets straight to the specifics for ${escapeHtml(businessName)}.</p>
           <p style="margin:18px 0 0 0;">Speak soon,<br/>Jimmy Rayner<br/><span style="color:${BRAND.body};">Founder, Humanistiqs</span></p>
         `,
       }),

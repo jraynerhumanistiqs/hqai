@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (isSalesAssistedPlan(planId)) {
     return NextResponse.json({
       error: 'This plan requires a discovery call.',
-      redirect: '/enterprise',
+      redirect: '/outsourcing',
     }, { status: 400 })
   }
 
