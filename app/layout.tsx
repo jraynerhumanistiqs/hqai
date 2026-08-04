@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Schibsted_Grotesk, Geist, Geist_Mono } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 // Typography (June 2026 repositioning pass). The display face moved off
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
