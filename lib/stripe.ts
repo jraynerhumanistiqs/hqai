@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
+import { PRICING, C10_SELF_SERVE, ADVISORY_HOURS } from '@/lib/pricing-config'
 
 let _stripe: Stripe | null = null
 
@@ -297,6 +297,18 @@ export function getOneOffPriceId(id: OneOffOfferId): string | null {
   const entry = ONE_OFF_OFFERS[id]
   if (!entry) return null
   const v = process.env[entry.envKey]
+  return v && v.trim() ? v.trim() : null
+}
+
+// Advisory hours - a one-off (mode: payment) Stripe Price of AUD $250 with
+// an adjustable quantity = number of hours booked. Added to the
+// subscription-mode Checkout Session as a one-time line item (Stripe bills
+// one-time prices on the initial invoice only). Resolves to null until the
+// price is created and STRIPE_PRICE_ID_ADVISORY_HOUR is set - callers must
+// then surface the same friendly "not switched on yet" 503 the plans use,
+// never charge the plan while silently dropping the hours.
+export function getAdvisoryHourPriceId(): string | null {
+  const v = process.env[ADVISORY_HOURS.stripePriceIdEnvKey]
   return v && v.trim() ? v.trim() : null
 }
 

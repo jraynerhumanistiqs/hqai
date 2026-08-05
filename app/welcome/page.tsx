@@ -207,10 +207,15 @@ export default function WelcomePage() {
                 {loading ? 'Taking you to secure checkout...' : 'Start my plan'}
               </button>
 
-              <p className="mt-4 text-center">
-                <a href="/dashboard" className="text-xs text-ink-soft hover:text-ink underline underline-offset-2">
-                  Have a look around first
+              <p className="mt-4 text-center text-xs leading-relaxed text-ink-soft">
+                Second guessing a HQ.ai subscription? Feel free to{' '}
+                <a
+                  href="mailto:jrayner@humanistiqs.com.au?subject=A%20question%20before%20I%20subscribe%20to%20HQ.ai"
+                  className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft"
+                >
+                  submit a query here
                 </a>
+                {' '}- someone from the HQ.ai team will be sure to reach out and help clarify any questions you may have.
               </p>
 
               <p className="mt-3 text-center text-xs text-ink-muted">

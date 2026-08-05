@@ -693,3 +693,32 @@ export const C10_SELF_SERVE = {
     ],
   },
 }
+
+// -------------------------------------------------------------------------
+// Advisory hours - the self-serve "book time now" path on the onboarding
+// Support step (added Aug 2026). A one-off purchase of a dedicated
+// Humanistiqs advisor's time, charged at checkout at $250/hour (the same
+// rate as the HR365 additional-advisor-time overage). This is distinct
+// from HR365 / Recruit365, which are ongoing advisory RETAINERS and stay
+// sales-assisted. On the Support step every buyer is offered BOTH options
+// per area (HR and Recruitment): book advisory time now, or talk to the
+// team about ongoing outsourcing - no headcount/hours cutoff decides for
+// them, the buyer chooses.
+//
+// The Stripe price is a one-off (mode: payment) AUD $250 Price with an
+// adjustable quantity = number of hours, added to the subscription-mode
+// Checkout Session as a one-time line item (Stripe puts one-time prices on
+// the initial invoice only). Until STRIPE_PRICE_ID_ADVISORY_HOUR exists in
+// the environment, the checkout route surfaces the friendly
+// "not switched on yet" 503 instead of charging - the same graceful
+// degradation the not-yet-wired plans use.
+// -------------------------------------------------------------------------
+export const ADVISORY_HOURS = {
+  hourlyRate: 250, // AUD per hour, charged one-off at checkout
+  currency: 'AUD' as const,
+  stripePriceIdEnvKey: 'STRIPE_PRICE_ID_ADVISORY_HOUR',
+  minHours: 1,
+  // Stepper ceiling only - NOT a routing cutoff. Both "book now" and
+  // "talk to the team" stay available at every hour count.
+  maxHours: 20,
+} as const

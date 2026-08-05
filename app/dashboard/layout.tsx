@@ -42,6 +42,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const unpaid = !!business
     && business.subscription_status !== 'active'
     && !business.stripe_subscription_id
+
+  // Hard paywall: a business that has never checked out cannot reach the
+  // dashboard at all. The internal test_admin role bypasses so the team
+  // can inspect member workspaces without a live subscription; everyone
+  // else is sent to onboarding, which resumes at the payment step. NB
+  // there is a brief window after a real payment where the Stripe webhook
+  // has not yet written stripe_subscription_id - a just-paid buyer could
+  // bounce here for a second or two. The /welcome success screen sits in
+  // front of that gap; watch webhook latency in the live payment test.
+  if (unpaid && role !== 'test_admin') {
+    redirect('/onboarding')
+  }
+
   const bannerPlanId = CHECKOUT_PLAN_IDS.includes(business?.plan) ? business.plan : 'business'
 
   const sidebarProps = {

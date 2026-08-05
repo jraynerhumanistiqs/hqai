@@ -7,17 +7,27 @@
 // the browser there.
 
 import { createClient } from '@/lib/supabase/server'
-import { buildCheckoutReturnUrls, getStripe, getStripePriceId, isBillingCycle, isCheckoutReturnTo, isPlanId, isSalesAssistedPlan } from '@/lib/stripe'
+import { buildCheckoutReturnUrls, getAdvisoryHourPriceId, getStripe, getStripePriceId, isBillingCycle, isCheckoutReturnTo, isPlanId, isSalesAssistedPlan } from '@/lib/stripe'
+import { ADVISORY_HOURS } from '@/lib/pricing-config'
 import { NextRequest, NextResponse } from 'next/server'
+import type Stripe from 'stripe'
 
 export const runtime = 'nodejs'
+
+// Clamp a client-supplied advisory-hours value to a safe integer within the
+// published band. Anything junk becomes 0 (no hours booked).
+function safeHours(raw: unknown): number {
+  const n = typeof raw === 'number' ? raw : Number(raw)
+  if (!Number.isFinite(n)) return 0
+  return Math.min(Math.max(Math.trunc(n), 0), ADVISORY_HOURS.maxHours)
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  let body: { planId?: unknown; cycle?: unknown; returnTo?: unknown }
+  let body: { planId?: unknown; cycle?: unknown; returnTo?: unknown; advisoryHours?: unknown }
   try {
     body = await req.json()
   } catch {
@@ -56,6 +66,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       error: 'Billing is not fully configured yet. Please contact support.',
     }, { status: 503 })
+  }
+
+  // Optional advisory hours booked on the onboarding Support step. Same
+  // $250/hr one-off for HR and Recruitment - tracked separately for the
+  // advisor's benefit, billed as a single one-time line item (quantity =
+  // total hours) on the subscription's first invoice.
+  const advisory = (body.advisoryHours ?? {}) as { hr?: unknown; recruit?: unknown }
+  const hrHours = safeHours(advisory.hr)
+  const recruitHours = safeHours(advisory.recruit)
+  const totalAdvisoryHours = hrHours + recruitHours
+
+  let advisoryPriceId: string | null = null
+  if (totalAdvisoryHours > 0) {
+    advisoryPriceId = getAdvisoryHourPriceId()
+    if (!advisoryPriceId) {
+      // The buyer asked to pay for hours but the price isn't wired yet.
+      // Refuse rather than charge the plan and silently drop the hours -
+      // the same "not switched on yet" 503 the funnel already handles.
+      console.error('[stripe/checkout] advisory hours requested but STRIPE_PRICE_ID_ADVISORY_HOUR is unset')
+      return NextResponse.json({
+        error: 'Advisory time isn\'t switched on for online payment just yet. Please contact support.',
+      }, { status: 503 })
+    }
   }
 
   const { data: profile, error: profileErr } = await supabase
@@ -98,11 +131,30 @@ export async function POST(req: NextRequest) {
 
   const { successUrl, cancelUrl } = buildCheckoutReturnUrls(origin, returnTo, planId, cycle)
 
+  // Recurring plan first; advisory hours (if any) as a one-time line item.
+  // Stripe bills one-time prices on the initial invoice only, so the hours
+  // are charged today alongside the first subscription payment.
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [{ price: priceId, quantity: 1 }]
+  if (advisoryPriceId && totalAdvisoryHours > 0) {
+    lineItems.push({ price: advisoryPriceId, quantity: totalAdvisoryHours })
+  }
+
+  // Advisory-hours breakdown travels on both the session and the
+  // subscription so the founder can see, in Stripe, exactly how much HR vs
+  // recruitment time each buyer paid for and book the advisor accordingly.
+  const advisoryMeta: Record<string, string> = totalAdvisoryHours > 0
+    ? {
+        advisory_hr_hours: String(hrHours),
+        advisory_recruit_hours: String(recruitHours),
+        advisory_hourly_rate: String(ADVISORY_HOURS.hourlyRate),
+      }
+    : {}
+
   try {
     const session = await getStripe().checkout.sessions.create({
       customer: customerId!,
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
@@ -112,6 +164,7 @@ export async function POST(req: NextRequest) {
           business_id: profile.business_id,
           plan: planId,
           cycle,
+          ...advisoryMeta,
         },
       },
       // Keep the business id on the checkout session too so the webhook
@@ -121,6 +174,7 @@ export async function POST(req: NextRequest) {
         business_id: profile.business_id,
         plan: planId,
         cycle,
+        ...advisoryMeta,
       },
     })
     if (!session.url) {
