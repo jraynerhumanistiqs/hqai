@@ -4,8 +4,9 @@
 // (set by buildCheckoutReturnUrls in lib/stripe.ts):
 //   success:   plan is active - restrained celebration, one CTA in.
 //   cancelled: no payment taken - saved-state reassurance, resume CTA.
-// A light standalone product surface like /login and /onboarding - no
-// MarketingHeader, no data-app scope, no ThemeBoundary.
+// The tail of the self-serve funnel, so it wears the same dark, warm
+// marketing palette as /onboarding: app/welcome/layout.tsx scopes the
+// route to data-app="marketing". No MarketingHeader, no ThemeBoundary.
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
@@ -115,23 +116,27 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
         </div>
 
-        <div className="bg-white shadow-modal rounded-2xl p-8">
+        <div className="bg-bg-elevated border border-border shadow-card rounded-3xl p-8">
           {variant === 'success' ? (
             <>
               <div className="text-center">
                 {/* Restrained celebration - the clay-soft disc is the one
                     sanctioned highlight. No confetti. */}
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-clay-soft text-clay-ink animate-in zoom-in-95 fade-in duration-base motion-reduce:animate-none">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-clay-soft text-clay animate-in zoom-in-95 fade-in duration-base motion-reduce:animate-none">
                   <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                 </div>
+                <p className="mb-3 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                  <span aria-hidden className="h-px w-5 bg-clay" />
+                  Welcome to HQ.ai
+                </p>
                 <h1 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">
                   You&apos;re in.
                 </h1>
@@ -157,7 +162,7 @@ export default function WelcomePage() {
 
               <a
                 href="/dashboard"
-                className="mt-6 inline-flex w-full items-center justify-center bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="mt-6 inline-flex w-full items-center justify-center bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Open my dashboard
               </a>
@@ -176,6 +181,10 @@ export default function WelcomePage() {
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                 </div>
+                <p className="mb-3 flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                  <span aria-hidden className="h-px w-5 bg-clay" />
+                  Saved for later
+                </p>
                 <h1 className="font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5">
                   No payment taken
                 </h1>
@@ -202,7 +211,7 @@ export default function WelcomePage() {
                 onClick={resumeCheckout}
                 disabled={loading}
                 aria-busy={loading}
-                className="w-full bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="w-full bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 {loading ? 'Taking you to secure checkout...' : 'Start my plan'}
               </button>

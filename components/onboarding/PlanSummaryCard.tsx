@@ -189,17 +189,17 @@ export default function PlanSummaryCard({
               role="radio"
               aria-checked={safeId === p.id}
               onClick={() => pick(p.id)}
-              className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
-                ${safeId === p.id ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
+              className={`w-full flex items-start gap-3 p-3 rounded-2xl border text-left transition-all
+                ${safeId === p.id ? 'border-clay bg-clay-soft' : 'border-border hover:border-ink-muted'}`}
             >
               <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                ${safeId === p.id ? 'border-ink bg-ink' : 'border-border'}`}>
-                {safeId === p.id && <div className="w-1.5 h-1.5 bg-bg-elevated rounded-full" />}
+                ${safeId === p.id ? 'border-clay bg-clay' : 'border-border'}`}>
+                {safeId === p.id && <div className="w-1.5 h-1.5 bg-clay-ink rounded-full" />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-ink">{p.label}</span>
-                  {p.recommended && <span className="text-[10px] bg-accent-soft text-accent border border-accent/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>}
+                  {p.recommended && <span className="text-[10px] bg-clay-soft text-clay border border-clay/30 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Popular</span>}
                   <span className="text-sm font-semibold text-ink ml-auto">{p.price}</span>
                 </div>
                 <p className="text-xs text-ink-muted mt-0.5">{p.desc}</p>

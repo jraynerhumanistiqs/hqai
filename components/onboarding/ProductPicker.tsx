@@ -51,13 +51,13 @@ export default function ProductPicker({ needs, headcount, planId, cycle, onNeeds
               role="checkbox"
               aria-checked={on}
               onClick={() => onNeedsChange({ ...needs, [opt.key]: !on })}
-              className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all
-                ${on ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
+              className={`w-full flex items-start gap-3 p-3 rounded-2xl border text-left transition-all
+                ${on ? 'border-clay bg-clay-soft' : 'border-border hover:border-ink-muted'}`}
             >
               <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
-                ${on ? 'border-ink bg-ink' : 'border-border'}`}>
+                ${on ? 'border-clay bg-clay' : 'border-border'}`}>
                 {on && (
-                  <svg className="w-2.5 h-2.5 text-bg-elevated" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <svg className="w-2.5 h-2.5 text-clay-ink" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 )}

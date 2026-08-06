@@ -5,18 +5,19 @@ import { createClient } from '@/lib/supabase/client'
 import PlanSummaryCard, { getPlanMeta, isCheckoutPlanId, planPriceLine } from '@/components/onboarding/PlanSummaryCard'
 import ProductPicker from '@/components/onboarding/ProductPicker'
 import { planToNeeds, suggestPlanId, type ProductNeeds } from '@/lib/plan-suggest'
-import { PRICING, ADVISORY_HOURS } from '@/lib/pricing-config'
+import { PRICING } from '@/lib/pricing-config'
 import { trackFunnelEvent } from '@/lib/analytics'
 
-// Support step model. Per area (HR, recruitment) the buyer picks ONE of:
-//   'hours' - book a Humanistiqs advisor's time now ($250/hr, one-off,
-//             charged at checkout), or
-//   'talk'  - talk to the team about ongoing outsourcing (HR365/Recruit365,
-//             sales-assisted, interest capture only).
-// Both options are always offered - no headcount/hours cutoff chooses for
-// the buyer. null = neither (skipped).
-type SupportMode = null | 'hours' | 'talk'
-interface SupportAreaState { mode: SupportMode; hours: number }
+// Support step model (Aug 2026). The self-serve "book advisory hours now"
+// pay-now path is OFF for now (the $250/hr Stripe price stays wired in
+// .env + the checkout route, just not surfaced in the UX). The Support
+// step is now purely an invitation to be contacted about ongoing outsourced
+// HR, recruitment, or both - the buyer flags interest and offers their best
+// days/times for a free 30-minute clarity call. Captured as an enterprise
+// inquiry (founder triage email); never blocks or charges the plan.
+const CALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const
+const CALL_TIMES = ['Morning (9-12)', 'Midday (12-2)', 'Afternoon (2-5)'] as const
+interface SupportState { hr: boolean; recruit: boolean; days: string[]; times: string[] }
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
 // The value domain for award detection AND the Settings fine-tune picker.
@@ -75,12 +76,9 @@ export default function OnboardingPage() {
   // Product needs drive the plan suggestion (ProductPicker). Default
   // mirrors the default 'business' plan: both products on.
   const [needs, setNeeds] = useState<ProductNeeds>({ people: true, recruit: true })
-  // Support step. Each area independently: book advisory time now ('hours'),
-  // talk to the team about ongoing outsourcing ('talk'), or skip (null).
-  const [support, setSupport] = useState<{ hr: SupportAreaState; recruit: SupportAreaState }>({
-    hr: { mode: null, hours: ADVISORY_HOURS.minHours },
-    recruit: { mode: null, hours: ADVISORY_HOURS.minHours },
-  })
+  // Support step: interest in ongoing outsourced HR / recruitment + best
+  // availability for a 30-minute clarity call. Interest capture only.
+  const [support, setSupport] = useState<SupportState>({ hr: false, recruit: false, days: [], times: [] })
   const [userEmail, setUserEmail] = useState('')
   const [authReady, setAuthReady] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
@@ -270,39 +268,31 @@ export default function OnboardingPage() {
     }
   }
 
-  // Continue past the Support step. Two independent outcomes:
-  //   - 'talk' selections become an enterprise inquiry (founder triage +
-  //     confirmation email, same funnel as /enterprise) - interest only,
-  //     never charged here. A capture failure must not block payment.
-  //   - 'hours' selections carry in state to the payment step and are
-  //     charged as a one-off line item at checkout (see startCheckout).
+  // Continue past the Support step. If the buyer flagged interest in
+  // outsourced HR / recruitment, record it as an enterprise inquiry (founder
+  // triage + confirmation email, same funnel as /enterprise), carrying their
+  // best days/times for a clarity call in the notes. Interest capture only -
+  // never charged here, and a capture failure must not block payment.
   async function submitSupportThenPay() {
     trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 3 })
 
-    const talkHr = support.hr.mode === 'talk'
-    const talkRecruit = support.recruit.mode === 'talk'
-    const hrHours = support.hr.mode === 'hours' ? support.hr.hours : 0
-    const recruitHours = support.recruit.mode === 'hours' ? support.recruit.hours : 0
-
-    if (hrHours + recruitHours > 0) {
-      trackFunnelEvent('advisory_hours_selected', {
-        plan: form.plan,
-        hr_hours: hrHours,
-        recruit_hours: recruitHours,
-        total_cost_aud: (hrHours + recruitHours) * ADVISORY_HOURS.hourlyRate,
-      })
-    }
-
-    if ((talkHr || talkRecruit) && userEmail) {
-      const variant = talkHr && talkRecruit ? 'full' : talkHr ? 'people' : 'recruit'
+    if ((support.hr || support.recruit) && userEmail) {
+      const variant = support.hr && support.recruit ? 'full' : support.hr ? 'people' : 'recruit'
+      const areas = [support.hr ? 'HR' : null, support.recruit ? 'Recruitment' : null].filter(Boolean).join(' and ')
       trackFunnelEvent('outsourced_interest', {
         plan: form.plan,
-        hr365: talkHr,
-        recruit365: talkRecruit,
+        hr365: support.hr,
+        recruit365: support.recruit,
         variant,
+        days: support.days.length,
+        times: support.times.length,
       })
       const n = parseInt(form.headcount.replace(/[^0-9]/g, ''), 10)
       const bucket = !Number.isFinite(n) || n < 30 ? 'Under 30' : n <= 50 ? '30-50' : n <= 150 ? '50-150' : '150+'
+      const availability = [
+        support.days.length ? `best days ${support.days.join(', ')}` : null,
+        support.times.length ? `best times ${support.times.join(', ')}` : null,
+      ].filter(Boolean).join('; ') || 'no preference given'
       setSaving(true)
       try {
         await fetch('/api/enterprise-inquiry', {
@@ -316,7 +306,7 @@ export default function OnboardingPage() {
             variant_interest: variant,
             urgency: 'exploring',
             consent: true,
-            notes: `Submitted from self-serve onboarding (Support step) - wants to talk about ongoing outsourcing. Self-serve plan: ${form.plan} (${cycle}).`,
+            notes: `Self-serve onboarding (Support step) - wants a 30-min clarity call about ongoing ${areas} support. Availability: ${availability}. Self-serve plan: ${form.plan} (${cycle}).`,
           }),
         })
       } catch {
@@ -330,18 +320,11 @@ export default function OnboardingPage() {
   async function startCheckout() {
     setCheckoutLoading(true)
     setCheckoutError('')
-    const hrHours = support.hr.mode === 'hours' ? support.hr.hours : 0
-    const recruitHours = support.recruit.mode === 'hours' ? support.recruit.hours : 0
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planId: form.plan,
-          cycle,
-          returnTo: 'onboarding',
-          advisoryHours: { hr: hrHours, recruit: recruitHours },
-        }),
+        body: JSON.stringify({ planId: form.plan, cycle, returnTo: 'onboarding' }),
       })
       const json = await res.json().catch(() => ({} as { url?: string }))
       if (res.ok && (json as { url?: string }).url) {
@@ -360,21 +343,19 @@ export default function OnboardingPage() {
 
   // Underline inputs; selects keep a subtle box (a bare underline +
   // browser chevron reads inconsistently across OSes).
-  const inputCls ="w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-ink focus:ring-2 focus:ring-accent/30"
-  const selectCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus:border-ink focus:ring-2 focus:ring-accent/30"
+  const inputCls ="w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-clay focus:ring-2 focus:ring-clay/30"
+  const selectCls = "w-full px-3 py-2.5 bg-bg-soft border border-border rounded-xl text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus:border-clay focus:ring-2 focus:ring-clay/30"
   const headingCls = "font-display text-[28px] font-bold tracking-tight text-ink leading-[1.1] mb-1.5 focus:outline-none"
 
   const detectedAward = INDUSTRY_AWARD[form.industry] ?? null
   const meta = getPlanMeta(isCheckoutPlanId(form.plan) ? form.plan : 'business')
 
-  // Advisory-hours + talk selections, derived from the Support step model.
-  const hrHours = support.hr.mode === 'hours' ? support.hr.hours : 0
-  const recruitHours = support.recruit.mode === 'hours' ? support.recruit.hours : 0
-  const totalAdvisoryHours = hrHours + recruitHours
-  const advisoryCost = totalAdvisoryHours * ADVISORY_HOURS.hourlyRate
-  const talkAreas = [
-    support.hr.mode === 'talk' ? 'HR' : null,
-    support.recruit.mode === 'talk' ? 'recruitment' : null,
+  // Support step selections. contactAreas drives the payment-step
+  // acknowledgment ("we will reach out about ongoing HR and Recruitment").
+  const wantsContact = support.hr || support.recruit
+  const contactAreas = [
+    support.hr ? 'HR' : null,
+    support.recruit ? 'Recruitment' : null,
   ].filter(Boolean) as string[]
 
   if (!authReady) {
@@ -386,15 +367,15 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4 py-10">
       <div className="w-full max-w-lg">
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
+          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
         </div>
 
-        <div className="bg-bg-elevated rounded-3xl border border-border p-8">
+        <div className="bg-bg-elevated rounded-3xl border border-border shadow-card p-8">
 
           {/* Progress. "Payment" is visible as step 3 of 3 from the first
               render - setting the expectation early kills the surprise. */}
@@ -407,7 +388,7 @@ export default function OnboardingPage() {
               </div>
               <div className="h-1 w-full rounded-full bg-bg-soft overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-accent transition-[width] duration-base ease-smooth motion-reduce:transition-none"
+                  className="h-full rounded-full bg-clay transition-[width] duration-base ease-smooth motion-reduce:transition-none"
                   style={{ width: `${(step / steps.length) * 100}%` }}
                 />
               </div>
@@ -431,6 +412,10 @@ export default function OnboardingPage() {
           {/* Step 1 - Business */}
           {step === 1 && (
             <div>
+              <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                <span aria-hidden className="h-px w-5 bg-clay" />
+                Getting started
+              </p>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Tell us about your business</h2>
               <p className="text-sm text-mid mb-6">HQ uses this to tailor every answer and document to your business. Takes about a minute.</p>
               <div className="space-y-4">
@@ -507,6 +492,10 @@ export default function OnboardingPage() {
           {/* Step 2 - Advisor */}
           {step === 2 && (
             <div>
+              <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                <span aria-hidden className="h-px w-5 bg-clay" />
+                Your AI advisor
+              </p>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Meet your AI Advisor</h2>
               <p className="text-sm text-mid mb-6">
                 This is the assistant that handles your day-to-day HR questions. Give it a name you like - you can change it any time in Settings.
@@ -544,109 +533,112 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3 - Support. Every buyer sees BOTH options per area:
-              book advisory time now ($250/hr, one-off, charged at checkout)
-              or talk to the team about ongoing outsourcing (HR365/Recruit365,
-              interest capture only). No headcount/hours cutoff picks for them. */}
+          {/* Step 3 - Support. Interest capture only: flag ongoing outsourced
+              HR / recruitment and offer best availability for a free 30-min
+              clarity call. The self-serve "book advisory hours now" pay-now
+              path is OFF for now (the $250/hr price stays wired in .env + the
+              checkout route, just not surfaced here). */}
           {step === 3 && (
             <div>
-              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Want a hand with the hard parts?</h2>
-              <p className="text-sm text-mid mb-6">
-                HQ.ai handles the everyday HR and hiring on its own. For the complex, high-stakes work - a messy exit, a key hire, a policy overhaul - a real Humanistiqs advisor can step in. Choose how you would like that support for each area below, or just continue.
+              <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                <span aria-hidden className="h-px w-5 bg-clay" />
+                Expert support
               </p>
-              <div className="space-y-3">
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Want an expert in your corner?</h2>
+              <p className="text-sm text-mid mb-6">
+                HQ.ai handles the everyday HR and hiring on its own. When you would rather hand the heavy lifting to a person, a dedicated Humanistiqs advisor can take HR, hiring, or both off your plate. Tell us what you would like a hand with and we will set up a free 30-minute clarity call - no obligation, and your plan still starts today.
+              </p>
+              <div className="space-y-2">
                 {([
                   {
                     key: 'hr' as const,
                     label: 'Outsourced HR',
-                    retainerName: PRICING.enterprise.variants[0].name,
-                    retainerFrom: PRICING.enterprise.variants[0].priceMonthlyDisplay,
-                    hoursDesc: 'Book a Humanistiqs HR advisor for a set number of hours - a tricky termination, contracts, a policy review.',
-                    talkDesc: 'A dedicated HR advisor runs your HR month to month.',
+                    badge: PRICING.enterprise.variants[0].name,
+                    from: PRICING.enterprise.variants[0].priceMonthlyDisplay,
+                    desc: 'A dedicated HR advisor who knows your business handles the hard conversations, contracts and compliance.',
                   },
                   {
                     key: 'recruit' as const,
-                    label: 'Outsourced recruitment',
-                    retainerName: PRICING.enterprise.variants[1].name,
-                    retainerFrom: PRICING.enterprise.variants[1].priceMonthlyDisplay,
-                    hoursDesc: 'Book a talent advisor for a set number of hours - a role kickoff, shortlist review or interview help.',
-                    talkDesc: 'A dedicated talent advisor runs your hiring end to end.',
+                    label: 'Outsourced Recruitment',
+                    badge: PRICING.enterprise.variants[1].name,
+                    from: PRICING.enterprise.variants[1].priceMonthlyDisplay,
+                    desc: 'A dedicated talent advisor runs your hiring end to end, from brief to shortlist.',
                   },
                 ]).map(area => {
-                  const st = support[area.key]
-                  const setArea = (next: Partial<SupportAreaState>) =>
-                    setSupport(s => ({ ...s, [area.key]: { ...s[area.key], ...next } }))
-                  const toggle = (mode: 'hours' | 'talk') =>
-                    setArea({ mode: st.mode === mode ? null : mode })
-                  const setHours = (h: number) =>
-                    setArea({ hours: Math.min(Math.max(h, ADVISORY_HOURS.minHours), ADVISORY_HOURS.maxHours) })
+                  const on = support[area.key]
                   return (
-                    <div key={area.key} className="rounded-2xl border border-border p-3">
-                      <p className="text-sm font-semibold text-ink mb-2">{area.label}</p>
-                      <div role="radiogroup" aria-label={area.label} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {/* Book time now */}
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={st.mode === 'hours'}
-                          onClick={() => toggle('hours')}
-                          className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all
-                            ${st.mode === 'hours' ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
-                        >
-                          <span className="text-sm font-semibold text-ink">Book advisory time now</span>
-                          <span className="text-xs text-ink-muted">{area.hoursDesc}</span>
-                          <span className="text-[11px] font-semibold text-ink-soft mt-0.5">${ADVISORY_HOURS.hourlyRate}/hour, paid today</span>
-                        </button>
-                        {/* Talk to the team */}
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={st.mode === 'talk'}
-                          onClick={() => toggle('talk')}
-                          className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all
-                            ${st.mode === 'talk' ? 'border-ink bg-ink/5' : 'border-border hover:border-mid'}`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-ink">Talk to the team</span>
-                            <span className="text-[10px] bg-bg-soft text-ink-soft border border-border px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">{area.retainerName}</span>
-                          </span>
-                          <span className="text-xs text-ink-muted">{area.talkDesc}</span>
-                          <span className="text-[11px] font-semibold text-ink-soft mt-0.5">Ongoing, from ${area.retainerFrom.toLocaleString('en-AU')}/mo</span>
-                        </button>
+                    <button
+                      key={area.key}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={on}
+                      onClick={() => setSupport(s => ({ ...s, [area.key]: !on }))}
+                      className={`w-full flex items-start gap-3 p-3 rounded-2xl border text-left transition-all
+                        ${on ? 'border-clay bg-clay-soft' : 'border-border hover:border-ink-muted'}`}
+                    >
+                      <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
+                        ${on ? 'border-clay bg-clay' : 'border-border'}`}>
+                        {on && (
+                          <svg className="w-2.5 h-2.5 text-clay-ink" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
                       </div>
-
-                      {/* Hours stepper - only when "book time now" is chosen */}
-                      {st.mode === 'hours' && (
-                        <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-bg-soft px-3 py-2.5 animate-in fade-in duration-base motion-reduce:animate-none">
-                          <span className="text-xs font-semibold text-ink-soft">How many hours?</span>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <button type="button" onClick={() => setHours(st.hours - 1)} disabled={st.hours <= ADVISORY_HOURS.minHours}
-                                aria-label="One hour fewer"
-                                className="h-7 w-7 rounded-full border border-border text-ink-soft font-bold leading-none disabled:opacity-40 hover:border-ink transition-colors">-</button>
-                              <span className="w-6 text-center text-sm font-bold text-ink tabular-nums">{st.hours}</span>
-                              <button type="button" onClick={() => setHours(st.hours + 1)} disabled={st.hours >= ADVISORY_HOURS.maxHours}
-                                aria-label="One hour more"
-                                className="h-7 w-7 rounded-full border border-border text-ink-soft font-bold leading-none disabled:opacity-40 hover:border-ink transition-colors">+</button>
-                            </div>
-                            <span className="text-sm font-bold text-ink tabular-nums">${(st.hours * ADVISORY_HOURS.hourlyRate).toLocaleString('en-AU')}</span>
-                          </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-ink">{area.label}</span>
+                          <span className="text-[10px] bg-bg-soft text-ink-soft border border-border px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">{area.badge}</span>
                         </div>
-                      )}
-                    </div>
+                        <p className="text-xs text-ink-muted mt-0.5">{area.desc}</p>
+                        <p className="text-[11px] font-semibold text-ink-soft mt-1">Ongoing, from ${area.from.toLocaleString('en-AU')}/mo</p>
+                      </div>
+                    </button>
                   )
                 })}
               </div>
 
+              {/* Availability for the clarity call - only once an area is picked */}
+              {wantsContact && (
+                <div className="mt-4 rounded-2xl border border-border bg-bg-soft p-4 animate-in fade-in duration-base motion-reduce:animate-none">
+                  <p className="text-sm font-semibold text-ink">When suits you for a quick call?</p>
+                  <p className="text-xs text-ink-muted mt-0.5">A 30-minute clarity call, no pressure. This just helps us reach you faster - we will confirm an exact time.</p>
+
+                  <p className="mt-3 mb-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Best days</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CALL_DAYS.map(d => {
+                      const dayOn = support.days.includes(d)
+                      return (
+                        <button key={d} type="button" aria-pressed={dayOn}
+                          onClick={() => setSupport(s => ({ ...s, days: dayOn ? s.days.filter(x => x !== d) : [...s.days, d] }))}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30
+                            ${dayOn ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                          {d}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <p className="mt-3 mb-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Best times</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CALL_TIMES.map(t => {
+                      const timeOn = support.times.includes(t)
+                      return (
+                        <button key={t} type="button" aria-pressed={timeOn}
+                          onClick={() => setSupport(s => ({ ...s, times: timeOn ? s.times.filter(x => x !== t) : [...s.times, t] }))}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30
+                            ${timeOn ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                          {t}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div aria-live="polite">
-                {totalAdvisoryHours > 0 && (
-                  <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-                    {totalAdvisoryHours} advisory hour{totalAdvisoryHours > 1 ? 's' : ''} - ${advisoryCost.toLocaleString('en-AU')} - will be added to your payment today as a one-off. Our team books the time in with you after checkout.
-                  </p>
-                )}
-                {talkAreas.length > 0 && (
+                {wantsContact && (
                   <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-                    Our HQ.ai team will reach out within one business day about ongoing {talkAreas.join(' and ')} support. No obligation - your plan on the next step still starts today.
+                    Our HQ.ai team will reach out within one business day about ongoing {contactAreas.join(' and ')} support. No obligation - your plan on the next step still starts today.
                   </p>
                 )}
               </div>
@@ -658,6 +650,10 @@ export default function OnboardingPage() {
               business row exists; changes belong to Change plan/Settings. */}
           {step === 4 && (
             <div>
+              <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+                <span aria-hidden className="h-px w-5 bg-clay" />
+                Almost there
+              </p>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Last step: start your plan</h2>
               <p className="text-sm text-mid mb-6">
                 {meta.name} ({meta.band}) - {planPriceLine(isCheckoutPlanId(form.plan) ? form.plan : 'business', cycle)}. Unlimited logins for your whole team.
@@ -678,31 +674,11 @@ export default function OnboardingPage() {
                 showAnnualNudge
               />
 
-              {/* Advisory hours booked on the Support step - shown here so the
-                  full, combined selection is visible before checkout. */}
-              {totalAdvisoryHours > 0 && (
-                <div className="mt-3 rounded-xl border border-border bg-bg-soft p-4">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Advisory time (one-off)</p>
-                    <button
-                      type="button"
-                      onClick={() => setStep(3)}
-                      className="text-xs font-semibold text-ink-soft underline underline-offset-2 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded-sm"
-                    >
-                      Change
-                    </button>
-                  </div>
-                  <p className="mt-1.5 text-sm text-ink">
-                    <strong className="font-semibold">
-                      {[hrHours > 0 ? `${hrHours} hr HR` : null, recruitHours > 0 ? `${recruitHours} hr recruitment` : null].filter(Boolean).join(' + ')}
-                    </strong>
-                    {' - '}{totalAdvisoryHours} x ${ADVISORY_HOURS.hourlyRate} = ${advisoryCost.toLocaleString('en-AU')}, charged once with your plan today.
-                  </p>
-                </div>
-              )}
-              {talkAreas.length > 0 && (
+              {/* Support-step interest acknowledged so the buyer knows the
+                  clarity call is coming; not charged here. */}
+              {wantsContact && (
                 <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-                  We will also reach out about ongoing {talkAreas.join(' and ')} outsourcing - that part is not charged here.
+                  We will reach out about ongoing {contactAreas.join(' and ')} support - no obligation, and it is not charged here.
                 </p>
               )}
 
@@ -724,7 +700,7 @@ export default function OnboardingPage() {
                 onClick={startCheckout}
                 disabled={checkoutLoading}
                 aria-busy={checkoutLoading}
-                className="mt-6 w-full bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="mt-6 w-full bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 {checkoutLoading ? 'Taking you to secure checkout...' : 'Continue to secure checkout'}
               </button>
@@ -757,20 +733,20 @@ export default function OnboardingPage() {
                     trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 1 })
                     setStep(2)
                   }}
-                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
                   Continue →
                 </button>
               )}
               {step === 2 && (
                 <button type="button" onClick={submitOnboardingThenPay}
                   disabled={saving || (!needs.people && !needs.recruit)}
-                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
                   {saving ? 'Setting up…' : 'Continue →'}
                 </button>
               )}
               {step === 3 && (
                 <button type="button" onClick={submitSupportThenPay} disabled={saving}
-                  className="px-6 py-2.5 bg-ink hover:bg-ink/90 text-bg-elevated rounded-full text-sm font-semibold transition-colors disabled:opacity-60">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
                   {saving ? 'One moment…' : 'Continue →'}
                 </button>
               )}
