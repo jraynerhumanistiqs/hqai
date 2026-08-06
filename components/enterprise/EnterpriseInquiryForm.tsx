@@ -83,7 +83,7 @@ export default function EnterpriseInquiryForm() {
         </h3>
         <p className="mt-3 text-sm text-ink-soft">
           A confirmation has gone to your inbox. If you don&apos;t see it within five minutes, check spam or
-          reply to <span className="font-medium text-ink">jrayner@humanistiqs.com.au</span> directly.
+          reply to <span className="font-medium text-ink">hq.ai@humanistiqs.com.au</span> directly.
         </p>
       </div>
     )

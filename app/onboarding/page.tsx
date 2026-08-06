@@ -685,7 +685,7 @@ export default function OnboardingPage() {
               {checkoutError === 'unconfigured' && (
                 <div role="alert" className="mt-4 bg-danger/10 border border-danger/30 rounded-lg px-3 py-2.5 text-sm text-danger">
                   Card payments for this plan aren&apos;t switched on just yet. Nothing has been charged and everything you set up is saved.{' '}
-                  <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">Talk to our team</a>
+                  <a href="mailto:hq.ai@humanistiqs.com.au" className="font-semibold text-ink underline underline-offset-2 hover:text-ink-soft">Talk to our team</a>
                   {' '}and we&apos;ll get your plan started - it only takes a minute.
                 </div>
               )}

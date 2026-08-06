@@ -46,8 +46,8 @@ export default function ContactForm() {
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           We read every message. We will reply soon, usually within one business day. In a hurry?
           Email us at{' '}
-          <a href="mailto:jrayner@humanistiqs.com.au" className="font-semibold text-accent hover:underline">
-            jrayner@humanistiqs.com.au
+          <a href="mailto:hq.ai@humanistiqs.com.au" className="font-semibold text-accent hover:underline">
+            hq.ai@humanistiqs.com.au
           </a>.
         </p>
       </div>

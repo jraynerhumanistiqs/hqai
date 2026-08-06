@@ -9,7 +9,7 @@ interface Body {
   summary: string
 }
 
-const ADVISOR_INBOX = 'jrayner@humanistiqs.com.au'
+const ADVISOR_INBOX = 'hq.ai@humanistiqs.com.au'
 
 export async function POST(req: NextRequest) {
   try {

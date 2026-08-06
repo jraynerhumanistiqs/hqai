@@ -9,7 +9,7 @@ import { Resend } from 'resend'
 export const runtime = 'nodejs'
 
 const FROM = 'HQ.ai <noreply@hq.humanistiqs.ai>'
-const TO = 'jrayner@humanistiqs.com.au'
+const TO = 'hq.ai@humanistiqs.com.au'
 
 interface Body {
   name?: string

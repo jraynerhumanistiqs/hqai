@@ -6,7 +6,7 @@
 // Inserts into public.enterprise_inquiries via supabaseAdmin (the table
 // has RLS enabled with no policies; service-role bypasses), then sends
 // two transactional emails via Resend:
-//   1. Founder notification to jrayner@humanistiqs.com.au for triage.
+//   1. Team notification to hq.ai@humanistiqs.com.au for triage.
 //   2. Inquirer confirmation signed by the founder.
 //
 // Uses the service-role admin client for the write + email side-effect,
@@ -21,7 +21,7 @@ import {
 
 export const runtime = 'nodejs'
 
-const FOUNDER_EMAIL = 'jrayner@humanistiqs.com.au'
+const FOUNDER_EMAIL = 'hq.ai@humanistiqs.com.au'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

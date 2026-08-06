@@ -16,6 +16,11 @@ import { Resend } from 'resend'
 
 const FROM = 'HQ.ai <noreply@hq.humanistiqs.ai>'
 
+// Master contact address (Aug 2026). The general-queries and reply-to inbox
+// for all user + non-user contact emails. Replaces the founder's personal
+// address on everything customer-facing.
+export const HQ_CONTACT_EMAIL = 'hq.ai@humanistiqs.com.au'
+
 // Shared brand tokens for email (mirrors the auth template palette).
 const BRAND = {
   bg: '#f5f5f4',
@@ -595,7 +600,7 @@ export async function sendEnterpriseInquiryConfirmation({
     await resend.emails.send({
       from: FROM,
       to: toEmail,
-      replyTo: 'jrayner@humanistiqs.com.au',
+      replyTo: HQ_CONTACT_EMAIL,
       subject,
       text,
       html: renderEmailShell({
@@ -663,7 +668,7 @@ export async function sendWelcomeEmail({
     await resend.emails.send({
       from: FROM,
       to: toEmail,
-      replyTo: 'jrayner@humanistiqs.com.au',
+      replyTo: HQ_CONTACT_EMAIL,
       subject: 'Your HQ.ai workspace is ready',
       text,
       html: renderEmailShell({
@@ -750,7 +755,7 @@ export async function sendPaymentConfirmationEmail({
     await resend.emails.send({
       from: FROM,
       to: toEmail,
-      replyTo: 'jrayner@humanistiqs.com.au',
+      replyTo: HQ_CONTACT_EMAIL,
       subject: `Payment received - your ${planName} plan is active`,
       text,
       html: renderEmailShell({
@@ -820,5 +825,172 @@ export async function sendCandidateOutcomeEmail({
   } catch (err) {
     console.error('[email] sendCandidateOutcomeEmail failed:', err)
     return { ok: false, toName }
+  }
+}
+
+// -- Checkout query: team notification -------------------------------------
+// Sent to HQ_CONTACT_EMAIL when a buyer backs out of Stripe checkout and
+// submits a question via the /welcome query form. The buyer's contact and
+// onboarding details are RECALLED server-side (not re-asked on the form) and
+// included here so the team has the full picture before the discovery call.
+// replyTo is the buyer's email so a reply goes straight to them.
+
+export async function sendCheckoutQueryTeamEmail({
+  userName,
+  userEmail,
+  businessName,
+  planLabel,
+  topic,
+  message,
+  phone,
+  bestTime,
+  snapshotLines,
+}: {
+  userName: string
+  userEmail: string
+  businessName: string
+  planLabel: string
+  topic?: string | null
+  message: string
+  phone?: string | null
+  bestTime?: string | null
+  // Recalled onboarding context (industry, headcount, state, etc.) - each a
+  // "Label: value" string, already resolved by the route.
+  snapshotLines: string[]
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const subject = `[Checkout query] ${businessName} - ${topic || 'general question'}`
+
+  const text = [
+    'NEW CHECKOUT QUERY (buyer paused at Stripe checkout)',
+    '',
+    `Business: ${businessName}`,
+    `Contact: ${userName} <${userEmail}>`,
+    `Plan they were about to buy: ${planLabel}`,
+    `Topic: ${topic || 'not stated'}`,
+    `Phone: ${phone && phone.trim() ? phone : 'not given'}`,
+    `Best time to call: ${bestTime && bestTime.trim() ? bestTime : 'not given'}`,
+    '',
+    'Their question:',
+    message,
+    '',
+    'Onboarding snapshot (recalled):',
+    ...(snapshotLines.length ? snapshotLines.map((l) => `- ${l}`) : ['- none on file']),
+    '',
+    'Action: reach out within one business day to book a 30-min discovery call.',
+  ].join('\n')
+
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:6px 0;color:${BRAND.body};width:160px;vertical-align:top;">${label}</td><td style="padding:6px 0;">${value}</td></tr>`
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px 0;">A buyer paused at Stripe checkout and sent a question. Their details are recalled below.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;line-height:1.55;">
+      ${row('Business', `<strong>${escapeHtml(businessName)}</strong>`)}
+      ${row('Contact', `${escapeHtml(userName)} &lt;<a href="mailto:${escapeHtml(userEmail)}" style="color:${BRAND.accent};">${escapeHtml(userEmail)}</a>&gt;`)}
+      ${row('Plan', escapeHtml(planLabel))}
+      ${row('Topic', escapeHtml(topic || 'not stated'))}
+      ${row('Phone', escapeHtml(phone && phone.trim() ? phone : 'not given'))}
+      ${row('Best time', escapeHtml(bestTime && bestTime.trim() ? bestTime : 'not given'))}
+    </table>
+    <h3 style="margin:24px 0 8px;font-size:13px;color:${BRAND.body};text-transform:uppercase;letter-spacing:0.08em;">Their question</h3>
+    <p style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:${BRAND.ink};margin:0;">${escapeHtml(message)}</p>
+    <h3 style="margin:24px 0 8px;font-size:13px;color:${BRAND.body};text-transform:uppercase;letter-spacing:0.08em;">Onboarding snapshot (recalled)</h3>
+    ${snapshotLines.length
+      ? `<ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.7;color:${BRAND.ink};">${snapshotLines.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>`
+      : `<p style="margin:0;font-size:14px;color:${BRAND.muted};">none on file</p>`}
+  `
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: HQ_CONTACT_EMAIL,
+      replyTo: userEmail,
+      subject,
+      text,
+      html: renderEmailShell({
+        heading: 'New checkout query',
+        bodyHtml,
+        footerLine: 'Reach out within one business day to book a 30-min discovery call.',
+      }),
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendCheckoutQueryTeamEmail failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
+  }
+}
+
+// -- Checkout query: buyer confirmation ------------------------------------
+// Sent to the buyer after they submit a checkout query. Confirms receipt,
+// shows a snapshot of where they left off, links them straight back to the
+// payment step, and sets the "what's next" expectation for the discovery call.
+
+export async function sendCheckoutQueryConfirmation({
+  toEmail,
+  firstName,
+  businessName,
+  planLabel,
+  resumeUrl,
+}: {
+  toEmail: string
+  firstName: string
+  businessName: string
+  planLabel: string
+  resumeUrl: string
+}) {
+  const resend = getResend()
+  if (!resend) return { ok: false, reason: 'no_resend_key' as const }
+
+  const greeting = firstName ? `Hi ${firstName},` : 'Hi,'
+  const text = [
+    greeting,
+    '',
+    'Thanks for your question - it has landed with the HQ.ai team.',
+    '',
+    'Where you left off:',
+    `- Business: ${businessName}`,
+    `- Plan you were setting up: ${planLabel}`,
+    '- You stopped just before payment. Everything you set up is saved.',
+    '',
+    `Pick up where you left off: ${resumeUrl}`,
+    '',
+    "What's next:",
+    'A HQ.ai team member will be in touch within one business day to organise a',
+    '30-minute discovery call and answer everything you asked.',
+    '',
+    'The HQ.ai team',
+  ].join('\n')
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: toEmail,
+      replyTo: HQ_CONTACT_EMAIL,
+      subject: 'Thanks - your HQ.ai question is with our team',
+      text,
+      html: renderEmailShell({
+        heading: 'Your question is with our team',
+        bodyHtml: `
+          <p style="margin:0 0 14px 0;">${escapeHtml(greeting)}</p>
+          <p style="margin:0 0 14px 0;">Thanks for your question - it has landed with the HQ.ai team.</p>
+          <div style="background:${BRAND.bg};border:1px solid ${BRAND.divider};border-radius:10px;padding:16px;margin:0 0 16px 0;font-size:14px;line-height:1.7;">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.muted};margin-bottom:8px;">Where you left off</div>
+            <div>Business: <strong>${escapeHtml(businessName)}</strong></div>
+            <div>Plan you were setting up: <strong>${escapeHtml(planLabel)}</strong></div>
+            <div style="color:${BRAND.body};">You stopped just before payment - everything you set up is saved.</div>
+          </div>
+          <p style="margin:0 0 6px 0;font-weight:600;">What&apos;s next</p>
+          <p style="margin:0;">A HQ.ai team member will be in touch <strong>within one business day</strong> to organise a 30-minute discovery call and answer everything you asked.</p>
+        `,
+        cta: { label: 'Pick up where you left off', url: resumeUrl },
+      }),
+    })
+    return { ok: true as const }
+  } catch (err) {
+    console.error('[email] sendCheckoutQueryConfirmation failed:', err)
+    return { ok: false as const, reason: 'send_failed' as const }
   }
 }
