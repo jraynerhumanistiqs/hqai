@@ -90,6 +90,10 @@ export default function OnboardingPage() {
   // guard, or the payment step's Change plan list) - the headcount/product
   // suggestion must not overwrite an explicit choice.
   const planManual = useRef(false)
+  // True once a business row exists for this user (resumed, or created on the
+  // first pass). Switches submitOnboardingThenPay from create (POST) to
+  // update (PATCH) so going Back to edit an earlier step actually saves.
+  const hasBusiness = useRef(false)
   const supabase = createClient()
 
   // Auth guard + prefill + resume guard: a user who already has a
@@ -109,29 +113,52 @@ export default function OnboardingPage() {
       setForm(f => ({ ...f, userName: f.userName || fullName }))
       setUserEmail(user.email || '')
 
+      // businesses(*) so we can prefill EVERY step on resume without naming
+      // a column that a given environment's migrations haven't added yet.
       const { data: profile } = await supabase
         .from('profiles')
-        .select('business_id, businesses(plan, subscription_status, stripe_subscription_id)')
+        .select('business_id, full_name, businesses(*)')
         .eq('id', user.id)
         .maybeSingle()
       if (cancelled) return
 
       if (profile?.business_id) {
-        const biz = profile.businesses as unknown as { plan?: string; subscription_status?: string; stripe_subscription_id?: string | null } | null
-        const paid = biz?.subscription_status === 'active' || !!biz?.stripe_subscription_id
+        const biz = (profile.businesses as unknown as Record<string, unknown> | null) ?? {}
+        const paid = biz.subscription_status === 'active' || !!biz.stripe_subscription_id
         if (paid) {
           window.location.replace('/dashboard')
           return
         }
-        // Unpaid but onboarded - resume at the payment step. Prefer the
-        // plan on the business row unless a query param overrides it.
+        // Unpaid but onboarded - a business row already exists, so edits from
+        // here update it (PATCH) rather than trying to create a duplicate.
+        hasBusiness.current = true
+
+        // Prefill the whole wizard from the saved row so a buyer who clicks
+        // Back sees their real details, not blank fields. Comma-joined
+        // columns (state, award, employment_types) split back to arrays.
+        const str = (v: unknown) => (typeof v === 'string' ? v : '')
+        const splitList = (v: unknown) =>
+          str(v).split(',').map(s => s.trim()).filter(Boolean)
         const q = new URLSearchParams(window.location.search)
-        const bizPlan = biz?.plan
-        if (!q.get('plan') && isCheckoutPlanId(bizPlan)) {
-          planManual.current = true
-          setForm(f => ({ ...f, plan: bizPlan }))
-          setNeeds(planToNeeds(bizPlan))
-        }
+        const bizPlan = str(biz.plan)
+        const resolvedPlan = !q.get('plan') && isCheckoutPlanId(bizPlan) ? bizPlan : null
+        // A saved business means the plan is a deliberate choice - never let
+        // the headcount/product suggestion overwrite it on prefill.
+        planManual.current = true
+        setForm(f => ({
+          ...f,
+          bizName: str(biz.name) || f.bizName,
+          industry: str(biz.industry) || f.industry,
+          country: str(biz.country) || f.country,
+          state: splitList(biz.state).length ? splitList(biz.state) : f.state,
+          awards: splitList(biz.award).length ? splitList(biz.award) : f.awards,
+          headcount: str(biz.headcount) || f.headcount,
+          empTypes: splitList(biz.employment_types).length ? splitList(biz.employment_types) : f.empTypes,
+          advisorName: str(biz.advisor_name) || f.advisorName,
+          userName: f.userName || str(profile.full_name),
+          plan: resolvedPlan || f.plan,
+        }))
+        if (resolvedPlan) setNeeds(planToNeeds(resolvedPlan))
         setStep(4)
       }
       setAuthReady(true)
@@ -210,21 +237,23 @@ export default function OnboardingPage() {
     })
   }
 
-  // Submit the wizard, then reveal the payment step. A 409 means this
-  // user already has a business (an earlier attempt saved it) - treat it
-  // as "already onboarded, proceed to payment", never as a failure.
+  // Submit the wizard, then reveal the payment step. First pass creates the
+  // business (POST); once a business exists - resumed, or the buyer clicked
+  // Back to edit an earlier step - we UPDATE it (PATCH) so their edits save
+  // instead of being dropped. A POST 409 means a row already existed, so we
+  // flip to update mode and proceed.
   async function submitOnboardingThenPay() {
     setSaving(true)
     setError('')
     trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 2 })
 
     try {
-      // Service-role insert server-side (see app/api/onboarding/route.ts).
+      // Service-role write server-side (see app/api/onboarding/route.ts).
       // `state` joins to a comma-separated string - the API contract's
       // existing shape.
       const payload = { ...form, state: form.state.join(', ') }
       const res = await fetch('/api/onboarding', {
-        method: 'POST',
+        method: hasBusiness.current ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
@@ -235,7 +264,9 @@ export default function OnboardingPage() {
         return
       }
 
+      // A create hit an existing row - switch to update mode and move on.
       if (res.status === 409) {
+        hasBusiness.current = true
         setStep(3)
         setSaving(false)
         return
@@ -251,6 +282,8 @@ export default function OnboardingPage() {
         return
       }
 
+      // Business now exists - any later Back-and-edit updates it.
+      hasBusiness.current = true
       trackFunnelEvent('onboarding_completed', {
         plan: form.plan,
         cycle,
@@ -708,6 +741,16 @@ export default function OnboardingPage() {
               <p className="mt-3 text-xs leading-relaxed text-ink-muted text-center">
                 Cancel any time. No lock-in, no notice period, no per-person charges. Payment is handled by Stripe - we never see your card details.
               </p>
+
+              {/* Previous - the payment step now has a way back to review or
+                  edit earlier steps. Edits save via PATCH (see
+                  submitOnboardingThenPay), so this is a real edit path. */}
+              <div className="mt-6 flex">
+                <button type="button" onClick={() => setStep(3)}
+                  className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+                  ← Previous
+                </button>
+              </div>
             </div>
           )}
 
@@ -723,8 +766,8 @@ export default function OnboardingPage() {
             <div className="flex justify-between mt-8">
               {step > 1 ? (
                 <button type="button" onClick={() => setStep(s => s - 1)}
-                  className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors">
-                  ← Back
+                  className="px-5 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-semibold border border-border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+                  ← Previous
                 </button>
               ) : <div />}
               {step === 1 && (
@@ -753,6 +796,14 @@ export default function OnboardingPage() {
             </div>
           )}
         </div>
+
+        {/* Subtle escape hatch - leave setup entirely for the homepage.
+            Everything entered is saved, so they can resume any time. */}
+        <p className="mt-6 text-center">
+          <a href="/" className="text-xs text-ink-muted underline underline-offset-2 transition-colors hover:text-ink-soft">
+            Exit setup and return to the homepage
+          </a>
+        </p>
       </div>
     </div>
   )

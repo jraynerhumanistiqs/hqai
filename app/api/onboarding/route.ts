@@ -182,3 +182,106 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Onboarding failed', detail }, { status: 500 })
   }
 }
+
+// PATCH /api/onboarding
+//
+// Updates the caller's EXISTING business + profile name. Used when a buyer
+// clicks Back from a later onboarding step to edit an earlier one - without
+// this, the create path 409s and the edits are silently dropped. Same
+// service-role + defensive-column-drop approach as POST; scoped strictly to
+// the business already linked to the authed user (never creates one).
+export async function PATCH(req: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
+    }
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('business_id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!profile?.business_id) {
+      return NextResponse.json({ error: 'No business to update.' }, { status: 404 })
+    }
+    const businessId = profile.business_id
+
+    const body = (await req.json().catch(() => ({}))) as Body
+    const bizName = (body.bizName || '').trim() || 'My Business'
+    const industry = (body.industry || '').trim()
+    const country = (body.country || 'Australia').trim()
+    const stateVal = (body.state || '').trim()
+    const headcount = (body.headcount || '').trim()
+    const advisorName = (body.advisorName || '').trim() || 'Hugo'
+    const userName = (body.userName || '').trim()
+    const plan = (body.plan || 'free').trim()
+    const awards = Array.isArray(body.awards) ? body.awards.join(', ') : ''
+    const empTypes = Array.isArray(body.empTypes) ? body.empTypes.join(', ') : ''
+
+    const fullBiz: Record<string, unknown> = {
+      name: bizName,
+      industry,
+      country,
+      state: stateVal,
+      award: awards,
+      headcount,
+      employment_types: empTypes,
+      advisor_name: advisorName,
+      plan,
+    }
+    // Same drop order as POST: shed the most expendable column first if the
+    // environment is missing it, so a stale schema still updates the rest.
+    const BIZ_OPTIONAL_DROP_ORDER = [
+      'country', 'headcount', 'employment_types', 'award', 'state',
+      'industry', 'advisor_name', 'plan',
+    ]
+    const active = new Set(Object.keys(fullBiz))
+    let updated = false
+    let lastErr: { message?: string; details?: string; hint?: string; code?: string } | null = null
+
+    for (let attempt = 0; attempt <= BIZ_OPTIONAL_DROP_ORDER.length; attempt++) {
+      const payload: Record<string, unknown> = {}
+      for (const k of active) payload[k] = fullBiz[k]
+      const { error } = await supabaseAdmin
+        .from('businesses')
+        .update(payload)
+        .eq('id', businessId)
+      if (!error) { updated = true; break }
+      lastErr = error
+      const haystack = `${error?.message ?? ''} ${error?.details ?? ''} ${error?.hint ?? ''}`.toLowerCase()
+      const drop = BIZ_OPTIONAL_DROP_ORDER.find(col => active.has(col) && haystack.includes(col.toLowerCase()))
+      if (drop) {
+        console.warn(`[onboarding/PATCH] update failed on column ${drop}, retrying without it. (${error?.message})`)
+        active.delete(drop)
+        continue
+      }
+      if (error?.code === 'PGRST204' || haystack.includes('schema cache')) {
+        const next = BIZ_OPTIONAL_DROP_ORDER.find(col => active.has(col))
+        if (next) { active.delete(next); continue }
+      }
+      break
+    }
+
+    if (!updated) {
+      console.error('[onboarding/PATCH] business update failed', lastErr)
+      return NextResponse.json(
+        { error: 'Could not update business details.', detail: lastErr?.message ?? 'unknown' },
+        { status: 500 },
+      )
+    }
+
+    // Keep the profile display name in step with the Advisor step edit.
+    if (userName) {
+      await supabaseAdmin.from('profiles').update({ full_name: userName }).eq('id', user.id)
+    }
+
+    return NextResponse.json({ business_id: businessId })
+  } catch (err) {
+    console.error('[PATCH /api/onboarding]', err)
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Update failed', detail }, { status: 500 })
+  }
+}
