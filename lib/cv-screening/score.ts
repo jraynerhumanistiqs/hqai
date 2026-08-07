@@ -10,6 +10,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type {
   CriterionScore,
+  ExecutionGuard,
   Rubric,
 } from '@/lib/cv-screening-types'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
@@ -41,8 +42,20 @@ export async function scoreCv(
   cvText: string,
   role: string,
   criteria: Rubric['criteria'],
+  executionGuard?: ExecutionGuard | null,
 ): Promise<ScoreResult> {
-  const criteriaList = (criteria as Array<{ id: string; label: string; weight: number; type: string; anchors?: Record<string, string>; hard_gate?: boolean }>)
+  const criteriaList = (criteria as Array<{
+    id: string
+    label: string
+    weight: number
+    type: string
+    anchors?: Record<string, string>
+    hard_gate?: boolean
+    execution_tokens?: string[]
+    oversight_signals?: string[]
+    execution_cap?: number
+    gate_tokens?: string[]
+  }>)
   const tool = {
     name: 'submit_score',
     description: 'Return the structured score for this candidate against the rubric.',
@@ -95,10 +108,55 @@ export async function scoreCv(
   }
 
   const criteriaPrompt = criteriaList
-    .map(c => `- ${c.id} (${c.label}, weight ${Math.round(c.weight * 100)}%, ${c.hard_gate ? 'HARD GATE binary' : c.type})`)
+    .map(c => {
+      const head = `- ${c.id} (${c.label}, weight ${Math.round(c.weight * 100)}%, ${c.hard_gate ? 'HARD GATE binary' : c.type})`
+      const lines: string[] = [head]
+      // Feed the behavioural anchors so the rich level descriptors actually
+      // drive the score rather than being decorative. Only levels present.
+      if (c.anchors) {
+        const anchorLine = (['1', '2', '3', '4', '5'] as const)
+          .filter(k => c.anchors && c.anchors[k])
+          .map(k => `${k}=${c.anchors![k]}`)
+          .join('  |  ')
+        if (anchorLine) lines.push(`    anchors: ${anchorLine}`)
+      }
+      // Anti-semantic-spoofing execution guard. A management/oversight title
+      // alone cannot clear the cap - the model must quote a hands-on span.
+      if (c.execution_tokens && c.execution_tokens.length) {
+        const cap = typeof c.execution_cap === 'number' ? c.execution_cap : 2
+        lines.push(
+          `    EXECUTION GUARD: score above ${cap} ONLY with a verbatim CV span showing hands-on frontline execution (one of: ${c.execution_tokens.join(', ')}). ` +
+          `If the only evidence is a management/oversight title or phrasing such as ${(c.oversight_signals && c.oversight_signals.length ? c.oversight_signals : ['managed', 'oversaw', 'responsible for', 'led the team']).join(', ')} with no such span, CAP this criterion at ${cap}.`,
+        )
+      }
+      // Mandatory-registration gate: deterministic held / not-held / unclear.
+      if (c.hard_gate && c.gate_tokens && c.gate_tokens.length) {
+        lines.push(
+          `    REGISTRATION GATE: score 5 (held) only if the CV evidences this registration/check (look for: ${c.gate_tokens.join(', ')}). ` +
+          `Score 0 (not eligible) if the CV states it is not held or cannot be obtained. Score 3 (unclear) if the CV is silent on it.`,
+        )
+      }
+      return lines.join('\n')
+    })
     .join('\n')
 
+  // Role-level anti-spoofing narrative (from the AU rubric library). Tells
+  // the scorer what counts as personally performing the frontline work vs
+  // overseeing it, so a management title cannot inflate execution criteria.
+  let guardBlock = ''
+  if (executionGuard && (executionGuard.executed_within || executionGuard.supervised_within || executionGuard.near_only || (executionGuard.disqualifiers && executionGuard.disqualifiers.length))) {
+    const g = executionGuard
+    const parts: string[] = ['\nEXECUTION vs OVERSIGHT for this role (defeat title-only "semantic spoofing"):']
+    if (g.executed_within) parts.push(`- FRONTLINE EXECUTION (this is what earns a high score): ${g.executed_within}`)
+    if (g.supervised_within) parts.push(`- OVERSIGHT / SUPERVISION ONLY (do NOT treat as frontline execution; keep execution-heavy criteria at or below the mid-point unless a hands-on span is quoted): ${g.supervised_within}`)
+    if (g.near_only) parts.push(`- ADJACENT / NEAR-MISS (usually score 1-2): ${g.near_only}`)
+    if (g.disqualifiers && g.disqualifiers.length) parts.push(`- DISQUALIFIERS / eligibility routes: ${g.disqualifiers.join('; ')}`)
+    parts.push('A management or oversight title, or supervising others who do the work, is NOT evidence the candidate personally performed it. When the CV shows only oversight or near-miss experience, say so in the rationale and score the execution criteria accordingly.')
+    guardBlock = parts.join('\n')
+  }
+
   const systemPrompt = `You are an Australian recruitment assistant scoring CVs against a structured rubric for the role: ${role}.
+${guardBlock}
 
 RULES:
 1. Score on substance only. Personal attributes - photos, addresses, dates of birth, gender, ethnicity, school name, and graduation year - MUST NOT influence the score.
@@ -118,8 +176,10 @@ RULES:
    - Never penalise a candidate's location on its own.
 6. Tenure gaps are not penalties unless the candidate had no work history. Note any reason given (caregiving, study, illness) in tenure_note rather than reducing any tenure score.
 7. Some CVs list a role as just a job title, employer and date range with no responsibilities or achievements. Add each such role title to thin_experience. Score the affected criteria on the evidence that IS in the CV - the absent evidence already limits the score, so do not penalise the same gap a second time. The recruiter will ask about these roles at phone screen.
-8. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
-9. No em-dashes or en-dashes in your output. Plain hyphens only.
+8. EXECUTION GUARD (defeat title-only "semantic spoofing"): where a criterion carries an EXECUTION GUARD, a job title, seniority, or oversight phrasing ("managed", "oversaw", "led", "responsible for", "accountable for") is NOT evidence of hands-on execution. Do not let a "Manager" or "Team Lead" title inflate an execution criterion. You may only score above the stated cap when you can quote a verbatim CV span showing the person personally performed the frontline work named in the guard. When only oversight evidence exists, apply the cap exactly and say so in the rationale (e.g. "oversight title only, no hands-on <x> evidenced - capped at 2").
+9. REGISTRATION GATE (hard pass/fail): where a hard-gate criterion carries a REGISTRATION GATE, treat the named registration/check as mandatory for the role. Follow its held / not-held / unclear scoring exactly. This is surfaced to the recruiter as an eligibility consideration, not folded into the merit score.
+10. Use Australian English in all rationale text (organise, behaviour, recognise, optimise, minimise).
+11. No em-dashes or en-dashes in your output. Plain hyphens only.
 
 The criteria you must score:
 ${criteriaPrompt}

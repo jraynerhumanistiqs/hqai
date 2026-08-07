@@ -20,6 +20,77 @@ export interface RubricCriterion {
   evidence_required?: boolean
   fairness_flag?: string
   hard_gate?: boolean
+
+  // --- AU industry-rubric extensions (all optional, backward-compatible) ---
+  // The anti-"semantic spoofing" mechanism. Hands-on frontline execution
+  // tokens for this criterion: the scorer must see a verbatim CV span
+  // containing one of these before it can score above `execution_cap`. A
+  // candidate whose only evidence is a management/oversight title (see
+  // `oversight_signals`) is capped, defeating title-only keyword matches.
+  execution_tokens?: string[]
+  // Oversight / structural signals that on their own are NOT frontline
+  // execution, e.g. "managed a team", "oversaw", "responsible for". Present
+  // for readability and to prime the scorer on what a spoof looks like.
+  oversight_signals?: string[]
+  // Ceiling (0-5) applied when only oversight signals are evidenced and no
+  // execution token span is found. Defaults to 2 in the scorer when omitted
+  // but `execution_tokens` is set.
+  execution_cap?: number
+  // For hard_gate criteria that represent a mandatory registration / check
+  // (AHPRA, White Card, WWCC/Blue Card, NDIS Worker Screening): the tokens
+  // that evidence the gatekeeper is held. Drives a deterministic pass/fail
+  // read surfaced as a post-score consideration.
+  gate_tokens?: string[]
+}
+
+// A governing Fair Work Modern Award for the role this rubric anchors.
+export interface AwardRef {
+  code: string   // e.g. 'MA000100'
+  name: string   // e.g. 'Social, Community, Home Care and Disability Services Industry Award 2010'
+  note?: string  // operational conditions to look for (split shifts, sleepovers, penalty rates)
+}
+
+// A mandatory regulatory gatekeeper for the sector. Mirrors the hard_gate
+// criterion of the same id; kept at rubric level for reporting / UI so the
+// full compliance picture is visible without walking the criteria.
+export interface Gatekeeper {
+  id: string
+  label: string
+  tokens?: string[]
+  authority?: string                        // e.g. 'AHPRA', 'state WWCC unit'
+  mandatory?: boolean | 'conditional'       // 'conditional' = context-dependent
+  note?: string
+}
+
+// Anti-"semantic spoofing" narrative for a role: what counts as personally
+// performing the frontline work vs merely overseeing it. Rendered into the
+// scoring prompt so a management/oversight title cannot inflate execution
+// criteria. Sourced from the AU rubric library's execution_vs_oversight.
+export interface ExecutionGuard {
+  near_only?: string        // adjacent / near-miss experience (usually 1-2)
+  executed_within?: string  // personally performed the frontline work (score on this)
+  supervised_within?: string // supervised others doing it (NOT frontline execution)
+  disqualifiers?: string[]  // signals that route to an eligibility gate / reject
+}
+
+// Post-merit red-flag deduction (e.g. serial short tenure with no reason).
+// Preserved as metadata from the library; not yet enforced by computeOverall.
+export interface PenaltyOverride {
+  id: string
+  condition: string
+  points: number
+  rationale?: string
+  fairness_flag?: string
+}
+
+// Eligibility cap from the library. The live engine surfaces the underlying
+// gatekeeper as a consideration rather than lowering merit, so this is kept
+// as metadata (effect: 'flag_ineligible' | 'cap_advance:<n>' | 'auto_reject').
+export interface HardCap {
+  id: string
+  condition: string
+  effect: string
+  rationale?: string
 }
 
 export interface Rubric {
@@ -30,6 +101,24 @@ export interface Rubric {
   criteria: RubricCriterion[]
   minimum_score_to_advance: number
   hard_gates: string[]
+
+  // --- AU industry-rubric metadata (all optional, backward-compatible) ---
+  // Dashboard industry label this rubric anchors. Matches the INDUSTRIES
+  // list in app/onboarding + app/dashboard/settings.
+  industry?: string
+  governing_awards?: AwardRef[]
+  mandatory_gatekeepers?: Gatekeeper[]
+  // AU-standard operational systems (not generic "software"/"CRM").
+  software_ecosystem?: string[]
+  // Local funding / operational frameworks (NDIS, My Aged Care, MBS, TAC...).
+  funding_frameworks?: string[]
+  // Common alternative role titles this rubric also covers.
+  aliases?: string[]
+  // Role-level anti-spoofing narrative injected into the scorer.
+  execution_guard?: ExecutionGuard
+  // Library metadata, preserved for reporting (not yet enforced in merit).
+  penalty_overrides?: PenaltyOverride[]
+  hard_caps?: HardCap[]
 }
 
 export interface EvidenceSpan {

@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       ? await uploadOriginalCv(buffer, businessId, filename, file.type || null)
       : null
 
-    const scoreResult = await scoreCv(cvText, rubric.role, rubric.criteria)
+    const scoreResult = await scoreCv(cvText, rubric.role, rubric.criteria, rubric.execution_guard)
 
     const overall = computeOverall(scoreResult.criteria_scores, rubric.criteria)
     const band = bandFromScore(overall)

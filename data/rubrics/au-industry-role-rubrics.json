@@ -1,0 +1,954 @@
+{
+  "meta": {
+    "title": "AU Industry x Role CV-Screening Rubric Library",
+    "country": "AU",
+    "version": 1,
+    "generated": "2026-08-07",
+    "generated_by": "HQ Recruit rubric authoring pass",
+    "scope": "The 9 real industries listed in the HQ.ai dashboard onboarding (INDUSTRIES minus 'Other', which maps to no award). Common job titles per industry.",
+    "source_industries_list": "app/onboarding/page.tsx -> INDUSTRIES / INDUSTRY_AWARD",
+    "source_award_texts": "data/awards/*.md (Fair Work Modern Award full texts)",
+    "extends_type": "lib/cv-screening-types.ts -> Rubric. max_points replaces weight (sum to 100). hard_gatekeepers/hard_caps replace hard_gates. advance_threshold replaces minimum_score_to_advance.",
+    "legal_positioning_note": "Award and licence references are grounding/scope only. HQ.ai never claims to give employment-law advice. Award pain points describe operational realities a supervisor must run, not legal interpretation.",
+    "fairness_note": "Legally mandatory licences/checks are ELIGIBILITY gatekeepers assessed post-score as considerations (met/unclear/not_met) - they are never folded into the weighted merit score. A candidate is not less capable because a check is pending. See lib/cv-screening-types.ts deriveConsiderations()."
+  },
+  "scoring_model": {
+    "scale": "0-100 merit points. Each role's merit_criteria max_points sum to exactly 100.",
+    "criterion_types": {
+      "ordinal_5": "Scored 1-5 against anchors, then mapped to points: points = (score/5) * max_points.",
+      "binary_points": "Full max_points if the anchor is met, else 0. Used for present/absent signals that ARE merit (e.g. quantified outcomes)."
+    },
+    "advance_threshold": "Default 60/100 to advance to prescreen. Overridable per role.",
+    "penalty_overrides": "Applied AFTER the weighted merit sum. Negative points for role-specific red flags (e.g. serial <6mo tenure with no project rationale). Never used for protected-attribute proxies; fairness_flag marks criteria where a low score can correlate with caregiving/visa/age and must be read with care.",
+    "hard_caps": "Eligibility gates. A hard_cap does NOT lower merit - it caps the ADVANCE recommendation and surfaces as a consideration. effect values: 'flag_ineligible' (recruiter confirms work rights/licence before advancing), 'cap_advance:<n>' (capped total until the gate is cleared), 'auto_reject' (reserved for legally cannot-practise cases, e.g. no valid trade licence for licensed electrical work).",
+    "how_to_read": "merit_total = sum(points) - sum(applicable penalty_overrides). advance = merit_total >= advance_threshold AND no hard_cap is 'auto_reject' AND all mandatory hard_gatekeepers are met-or-unclear (unclear routes to phone screen, not rejection)."
+  },
+  "industries": [
+    {
+      "industry": "Retail",
+      "modern_award": { "code": "MA000004", "name": "General Retail Industry Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000004", "name": "General Retail Industry Award 2020", "when": "most bricks-and-mortar retail" }
+      ],
+      "award_pain_points": [
+        "Rostering restrictions and span of ordinary hours (cl. 15, 27): minimum engagement, consecutive-days limits and notice-of-roster-change rules make casual-heavy rosters easy to get wrong.",
+        "Penalty rates (cl. 22): evening, weekend and public-holiday loadings differ by day and by employment type; a supervisor must build rosters that stay inside labour budget while covering trade.",
+        "Casual loading and casual conversion (cl. 11): 25% loading plus the right-to-request conversion after 12 months is a live obligation that shift-lead managers action, not just HR.",
+        "Classification creep (Schedule A): staff doing higher-level duties (keyholding, cash reconciliation, supervising juniors) must be paid at the correct retail level; misclassification is the most common underpayment claim.",
+        "Allowances (cl. 19): cold-work, laundry/special clothing and first-aid allowances are frequently missed on payroll."
+      ],
+      "tech_stack": {
+        "pos": ["Lightspeed Retail", "Square", "Shopify POS", "Vend", "Retail Express (Maropost)"],
+        "inventory_erp": ["Cin7", "Retail Express", "TradeGecko/QuickBooks Commerce", "Unleashed"],
+        "workforce_rostering": ["Deputy", "Tanda", "Ento", "Square Team"],
+        "payroll_hr": ["Xero", "MYOB", "KeyPay/Employment Hero", "Wage Easy"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_retail_store_manager_au_v1",
+          "role": "Retail Store Manager",
+          "aliases": ["Store Manager", "Shop Manager", "Branch Manager (retail)"],
+          "award_ref": { "code": "MA000004", "name": "General Retail Industry Award 2020", "typical_classification": "Retail Employee Level 5-6 / above-award salaried" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights (citizen/PR or valid work visa)", "mandatory": true, "note": "Eligibility consideration, not merit." },
+            { "id": "rsa", "label": "Responsible Service of Alcohol (RSA)", "mandatory": "conditional", "note": "Only if the store sells packaged liquor (bottle shop / grocery with liquor)." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": "conditional", "note": "Common for cash-handling/keyholder roles; employer policy driven." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Worked on the shop floor as a sales assistant, or in head-office merchandising, without ever owning a store P&L, roster or wage budget.",
+            "executed_within": "Personally built compliant rosters, reconciled tills, ran stocktakes and hit sales/shrinkage targets for a specific store.",
+            "supervised_within": "Accountable for a store's wage cost %, roster compliance, team performance and loss prevention - has hired, rostered and performance-managed staff and owned the numbers to a regional manager.",
+            "disqualifiers": ["'Retail experience' that is entirely casual sales with no rostering, cash-reconciliation or people responsibility described."]
+          },
+          "merit_criteria": [
+            { "id": "store_pnl_ownership", "label": "Store P&L / sales-target ownership", "max_points": 25, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No target or budget ownership", "2": "2IC assisting with targets", "3": "Owned sales targets for one small store", "4": "Owned P&L incl. wage% and shrinkage for a mid-size store", "5": "Multi-store or flagship P&L with quantified YoY growth" } },
+            { "id": "rostering_wage_control", "label": "Award-compliant rostering and wage-cost control", "max_points": 20, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No rostering experience", "3": "Built rosters in a WFM tool to a wage budget", "5": "Consistently held wage% to target across peak trade while staying inside span/penalty rules" } },
+            { "id": "people_leadership", "label": "Team leadership (hiring, coaching, performance)", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "No direct reports", "3": "Led a small team day-to-day", "5": "Recruited, onboarded and performance-managed a team with retention/engagement outcomes" } },
+            { "id": "loss_prevention_ops", "label": "Stock control, stocktake and loss prevention", "max_points": 15, "type": "ordinal_5", "anchors": { "1": "No stock accountability", "3": "Ran stocktakes and basic shrinkage control", "5": "Owned shrinkage KPIs with measured reduction" } },
+            { "id": "customer_vm_standards", "label": "Customer experience and visual-merchandising standards", "max_points": 12, "type": "ordinal_5", "anchors": { "1": "No standards ownership", "3": "Maintained VM and service standards", "5": "Lifted mystery-shop/NPS or VM compliance measurably" } },
+            { "id": "communication", "label": "Written communication (CV clarity, quantified outcomes)", "max_points": 8, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "tenure_churn", "condition": "3+ retail roles each under 8 months with no stated reason (relocation, seasonal, redundancy)", "points": -8, "rationale": "Store leadership needs stability; unexplained churn is a genuine risk signal.", "fairness_flag": "tenure_can_correlate_with_caregiving_or_visa - read reasons before applying" },
+            { "id": "title_inflation", "condition": "Title says Manager but duties described are purely sales/floor with no roster/P&L/people ownership", "points": -10, "rationale": "Guards against title-only seniority." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Cannot advance until work rights confirmed." },
+            { "id": "rsa_cap", "condition": "store sells liquor AND rsa = not_met", "effect": "cap_advance:59", "rationale": "Cannot legally supervise liquor sales without RSA; clearable via a same-week course." }
+          ],
+          "advance_threshold": 60
+        },
+        {
+          "rubric_id": "rub_retail_sales_assistant_au_v1",
+          "role": "Retail Sales Assistant",
+          "aliases": ["Sales Assistant", "Retail Assistant", "Customer Service (retail)", "Sales Associate"],
+          "award_ref": { "code": "MA000004", "name": "General Retail Industry Award 2020", "typical_classification": "Retail Employee Level 1-3" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true, "note": "Eligibility consideration." },
+            { "id": "rsa", "label": "RSA", "mandatory": "conditional", "note": "Only for liquor sales." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Listed 'retail' but the CV is really warehouse, online-fulfilment or promotions with no direct customer selling.",
+            "executed_within": "Served customers, operated POS, handled cash/returns and hit personal sales or add-on targets on the floor.",
+            "supervised_within": "N/A at this level - keyholding/2IC signals map upward to Assistant Manager.",
+            "disqualifiers": ["No customer-facing selling described at all."]
+          },
+          "merit_criteria": [
+            { "id": "customer_selling", "label": "Customer service and selling on the floor", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No customer-facing selling", "3": "Solid service, some add-on selling", "5": "Consistent top-performer on sales/conversion or units-per-transaction" } },
+            { "id": "pos_cash", "label": "POS operation, cash handling and accuracy", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "No POS/cash", "3": "Confident on POS, EFTPOS and returns", "5": "Trusted with reconciliation/float and trains others" } },
+            { "id": "reliability_availability", "label": "Reliability and availability (incl. peak trade)", "max_points": 18, "type": "ordinal_5", "anchors": { "1": "Very limited availability", "3": "Reliable, some weekend availability", "5": "Broad availability incl. peak periods, strong attendance record" } },
+            { "id": "product_category_fit", "label": "Product / category familiarity", "max_points": 17, "type": "ordinal_5", "anchors": { "1": "Unrelated category", "3": "Adjacent category", "5": "Same category with product depth" } },
+            { "id": "teamwork_standards", "label": "Teamwork and store standards (VM, stock, cleanliness)", "max_points": 15, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_customer_facing", "condition": "Zero customer-facing selling in the history", "points": -12, "rationale": "Core of the role is missing." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights before advancing." }
+          ],
+          "advance_threshold": 55
+        },
+        {
+          "rubric_id": "rub_retail_assistant_manager_au_v1",
+          "role": "Assistant Store Manager / 2IC",
+          "aliases": ["Assistant Manager", "2IC", "Duty Manager (retail)", "Supervisor (retail)"],
+          "award_ref": { "code": "MA000004", "name": "General Retail Industry Award 2020", "typical_classification": "Retail Employee Level 4-5" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "rsa", "label": "RSA", "mandatory": "conditional", "note": "Liquor sales only." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Senior sales assistant who occasionally 'helped out' but never held keys, ran a shift or opened/closed.",
+            "executed_within": "Ran shifts as duty manager: opened/closed, keyholding, cash-up, shift-level rostering and escalation handling.",
+            "supervised_within": "Deputised for the store manager end-to-end (roster, banking, team on shift) with accountability for the store while in charge.",
+            "disqualifiers": ["No keyholding, opening/closing or shift-lead responsibility evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "shift_leadership", "label": "Shift leadership (open/close, keyholding, on-shift decisions)", "max_points": 26, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No shift-lead duties", "3": "Ran shifts regularly", "5": "Fully deputised for the manager incl. banking and staffing" } },
+            { "id": "sales_coaching", "label": "Driving sales and coaching the team on shift", "max_points": 22, "type": "ordinal_5", "anchors": { "1": "No coaching", "3": "Coached juniors on service/add-ons", "5": "Measurably lifted team conversion/UPT" } },
+            { "id": "cash_admin", "label": "Cash reconciliation, banking and shift admin", "max_points": 20, "type": "ordinal_5" },
+            { "id": "rostering_exposure", "label": "Rostering / availability management exposure", "max_points": 17, "type": "ordinal_5", "anchors": { "1": "None", "3": "Adjusted rosters within a tool", "5": "Built shift rosters to budget" } },
+            { "id": "communication", "label": "Written communication (CV clarity)", "max_points": 15, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_keyholding", "condition": "No opening/closing or keyholding responsibility anywhere in history", "points": -8, "rationale": "2IC hinges on being trusted with the store." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        }
+      ]
+    },
+    {
+      "industry": "Hospitality & Food Service",
+      "modern_award": { "code": "MA000009", "name": "Hospitality Industry (General) Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000119", "name": "Restaurant Industry Award 2020", "when": "restaurants and cafes primarily engaged in food service" },
+        { "code": "MA000003", "name": "Fast Food Industry Award 2020", "when": "quick-service / fast-food outlets" }
+      ],
+      "award_pain_points": [
+        "Annualised wage arrangements (cl. 24, HIGA): salaried venue staff must be reconciled against what penalty/overtime would have paid - the annual 'better off' reconciliation trips up many operators.",
+        "Overtime and penalty rates (cl. 28-29): late-night, weekend and public-holiday loadings on a 7-day trading operation make labour costing a nightly discipline.",
+        "Casual employment and minimum engagement (cl. 11): 2-hour minimums and 25% loading against a roster that flexes with covers/bookings.",
+        "Broken shifts and split-shift allowances: common in venues with lunch/dinner service; must be structured and paid correctly.",
+        "Classification and 'introductory' vs food/beverage/kitchen streams (Schedule A): a cook doing qualified chef work must be classified and paid accordingly."
+      ],
+      "tech_stack": {
+        "pos": ["Lightspeed (Kounta)", "Square for Restaurants", "Impos", "Bepoz", "Redcat", "Abacus"],
+        "reservations_ordering": ["SevenRooms", "OpenTable", "Now Book It", "me&u", "Mr Yum"],
+        "workforce_rostering": ["Deputy", "Tanda", "RosterElf", "Ento"],
+        "delivery": ["UberEats Manager", "DoorDash", "Deliveroo (legacy)"],
+        "payroll_hr": ["Xero", "KeyPay/Employment Hero", "MYOB"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_hosp_venue_manager_au_v1",
+          "role": "Venue / Restaurant Manager",
+          "aliases": ["Restaurant Manager", "Venue Manager", "Bar Manager", "Duty Manager (venue)", "Hospitality Manager"],
+          "award_ref": { "code": "MA000009", "name": "Hospitality Industry (General) Award 2020", "typical_classification": "Level 5-6 / salaried" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "rsa", "label": "Responsible Service of Alcohol (RSA)", "mandatory": true, "note": "Mandatory to manage a licensed venue; state-issued." },
+            { "id": "rsg", "label": "Responsible Service of Gambling (RSG/RCG)", "mandatory": "conditional", "note": "Required where gaming machines operate (state-specific)." },
+            { "id": "approved_manager", "label": "Approved/Nominated Manager licence", "mandatory": "conditional", "note": "State liquor-licensing manager approval where the venue holds the licence." },
+            { "id": "food_safety_supervisor", "label": "Food Safety Supervisor certificate", "mandatory": "conditional", "note": "Required for the venue's nominated FSS; state-specific." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Worked front-of-house as a waiter/bartender without ever owning a shift's floor, bar takings, roster or compliance.",
+            "executed_within": "Ran service as duty manager: cashed up, managed the floor/bar, handled incidents and RSA compliance on the night.",
+            "supervised_within": "Owned the venue's labour cost, roster, ordering, licensing compliance and team performance - accountable for weekly wage% and COGS to an owner/GM.",
+            "disqualifiers": ["No RSA/compliance responsibility; no ownership of takings, roster or team."]
+          },
+          "merit_criteria": [
+            { "id": "venue_pnl", "label": "Venue P&L: labour %, COGS and revenue ownership", "max_points": 24, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No cost ownership", "3": "Owned wage% for a shift/section", "5": "Owned full venue P&L with quantified margin outcomes" } },
+            { "id": "service_floor_leadership", "label": "Service leadership on a live floor/bar", "max_points": 22, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No floor leadership", "3": "Ran sections/shifts", "5": "Led high-covers service across FOH with strong guest outcomes" } },
+            { "id": "rostering_labour", "label": "Rostering to labour budget under penalty/annualised rules", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "None", "3": "Built rosters in a WFM tool", "5": "Held labour% across a 7-day trade while covering peaks" } },
+            { "id": "compliance_incident", "label": "RSA/licensing compliance and incident handling", "max_points": 16, "type": "ordinal_5" },
+            { "id": "ordering_stock", "label": "Ordering, stock and supplier management", "max_points": 10, "type": "ordinal_5" },
+            { "id": "communication", "label": "Written communication (CV clarity)", "max_points": 8, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_compliance", "condition": "No RSA or licensing/compliance responsibility described for a licensed-venue role", "points": -10, "rationale": "Central legal duty of a venue manager." },
+            { "id": "tenure_churn", "condition": "Repeated <6mo venue stints with no seasonal/closure explanation", "points": -6, "rationale": "Hospitality churns, but management stability still matters.", "fairness_flag": "tenure_can_correlate_with_visa_working_holiday - read context" }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." },
+            { "id": "rsa_cap", "condition": "rsa = not_met", "effect": "cap_advance:59", "rationale": "Cannot manage a licensed venue without RSA; clearable quickly." }
+          ],
+          "advance_threshold": 60
+        },
+        {
+          "rubric_id": "rub_hosp_chef_au_v1",
+          "role": "Chef / Cook",
+          "aliases": ["Chef", "Cook", "Sous Chef", "Chef de Partie", "Head Chef", "Kitchen Hand (junior)"],
+          "award_ref": { "code": "MA000009", "name": "Hospitality Industry (General) Award 2020", "typical_classification": "Cook grade 1-5 / Chef stream" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "food_safety", "label": "Food Safety / Food Handling certificate", "mandatory": "conditional", "note": "FSS mandatory for the nominated supervisor; basic food handling widely required." },
+            { "id": "cert_iii_commercial_cookery", "label": "Cert III Commercial Cookery (or trade equivalent)", "mandatory": "conditional", "note": "Required to be classified/paid as a qualified chef; not required for a cook/kitchenhand." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Kitchenhand or food-prep only, described as 'chef' but no menu, section or qualified cooking ownership.",
+            "executed_within": "Ran a section (larder, grill, pastry) to service standard, plated to spec under pressure.",
+            "supervised_within": "Ran the pass/kitchen: menu costing, ordering, roster, food-safety compliance and brigade supervision.",
+            "disqualifiers": ["No hands-on cooking to service standard; purely prep/dishwashing."]
+          },
+          "merit_criteria": [
+            { "id": "cooking_skill_section", "label": "Cooking skill and section ownership", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "Prep/kitchenhand only", "3": "Runs a section to standard", "5": "Runs multiple sections/pass at head-chef level" } },
+            { "id": "cuisine_venue_fit", "label": "Cuisine and venue-type fit", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "Unrelated cuisine/format", "3": "Adjacent", "5": "Direct cuisine and comparable volume/format" } },
+            { "id": "food_safety_practice", "label": "Food safety and kitchen hygiene practice", "max_points": 18, "type": "ordinal_5" },
+            { "id": "speed_consistency", "label": "Speed and consistency under service pressure", "max_points": 17, "type": "ordinal_5" },
+            { "id": "kitchen_leadership", "label": "Kitchen leadership / ordering / costing (for senior grades)", "max_points": 15, "type": "ordinal_5", "anchors": { "1": "None", "3": "Some ordering/junior supervision", "5": "Menu costing, ordering and brigade leadership" } }
+          ],
+          "penalty_overrides": [
+            { "id": "no_hands_on", "condition": "No hands-on cooking to service standard evidenced", "points": -12, "rationale": "Core skill absent." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        },
+        {
+          "rubric_id": "rub_hosp_fb_attendant_au_v1",
+          "role": "Food & Beverage Attendant / Bar Attendant",
+          "aliases": ["Waiter", "Waitress", "F&B Attendant", "Bartender", "Barista", "Front of House"],
+          "award_ref": { "code": "MA000009", "name": "Hospitality Industry (General) Award 2020", "typical_classification": "F&B / Beverage stream Level 1-3" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "rsa", "label": "RSA", "mandatory": true, "note": "Mandatory to serve alcohol; state-issued." },
+            { "id": "rsg", "label": "RSG/RCG", "mandatory": "conditional", "note": "Where gaming operates." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Retail or events-usher experience described as hospitality with no table/bar service.",
+            "executed_within": "Served food and drinks, ran sections, upsold, handled POS and RSA on the floor/bar.",
+            "supervised_within": "N/A - leadership signals map to Duty Manager/Supervisor.",
+            "disqualifiers": ["No direct table/bar service or POS experience."]
+          },
+          "merit_criteria": [
+            { "id": "service_skill", "label": "Table/bar service skill and pace", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No direct service", "3": "Confident section service", "5": "High-volume/fine-dining or craft-bar standard" } },
+            { "id": "product_knowledge", "label": "Product knowledge (menu, wine/coffee/cocktails)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "pos_cash", "label": "POS, ordering and cash handling", "max_points": 18, "type": "ordinal_5" },
+            { "id": "reliability_availability", "label": "Reliability and availability (nights/weekends)", "max_points": 18, "type": "ordinal_5" },
+            { "id": "teamwork", "label": "Teamwork and composure under pressure", "max_points": 12, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_service", "condition": "No direct table/bar service evidenced", "points": -12, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." },
+            { "id": "rsa_cap", "condition": "serves alcohol AND rsa = not_met", "effect": "cap_advance:54", "rationale": "Cannot serve alcohol without RSA; clearable via short course." }
+          ],
+          "advance_threshold": 55
+        }
+      ]
+    },
+    {
+      "industry": "Healthcare & Aged Care",
+      "modern_award": { "code": "MA000018", "name": "Aged Care Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000034", "name": "Nurses Award 2020", "when": "Registered and Enrolled Nurses across settings" },
+        { "code": "MA000100", "name": "Social, Community, Home Care and Disability Services Industry Award 2020", "when": "home-care and community aged/disability care" }
+      ],
+      "award_pain_points": [
+        "24/7 rostering and overtime penalties (Aged Care cl. 22, 25): continuous-care rosters with night/weekend/public-holiday loadings and minimum breaks between shifts are a constant labour-cost and fatigue-management problem.",
+        "Classification translation (Schedule B, I): the 2020-24 aged-care wage-case changes mean personal-care and nursing classifications and pay points must be applied exactly - a frequent underpayment risk.",
+        "Broken shifts and sleepovers (home care): SCHADS-style sleepover and broken-shift provisions complicate community rosters and pay.",
+        "Allowances (cl. 15-16): first-aid, medication, in-charge and district allowances are routinely missed.",
+        "Mandatory shift coverage vs minimum-engagement rules: covering unplanned absences on a care floor while staying inside award notice/roster-change rules."
+      ],
+      "tech_stack": {
+        "clinical_care_management": ["Leecare Platinum", "AutumnCare", "Telstra Health / iCareHealth", "Person Centred Software", "Manad Plus"],
+        "workforce_rostering": ["Humanforce", "Easy Employer", "UKG/Kronos", "Skedulo (community)"],
+        "medication_management": ["MediMap", "Webstercare", "eRx"],
+        "payroll_hr": ["Chris21/Ascender", "Employment Hero", "Xero (smaller providers)"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_health_registered_nurse_au_v1",
+          "role": "Registered Nurse (RN)",
+          "aliases": ["RN", "Registered Nurse", "Clinical Nurse", "Care Manager (clinical)"],
+          "award_ref": { "code": "MA000034", "name": "Nurses Award 2020", "typical_classification": "RN Level 1-3" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "ahpra_rn", "label": "AHPRA registration as a Registered Nurse (NMBA), current, no conditions", "mandatory": true, "note": "Legally cannot practise as an RN without it. Verify registration number." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": true, "note": "Aged/community care mandatory." },
+            { "id": "ndis_screening", "label": "NDIS Worker Screening Check", "mandatory": "conditional", "note": "If working with NDIS participants." },
+            { "id": "wwcc", "label": "Working With Children Check", "mandatory": "conditional", "note": "Paediatric / youth settings." },
+            { "id": "immunisation", "label": "Immunisation history (incl. current requirements)", "mandatory": true, "note": "Employer/state health requirement." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Worked in a healthcare setting in a non-clinical or AIN/PCW capacity, or overseas experience not yet AHPRA-registered.",
+            "executed_within": "Practised as a registered RN delivering clinical care, med administration, assessments and care planning to scope.",
+            "supervised_within": "Held clinical in-charge / team-leader accountability: supervised care staff, owned clinical governance, incidents and care-plan compliance for a unit.",
+            "disqualifiers": ["No current AHPRA RN registration (routes to eligibility gate, not merit).", "Assistant-level (AIN/PCW) duties described as RN practice."]
+          },
+          "merit_criteria": [
+            { "id": "clinical_practice_depth", "label": "Clinical practice depth and scope", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered clinical practice", "3": "Solid ward/facility RN practice", "5": "Advanced/complex care, precepting, clinical leadership" } },
+            { "id": "setting_fit", "label": "Care-setting fit (aged care / acute / community / disability)", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "Unrelated setting", "3": "Adjacent setting", "5": "Direct setting and cohort" } },
+            { "id": "care_planning_documentation", "label": "Assessment, care planning and clinical documentation", "max_points": 18, "type": "ordinal_5" },
+            { "id": "medication_management", "label": "Medication management and clinical safety", "max_points": 16, "type": "ordinal_5" },
+            { "id": "leadership_incharge", "label": "In-charge / team leadership (for senior roles)", "max_points": 10, "type": "ordinal_5", "anchors": { "1": "None", "3": "Shift in-charge occasionally", "5": "Regular in-charge with staff supervision" } },
+            { "id": "communication", "label": "Written communication (CV clarity)", "max_points": 8, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "scope_mismatch", "condition": "Described duties are assistant-level (personal care) presented as RN scope", "points": -8, "rationale": "Guards against classification inflation." }
+          ],
+          "hard_caps": [
+            { "id": "ahpra_cap", "condition": "ahpra_rn = not_met", "effect": "flag_ineligible", "rationale": "Cannot advance to an RN role without current AHPRA registration; unclear (e.g. overseas applicant mid-registration) routes to a phone screen, not rejection." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 62
+        },
+        {
+          "rubric_id": "rub_health_personal_care_worker_au_v1",
+          "role": "Personal Care Worker / Assistant in Nursing (AIN)",
+          "aliases": ["PCW", "AIN", "Care Worker", "Aged Care Worker", "Support Worker (aged care)"],
+          "award_ref": { "code": "MA000018", "name": "Aged Care Award 2020", "typical_classification": "Aged Care Employee Level 2-4" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "cert_iii_individual_support", "label": "Cert III Individual Support (Ageing) or equivalent", "mandatory": "conditional", "note": "Effectively required by most providers; some entry roles train on the job." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": true },
+            { "id": "ndis_screening", "label": "NDIS Worker Screening Check", "mandatory": "conditional", "note": "NDIS participants." },
+            { "id": "first_aid_cpr", "label": "First Aid and CPR", "mandatory": true },
+            { "id": "immunisation", "label": "Immunisation history", "mandatory": true }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Hospitality/cleaning/domestic roles inside a facility with no personal-care duties.",
+            "executed_within": "Delivered personal care (ADLs, mobility, hygiene, meals), documented and escalated to clinical staff.",
+            "supervised_within": "N/A - senior signals map to Team Leader / Clinical Care roles.",
+            "disqualifiers": ["No hands-on personal-care duties described."]
+          },
+          "merit_criteria": [
+            { "id": "personal_care_skill", "label": "Personal care and ADL support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No personal care", "3": "Confident ADL support", "5": "Complex care (dementia, palliative, high-care) experience" } },
+            { "id": "cohort_setting_fit", "label": "Cohort/setting fit (residential / home care / disability)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "manual_handling_safety", "label": "Manual handling and workplace safety", "max_points": 18, "type": "ordinal_5" },
+            { "id": "documentation_escalation", "label": "Documentation and escalation to clinical staff", "max_points": 16, "type": "ordinal_5" },
+            { "id": "empathy_reliability", "label": "Empathy, reliability and availability", "max_points": 14, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_care_duties", "condition": "No hands-on personal-care duties in the history", "points": -12, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 56
+        }
+      ]
+    },
+    {
+      "industry": "Pharmacy",
+      "modern_award": { "code": "MA000012", "name": "Pharmacy Industry Award 2020" },
+      "also_relevant_awards": [],
+      "award_pain_points": [
+        "Trading-hours penalty structure (cl. 22-23): community pharmacies trade evenings/weekends; ordinary-hours span and penalty loadings must be applied across long trading days.",
+        "Pharmacist vs assistant classification (Schedule A): pharmacists, interns, dispensary technicians and retail assistants sit on distinct pay levels - misclassifying a dispensary tech as retail is a common error.",
+        "Overtime and minimum engagement for casuals: short casual shifts against minimum-engagement rules on a small roster.",
+        "Allowances (cl. 20): pharmacist-in-charge and first-aid allowances routinely missed.",
+        "Sole-pharmacist coverage: rostering to guarantee a registered pharmacist is on-site every trading hour while managing leave and penalties."
+      ],
+      "tech_stack": {
+        "dispensary": ["Fred Dispense / Fred NXT", "Z Software (ZSoftware)", "Minfos", "LOTS", "Aquarius", "Corum"],
+        "pos": ["Fred POS", "POS Solutions", "Minfos POS"],
+        "clinical_adherence": ["MedAdvisor", "GuildLink / GuildCare", "MedsCheck tools"],
+        "ordering_wholesale": ["PharmX", "Symbion/API portals", "Sigma"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_pharmacy_pharmacist_au_v1",
+          "role": "Pharmacist",
+          "aliases": ["Community Pharmacist", "Retail Pharmacist", "Pharmacist in Charge", "Managing Pharmacist"],
+          "award_ref": { "code": "MA000012", "name": "Pharmacy Industry Award 2020", "typical_classification": "Pharmacist / Experienced / In-charge / Manager" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "ahpra_pharmacist", "label": "AHPRA registration as a Pharmacist (Pharmacy Board), current, no restrictive conditions", "mandatory": true, "note": "Legally cannot dispense without it. Verify registration number." },
+            { "id": "immunisation_accreditation", "label": "Immunisation/vaccination accreditation", "mandatory": "conditional", "note": "Required to administer vaccinations (state program)." },
+            { "id": "first_aid", "label": "First Aid", "mandatory": "conditional", "note": "Often required, esp. for vaccinating pharmacists." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": "conditional", "note": "Employer / S8 handling policy." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Pharmacy assistant or intern experience described as pharmacist practice; overseas pharmacist not yet AHPRA-registered.",
+            "executed_within": "Dispensed and counselled as a registered pharmacist, managed S8 registers, delivered professional services (MedsCheck, vaccinations).",
+            "supervised_within": "Pharmacist-in-charge/manager: owned dispensary compliance, S8 governance, staff supervision, DAA/scripts throughput and professional-services revenue.",
+            "disqualifiers": ["No current AHPRA pharmacist registration (eligibility gate).", "Assistant/intern duties presented as full pharmacist scope."]
+          },
+          "merit_criteria": [
+            { "id": "dispensing_clinical", "label": "Dispensing accuracy and clinical counselling", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered dispensing", "3": "Confident community dispensing and counselling", "5": "High-throughput plus complex clinical interventions" } },
+            { "id": "professional_services", "label": "Professional services (vaccinations, MedsCheck, DAA, screening)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "s8_compliance", "label": "S8/controlled-drug register and regulatory compliance", "max_points": 18, "type": "ordinal_5" },
+            { "id": "software_throughput", "label": "Dispensary software fluency and workflow throughput", "max_points": 14, "type": "ordinal_5" },
+            { "id": "leadership_incharge", "label": "Pharmacist-in-charge / staff supervision (senior roles)", "max_points": 12, "type": "ordinal_5" },
+            { "id": "communication", "label": "Written communication (CV clarity)", "max_points": 8, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "scope_inflation", "condition": "Intern/assistant duties presented as independent pharmacist practice", "points": -8, "rationale": "Guards against scope inflation." }
+          ],
+          "hard_caps": [
+            { "id": "ahpra_cap", "condition": "ahpra_pharmacist = not_met", "effect": "flag_ineligible", "rationale": "Cannot dispense without registration; overseas mid-registration routes to phone screen." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 62
+        },
+        {
+          "rubric_id": "rub_pharmacy_assistant_au_v1",
+          "role": "Pharmacy Assistant / Dispensary Technician",
+          "aliases": ["Pharmacy Assistant", "Dispensary Technician", "Dispensary Assistant", "Pharmacy Retail Assistant"],
+          "award_ref": { "code": "MA000012", "name": "Pharmacy Industry Award 2020", "typical_classification": "Pharmacy Assistant Level 1-3 / Dispensary Technician" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "cert_iii_community_pharmacy", "label": "Cert II/III Community Pharmacy", "mandatory": "conditional", "note": "Preferred / effectively required for dispensary technician; retail assistants often trained on the job." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "General retail with no pharmacy/dispensary exposure.",
+            "executed_within": "Assisted dispensing (data entry, labelling, DAA packing), served pharmacy retail, handled scripts intake under pharmacist supervision.",
+            "supervised_within": "N/A - senior signals map to a pharmacy 2IC/retail manager.",
+            "disqualifiers": ["No pharmacy-specific duties; purely unrelated retail."]
+          },
+          "merit_criteria": [
+            { "id": "dispensary_support", "label": "Dispensary support (data entry, labelling, DAA/Webster packing)", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "pharmacy_retail_advice", "label": "Pharmacy retail service and scheduled-medicine referral discipline", "max_points": 22, "type": "ordinal_5" },
+            { "id": "software_familiarity", "label": "Dispensary/POS software familiarity (Fred/Minfos/Z)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "accuracy_compliance", "label": "Accuracy and compliance mindset", "max_points": 18, "type": "ordinal_5" },
+            { "id": "reliability", "label": "Reliability and availability", "max_points": 12, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_pharmacy_exposure", "condition": "No pharmacy-specific duties in the history", "points": -8, "rationale": "Pharmacy context matters for scheduled-medicine handling." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 55
+        }
+      ]
+    },
+    {
+      "industry": "Construction & Trades",
+      "modern_award": { "code": "MA000020", "name": "Building and Construction General On-site Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000025", "name": "Electrical, Electronic and Communications Contracting Award 2020", "when": "electrical contracting" },
+        { "code": "MA000036", "name": "Plumbing and Fire Sprinklers Award 2020", "when": "plumbing / fire" }
+      ],
+      "award_pain_points": [
+        "Industry and site allowances (cl. 21-23): daily fares/travel, site, tool, and special-task allowances are numerous and easily under- or over-paid.",
+        "RDO and 36-hour-week arrangements: the construction RDO cycle plus overtime after ordinary hours is a rostering/payroll trap.",
+        "Overtime and penalty rates (cl. 29-30): early starts, weekend and inclement-weather provisions on outdoor sites.",
+        "Casual conversion and daily-hire (cl. 12-13): construction daily-hire and casual conversion rules differ from other awards.",
+        "Classification by trade/competency (Schedule A): apprentices, trades-qualified and special-class must be classified to competency; using an unlicensed worker on licensed work is both an award and a licensing breach."
+      ],
+      "tech_stack": {
+        "job_field_management": ["simPRO", "ServiceM8", "AroFlo", "Tradify", "Fergus"],
+        "estimating_project": ["Buildxact", "Databuild", "Cubit/Buildsoft", "Procore (larger builders)"],
+        "scheduling_compliance": ["Assignar (subbie/plant compliance)", "HammerTech (site safety)"],
+        "accounting_payroll": ["Xero", "MYOB", "KeyPay/Employment Hero"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_trades_electrician_au_v1",
+          "role": "Electrician",
+          "aliases": ["Electrician", "A-Grade Electrician", "Electrical Tradesperson"],
+          "award_ref": { "code": "MA000025", "name": "Electrical, Electronic and Communications Contracting Award 2020", "typical_classification": "Electrical worker grade 5+ (trade qualified)" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "electrical_licence", "label": "State electrical licence (e.g. QLD Electrical Work Licence / NSW/VIC equivalent), current", "mandatory": true, "note": "Legally cannot perform electrical work unlicensed. Verify licence class and state." },
+            { "id": "white_card", "label": "Construction Induction (White Card)", "mandatory": true, "note": "Required for any construction site." },
+            { "id": "drivers_licence", "label": "Driver's licence", "mandatory": true, "note": "Field/callout work." },
+            { "id": "hrwl", "label": "High Risk Work Licence (EWP >11m, etc.)", "mandatory": "conditional", "note": "If operating elevated work platforms / relevant plant." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Electrical labourer/trades-assistant or apprentice-incomplete described as a licensed electrician; adjacent (data cabling only) presented as full electrical.",
+            "executed_within": "Performed licensed electrical work end-to-end: install, fault-find, test-and-tag, compliance certificates, to standard.",
+            "supervised_within": "Leading-hand/foreman: supervised a crew, signed off compliance, coordinated subbies and owned site electrical scope and safety.",
+            "disqualifiers": ["No current state electrical licence (eligibility gate).", "Only assistant/labouring duties evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "trade_competency", "label": "Licensed electrical competency and breadth", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "Assistant/apprentice only", "3": "Solid licensed domestic/commercial work", "5": "Broad commercial/industrial incl. fault-finding and compliance" } },
+            { "id": "sector_fit", "label": "Sector fit (domestic / commercial / industrial / solar)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "compliance_testing", "label": "Compliance, testing and certificate-of-compliance discipline", "max_points": 18, "type": "ordinal_5" },
+            { "id": "safety_swms", "label": "Site safety, SWMS and risk awareness", "max_points": 16, "type": "ordinal_5" },
+            { "id": "leadership_leadinghand", "label": "Leading-hand / crew supervision (senior roles)", "max_points": 10, "type": "ordinal_5" },
+            { "id": "reliability", "label": "Reliability and licences currency", "max_points": 6, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "assistant_as_licensed", "condition": "Trades-assistant/labouring duties presented as licensed electrical work", "points": -10, "rationale": "Guards against licence/scope inflation." }
+          ],
+          "hard_caps": [
+            { "id": "licence_cap", "condition": "electrical_licence = not_met", "effect": "auto_reject", "rationale": "Performing electrical work without a current state licence is illegal - cannot advance to a licensed-electrician vacancy. (If the vacancy is a labourer/apprentice role, use that rubric instead.)" },
+            { "id": "white_card_cap", "condition": "white_card = not_met", "effect": "cap_advance:59", "rationale": "Cannot enter a construction site without a White Card; clearable same-day online." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 62
+        },
+        {
+          "rubric_id": "rub_trades_carpenter_au_v1",
+          "role": "Carpenter",
+          "aliases": ["Carpenter", "Chippy", "Formworker", "Carpenter & Joiner"],
+          "award_ref": { "code": "MA000020", "name": "Building and Construction General On-site Award 2020", "typical_classification": "CW3+ (trade qualified)" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "white_card", "label": "Construction Induction (White Card)", "mandatory": true },
+            { "id": "trade_cert", "label": "Cert III Carpentry (or recognised trade qualification)", "mandatory": "conditional", "note": "Required to be classified/paid as a qualified carpenter." },
+            { "id": "drivers_licence", "label": "Driver's licence", "mandatory": true },
+            { "id": "hrwl", "label": "High Risk Work Licence (scaffolding, EWP, rigging)", "mandatory": "conditional", "note": "Task dependent." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Labourer/TA who assisted carpenters without holding a trade or building to spec independently.",
+            "executed_within": "Built to plan independently: framing, formwork, fit-out or finish carpentry to standard and tolerance.",
+            "supervised_within": "Leading-hand/site foreman: set out work, supervised a crew, coordinated trades and owned quality/programme for a section.",
+            "disqualifiers": ["Only labouring/assisting duties evidenced when a qualified carpenter is required."]
+          },
+          "merit_criteria": [
+            { "id": "trade_skill", "label": "Carpentry skill and quality to tolerance", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "work_type_fit", "label": "Work-type fit (residential / commercial / formwork / fit-out)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "plan_reading_setout", "label": "Plan reading and set-out", "max_points": 18, "type": "ordinal_5" },
+            { "id": "safety_swms", "label": "Site safety and SWMS discipline", "max_points": 16, "type": "ordinal_5" },
+            { "id": "leadership_leadinghand", "label": "Leading-hand / crew supervision (senior)", "max_points": 14, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "labourer_as_trade", "condition": "Labouring/TA duties presented as qualified carpentry", "points": -8, "rationale": "Scope guard." }
+          ],
+          "hard_caps": [
+            { "id": "white_card_cap", "condition": "white_card = not_met", "effect": "cap_advance:59", "rationale": "White Card required for site entry; clearable same-day." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        },
+        {
+          "rubric_id": "rub_trades_site_supervisor_au_v1",
+          "role": "Site Supervisor / Foreman",
+          "aliases": ["Site Supervisor", "Foreman", "Leading Hand", "Site Manager (trades)", "Construction Supervisor"],
+          "award_ref": { "code": "MA000020", "name": "Building and Construction General On-site Award 2020", "typical_classification": "CW5+ / above-award salaried" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "white_card", "label": "Construction Induction (White Card)", "mandatory": true },
+            { "id": "supervisor_licence", "label": "Builder/site-supervisor licence where required (e.g. QBCC Site Supervisor in QLD)", "mandatory": "conditional", "note": "State and scope dependent." },
+            { "id": "first_aid", "label": "First Aid", "mandatory": "conditional", "note": "Frequently required for the site's first-aider." },
+            { "id": "drivers_licence", "label": "Driver's licence", "mandatory": true }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Tradesperson who ran their own tools but never coordinated other trades, programme or site safety.",
+            "executed_within": "Ran a section/small site: coordinated subbies, managed daily programme, inducted workers and ran toolbox talks.",
+            "supervised_within": "Owned a site end-to-end: programme, subcontractors, WHS compliance, quality, client/PM liaison and defect close-out.",
+            "disqualifiers": ["No coordination of other trades, programme or WHS ownership evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "site_coordination", "label": "Site coordination and programme management", "max_points": 26, "type": "ordinal_5", "evidence_required": true },
+            { "id": "whs_compliance", "label": "WHS leadership (SWMS, inductions, incident management)", "max_points": 22, "type": "ordinal_5", "evidence_required": true },
+            { "id": "subcontractor_mgmt", "label": "Subcontractor and supplier management", "max_points": 20, "type": "ordinal_5" },
+            { "id": "quality_defects", "label": "Quality control and defect management", "max_points": 16, "type": "ordinal_5" },
+            { "id": "communication", "label": "Client/PM communication and reporting", "max_points": 16, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_coordination", "condition": "No coordination of other trades / no WHS ownership described", "points": -10, "rationale": "Core of a supervisor role." }
+          ],
+          "hard_caps": [
+            { "id": "white_card_cap", "condition": "white_card = not_met", "effect": "cap_advance:59", "rationale": "Site entry requirement." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 60
+        }
+      ]
+    },
+    {
+      "industry": "Professional Services",
+      "modern_award": { "code": "MA000002", "name": "Clerks - Private Sector Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000116", "name": "Legal Services Award 2020", "when": "law-firm support staff" },
+        { "code": "MA000019", "name": "Banking, Finance and Insurance Award 2020", "when": "finance/insurance clerical" }
+      ],
+      "award_pain_points": [
+        "Classification by clerical level (Schedule A/B): Levels 1-5 turn on autonomy and judgement; an office coordinator doing Level 4 work paid at Level 2 is a common underpayment.",
+        "Ordinary hours and overtime (cl. 13, 21): span of hours and time-off-in-lieu arrangements for salaried clerical staff.",
+        "Minimum engagement for part-time/casual (cl. 12): reception/admin often part-time with minimum-engagement and roster-change rules.",
+        "Allowances (cl. 19-20): first-aid and higher-duties allowances missed when staff cover up.",
+        "Annualised salary set-off: professional-services salaries must still satisfy award minimums including overtime - the 'my salary covers it' assumption is risky."
+      ],
+      "tech_stack": {
+        "accounting_finance": ["Xero", "MYOB", "QuickBooks Online", "Sage"],
+        "crm_practice": ["HubSpot", "Salesforce", "Microsoft Dynamics", "practice tools (Actionstep/Xero Practice Manager, FYI Docs)"],
+        "productivity_docs": ["Microsoft 365", "SharePoint", "DocuSign", "Adobe Acrobat"],
+        "payroll_hr": ["Employment Hero", "KeyPay", "Xero Payroll"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_profsvc_office_manager_au_v1",
+          "role": "Office Manager / Administrator",
+          "aliases": ["Office Manager", "Administrator", "Office Coordinator", "Practice Manager (admin)"],
+          "award_ref": { "code": "MA000002", "name": "Clerks - Private Sector Award 2020", "typical_classification": "Clerical Level 4-5" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "police_check", "label": "National Police Check", "mandatory": "conditional", "note": "Some firms (legal/finance) require it." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Receptionist or data-entry role described as office management with no ownership of processes, vendors or budgets.",
+            "executed_within": "Ran the office day-to-day: scheduling, supplier/vendor management, basic bookkeeping, HR admin and process ownership.",
+            "supervised_within": "Owned office operations and a small admin team, managed budgets/contracts and drove process improvement across the business.",
+            "disqualifiers": ["Purely task-taking reception/admin with no ownership evidenced when a manager is required."]
+          },
+          "merit_criteria": [
+            { "id": "operations_ownership", "label": "Office operations ownership (process, vendors, facilities)", "max_points": 26, "type": "ordinal_5", "evidence_required": true },
+            { "id": "finance_admin", "label": "Bookkeeping / accounts / invoicing exposure", "max_points": 20, "type": "ordinal_5" },
+            { "id": "systems_proficiency", "label": "Systems proficiency (M365, accounting, CRM)", "max_points": 18, "type": "ordinal_5" },
+            { "id": "coordination_org", "label": "Coordination, prioritisation and organisation", "max_points": 18, "type": "ordinal_5" },
+            { "id": "communication", "label": "Written communication (CV clarity, professionalism)", "max_points": 18, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "reception_as_management", "condition": "Reception/data-entry only, presented as office management", "points": -8, "rationale": "Ownership guard." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        },
+        {
+          "rubric_id": "rub_profsvc_bookkeeper_au_v1",
+          "role": "Bookkeeper / Accounts Officer",
+          "aliases": ["Bookkeeper", "Accounts Officer", "Accounts Payable/Receivable", "Assistant Accountant"],
+          "award_ref": { "code": "MA000002", "name": "Clerks - Private Sector Award 2020", "typical_classification": "Clerical Level 3-5" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "bas_agent", "label": "Registered BAS Agent (TPB) registration", "mandatory": "conditional", "note": "Only if lodging BAS for clients for a fee; not needed for in-house bookkeeping." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Data-entry or admin role that 'touched invoices' without owning a ledger or reconciliation.",
+            "executed_within": "Owned AP/AR, bank and account reconciliations, payroll processing and month-end for a business.",
+            "supervised_within": "Ran the finance function for an SME: full-cycle bookkeeping, BAS/payroll, reporting to the owner/accountant.",
+            "disqualifiers": ["No ownership of reconciliations or a ledger when a bookkeeper is required."]
+          },
+          "merit_criteria": [
+            { "id": "full_cycle_bookkeeping", "label": "Full-cycle bookkeeping and reconciliations", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "payroll_bas", "label": "Payroll processing and BAS/GST familiarity", "max_points": 22, "type": "ordinal_5" },
+            { "id": "software_fluency", "label": "Accounting-software fluency (Xero/MYOB/QBO)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "accuracy_controls", "label": "Accuracy, controls and attention to detail", "max_points": 18, "type": "ordinal_5" },
+            { "id": "communication", "label": "Written communication (CV clarity)", "max_points": 10, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_ledger_ownership", "condition": "No ledger/reconciliation ownership evidenced", "points": -10, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        },
+        {
+          "rubric_id": "rub_profsvc_receptionist_au_v1",
+          "role": "Receptionist / Administrative Assistant",
+          "aliases": ["Receptionist", "Admin Assistant", "Front Desk", "Team Assistant"],
+          "award_ref": { "code": "MA000002", "name": "Clerks - Private Sector Award 2020", "typical_classification": "Clerical Level 1-2" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Unrelated customer role with no office/admin duties.",
+            "executed_within": "Ran front desk and admin support: phones, diary, correspondence, data entry, basic finance/admin tasks.",
+            "supervised_within": "N/A - ownership signals map to Office Manager.",
+            "disqualifiers": ["No admin/front-desk duties evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "admin_frontdesk", "label": "Front-desk and administrative support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "systems_office", "label": "Office-software proficiency (M365, calendars, email)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "communication_phone", "label": "Communication and phone/customer manner", "max_points": 22, "type": "ordinal_5" },
+            { "id": "organisation_reliability", "label": "Organisation and reliability", "max_points": 16, "type": "ordinal_5" },
+            { "id": "presentation", "label": "CV presentation and professionalism", "max_points": 10, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_admin", "condition": "No admin/front-desk duties in the history", "points": -8, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 54
+        }
+      ]
+    },
+    {
+      "industry": "Education & Childcare",
+      "modern_award": { "code": "MA000120", "name": "Children's Services Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000077", "name": "Educational Services (Teachers) Award 2020", "when": "early-childhood teachers / school teachers" },
+        { "code": "MA000076", "name": "Educational Services (Schools) General Staff Award 2020", "when": "school support staff" }
+      ],
+      "award_pain_points": [
+        "Classification by ACECQA qualification level (Schedule B): Cert III vs Diploma vs ECT drive both the ratio requirements and the pay level - misclassifying a diploma-qualified educator is common.",
+        "Ratios vs rostering: NQF educator-to-child ratios must be met minute-to-minute, so roster gaps for breaks, sickness and programming time are a constant operational bind.",
+        "Programming/non-contact time: paid non-contact time for programming and the '2-hour minimum' engagement rules complicate part-time rosters.",
+        "Overtime and split shifts: before/after-school-care and long-day-care opening spans create split shifts and overtime exposure.",
+        "Allowances (cl. 18): first-aid, educational-leader and qualification allowances are frequently missed."
+      ],
+      "tech_stack": {
+        "childcare_management": ["Xplor", "OWNA/HubHello", "QikKids", "Kidsoft", "Kangarootime", "Storypark (documentation)"],
+        "ccs_compliance": ["CCS (Child Care Subsidy) provider portals", "3rd-party CCSS software"],
+        "rostering_hr": ["Deputy", "Humanforce", "Employment Hero"],
+        "learning_documentation": ["Storypark", "Educa", "Xplor Playground"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_edu_early_childhood_educator_au_v1",
+          "role": "Early Childhood Educator",
+          "aliases": ["Childcare Educator", "ECE", "Cert III Educator", "Diploma Educator", "Early Learning Educator"],
+          "award_ref": { "code": "MA000120", "name": "Children's Services Award 2020", "typical_classification": "CS Level 2 (Cert III) - Level 3.4 (Diploma)" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "wwcc", "label": "Working With Children Check / Blue Card (state-issued), current", "mandatory": true, "note": "Legally cannot work with children without it. Verify card and expiry." },
+            { "id": "acecqa_qual", "label": "ACECQA-approved Cert III (minimum) or Diploma in Early Childhood Education & Care", "mandatory": "conditional", "note": "Cert III is the minimum to count in ratio; trainees can work toward it under supervision." },
+            { "id": "first_aid_child", "label": "First Aid incl. CPR, anaphylaxis and asthma (HLTAID012)", "mandatory": true, "note": "Required to count in ratio for most services." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": "conditional", "note": "Provider policy / some states." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Babysitting/nanny or school-holiday help described as centre-based educator work with no NQF/programming exposure.",
+            "executed_within": "Worked as a counted educator in a service: delivered the program, documented learning, met ratios and followed the NQF/EYLF.",
+            "supervised_within": "Room leader/educational leader: led a room, mentored educators, drove programming and quality (QIP) and liaised with families.",
+            "disqualifiers": ["No centre-based / NQF-regulated educator experience when required.", "No valid WWCC/Blue Card (eligibility gate)."]
+          },
+          "merit_criteria": [
+            { "id": "educator_practice", "label": "Educator practice quality (EYLF/NQF program delivery)", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No centre-based practice", "3": "Solid counted-educator practice", "5": "Room-leading, exemplary documentation and family engagement" } },
+            { "id": "age_group_fit", "label": "Age-group fit (nursery / toddler / preschool / OSHC)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "documentation_programming", "label": "Learning documentation and programming", "max_points": 18, "type": "ordinal_5" },
+            { "id": "safety_wellbeing", "label": "Child safety, wellbeing and duty of care", "max_points": 18, "type": "ordinal_5" },
+            { "id": "family_engagement", "label": "Family engagement and communication", "max_points": 10, "type": "ordinal_5" },
+            { "id": "reliability", "label": "Reliability and qualification currency", "max_points": 6, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "informal_as_centre", "condition": "Babysitting/nanny experience presented as regulated centre-based educator work", "points": -8, "rationale": "NQF context matters." }
+          ],
+          "hard_caps": [
+            { "id": "wwcc_cap", "condition": "wwcc = not_met", "effect": "flag_ineligible", "rationale": "Cannot work with children without a valid check; unclear/expired routes to a phone screen to confirm renewal, not rejection." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 60
+        },
+        {
+          "rubric_id": "rub_edu_centre_director_au_v1",
+          "role": "Centre Director / Nominated Supervisor",
+          "aliases": ["Centre Director", "Nominated Supervisor", "Service Manager (childcare)", "Assistant Director"],
+          "award_ref": { "code": "MA000120", "name": "Children's Services Award 2020", "typical_classification": "Director levels / above-award salaried" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "wwcc", "label": "Working With Children Check / Blue Card, current", "mandatory": true },
+            { "id": "acecqa_qual", "label": "ACECQA-approved Diploma (min) or ECT qualification", "mandatory": true, "note": "Required for the nominated-supervisor / director role." },
+            { "id": "first_aid_child", "label": "First Aid incl. CPR/anaphylaxis/asthma", "mandatory": true },
+            { "id": "supervisor_certificate", "label": "Supervisor certificate / approval (state regulator)", "mandatory": "conditional", "note": "For the nominated supervisor role." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Room leader who never held regulatory, budget or occupancy accountability for a service.",
+            "executed_within": "Ran a service day-to-day: rostering to ratio, family enrolments, staff supervision and NQF compliance.",
+            "supervised_within": "Accountable for the service: occupancy/budget, A&R rating, QIP, regulatory compliance, WHS and the whole team.",
+            "disqualifiers": ["No service-level regulatory or occupancy accountability evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "service_leadership", "label": "Service leadership and NQF/regulatory compliance", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "occupancy_budget", "label": "Occupancy, enrolments and budget ownership", "max_points": 22, "type": "ordinal_5" },
+            { "id": "team_leadership", "label": "Team leadership, rostering-to-ratio and development", "max_points": 20, "type": "ordinal_5" },
+            { "id": "quality_qip", "label": "Quality improvement (QIP, A&R rating outcomes)", "max_points": 18, "type": "ordinal_5" },
+            { "id": "family_community", "label": "Family and community engagement", "max_points": 12, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_service_accountability", "condition": "No service-level regulatory/occupancy accountability described", "points": -10, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "wwcc_cap", "condition": "wwcc = not_met", "effect": "flag_ineligible", "rationale": "Valid check required." },
+            { "id": "acecqa_cap", "condition": "acecqa_qual = not_met", "effect": "cap_advance:59", "rationale": "Director role needs the approved qualification; confirm before advancing." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 62
+        }
+      ]
+    },
+    {
+      "industry": "Community Services & NFP",
+      "modern_award": { "code": "MA000100", "name": "Social, Community, Home Care and Disability Services Industry Award 2020 (SCHADS)" },
+      "also_relevant_awards": [
+        { "code": "MA000104", "name": "Miscellaneous Award 2020", "when": "roles not covered by another award" }
+      ],
+      "award_pain_points": [
+        "Broken shifts (cl. 25.6): SCHADS broken-shift rules and allowances are complex and heavily scrutinised in disability/home care rostering.",
+        "Sleepovers and 24-hour care (cl. 25.7-25.8): sleepover allowances plus disturbance provisions are a frequent underpayment area.",
+        "Minimum engagement (cl. 10, 28): 2-hour (home care) / longer minimums plus client-cancellation rules make short community visits hard to roster compliantly.",
+        "Travel time and km reimbursement (cl. 20-25): paying for travel between clients is mandatory and often missed.",
+        "Classification by qualification and role (Schedule B, E): support worker vs case manager vs coordinator levels drive pay; higher-duties for team-leading must be paid."
+      ],
+      "tech_stack": {
+        "client_ndis_management": ["Lookout/Brevity", "ShiftCare", "SupportAbility", "Carelink", "Lumary (Salesforce)", "CTARS"],
+        "rostering": ["Deputy", "Humanforce", "Easy Employer", "Skedulo"],
+        "ndis_claiming": ["PRODA / PACE (NDIS)", "provider-portal integrations"],
+        "case_management": ["Penelope", "SDS/Chintaro (housing)", "custom CRMs"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_community_disability_support_worker_au_v1",
+          "role": "Disability Support Worker",
+          "aliases": ["Support Worker", "DSW", "Community Support Worker", "Home Care Worker", "Mental Health Support Worker"],
+          "award_ref": { "code": "MA000100", "name": "SCHADS Award 2020", "typical_classification": "SACS/Home Care Level 1-3" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "ndis_screening", "label": "NDIS Worker Screening Check, current", "mandatory": true, "note": "Legally required to deliver NDIS supports. Verify clearance." },
+            { "id": "wwcc", "label": "Working With Children Check", "mandatory": "conditional", "note": "If supporting minors." },
+            { "id": "police_check", "label": "National Police Check", "mandatory": true },
+            { "id": "first_aid_cpr", "label": "First Aid and CPR", "mandatory": true },
+            { "id": "drivers_licence", "label": "Driver's licence + own reliable vehicle", "mandatory": "conditional", "note": "Community/home-visit roles." },
+            { "id": "cert_iii_iv", "label": "Cert III/IV Individual Support / Disability / Community Services", "mandatory": "conditional", "note": "Preferred; some providers train entrants." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Aged-care facility or unrelated care-adjacent role described as disability support with no participant-facing NDIS work.",
+            "executed_within": "Delivered participant-centred supports (personal care, community access, daily living, behaviour support plans) and documented against NDIS goals.",
+            "supervised_within": "Team leader/coordinator: allocated shifts, mentored support workers, owned participant plan implementation and incident reporting.",
+            "disqualifiers": ["No participant-facing support work described.", "No NDIS Worker Screening (eligibility gate)."]
+          },
+          "merit_criteria": [
+            { "id": "support_practice", "label": "Participant-centred support practice", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No participant-facing support", "3": "Solid daily-living and community-access support", "5": "Complex supports (behaviour, high-physical, mental health) with plan alignment" } },
+            { "id": "cohort_fit", "label": "Cohort fit (disability / aged / mental health / youth)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "documentation_goals", "label": "Documentation against NDIS/care goals and reporting", "max_points": 18, "type": "ordinal_5" },
+            { "id": "safety_manual_handling", "label": "Safety, manual handling and incident response", "max_points": 16, "type": "ordinal_5" },
+            { "id": "empathy_boundaries", "label": "Empathy, professional boundaries and reliability", "max_points": 18, "type": "ordinal_5", "fairness_flag": "value_lived_experience - do not penalise non-linear career paths common in this sector" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_participant_facing", "condition": "No participant-facing support work in the history", "points": -12, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "ndis_screening_cap", "condition": "ndis_screening = not_met", "effect": "flag_ineligible", "rationale": "Cannot deliver NDIS supports without clearance; unclear/pending routes to phone screen." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 58
+        },
+        {
+          "rubric_id": "rub_community_case_manager_au_v1",
+          "role": "Case Manager / Support Coordinator",
+          "aliases": ["Case Manager", "Support Coordinator", "Care Coordinator", "Case Worker", "Community Services Coordinator"],
+          "award_ref": { "code": "MA000100", "name": "SCHADS Award 2020", "typical_classification": "SACS Level 4-6" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "ndis_screening", "label": "NDIS Worker Screening Check", "mandatory": "conditional", "note": "If working with NDIS participants." },
+            { "id": "wwcc", "label": "Working With Children Check", "mandatory": "conditional" },
+            { "id": "police_check", "label": "National Police Check", "mandatory": true },
+            { "id": "relevant_qualification", "label": "Relevant qualification (Cert IV/Diploma/degree in community services, social work, etc.)", "mandatory": "conditional", "note": "Level/funder dependent." },
+            { "id": "drivers_licence", "label": "Driver's licence", "mandatory": "conditional" }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Support worker who assisted with paperwork but never held a caseload or plan accountability.",
+            "executed_within": "Held a caseload: assessment, planning, referral, advocacy and NDIS plan implementation for participants/clients.",
+            "supervised_within": "Led a team of case/support workers or a program: intake governance, funder reporting, risk and quality across a caseload portfolio.",
+            "disqualifiers": ["No caseload or plan/coordination accountability evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "casework_practice", "label": "Casework: assessment, planning, coordination and advocacy", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "sector_funder_fit", "label": "Sector/funder fit (NDIS / aged / child & family / housing / AOD)", "max_points": 20, "type": "ordinal_5" },
+            { "id": "risk_safeguarding", "label": "Risk assessment and safeguarding/duty of care", "max_points": 18, "type": "ordinal_5" },
+            { "id": "documentation_reporting", "label": "Documentation, funder reporting and outcomes measurement", "max_points": 18, "type": "ordinal_5" },
+            { "id": "stakeholder_engagement", "label": "Stakeholder engagement (clients, families, services)", "max_points": 16, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_caseload", "condition": "No caseload/coordination accountability evidenced", "points": -10, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "ndis_screening_cap", "condition": "works with NDIS participants AND ndis_screening = not_met", "effect": "flag_ineligible", "rationale": "Clearance required for NDIS work." },
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 60
+        }
+      ]
+    },
+    {
+      "industry": "Technology",
+      "modern_award": { "code": "MA000065", "name": "Professional Employees Award 2020" },
+      "also_relevant_awards": [
+        { "code": "MA000104", "name": "Miscellaneous Award 2020", "when": "roles not covered by the Professional Employees Award" }
+      ],
+      "award_pain_points": [
+        "Professional-employee coverage vs award-free: senior/managerial tech staff can sit above award coverage, but junior developers/IT-support staff are covered - misjudging coverage risks underpayment claims.",
+        "Overtime and 'reasonable additional hours' (cl. 15-16): the 2023 changes added explicit overtime/penalty entitlements for professional IT/engineering staff on lower classifications - salaried set-off must still satisfy these.",
+        "Classification by experience level (Schedule A): Level 1-4 professional classifications turn on graduate/experience/managerial judgement.",
+        "On-call and after-hours support: IT-support/sysadmin roles carry on-call and call-back provisions that must be paid.",
+        "Annualised salary set-off assumptions: 'it is all in the salary' does not remove the obligation to meet award minimums for covered employees."
+      ],
+      "tech_stack": {
+        "dev_tooling": ["Git / GitHub / GitLab / Bitbucket", "Jira / Azure DevOps / Linear", "CI/CD (GitHub Actions, GitLab CI, Jenkins)"],
+        "cloud_infra": ["AWS", "Microsoft Azure", "Google Cloud", "Docker / Kubernetes", "Terraform"],
+        "itsm_support": ["Zendesk", "ServiceNow", "Freshservice", "Jira Service Management", "Intune/Entra (endpoint)"],
+        "collaboration": ["Slack", "Microsoft 365 / Teams", "Confluence / Notion"]
+      },
+      "roles": [
+        {
+          "rubric_id": "rub_tech_software_engineer_au_v1",
+          "role": "Software Developer / Engineer",
+          "aliases": ["Software Engineer", "Developer", "Full-stack Developer", "Backend/Frontend Engineer", "Programmer"],
+          "award_ref": { "code": "MA000065", "name": "Professional Employees Award 2020", "typical_classification": "Professional IT Level 1-4 (junior-mid); senior often award-free" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "security_clearance", "label": "Government security clearance (Baseline/NV1)", "mandatory": "conditional", "note": "Only for cleared gov/defence contracts." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Bootcamp/coursework projects, QA-only, or a role that 'worked alongside developers' without shipping production code.",
+            "executed_within": "Shipped production code: owned features end-to-end, wrote tested code, handled reviews, deploys and on-call for what they built.",
+            "supervised_within": "Tech lead: owned architecture/technical decisions for a team, mentored engineers, set standards and was accountable for delivery/quality.",
+            "disqualifiers": ["No production code shipped when a developer is required (portfolio/personal projects noted but weighted lower than shipped work)."]
+          },
+          "merit_criteria": [
+            { "id": "engineering_depth", "label": "Engineering depth and shipped production work", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No production code", "3": "Ships features in a stack", "5": "Owns complex systems, strong design and quality" } },
+            { "id": "stack_fit", "label": "Tech-stack fit (languages, frameworks, cloud)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "engineering_practices", "label": "Engineering practices (testing, CI/CD, code review, git)", "max_points": 18, "type": "ordinal_5" },
+            { "id": "problem_solving", "label": "Problem solving and system/design reasoning", "max_points": 18, "type": "ordinal_5" },
+            { "id": "collaboration", "label": "Collaboration and communication (async, docs, reviews)", "max_points": 12, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_shipped_work", "condition": "No shipped/production work; only coursework or QA-adjacent duties, for a developer vacancy", "points": -8, "rationale": "Distinguishes builders from adjacent roles; do not zero out - juniors/career-changers with strong projects still advance." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights (incl. sponsorship expectation)." },
+            { "id": "clearance_cap", "condition": "role requires clearance AND security_clearance = not_met", "effect": "cap_advance:59", "rationale": "Cleared roles need eligibility to obtain/hold clearance; confirm before advancing." }
+          ],
+          "advance_threshold": 60
+        },
+        {
+          "rubric_id": "rub_tech_it_support_au_v1",
+          "role": "IT Support / Helpdesk",
+          "aliases": ["IT Support", "Helpdesk", "Service Desk Analyst", "Desktop Support", "IT Technician"],
+          "award_ref": { "code": "MA000065", "name": "Professional Employees Award 2020", "typical_classification": "Professional IT Level 1-2 (or Miscellaneous Award for pure support)" },
+          "hard_gatekeepers": [
+            { "id": "work_rights", "label": "AU work rights", "mandatory": true },
+            { "id": "police_check", "label": "National Police Check", "mandatory": "conditional", "note": "MSP / client-site or finance/gov context." },
+            { "id": "drivers_licence", "label": "Driver's licence", "mandatory": "conditional", "note": "Field/onsite support." }
+          ],
+          "execution_vs_oversight": {
+            "near_only": "Retail electronics or general admin described as IT support with no ticket-based troubleshooting.",
+            "executed_within": "Resolved L1/L2 tickets: endpoint, account/identity, network and app support against SLAs in an ITSM tool.",
+            "supervised_within": "Team lead/escalation point: owned SLA performance, escalations, knowledge base and junior-tech mentoring.",
+            "disqualifiers": ["No ticket-based/end-user technical support evidenced."]
+          },
+          "merit_criteria": [
+            { "id": "troubleshooting", "label": "Technical troubleshooting (endpoint, identity, network, apps)", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "environment_fit", "label": "Environment fit (M365/Entra, Windows/Mac, tools in use)", "max_points": 22, "type": "ordinal_5" },
+            { "id": "itsm_sla", "label": "ITSM discipline and SLA/ticket ownership", "max_points": 18, "type": "ordinal_5" },
+            { "id": "customer_service", "label": "End-user customer service and communication", "max_points": 18, "type": "ordinal_5" },
+            { "id": "reliability", "label": "Reliability and on-call willingness", "max_points": 12, "type": "ordinal_5" }
+          ],
+          "penalty_overrides": [
+            { "id": "no_ticket_support", "condition": "No ticket-based end-user support evidenced", "points": -8, "rationale": "Core of the role." }
+          ],
+          "hard_caps": [
+            { "id": "work_rights_cap", "condition": "work_rights = not_met", "effect": "flag_ineligible", "rationale": "Confirm work rights." }
+          ],
+          "advance_threshold": 56
+        }
+      ]
+    }
+  ]
+}

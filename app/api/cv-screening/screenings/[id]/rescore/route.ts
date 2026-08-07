@@ -91,7 +91,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Re-run the scoring pipeline on the stored CV text. The scorer sees
     // the real CV (no masking); the prompt instructs it to score on
     // substance only.
-    const result = await scoreCv(screening.cv_text, rubric.role, rubric.criteria)
+    const result = await scoreCv(screening.cv_text, rubric.role, rubric.criteria, rubric.execution_guard)
     const overall = computeOverall(result.criteria_scores, rubric.criteria)
     const band = bandFromScore(overall)
     const next_action = defaultActionForBand(band)

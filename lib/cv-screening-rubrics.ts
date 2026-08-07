@@ -1,4 +1,5 @@
 import type { Rubric } from './cv-screening-types'
+import { INDUSTRY_RUBRICS } from './rubrics-au'
 
 export const RUBRIC_CI_ANALYST: Rubric = {
   rubric_id: 'rub_ci_analyst_au_v1',
@@ -204,7 +205,12 @@ export const RUBRIC_OPS_MANAGER: Rubric = {
   hard_gates: ['location_eligibility'],
 }
 
+// The nine AU industry rubrics (one per dashboard sector) lead the list so
+// they surface first as the standard starter rubrics for every business.
+// The three legacy role rubrics remain for existing screenings that
+// reference them by id.
 export const ALL_RUBRICS: Rubric[] = [
+  ...INDUSTRY_RUBRICS,
   RUBRIC_CI_ANALYST,
   RUBRIC_SALES_AE,
   RUBRIC_OPS_MANAGER,
