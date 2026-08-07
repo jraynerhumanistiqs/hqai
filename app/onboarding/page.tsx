@@ -17,7 +17,33 @@ import { trackFunnelEvent } from '@/lib/analytics'
 // inquiry (founder triage email); never blocks or charges the plan.
 const CALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const
 const CALL_TIMES = ['Morning (9-12)', 'Midday (12-2)', 'Afternoon (2-5)'] as const
-interface SupportState { hr: boolean; recruit: boolean; days: string[]; times: string[] }
+// Pricing-signal options for the outsourced (HR365/Recruit365) quote. Values
+// MUST match the sets /api/enterprise-inquiry validates against, or they are
+// dropped as "not stated". Labels mirror the /outsourcing inquiry form.
+const ENTITY_OPTIONS = [
+  { value: '1', label: '1' },
+  { value: '2-3', label: '2-3' },
+  { value: '4-5', label: '4-5' },
+  { value: '6+', label: '6+' },
+] as const
+const HIRING_OPTIONS = [
+  { value: 'under-30', label: 'Under 30' },
+  { value: '30-60', label: '30-60' },
+  { value: '60-100', label: '60-100' },
+  { value: '100-plus', label: '100+' },
+] as const
+interface SupportState {
+  hr: boolean
+  recruit: boolean
+  days: string[]
+  times: string[]
+  // Pricing signals for outsourced quoting (optional). entityCount +
+  // currentSpend apply to any outsourced interest; hiringVolume only matters
+  // when recruitment is wanted.
+  entityCount: string
+  hiringVolume: string
+  currentSpend: string
+}
 
 const INDUSTRIES = ['Retail','Hospitality & Food Service','Healthcare & Aged Care','Pharmacy','Construction & Trades','Professional Services','Education & Childcare','Community Services & NFP','Technology','Other']
 // The value domain for award detection AND the Settings fine-tune picker.
@@ -78,7 +104,7 @@ export default function OnboardingPage() {
   const [needs, setNeeds] = useState<ProductNeeds>({ people: true, recruit: true })
   // Support step: interest in ongoing outsourced HR / recruitment + best
   // availability for a 30-minute clarity call. Interest capture only.
-  const [support, setSupport] = useState<SupportState>({ hr: false, recruit: false, days: [], times: [] })
+  const [support, setSupport] = useState<SupportState>({ hr: false, recruit: false, days: [], times: [], entityCount: '', hiringVolume: '', currentSpend: '' })
   const [userEmail, setUserEmail] = useState('')
   const [authReady, setAuthReady] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
@@ -339,6 +365,12 @@ export default function OnboardingPage() {
             variant_interest: variant,
             urgency: 'exploring',
             consent: true,
+            // Pricing signals for the outsourced quote. Only send hiring
+            // volume when recruitment is wanted; empty values are omitted so
+            // the route records them as "not stated" rather than rejecting.
+            entity_count: support.entityCount || undefined,
+            annual_hiring_volume: support.recruit ? (support.hiringVolume || undefined) : undefined,
+            current_spend: support.currentSpend.trim() || undefined,
             notes: `Self-serve onboarding (Support step) - wants a 30-min clarity call about ongoing ${areas} support. Availability: ${availability}. Self-serve plan: ${form.plan} (${cycle}).`,
           }),
         })
@@ -682,6 +714,59 @@ export default function OnboardingPage() {
                       )
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Pricing signals - lets the team quote the outsourced price on
+                  the call, not after. All optional. Values match the sets
+                  /api/enterprise-inquiry validates. Hiring volume only shows
+                  when recruitment is wanted. */}
+              {wantsContact && (
+                <div className="mt-3 rounded-2xl border border-border bg-bg-soft p-4 animate-in fade-in duration-base motion-reduce:animate-none">
+                  <p className="text-sm font-semibold text-ink">A couple of details for an accurate quote</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Optional - it lets us price your outsourced support before the call, not after.</p>
+
+                  <p className="mt-3 mb-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">How many separate entities do you run?</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ENTITY_OPTIONS.map(o => {
+                      const sel = support.entityCount === o.value
+                      return (
+                        <button key={o.value} type="button" aria-pressed={sel}
+                          onClick={() => setSupport(s => ({ ...s, entityCount: sel ? '' : o.value }))}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30
+                            ${sel ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                          {o.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {support.recruit && (
+                    <>
+                      <p className="mt-3 mb-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Roughly how many people do you hire a year?</p>
+                      <div className="flex flex-wrap gap-2">
+                        {HIRING_OPTIONS.map(o => {
+                          const sel = support.hiringVolume === o.value
+                          return (
+                            <button key={o.value} type="button" aria-pressed={sel}
+                              onClick={() => setSupport(s => ({ ...s, hiringVolume: sel ? '' : o.value }))}
+                              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30
+                                ${sel ? 'bg-ink text-bg-elevated border-ink' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                              {o.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  <label htmlFor="support-spend" className="mt-3 mb-1.5 block font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+                    What do you spend on outsourced HR/recruitment now? (optional)
+                  </label>
+                  <input id="support-spend" value={support.currentSpend}
+                    onChange={e => setSupport(s => ({ ...s, currentSpend: e.target.value }))}
+                    placeholder="e.g. $1,500/mo, or nothing yet"
+                    className="w-full rounded-xl border border-border bg-bg-elevated px-3 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-clay focus:ring-2 focus:ring-clay/30" />
                 </div>
               )}
 
