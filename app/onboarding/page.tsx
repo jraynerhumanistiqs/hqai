@@ -374,6 +374,23 @@ export default function OnboardingPage() {
     setCheckoutLoading(false)
   }
 
+  // Exit the funnel entirely. An authenticated user can't just navigate to
+  // "/" - the root redirects authed users to /dashboard, and the dashboard
+  // paywall bounces an unpaid buyer back to /onboarding (an infinite loop).
+  // So a genuine "leave completely" has to end the session first; then "/"
+  // renders the public homepage. Everything set up is saved on the business
+  // row, so signing back in resumes them at the payment step.
+  const [exiting, setExiting] = useState(false)
+  async function exitToHome() {
+    setExiting(true)
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // Even if sign-out fails, still leave for the homepage.
+    }
+    window.location.href = '/'
+  }
+
   // Underline inputs; selects keep a subtle box (a bare underline +
   // browser chevron reads inconsistently across OSes).
   const inputCls ="w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-clay focus:ring-2 focus:ring-clay/30"
@@ -797,12 +814,18 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        {/* Subtle escape hatch - leave setup entirely for the homepage.
-            Everything entered is saved, so they can resume any time. */}
+        {/* Subtle escape hatch - leave setup entirely for the homepage. Signs
+            out so "/" actually renders (authed users are otherwise looped back
+            here). Everything entered is saved; signing in again resumes. */}
         <p className="mt-6 text-center">
-          <a href="/" className="text-xs text-ink-muted underline underline-offset-2 transition-colors hover:text-ink-soft">
-            Exit setup and return to the homepage
-          </a>
+          <button
+            type="button"
+            onClick={exitToHome}
+            disabled={exiting}
+            className="text-xs text-ink-muted underline underline-offset-2 transition-colors hover:text-ink-soft disabled:opacity-60"
+          >
+            {exiting ? 'Exiting...' : 'Exit setup and return to the homepage'}
+          </button>
         </p>
       </div>
     </div>
