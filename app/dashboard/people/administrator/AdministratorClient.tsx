@@ -349,7 +349,10 @@ export default function AdministratorClient({ templates, categories, initialTemp
           either downloads or generates again). */}
       {previewId && (
         <div
-          className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          // transform-gpu establishes this dialog as the positioning
+          // container the editor's global drag-handle anchors against, so
+          // the handle sits in the page's left margin instead of drifting.
+          className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 transform-gpu"
           role="dialog"
           aria-modal="true"
           aria-label="Live editor"

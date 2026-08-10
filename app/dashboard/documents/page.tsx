@@ -340,7 +340,10 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
   // Fix #3 (H10 a11y): aria-label on dialog -> aria-labelledby pointing to title <p>
   return (
     <div
-      className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      // transform-gpu makes this dialog the positioning container the
+      // editor's global drag-handle anchors against (keeps the handle in
+      // the page's left margin instead of drifting).
+      className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 transform-gpu"
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-doc-modal-title"

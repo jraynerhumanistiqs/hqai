@@ -27,8 +27,11 @@ import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { Placeholder } from '@tiptap/extension-placeholder'
+import { BubbleMenu } from '@tiptap/react/menus'
+import GlobalDragHandle from 'tiptap-extension-global-drag-handle'
 import { useEffect, useImperativeHandle, forwardRef, useRef, useState, useCallback } from 'react'
 import EditorSkeleton from './EditorSkeleton'
+import { SlashCommand } from './SlashCommand'
 
 // FontSize ships with @tiptap/extension-text-style in v3.
 
@@ -106,7 +109,20 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
       TableRow,
       TableHeader,
       TableCell,
-      Placeholder.configure({ placeholder: 'Start typing or paste the AI draft above to begin editing...' }),
+      // Per-block placeholders (Notion-style): the focused empty line
+      // hints at the slash menu, empty headings label their level.
+      Placeholder.configure({
+        includeChildren: true,
+        placeholder: ({ node }) =>
+          node.type.name === 'heading'
+            ? `Heading ${node.attrs.level}`
+            : "Type '/' for commands, or just start writing...",
+      }),
+      // Notion-style block affordances: a hover drag-handle for reordering
+      // blocks, and a '/' slash menu for inserting them. Both are pure
+      // open-source (no Tiptap Cloud) and map onto the blocks above.
+      GlobalDragHandle.configure({ dragHandleWidth: 24, scrollTreshold: 100 }),
+      SlashCommand,
     ],
     content: initialHtml || '<p></p>',
     immediatelyRender: false,
@@ -243,13 +259,87 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
           display: block;
           margin: 8px 0;
         }
-        .doc-editor-page .ProseMirror .is-editor-empty:first-child::before {
+        .doc-editor-page .ProseMirror .is-empty::before {
           color: var(--ink-muted);
           content: attr(data-placeholder);
           float: left;
           height: 0;
           pointer-events: none;
         }
+      `}</style>
+      {/* Notion-style affordance styling. The drag handle is injected into
+          the document body by the global-drag-handle extension, so its
+          rule lives at the top level (not scoped to .doc-editor-page). The
+          slash popup is also portalled to <body>. The bubble menu is a
+          child of this component. Colours use the light "paper" palette so
+          they read correctly over the white page even in dark mode. */}
+      <style>{`
+        .drag-handle {
+          position: absolute;
+          width: 20px;
+          height: 22px;
+          border-radius: 6px;
+          cursor: grab;
+          background: transparent;
+          background-image: radial-gradient(#9A9A99 1.5px, transparent 1.5px);
+          background-size: 8px 8px;
+          background-position: center;
+          background-repeat: repeat;
+          opacity: 0.55;
+          transition: opacity 0.15s, background-color 0.15s;
+          z-index: 40;
+        }
+        .drag-handle:hover { opacity: 1; background-color: rgba(232, 178, 58, 0.14); }
+        .drag-handle.dragging { cursor: grabbing; opacity: 1; }
+        .drag-handle.hide { display: none; pointer-events: none; }
+
+        .slash-popup { position: fixed; z-index: 60; }
+        .slash-menu {
+          width: 260px;
+          max-height: 320px;
+          overflow-y: auto;
+          padding: 4px;
+          background: #ffffff;
+          border: 1px solid #E2E2E2;
+          border-radius: 12px;
+          box-shadow: 0 8px 28px rgba(20, 20, 20, 0.16);
+        }
+        .slash-item {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          width: 100%;
+          text-align: left;
+          padding: 7px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        .slash-item.is-active { background: #F7EBCB; }
+        .slash-item-title { font-size: 13px; font-weight: 600; color: #1F1F1F; line-height: 1.2; }
+        .slash-item-desc { font-size: 11px; color: #6B6B6A; line-height: 1.2; }
+        .slash-empty { padding: 10px 12px; font-size: 12px; color: #9A9A99; }
+
+        .doc-bubble-menu {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          padding: 4px;
+          background: #1F1F1F;
+          border-radius: 10px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+        }
+        .doc-bubble-menu button {
+          min-width: 30px;
+          height: 30px;
+          padding: 0 8px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #EDEDEA;
+          transition: background-color 0.12s;
+        }
+        .doc-bubble-menu button:hover { background: rgba(255, 255, 255, 0.12); }
+        .doc-bubble-menu button.is-active { background: #E8B23A; color: #1F1F1F; }
       `}</style>
       <Toolbar
         editor={editor}
@@ -290,6 +380,22 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
           e.currentTarget.value = ''
         }}
       />
+
+      {/* Selection bubble menu - Notion-style inline formatting. The v3
+          <BubbleMenu> (from @tiptap/react/menus) manages its own floating
+          position. Hidden while an image is selected so the toolbar's
+          image-resize controls stay the single surface for those. */}
+      <BubbleMenu
+        editor={editor}
+        className="doc-bubble-menu"
+        shouldShow={({ editor }) => !editor.state.selection.empty && !editor.isActive('image')}
+      >
+        <button type="button" aria-label="Bold"          className={editor.isActive('bold') ? 'is-active' : ''}      onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
+        <button type="button" aria-label="Italic"        className={editor.isActive('italic') ? 'is-active' : ''}    onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
+        <button type="button" aria-label="Underline"     className={editor.isActive('underline') ? 'is-active' : ''} onClick={() => editor.chain().focus().toggleUnderline().run()}><u>U</u></button>
+        <button type="button" aria-label="Strikethrough" className={editor.isActive('strike') ? 'is-active' : ''}    onClick={() => editor.chain().focus().toggleStrike().run()}><s>S</s></button>
+        <button type="button" aria-label="Link"          className={editor.isActive('link') ? 'is-active' : ''}      onClick={() => { setLinkUrl(editor.getAttributes('link').href ?? ''); setLinkOpen(true) }}>&#128279;</button>
+      </BubbleMenu>
 
       {/* The page canvas - A4 width + dynamic margins. The header/
           footer bands are pinned above/below the editor body so the
