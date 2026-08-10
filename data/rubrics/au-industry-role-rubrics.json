@@ -61,7 +61,7 @@
             "disqualifiers": ["'Retail experience' that is entirely casual sales with no rostering, cash-reconciliation or people responsibility described."]
           },
           "merit_criteria": [
-            { "id": "store_pnl_ownership", "label": "Store P&L / sales-target ownership", "max_points": 25, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No target or budget ownership", "2": "2IC assisting with targets", "3": "Owned sales targets for one small store", "4": "Owned P&L incl. wage% and shrinkage for a mid-size store", "5": "Multi-store or flagship P&L with quantified YoY growth" } },
+            { "id": "store_pnl_ownership", "label": "Store P&L / sales-target ownership", "max_points": 25, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No target or budget ownership", "2": "2IC assisting with targets", "3": "Owned sales targets for one small store", "4": "Owned P&L incl. wage% and shrinkage for a mid-size store", "5": "Multi-store or flagship P&L with quantified YoY growth" }, "execution_tokens": ["owned the P&L", "wage cost", "shrinkage", "hit sales target", "grew sales", "ran the store"], "execution_cap": 2 },
             { "id": "rostering_wage_control", "label": "Award-compliant rostering and wage-cost control", "max_points": 20, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No rostering experience", "3": "Built rosters in a WFM tool to a wage budget", "5": "Consistently held wage% to target across peak trade while staying inside span/penalty rules" } },
             { "id": "people_leadership", "label": "Team leadership (hiring, coaching, performance)", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "No direct reports", "3": "Led a small team day-to-day", "5": "Recruited, onboarded and performance-managed a team with retention/engagement outcomes" } },
             { "id": "loss_prevention_ops", "label": "Stock control, stocktake and loss prevention", "max_points": 15, "type": "ordinal_5", "anchors": { "1": "No stock accountability", "3": "Ran stocktakes and basic shrinkage control", "5": "Owned shrinkage KPIs with measured reduction" } },
@@ -94,7 +94,7 @@
             "disqualifiers": ["No customer-facing selling described at all."]
           },
           "merit_criteria": [
-            { "id": "customer_selling", "label": "Customer service and selling on the floor", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No customer-facing selling", "3": "Solid service, some add-on selling", "5": "Consistent top-performer on sales/conversion or units-per-transaction" } },
+            { "id": "customer_selling", "label": "Customer service and selling on the floor", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No customer-facing selling", "3": "Solid service, some add-on selling", "5": "Consistent top-performer on sales/conversion or units-per-transaction" }, "execution_tokens": ["served customers", "sold", "upsold", "add-on", "converted", "on the floor"], "execution_cap": 2 },
             { "id": "pos_cash", "label": "POS operation, cash handling and accuracy", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "No POS/cash", "3": "Confident on POS, EFTPOS and returns", "5": "Trusted with reconciliation/float and trains others" } },
             { "id": "reliability_availability", "label": "Reliability and availability (incl. peak trade)", "max_points": 18, "type": "ordinal_5", "anchors": { "1": "Very limited availability", "3": "Reliable, some weekend availability", "5": "Broad availability incl. peak periods, strong attendance record" } },
             { "id": "product_category_fit", "label": "Product / category familiarity", "max_points": 17, "type": "ordinal_5", "anchors": { "1": "Unrelated category", "3": "Adjacent category", "5": "Same category with product depth" } },
@@ -124,7 +124,7 @@
             "disqualifiers": ["No keyholding, opening/closing or shift-lead responsibility evidenced."]
           },
           "merit_criteria": [
-            { "id": "shift_leadership", "label": "Shift leadership (open/close, keyholding, on-shift decisions)", "max_points": 26, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No shift-lead duties", "3": "Ran shifts regularly", "5": "Fully deputised for the manager incl. banking and staffing" } },
+            { "id": "shift_leadership", "label": "Shift leadership (open/close, keyholding, on-shift decisions)", "max_points": 26, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No shift-lead duties", "3": "Ran shifts regularly", "5": "Fully deputised for the manager incl. banking and staffing" }, "execution_tokens": ["opened", "closed", "keyholder", "cashed up", "ran the shift", "duty manager"], "execution_cap": 2 },
             { "id": "sales_coaching", "label": "Driving sales and coaching the team on shift", "max_points": 22, "type": "ordinal_5", "anchors": { "1": "No coaching", "3": "Coached juniors on service/add-ons", "5": "Measurably lifted team conversion/UPT" } },
             { "id": "cash_admin", "label": "Cash reconciliation, banking and shift admin", "max_points": 20, "type": "ordinal_5" },
             { "id": "rostering_exposure", "label": "Rostering / availability management exposure", "max_points": 17, "type": "ordinal_5", "anchors": { "1": "None", "3": "Adjusted rosters within a tool", "5": "Built shift rosters to budget" } },
@@ -320,7 +320,7 @@
             "disqualifiers": ["No buying-function exposure evidenced."]
           },
           "merit_criteria": [
-            { "id": "buying_support", "label": "Buying support (POs, samples, critical path)", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "buying_support", "label": "Buying support (POs, samples, critical path)", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["raised POs", "samples", "critical path", "sales analysis", "supplier liaison"], "execution_cap": 2 },
             { "id": "sales_analysis", "label": "Sales analysis and reporting", "max_points": 22, "type": "ordinal_5" },
             { "id": "supplier_admin", "label": "Supplier and product administration", "max_points": 20, "type": "ordinal_5" },
             { "id": "systems_excel", "label": "Systems and Excel proficiency", "max_points": 18, "type": "ordinal_5" },
@@ -576,7 +576,7 @@
             "disqualifiers": ["No RSA/compliance responsibility; no ownership of takings, roster or team."]
           },
           "merit_criteria": [
-            { "id": "venue_pnl", "label": "Venue P&L: labour %, COGS and revenue ownership", "max_points": 24, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No cost ownership", "3": "Owned wage% for a shift/section", "5": "Owned full venue P&L with quantified margin outcomes" } },
+            { "id": "venue_pnl", "label": "Venue P&L: labour %, COGS and revenue ownership", "max_points": 24, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No cost ownership", "3": "Owned wage% for a shift/section", "5": "Owned full venue P&L with quantified margin outcomes" }, "execution_tokens": ["owned the P&L", "labour cost", "COGS", "ran the venue", "managed the floor"], "execution_cap": 2 },
             { "id": "service_floor_leadership", "label": "Service leadership on a live floor/bar", "max_points": 22, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No floor leadership", "3": "Ran sections/shifts", "5": "Led high-covers service across FOH with strong guest outcomes" } },
             { "id": "rostering_labour", "label": "Rostering to labour budget under penalty/annualised rules", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "None", "3": "Built rosters in a WFM tool", "5": "Held labour% across a 7-day trade while covering peaks" } },
             { "id": "compliance_incident", "label": "RSA/licensing compliance and incident handling", "max_points": 16, "type": "ordinal_5" },
@@ -641,7 +641,7 @@
             "disqualifiers": ["No direct table/bar service or POS experience."]
           },
           "merit_criteria": [
-            { "id": "service_skill", "label": "Table/bar service skill and pace", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No direct service", "3": "Confident section service", "5": "High-volume/fine-dining or craft-bar standard" } },
+            { "id": "service_skill", "label": "Table/bar service skill and pace", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No direct service", "3": "Confident section service", "5": "High-volume/fine-dining or craft-bar standard" }, "execution_tokens": ["served", "waited tables", "ran the section", "poured", "cleared", "upsold"], "execution_cap": 2 },
             { "id": "product_knowledge", "label": "Product knowledge (menu, wine/coffee/cocktails)", "max_points": 22, "type": "ordinal_5" },
             { "id": "pos_cash", "label": "POS, ordering and cash handling", "max_points": 18, "type": "ordinal_5" },
             { "id": "reliability_availability", "label": "Reliability and availability (nights/weekends)", "max_points": 18, "type": "ordinal_5" },
@@ -741,7 +741,7 @@
             "disqualifiers": ["No kitchen duties evidenced."]
           },
           "merit_criteria": [
-            { "id": "kitchen_support", "label": "Kitchen support and back-of-house duties", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "kitchen_support", "label": "Kitchen support and back-of-house duties", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["washed", "prepped", "cleaned", "stocked", "assisted the kitchen"], "execution_cap": 2 },
             { "id": "food_prep_basic", "label": "Basic food preparation", "max_points": 22, "type": "ordinal_5" },
             { "id": "hygiene_cleaning", "label": "Hygiene and kitchen cleaning standards", "max_points": 20, "type": "ordinal_5" },
             { "id": "speed_reliability", "label": "Speed and reliability under pressure", "max_points": 18, "type": "ordinal_5" },
@@ -916,7 +916,7 @@
             "disqualifiers": ["No wine-specialist accountability evidenced."]
           },
           "merit_criteria": [
-            { "id": "wine_expertise", "label": "Wine expertise and knowledge depth", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "wine_expertise", "label": "Wine expertise and knowledge depth", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["curated the wine list", "paired", "cellar management", "recommended wine", "tasting"], "execution_cap": 2 },
             { "id": "wine_service", "label": "Wine service skill and guest experience", "max_points": 22, "type": "ordinal_5" },
             { "id": "list_cellar_management", "label": "Wine-list curation and cellar management", "max_points": 18, "type": "ordinal_5" },
             { "id": "food_pairing", "label": "Food and wine pairing", "max_points": 16, "type": "ordinal_5" },
@@ -949,7 +949,7 @@
             "disqualifiers": ["No guest-facing hosting evidenced."]
           },
           "merit_criteria": [
-            { "id": "guest_experience", "label": "Guest experience and welcome", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "guest_experience", "label": "Guest experience and welcome", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["greeted", "seated", "managed the waitlist", "reservations", "welcomed guests"], "execution_cap": 2 },
             { "id": "reservations_systems", "label": "Reservations/waitlist systems and guest flow", "max_points": 22, "type": "ordinal_5" },
             { "id": "composure_pressure", "label": "Composure at the door under pressure", "max_points": 20, "type": "ordinal_5" },
             { "id": "communication_phone", "label": "Communication and phone manner", "max_points": 18, "type": "ordinal_5" },
@@ -1077,7 +1077,7 @@
             "disqualifiers": ["No current AHPRA RN registration (routes to eligibility gate, not merit).", "Assistant-level (AIN/PCW) duties described as RN practice."]
           },
           "merit_criteria": [
-            { "id": "clinical_practice_depth", "label": "Clinical practice depth and scope", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered clinical practice", "3": "Solid ward/facility RN practice", "5": "Advanced/complex care, precepting, clinical leadership" } },
+            { "id": "clinical_practice_depth", "label": "Clinical practice depth and scope", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered clinical practice", "3": "Solid ward/facility RN practice", "5": "Advanced/complex care, precepting, clinical leadership" }, "execution_tokens": ["administered medications", "wound care", "assessed", "clinical care", "care plans", "observations"], "execution_cap": 2 },
             { "id": "setting_fit", "label": "Care-setting fit (aged care / acute / community / disability)", "max_points": 20, "type": "ordinal_5", "anchors": { "1": "Unrelated setting", "3": "Adjacent setting", "5": "Direct setting and cohort" } },
             { "id": "care_planning_documentation", "label": "Assessment, care planning and clinical documentation", "max_points": 18, "type": "ordinal_5" },
             { "id": "medication_management", "label": "Medication management and clinical safety", "max_points": 16, "type": "ordinal_5" },
@@ -1113,7 +1113,7 @@
             "disqualifiers": ["No hands-on personal-care duties described."]
           },
           "merit_criteria": [
-            { "id": "personal_care_skill", "label": "Personal care and ADL support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No personal care", "3": "Confident ADL support", "5": "Complex care (dementia, palliative, high-care) experience" } },
+            { "id": "personal_care_skill", "label": "Personal care and ADL support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No personal care", "3": "Confident ADL support", "5": "Complex care (dementia, palliative, high-care) experience" }, "execution_tokens": ["showering", "personal care", "ADLs", "mobility", "hygiene", "assisted with meals"], "execution_cap": 2 },
             { "id": "cohort_setting_fit", "label": "Cohort/setting fit (residential / home care / disability)", "max_points": 22, "type": "ordinal_5" },
             { "id": "manual_handling_safety", "label": "Manual handling and workplace safety", "max_points": 18, "type": "ordinal_5" },
             { "id": "documentation_escalation", "label": "Documentation and escalation to clinical staff", "max_points": 16, "type": "ordinal_5" },
@@ -1494,7 +1494,7 @@
             "disqualifiers": ["No current AHPRA pharmacist registration (eligibility gate).", "Assistant/intern duties presented as full pharmacist scope."]
           },
           "merit_criteria": [
-            { "id": "dispensing_clinical", "label": "Dispensing accuracy and clinical counselling", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered dispensing", "3": "Confident community dispensing and counselling", "5": "High-throughput plus complex clinical interventions" } },
+            { "id": "dispensing_clinical", "label": "Dispensing accuracy and clinical counselling", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No registered dispensing", "3": "Confident community dispensing and counselling", "5": "High-throughput plus complex clinical interventions" }, "execution_tokens": ["dispensed", "counselled", "clinical intervention", "checked scripts", "medication review"], "execution_cap": 2 },
             { "id": "professional_services", "label": "Professional services (vaccinations, MedsCheck, DAA, screening)", "max_points": 20, "type": "ordinal_5" },
             { "id": "s8_compliance", "label": "S8/controlled-drug register and regulatory compliance", "max_points": 18, "type": "ordinal_5" },
             { "id": "software_throughput", "label": "Dispensary software fluency and workflow throughput", "max_points": 14, "type": "ordinal_5" },
@@ -1526,7 +1526,7 @@
             "disqualifiers": ["No pharmacy-specific duties; purely unrelated retail."]
           },
           "merit_criteria": [
-            { "id": "dispensary_support", "label": "Dispensary support (data entry, labelling, DAA/Webster packing)", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "dispensary_support", "label": "Dispensary support (data entry, labelling, DAA/Webster packing)", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["labelled", "data entry", "DAA", "packed", "processed scripts"], "execution_cap": 2 },
             { "id": "pharmacy_retail_advice", "label": "Pharmacy retail service and scheduled-medicine referral discipline", "max_points": 22, "type": "ordinal_5" },
             { "id": "software_familiarity", "label": "Dispensary/POS software familiarity (Fred/Minfos/Z)", "max_points": 20, "type": "ordinal_5" },
             { "id": "accuracy_compliance", "label": "Accuracy and compliance mindset", "max_points": 18, "type": "ordinal_5" },
@@ -2002,7 +2002,7 @@
             "disqualifiers": ["No current state electrical licence (eligibility gate).", "Only assistant/labouring duties evidenced."]
           },
           "merit_criteria": [
-            { "id": "trade_competency", "label": "Licensed electrical competency and breadth", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "Assistant/apprentice only", "3": "Solid licensed domestic/commercial work", "5": "Broad commercial/industrial incl. fault-finding and compliance" } },
+            { "id": "trade_competency", "label": "Licensed electrical competency and breadth", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "Assistant/apprentice only", "3": "Solid licensed domestic/commercial work", "5": "Broad commercial/industrial incl. fault-finding and compliance" }, "execution_tokens": ["installed", "terminated", "fault-found", "tested", "commissioned", "wired"], "execution_cap": 2 },
             { "id": "sector_fit", "label": "Sector fit (domestic / commercial / industrial / solar)", "max_points": 20, "type": "ordinal_5" },
             { "id": "compliance_testing", "label": "Compliance, testing and certificate-of-compliance discipline", "max_points": 18, "type": "ordinal_5" },
             { "id": "safety_swms", "label": "Site safety, SWMS and risk awareness", "max_points": 16, "type": "ordinal_5" },
@@ -2038,7 +2038,7 @@
             "disqualifiers": ["Only labouring/assisting duties evidenced when a qualified carpenter is required."]
           },
           "merit_criteria": [
-            { "id": "trade_skill", "label": "Carpentry skill and quality to tolerance", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "trade_skill", "label": "Carpentry skill and quality to tolerance", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["built", "framed", "formwork", "fit-out", "installed", "fixed off"], "execution_cap": 2 },
             { "id": "work_type_fit", "label": "Work-type fit (residential / commercial / formwork / fit-out)", "max_points": 22, "type": "ordinal_5" },
             { "id": "plan_reading_setout", "label": "Plan reading and set-out", "max_points": 18, "type": "ordinal_5" },
             { "id": "safety_swms", "label": "Site safety and SWMS discipline", "max_points": 16, "type": "ordinal_5" },
@@ -2121,7 +2121,7 @@
             "disqualifiers": ["No coordination of other trades, programme or WHS ownership evidenced."]
           },
           "merit_criteria": [
-            { "id": "site_coordination", "label": "Site coordination and programme management", "max_points": 26, "type": "ordinal_5", "evidence_required": true },
+            { "id": "site_coordination", "label": "Site coordination and programme management", "max_points": 26, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["coordinated the site", "ran the program", "managed subcontractors", "supervised the site", "toolbox talks"], "execution_cap": 2 },
             { "id": "whs_compliance", "label": "WHS leadership (SWMS, inductions, incident management)", "max_points": 22, "type": "ordinal_5", "evidence_required": true },
             { "id": "subcontractor_mgmt", "label": "Subcontractor and supplier management", "max_points": 20, "type": "ordinal_5" },
             { "id": "quality_defects", "label": "Quality control and defect management", "max_points": 16, "type": "ordinal_5" },
@@ -2683,7 +2683,7 @@
             "disqualifiers": ["Purely task-taking reception/admin with no ownership evidenced when a manager is required."]
           },
           "merit_criteria": [
-            { "id": "operations_ownership", "label": "Office operations ownership (process, vendors, facilities)", "max_points": 26, "type": "ordinal_5", "evidence_required": true },
+            { "id": "operations_ownership", "label": "Office operations ownership (process, vendors, facilities)", "max_points": 26, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["ran the office", "owned the process", "managed vendors", "coordinated", "implemented"], "execution_cap": 2 },
             { "id": "finance_admin", "label": "Bookkeeping / accounts / invoicing exposure", "max_points": 20, "type": "ordinal_5" },
             { "id": "systems_proficiency", "label": "Systems proficiency (M365, accounting, CRM)", "max_points": 18, "type": "ordinal_5" },
             { "id": "coordination_org", "label": "Coordination, prioritisation and organisation", "max_points": 18, "type": "ordinal_5" },
@@ -2713,7 +2713,7 @@
             "disqualifiers": ["No ownership of reconciliations or a ledger when a bookkeeper is required."]
           },
           "merit_criteria": [
-            { "id": "full_cycle_bookkeeping", "label": "Full-cycle bookkeeping and reconciliations", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "full_cycle_bookkeeping", "label": "Full-cycle bookkeeping and reconciliations", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["reconciled", "processed", "month-end", "bank reconciliation", "managed the ledger"], "execution_cap": 2 },
             { "id": "payroll_bas", "label": "Payroll processing and BAS/GST familiarity", "max_points": 22, "type": "ordinal_5" },
             { "id": "software_fluency", "label": "Accounting-software fluency (Xero/MYOB/QBO)", "max_points": 20, "type": "ordinal_5" },
             { "id": "accuracy_controls", "label": "Accuracy, controls and attention to detail", "max_points": 18, "type": "ordinal_5" },
@@ -2742,7 +2742,7 @@
             "disqualifiers": ["No admin/front-desk duties evidenced."]
           },
           "merit_criteria": [
-            { "id": "admin_frontdesk", "label": "Front-desk and administrative support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "admin_frontdesk", "label": "Front-desk and administrative support skill", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["answered calls", "greeted visitors", "managed the diary", "data entry", "front desk"], "execution_cap": 2 },
             { "id": "systems_office", "label": "Office-software proficiency (M365, calendars, email)", "max_points": 22, "type": "ordinal_5" },
             { "id": "communication_phone", "label": "Communication and phone/customer manner", "max_points": 22, "type": "ordinal_5" },
             { "id": "organisation_reliability", "label": "Organisation and reliability", "max_points": 16, "type": "ordinal_5" },
@@ -3132,7 +3132,7 @@
             "disqualifiers": ["No centre-based / NQF-regulated educator experience when required.", "No valid WWCC/Blue Card (eligibility gate)."]
           },
           "merit_criteria": [
-            { "id": "educator_practice", "label": "Educator practice quality (EYLF/NQF program delivery)", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No centre-based practice", "3": "Solid counted-educator practice", "5": "Room-leading, exemplary documentation and family engagement" } },
+            { "id": "educator_practice", "label": "Educator practice quality (EYLF/NQF program delivery)", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No centre-based practice", "3": "Solid counted-educator practice", "5": "Room-leading, exemplary documentation and family engagement" }, "execution_tokens": ["planned", "delivered the program", "documented learning", "led the room", "EYLF"], "execution_cap": 2 },
             { "id": "age_group_fit", "label": "Age-group fit (nursery / toddler / preschool / OSHC)", "max_points": 20, "type": "ordinal_5" },
             { "id": "documentation_programming", "label": "Learning documentation and programming", "max_points": 18, "type": "ordinal_5" },
             { "id": "safety_wellbeing", "label": "Child safety, wellbeing and duty of care", "max_points": 18, "type": "ordinal_5" },
@@ -3167,7 +3167,7 @@
             "disqualifiers": ["No service-level regulatory or occupancy accountability evidenced."]
           },
           "merit_criteria": [
-            { "id": "service_leadership", "label": "Service leadership and NQF/regulatory compliance", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "service_leadership", "label": "Service leadership and NQF/regulatory compliance", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["ran the service", "owned compliance", "accreditation", "A&R rating", "managed the centre"], "execution_cap": 2 },
             { "id": "occupancy_budget", "label": "Occupancy, enrolments and budget ownership", "max_points": 22, "type": "ordinal_5" },
             { "id": "team_leadership", "label": "Team leadership, rostering-to-ratio and development", "max_points": 20, "type": "ordinal_5" },
             { "id": "quality_qip", "label": "Quality improvement (QIP, A&R rating outcomes)", "max_points": 18, "type": "ordinal_5" },
@@ -3590,7 +3590,7 @@
             "disqualifiers": ["No participant-facing support work described.", "No NDIS Worker Screening (eligibility gate)."]
           },
           "merit_criteria": [
-            { "id": "support_practice", "label": "Participant-centred support practice", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No participant-facing support", "3": "Solid daily-living and community-access support", "5": "Complex supports (behaviour, high-physical, mental health) with plan alignment" } },
+            { "id": "support_practice", "label": "Participant-centred support practice", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No participant-facing support", "3": "Solid daily-living and community-access support", "5": "Complex supports (behaviour, high-physical, mental health) with plan alignment" }, "execution_tokens": ["personal care", "community access", "supported the participant", "daily living", "behaviour support"], "execution_cap": 2 },
             { "id": "cohort_fit", "label": "Cohort fit (disability / aged / mental health / youth)", "max_points": 20, "type": "ordinal_5" },
             { "id": "documentation_goals", "label": "Documentation against NDIS/care goals and reporting", "max_points": 18, "type": "ordinal_5" },
             { "id": "safety_manual_handling", "label": "Safety, manual handling and incident response", "max_points": 16, "type": "ordinal_5" },
@@ -3625,7 +3625,7 @@
             "disqualifiers": ["No caseload or plan/coordination accountability evidenced."]
           },
           "merit_criteria": [
-            { "id": "casework_practice", "label": "Casework: assessment, planning, coordination and advocacy", "max_points": 28, "type": "ordinal_5", "evidence_required": true },
+            { "id": "casework_practice", "label": "Casework: assessment, planning, coordination and advocacy", "max_points": 28, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["assessed", "case managed", "coordinated supports", "advocated", "developed the plan", "caseload"], "execution_cap": 2 },
             { "id": "sector_funder_fit", "label": "Sector/funder fit (NDIS / aged / child & family / housing / AOD)", "max_points": 20, "type": "ordinal_5" },
             { "id": "risk_safeguarding", "label": "Risk assessment and safeguarding/duty of care", "max_points": 18, "type": "ordinal_5" },
             { "id": "documentation_reporting", "label": "Documentation, funder reporting and outcomes measurement", "max_points": 18, "type": "ordinal_5" },
@@ -4084,7 +4084,7 @@
             "disqualifiers": ["No production code shipped when a developer is required (portfolio/personal projects noted but weighted lower than shipped work)."]
           },
           "merit_criteria": [
-            { "id": "engineering_depth", "label": "Engineering depth and shipped production work", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No production code", "3": "Ships features in a stack", "5": "Owns complex systems, strong design and quality" } },
+            { "id": "engineering_depth", "label": "Engineering depth and shipped production work", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "anchors": { "1": "No production code", "3": "Ships features in a stack", "5": "Owns complex systems, strong design and quality" }, "execution_tokens": ["built", "shipped", "implemented", "deployed", "developed", "wrote the code"], "execution_cap": 2 },
             { "id": "stack_fit", "label": "Tech-stack fit (languages, frameworks, cloud)", "max_points": 22, "type": "ordinal_5" },
             { "id": "engineering_practices", "label": "Engineering practices (testing, CI/CD, code review, git)", "max_points": 18, "type": "ordinal_5" },
             { "id": "problem_solving", "label": "Problem solving and system/design reasoning", "max_points": 18, "type": "ordinal_5" },
@@ -4116,7 +4116,7 @@
             "disqualifiers": ["No ticket-based/end-user technical support evidenced."]
           },
           "merit_criteria": [
-            { "id": "troubleshooting", "label": "Technical troubleshooting (endpoint, identity, network, apps)", "max_points": 30, "type": "ordinal_5", "evidence_required": true },
+            { "id": "troubleshooting", "label": "Technical troubleshooting (endpoint, identity, network, apps)", "max_points": 30, "type": "ordinal_5", "evidence_required": true, "execution_tokens": ["resolved", "troubleshot", "fixed", "configured", "supported users", "tickets"], "execution_cap": 2 },
             { "id": "environment_fit", "label": "Environment fit (M365/Entra, Windows/Mac, tools in use)", "max_points": 22, "type": "ordinal_5" },
             { "id": "itsm_sla", "label": "ITSM discipline and SLA/ticket ownership", "max_points": 18, "type": "ordinal_5" },
             { "id": "customer_service", "label": "End-user customer service and communication", "max_points": 18, "type": "ordinal_5" },
