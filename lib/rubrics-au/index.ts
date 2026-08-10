@@ -26,8 +26,14 @@ import type { AwardRef, Gatekeeper, Rubric, RubricCriterion } from '../cv-screen
 import rawLibrary from '../../data/rubrics/au-industry-role-rubrics.json'
 
 // --- Library shapes (loose - the JSON is the authority) ---
-interface LibGatekeeper { id: string; label: string; mandatory?: boolean | string; note?: string }
-interface LibCriterion { id: string; label: string; max_points: number; type?: string; evidence_required?: boolean; anchors?: Record<string, string>; fairness_flag?: string }
+// gate_tokens / authority are read inline from the JSON when present (they are
+// the source of truth); the GATE_TOKENS map + fallbackTokens remain as a
+// backstop for any gatekeeper the JSON does not carry tokens for.
+interface LibGatekeeper { id: string; label: string; mandatory?: boolean | string; note?: string; gate_tokens?: string[]; authority?: string }
+// execution_tokens / execution_cap / oversight_signals activate the scorer's
+// per-criterion EXECUTION GUARD (lib/cv-screening/score.ts). Mapped through
+// verbatim so a management/oversight title cannot inflate a hands-on criterion.
+interface LibCriterion { id: string; label: string; max_points: number; type?: string; evidence_required?: boolean; anchors?: Record<string, string>; fairness_flag?: string; execution_tokens?: string[]; execution_cap?: number; oversight_signals?: string[] }
 interface LibExecVsOversight { near_only?: string; executed_within?: string; supervised_within?: string; disqualifiers?: string[] }
 interface LibPenalty { id: string; condition: string; points: number; rationale?: string; fairness_flag?: string }
 interface LibHardCap { id: string; condition: string; effect: string; rationale?: string }
@@ -36,24 +42,43 @@ interface LibRole {
   role: string
   aliases?: string[]
   award_ref?: { code?: string; name?: string; typical_classification?: string }
+  award_pain_points?: string[]
   hard_gatekeepers?: LibGatekeeper[]
   execution_vs_oversight?: LibExecVsOversight
   merit_criteria?: LibCriterion[]
   penalty_overrides?: LibPenalty[]
   hard_caps?: LibHardCap[]
   advance_threshold?: number
+  // role-level extras (optional; ignored if absent)
+  tech_stack_role?: string[]
+  funding_frameworks?: string[]
+  firm_context?: string
 }
 interface LibIndustry {
   industry: string
   modern_award?: { code?: string; name?: string }
   also_relevant_awards?: Array<{ code?: string; name?: string }>
   award_pain_points?: string[]
-  tech_stack?: string[]
+  // tech_stack may be a flat list OR a categorised object ({ pos: [...], ... }).
+  // Both are supported; flattenTech() normalises to a flat string[].
+  tech_stack?: string[] | Record<string, string[]>
+  funding_frameworks?: string[]
+  firm_type_note?: string
   roles?: LibRole[]
 }
 interface Library { meta?: unknown; scoring_model?: unknown; industries: LibIndustry[] }
 
 const library = rawLibrary as unknown as Library
+
+// Normalise a tech_stack that may be a flat string[] or a categorised object
+// ({ pos: [...], wfm: [...] }) into a de-duplicated flat string[]. Guards the
+// latent mismatch where an object has no `.length` and silently dropped the
+// whole software_ecosystem field.
+function flattenTech(t: string[] | Record<string, string[]> | undefined): string[] {
+  if (!t) return []
+  const flat = Array.isArray(t) ? t : Object.values(t).flat()
+  return Array.from(new Set(flat.filter((v): v is string => typeof v === 'string' && v.length > 0)))
+}
 
 // Tokens the scorer looks for to confirm a mandatory registration / check is
 // held. Keyed by the library's gatekeeper id. "work_rights" is intentionally
@@ -107,7 +132,10 @@ function isMandatory(m: LibGatekeeper['mandatory']): boolean {
 }
 
 function adaptRole(role: LibRole, industry: LibIndustry): Rubric {
-  // 1. Merit criteria: max_points -> weight (sum to ~1.0).
+  // 1. Merit criteria: max_points -> weight (sum to ~1.0). Per-criterion
+  //    execution_tokens/execution_cap/oversight_signals are passed through so
+  //    the scorer's EXECUTION GUARD fires (caps a criterion when only an
+  //    oversight/management title is evidenced and no hands-on span is quoted).
   const meritCriteria: RubricCriterion[] = (role.merit_criteria ?? []).map(c => ({
     id: c.id,
     label: c.label,
@@ -116,6 +144,9 @@ function adaptRole(role: LibRole, industry: LibIndustry): Rubric {
     anchors: c.anchors ?? undefined,
     evidence_required: c.evidence_required ?? undefined,
     fairness_flag: c.fairness_flag ?? undefined,
+    ...(c.execution_tokens?.length ? { execution_tokens: c.execution_tokens } : {}),
+    ...(typeof c.execution_cap === 'number' ? { execution_cap: c.execution_cap } : {}),
+    ...(c.oversight_signals?.length ? { oversight_signals: c.oversight_signals } : {}),
   }))
 
   // 2. Mandatory gatekeepers -> binary hard_gate criteria (excluded from
@@ -135,7 +166,10 @@ function adaptRole(role: LibRole, industry: LibIndustry): Rubric {
       weight: 0,
       type: 'binary',
       hard_gate: true,
-      ...(isWorkRights ? {} : { gate_tokens: GATE_TOKENS[g.id] ?? fallbackTokens(g.label) }),
+      // Inline JSON gate_tokens are the source of truth; GATE_TOKENS map +
+      // label fallback are the backstop. work_eligibility keeps no tokens
+      // (generous, location-blind work-rights read).
+      ...(isWorkRights ? {} : { gate_tokens: g.gate_tokens?.length ? g.gate_tokens : (GATE_TOKENS[g.id] ?? fallbackTokens(g.label)) }),
     })
   }
   // Every role must carry a work-rights gate even if the library omitted it.
@@ -154,16 +188,27 @@ function adaptRole(role: LibRole, industry: LibIndustry): Rubric {
     awards[0] = { ...awards[0], note: (industry.award_pain_points ?? []).join('; ') }
   }
 
-  // 4. All gatekeepers (incl. conditional) preserved as metadata.
+  // 4. All gatekeepers (incl. conditional) preserved as metadata. Inline JSON
+  //    gate_tokens/authority win; GATE_TOKENS map + label fallback backstop.
   const mandatoryGatekeepers: Gatekeeper[] = gateKeepers.map(g => ({
     id: g.id === 'work_rights' ? 'work_eligibility' : g.id,
     label: g.label,
     mandatory: (g.mandatory === true || g.mandatory === 'true') ? true : (g.mandatory === 'conditional' ? 'conditional' : undefined),
     note: g.note,
-    tokens: g.id === 'work_rights' ? undefined : (GATE_TOKENS[g.id] ?? fallbackTokens(g.label)),
+    ...(g.authority ? { authority: g.authority } : {}),
+    tokens: g.id === 'work_rights' ? undefined : (g.gate_tokens?.length ? g.gate_tokens : (GATE_TOKENS[g.id] ?? fallbackTokens(g.label))),
   }))
 
   const threshold = typeof role.advance_threshold === 'number' ? role.advance_threshold : 60
+
+  // Software ecosystem: role-level tech first, then the (flattened) industry
+  // tech_stack. flattenTech() handles both the flat-list and categorised-object
+  // shapes so the field is never silently dropped.
+  const software = Array.from(new Set([...(role.tech_stack_role ?? []), ...flattenTech(industry.tech_stack)]))
+
+  // Funding frameworks (NDIS, My Aged Care, CCS, MBS...): role-level first,
+  // then industry-level.
+  const funding = Array.from(new Set([...(role.funding_frameworks ?? []), ...(industry.funding_frameworks ?? [])]))
 
   return {
     rubric_id: role.rubric_id,
@@ -176,7 +221,8 @@ function adaptRole(role: LibRole, industry: LibIndustry): Rubric {
     industry: industry.industry,
     governing_awards: awards.length ? awards : undefined,
     mandatory_gatekeepers: mandatoryGatekeepers.length ? mandatoryGatekeepers : undefined,
-    software_ecosystem: industry.tech_stack?.length ? industry.tech_stack : undefined,
+    software_ecosystem: software.length ? software : undefined,
+    funding_frameworks: funding.length ? funding : undefined,
     aliases: role.aliases?.length ? role.aliases : undefined,
     execution_guard: role.execution_vs_oversight ?? undefined,
     penalty_overrides: role.penalty_overrides?.length ? role.penalty_overrides : undefined,
