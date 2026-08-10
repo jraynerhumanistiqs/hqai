@@ -2,6 +2,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { Rubric, RubricCriterion } from '@/lib/cv-screening-types'
+import { getRubric } from '@/lib/cv-screening-rubrics'
+import { matchRole } from '@/lib/rubrics-au/match'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -42,8 +44,30 @@ export async function POST(req: NextRequest) {
 
     if (!jd) return NextResponse.json({ error: 'Provide a source_jd or campaign_id' }, { status: 400 })
 
+    // Try the deterministic library matcher first: the rubric name (label) is
+    // usually the role title, and jd carries the ad. A confident match returns
+    // the maintained library rubric (consistent, award-grounded scoring) rather
+    // than an ad-hoc generated one. Falls back to bespoke generation when the
+    // matcher is not confident (source 'none'). The library rubric is fully
+    // editable in the same review step, so this never blocks a custom rubric.
+    const match = matchRole({ jobTitle: label, jobAd: jd })
+    if (match.rubric_id && match.source !== 'none') {
+      const libraryRubric = getRubric(match.rubric_id)
+      if (libraryRubric) {
+        return NextResponse.json({
+          rubric: libraryRubric,
+          match: {
+            source: match.source,
+            role_key: match.role_key,
+            confidence: match.confidence,
+            candidates: match.candidates,
+          },
+        })
+      }
+    }
+
     const rubric = await suggestRubricFromJd(jd, label)
-    return NextResponse.json({ rubric })
+    return NextResponse.json({ rubric, match: { source: 'bespoke', role_key: null, confidence: 0, candidates: match.candidates } })
   } catch (err) {
     console.error('[cv-screening/suggest-rubric]', err)
     const detail = err instanceof Error ? err.message : String(err)
