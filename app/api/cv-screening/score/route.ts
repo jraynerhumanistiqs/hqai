@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getRubric as getStandardRubric } from '@/lib/cv-screening-rubrics'
+import { matchRole, roleKeyForRubric } from '@/lib/rubrics-au/match'
 import {
   bandFromScore,
   defaultActionForBand,
@@ -63,9 +64,6 @@ export async function POST(req: NextRequest) {
         : null
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
-    const rubric = await resolveRubric(rubricId)
-    if (!rubric) return NextResponse.json({ error: `Unknown rubric: ${rubricId}` }, { status: 400 })
-
     const filename = file.name || 'cv'
     const ext = filename.split('.').pop()?.toLowerCase() ?? ''
     const arrayBuf = await file.arrayBuffer()
@@ -86,6 +84,43 @@ export async function POST(req: NextRequest) {
     // recruiter retyping anything.
     const realName = extractRealName(cvText, filename)
     const candidateEmail = extractEmail(cvText)
+
+    // Resolve the rubric. Recruiter selection (rubricId) is the source of
+    // truth. When no valid rubric is supplied, fall back to the deterministic
+    // CV -> role matcher so the upload still links to the right role rather
+    // than failing. The linkage (role_key / source / confidence) is persisted
+    // below (additive columns; retried-without if the migration is unapplied).
+    let rubric = rubricId ? await resolveRubric(rubricId) : null
+    let roleKey: string | null = rubric ? roleKeyForRubric(rubric.rubric_id) : null
+    let matchSource: string | null = rubric ? 'recruiter' : null
+    let matchConfidence: number | null = rubric ? 1 : null
+    if (!rubric) {
+      const m = matchRole({
+        jobTitle: filenameToLabel(filename) || null,
+        jobAd: cvText.slice(0, 2000),
+      })
+      if (m.rubric_id && m.source !== 'none') {
+        const matched = await resolveRubric(m.rubric_id)
+        if (matched) {
+          rubric = matched
+          roleKey = m.role_key
+          matchSource = m.source
+          matchConfidence = m.confidence
+        }
+      }
+    }
+    if (!rubric) {
+      return NextResponse.json(
+        { error: rubricId ? `Unknown rubric: ${rubricId}` : 'Could not determine a role from this CV - please select a rubric.' },
+        { status: 400 },
+      )
+    }
+    // The id persisted on the row must be the rubric actually used:
+    // - recruiter path -> the selected id (a standard id or a custom-rubric uuid)
+    // - matcher fallback (incl. when a supplied id was unknown) -> the matched
+    //   standard rubric id, so the stored rubric_id never points at a rubric we
+    //   did not score against.
+    const finalRubricId = matchSource === 'recruiter' ? rubricId : rubric.rubric_id
 
     // Keep the original upload so the recruiter can download the exact
     // file later (private 'cvs' bucket). Upload failure never blocks
@@ -116,7 +151,7 @@ export async function POST(req: NextRequest) {
       const insertPayload: Record<string, unknown> = {
         business_id: businessId,
         user_id: user.id,
-        rubric_id: rubricId,
+        rubric_id: finalRubricId,
         // Prefer the extracted CV name. If extraction failed, prefer the filename
         // over Claude's literal "Candidate" placeholder so the user sees something
         // meaningful rather than a generic word.
@@ -140,12 +175,16 @@ export async function POST(req: NextRequest) {
         ...(thinConsideration
           ? { thin_experience: scoreResult.thin_experience, considerations: [thinConsideration] }
           : {}),
+        // CV -> role linkage (additive migration cv_screenings_role_match_columns).
+        ...(roleKey ? { role_key: roleKey } : {}),
+        ...(matchSource ? { match_source: matchSource } : {}),
+        ...(matchConfidence != null ? { match_confidence: matchConfidence } : {}),
       }
 
       // Insert with a graceful retry: if an optional column from an
       // unapplied migration is rejected, strip the offending columns and
       // try again (same pattern as screenings/[id] PATCH).
-      const OPTIONAL_COLUMNS = ['cv_storage_path', 'thin_experience', 'considerations']
+      const OPTIONAL_COLUMNS = ['cv_storage_path', 'thin_experience', 'considerations', 'role_key', 'match_source', 'match_confidence']
       let attempt = await supabase
         .from('cv_screenings')
         .insert(insertPayload)
@@ -184,7 +223,7 @@ export async function POST(req: NextRequest) {
       id: savedId,
       business_id: businessId ?? '',
       user_id: user.id,
-      rubric_id: rubricId,
+      rubric_id: finalRubricId,
       // Prefer the extracted CV name. If extraction failed, prefer the filename
       // over Claude's literal "Candidate" placeholder so the user sees something
       // meaningful rather than a generic word.

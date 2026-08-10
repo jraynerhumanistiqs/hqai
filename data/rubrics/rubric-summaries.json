@@ -1,0 +1,7595 @@
+[
+  {
+    "rubric_id": "rub_retail_store_manager_au_v1",
+    "role": "Retail Store Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "store_pnl_ownership",
+        "label": "Store P&L / sales-target ownership",
+        "weight": 0.25,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rostering_wage_control",
+        "label": "Award-compliant rostering and wage-cost control",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "people_leadership",
+        "label": "Team leadership (hiring, coaching, performance)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "loss_prevention_ops",
+        "label": "Stock control, stocktake and loss prevention",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_vm_standards",
+        "label": "Customer experience and visual-merchandising standards",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity, quantified outcomes)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_sales_assistant_au_v1",
+    "role": "Retail Sales Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "customer_selling",
+        "label": "Customer service and selling on the floor",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pos_cash",
+        "label": "POS operation, cash handling and accuracy",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_availability",
+        "label": "Reliability and availability (incl. peak trade)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_category_fit",
+        "label": "Product / category familiarity",
+        "weight": 0.17,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork_standards",
+        "label": "Teamwork and store standards (VM, stock, cleanliness)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_assistant_manager_au_v1",
+    "role": "Assistant Store Manager / 2IC",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "shift_leadership",
+        "label": "Shift leadership (open/close, keyholding, on-shift decisions)",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sales_coaching",
+        "label": "Driving sales and coaching the team on shift",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cash_admin",
+        "label": "Cash reconciliation, banking and shift admin",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rostering_exposure",
+        "label": "Rostering / availability management exposure",
+        "weight": 0.17,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_senior_sales_au_v1",
+    "role": "Senior Sales Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "customer_selling",
+        "label": "Customer service and selling on the floor",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pos_cash",
+        "label": "POS operation, cash handling and accuracy",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_category_fit",
+        "label": "Product / category familiarity",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_availability",
+        "label": "Reliability and availability (incl. peak trade)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "mentoring_juniors",
+        "label": "Mentoring juniors / floor role-modelling",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_area_manager_au_v1",
+    "role": "Area / Multi-site Retail Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "drivers_licence"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "multi_site_pnl",
+        "label": "Multi-site P&L and portfolio ownership",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "people_leadership_scale",
+        "label": "Leading store managers and teams at scale",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "retail_ops_standards",
+        "label": "Retail operations and standards across sites",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "commercial_analysis",
+        "label": "Commercial analysis and initiative rollout",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tenure_stability",
+        "label": "Tenure pattern",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_department_manager_au_v1",
+    "role": "Department Manager (retail)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "department_ownership",
+        "label": "Department ownership (targets, stock, team)",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sales_coaching",
+        "label": "Driving sales and coaching the team",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stock_ordering",
+        "label": "Stock, ordering and availability",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rostering_exposure",
+        "label": "Section rostering / availability management",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_visual_merchandiser_au_v1",
+    "role": "Visual Merchandiser",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "vm_execution",
+        "label": "VM planning and execution to brand guidelines",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "brand_guideline_fit",
+        "label": "Brand / product-category fit",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "commercial_impact",
+        "label": "Commercial impact (sales uplift, VM compliance)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "creativity_eye",
+        "label": "Creativity and eye for detail",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "project_reliability",
+        "label": "Project reliability (deadlines, multi-store rollouts)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_buyer_au_v1",
+    "role": "Buyer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "category_buying",
+        "label": "Category buying and range ownership",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "supplier_negotiation",
+        "label": "Supplier negotiation and management",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "range_margin_management",
+        "label": "Range and margin management",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "trend_analysis",
+        "label": "Trend and sales analysis",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_excel",
+        "label": "Systems and Excel / merchandising tools",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_assistant_buyer_au_v1",
+    "role": "Assistant Buyer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "buying_support",
+        "label": "Buying support (POs, samples, critical path)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sales_analysis",
+        "label": "Sales analysis and reporting",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "supplier_admin",
+        "label": "Supplier and product administration",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_excel",
+        "label": "Systems and Excel proficiency",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_merchandise_planner_au_v1",
+    "role": "Merchandise Planner / Allocator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "planning_forecasting",
+        "label": "Merchandise planning and forecasting",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "allocation_replenishment",
+        "label": "Allocation and replenishment",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "otb_margin",
+        "label": "Open-to-buy and margin/markdown management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_analytics",
+        "label": "Planning systems and analytics",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_inventory_controller_au_v1",
+    "role": "Stock / Inventory Controller",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "inventory_control",
+        "label": "Inventory control and accuracy ownership",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stocktake_cycle_count",
+        "label": "Stocktake and cycle-count discipline",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_erp",
+        "label": "Inventory/ERP systems proficiency",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_analysis",
+        "label": "Accuracy and data analysis",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_warehouse_stockroom_au_v1",
+    "role": "Warehouse / Stockroom Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "warehouse_operations",
+        "label": "Warehouse / stockroom operations",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "receiving_dispatch",
+        "label": "Receiving, dispatch and stock movement accuracy",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_care",
+        "label": "Accuracy and care with stock",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "equipment_forklift",
+        "label": "Equipment operation (forklift, pallet jack, RF scanner)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and availability",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_register_operator_au_v1",
+    "role": "Register Operator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.6,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "pos_cash_accuracy",
+        "label": "Register operation, cash handling and accuracy",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_service",
+        "label": "Customer service at the point of sale",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_availability",
+        "label": "Reliability and availability (incl. peak trade)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork_standards",
+        "label": "Teamwork and front-end standards",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_ecommerce_fulfilment_au_v1",
+    "role": "E-commerce / Online Fulfilment Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "fulfilment_operations",
+        "label": "Online fulfilment operations (pick/pack/dispatch/C&C)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "order_accuracy_sla",
+        "label": "Order accuracy and SLA/turnaround",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_platforms",
+        "label": "E-commerce platforms and OMS/WMS systems",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "problem_resolution",
+        "label": "Problem resolution (stockouts, returns, customer queries)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_retail_loss_prevention_au_v1",
+    "role": "Loss Prevention Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Retail",
+    "criteria": [
+      {
+        "id": "loss_prevention_ops",
+        "label": "Loss prevention operations",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "investigation_evidence",
+        "label": "Investigation and evidence handling",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "incident_compliance",
+        "label": "Incident management and policy/legal compliance",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cctv_systems",
+        "label": "CCTV and LP systems proficiency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (reports, CV clarity)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_venue_manager_au_v1",
+    "role": "Venue / Restaurant Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "venue_pnl",
+        "label": "Venue P&L: labour %, COGS and revenue ownership",
+        "weight": 0.24,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "service_floor_leadership",
+        "label": "Service leadership on a live floor/bar",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rostering_labour",
+        "label": "Rostering to labour budget under penalty/annualised rules",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_incident",
+        "label": "RSA/licensing compliance and incident handling",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ordering_stock",
+        "label": "Ordering, stock and supplier management",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "Responsible Service of Alcohol (RSA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_chef_au_v1",
+    "role": "Chef de Partie / Line Chef",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "cooking_skill_section",
+        "label": "Cooking skill and section ownership",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cuisine_venue_fit",
+        "label": "Cuisine and venue-type fit",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_safety_practice",
+        "label": "Food safety and kitchen hygiene practice",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "speed_consistency",
+        "label": "Speed and consistency under service pressure",
+        "weight": 0.17,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "kitchen_leadership",
+        "label": "Kitchen leadership / ordering / costing (for senior grades)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_fb_attendant_au_v1",
+    "role": "Food & Beverage Attendant / Bar Attendant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "service_skill",
+        "label": "Table/bar service skill and pace",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_knowledge",
+        "label": "Product knowledge (menu, wine/coffee/cocktails)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pos_cash",
+        "label": "POS, ordering and cash handling",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_availability",
+        "label": "Reliability and availability (nights/weekends)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork and composure under pressure",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "RSA",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_bartender_au_v1",
+    "role": "Bartender / Bar Attendant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "bar_service_skill",
+        "label": "Bar service skill and drink-making",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_knowledge_drinks",
+        "label": "Product knowledge (spirits, wine, beer, cocktails)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pos_cash",
+        "label": "POS, ordering and cash handling",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_availability",
+        "label": "Reliability and availability (nights/weekends)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork and composure under pressure",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "Responsible Service of Alcohol (RSA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_barista_au_v1",
+    "role": "Barista",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "coffee_craft",
+        "label": "Coffee craft (extraction, milk, consistency)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "speed_volume",
+        "label": "Speed and consistency at volume",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_service",
+        "label": "Customer service and rapport",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_bev_knowledge",
+        "label": "Food and beverage knowledge",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and availability (early starts)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_kitchenhand_au_v1",
+    "role": "Kitchenhand",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.5,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "kitchen_support",
+        "label": "Kitchen support and back-of-house duties",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_prep_basic",
+        "label": "Basic food preparation",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "hygiene_cleaning",
+        "label": "Hygiene and kitchen cleaning standards",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "speed_reliability",
+        "label": "Speed and reliability under pressure",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_cook_au_v1",
+    "role": "Cook / Commis Chef",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "cooking_skill",
+        "label": "Cooking skill to service standard",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cuisine_venue_fit",
+        "label": "Cuisine and venue-type fit",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_safety_practice",
+        "label": "Food safety and hygiene practice",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "speed_consistency",
+        "label": "Speed and consistency under pressure",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork in the brigade",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_sous_chef_au_v1",
+    "role": "Sous Chef",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "cert_iii_commercial_cookery"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "kitchen_leadership_2ic",
+        "label": "Kitchen leadership as 2IC",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cooking_skill_senior",
+        "label": "Senior cooking skill and consistency",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "menu_costing_ordering",
+        "label": "Menu, costing and ordering contribution",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_safety_compliance",
+        "label": "Food safety and kitchen compliance",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "brigade_supervision",
+        "label": "Brigade supervision and development",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "cert_iii_commercial_cookery",
+        "label": "Cert III Commercial Cookery (or trade equivalent)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_head_chef_au_v1",
+    "role": "Head Chef / Executive Chef",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "cert_iii_commercial_cookery",
+      "food_safety_supervisor"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "kitchen_pnl_menu",
+        "label": "Kitchen ownership: menu, COGS and P&L",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "culinary_leadership",
+        "label": "Culinary leadership and standards",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cost_control_cogs",
+        "label": "Cost control (COGS, waste, supplier management)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_safety_governance",
+        "label": "Food safety governance (FSS, HACCP, audits)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_development",
+        "label": "Brigade leadership and development",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "cert_iii_commercial_cookery",
+        "label": "Cert III Commercial Cookery (or trade equivalent)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "food_safety_supervisor",
+        "label": "Food Safety Supervisor",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_duty_manager_au_v1",
+    "role": "Duty Manager (venue)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "shift_leadership",
+        "label": "Shift leadership (open/close, cash-up, decisions)",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "service_floor",
+        "label": "Service leadership on a live floor/bar",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_incident",
+        "label": "RSA/licensing compliance and incident handling",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cash_admin",
+        "label": "Cash reconciliation, banking and shift admin",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rostering_exposure",
+        "label": "Rostering / labour management exposure",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "Responsible Service of Alcohol (RSA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_sommelier_au_v1",
+    "role": "Sommelier",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "wine_expertise",
+        "label": "Wine expertise and knowledge depth",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "wine_service",
+        "label": "Wine service skill and guest experience",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "list_cellar_management",
+        "label": "Wine-list curation and cellar management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_pairing",
+        "label": "Food and wine pairing",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_experience",
+        "label": "Customer experience and salesmanship",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "Responsible Service of Alcohol (RSA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_host_au_v1",
+    "role": "Host / Front-of-House Attendant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.6,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "guest_experience",
+        "label": "Guest experience and welcome",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reservations_systems",
+        "label": "Reservations/waitlist systems and guest flow",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "composure_pressure",
+        "label": "Composure at the door under pressure",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication_phone",
+        "label": "Communication and phone manner",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "presentation",
+        "label": "Presentation and professionalism",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_gaming_attendant_au_v1",
+    "role": "Gaming Attendant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "rsg",
+      "rsa"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "gaming_operations",
+        "label": "Gaming-floor operations (machines, payouts, TAB/Keno)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "rsg_compliance",
+        "label": "RSG compliance and harm minimisation",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_service",
+        "label": "Customer service on the gaming floor",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cash_handling",
+        "label": "Cash handling and reconciliation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "vigilance_harm_min",
+        "label": "Vigilance and patron care",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsg",
+        "label": "RSG / RCG (Responsible Service/Conduct of Gambling)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "rsa",
+        "label": "Responsible Service of Alcohol (RSA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_hosp_functions_coordinator_au_v1",
+    "role": "Functions / Events Coordinator (venue)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Hospitality & Food Service",
+    "criteria": [
+      {
+        "id": "function_coordination",
+        "label": "Function/event coordination end-to-end",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "client_liaison",
+        "label": "Client liaison and sales conversion",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "beo_planning",
+        "label": "BEO / run-sheet planning and detail",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "on_day_delivery",
+        "label": "On-day delivery and problem-solving",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_registered_nurse_au_v1",
+    "role": "Registered Nurse (RN)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_rn",
+      "police_check",
+      "immunisation"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "clinical_practice_depth",
+        "label": "Clinical practice depth and scope",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "setting_fit",
+        "label": "Care-setting fit (aged care / acute / community / disability)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "care_planning_documentation",
+        "label": "Assessment, care planning and clinical documentation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "medication_management",
+        "label": "Medication management and clinical safety",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "leadership_incharge",
+        "label": "In-charge / team leadership (for senior roles)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_rn",
+        "label": "AHPRA registration as a Registered Nurse (NMBA), current, no conditions",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history (incl. current requirements)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_personal_care_worker_au_v1",
+    "role": "Personal Care Worker / Assistant in Nursing (AIN)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check",
+      "first_aid_cpr",
+      "immunisation"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "personal_care_skill",
+        "label": "Personal care and ADL support skill",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_setting_fit",
+        "label": "Cohort/setting fit (residential / home care / disability)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "manual_handling_safety",
+        "label": "Manual handling and workplace safety",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_escalation",
+        "label": "Documentation and escalation to clinical staff",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "empathy_reliability",
+        "label": "Empathy, reliability and availability",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_cpr",
+        "label": "First Aid and CPR",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_enrolled_nurse_au_v1",
+    "role": "Enrolled Nurse (EN)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_en",
+      "police_check",
+      "immunisation"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "nursing_practice",
+        "label": "EN clinical practice within scope",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "setting_fit",
+        "label": "Care-setting fit (aged / acute / community)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "medication_admin",
+        "label": "Medication administration and clinical safety",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_care",
+        "label": "Documentation and care-plan contribution",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork_delegation",
+        "label": "Teamwork and working under RN delegation",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_en",
+        "label": "AHPRA registration as an Enrolled Nurse (NMBA), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_nurse_unit_manager_au_v1",
+    "role": "Nurse Unit Manager / Clinical Care Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_rn",
+      "police_check",
+      "immunisation"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "unit_leadership",
+        "label": "Unit leadership and clinical in-charge",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_governance",
+        "label": "Clinical governance, quality and incident management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "people_roster_mgmt",
+        "label": "People and roster management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "quality_compliance",
+        "label": "Standards/accreditation compliance",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "budget_resource",
+        "label": "Budget and resource management",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_rn",
+        "label": "AHPRA registration as a Registered Nurse (NMBA), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_home_care_worker_au_v1",
+    "role": "Home Care / Community Care Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "aged_care_worker_screening",
+      "first_aid_cpr",
+      "drivers_licence"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "home_care_skill",
+        "label": "In-home personal-care and support skill",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_fit",
+        "label": "Cohort fit (aged / disability / complex)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "lone_work_safety",
+        "label": "Lone-work safety and manual handling",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_reporting",
+        "label": "Documentation and escalation",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "empathy_reliability",
+        "label": "Empathy, reliability and punctuality",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "aged_care_worker_screening",
+        "label": "Aged Care Worker Screening / National Police Check (<3 years) or NDIS Worker Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_cpr",
+        "label": "First Aid and CPR",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence + reliable vehicle",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_care_manager_facility_au_v1",
+    "role": "Care Manager / Facility Manager (aged care)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "aged_care_worker_screening"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "facility_leadership",
+        "label": "Facility/service leadership and operations",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "care_quality_compliance",
+        "label": "Aged Care Quality Standards and compliance",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "people_workforce",
+        "label": "Workforce leadership and rostering to care needs",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "budget_occupancy",
+        "label": "Budget and occupancy management",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_stakeholder",
+        "label": "Family and stakeholder engagement",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "aged_care_worker_screening",
+        "label": "Aged Care Worker Screening / Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_allied_health_assistant_au_v1",
+    "role": "Allied Health Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "therapy_support",
+        "label": "Therapy-support delivery under direction",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "discipline_fit",
+        "label": "Discipline fit (physio / OT / speech / podiatry)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "program_delivery",
+        "label": "Program delivery and monitoring",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation and reporting to the clinician",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "interpersonal",
+        "label": "Interpersonal skill and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_lifestyle_coordinator_au_v1",
+    "role": "Lifestyle / Leisure & Activities Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "lifestyle_program",
+        "label": "Lifestyle/leisure program planning and delivery",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "person_centred_planning",
+        "label": "Person-centred / individual planning",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "engagement_outcomes",
+        "label": "Engagement and wellbeing outcomes",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation and reporting",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork_volunteers",
+        "label": "Teamwork and volunteer coordination",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check / Aged Care Worker Screening",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_clinical_nurse_specialist_au_v1",
+    "role": "Clinical Nurse / Clinical Nurse Specialist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_rn",
+      "police_check",
+      "immunisation"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "advanced_clinical",
+        "label": "Advanced clinical practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "specialty_depth",
+        "label": "Specialty depth and fit",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_leadership_education",
+        "label": "Clinical leadership and education",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "evidence_quality",
+        "label": "Evidence-based practice and quality improvement",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_rn",
+        "label": "AHPRA RN registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_care_coordinator_admin_au_v1",
+    "role": "Care / Rostering Coordinator (non-clinical)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "rostering_scheduling",
+        "label": "Care rostering and scheduling to client needs",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "client_service_coordination",
+        "label": "Client intake and service coordination",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_care_mgmt",
+        "label": "Care-management/rostering systems proficiency",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_compliance",
+        "label": "Accuracy and award/compliance awareness (SCHADS)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and stakeholder handling",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_health_disability_nurse_au_v1",
+    "role": "Support / Disability Nurse (community)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_rn",
+      "ndis_screening",
+      "police_check",
+      "first_aid_cpr"
+    ],
+    "industry": "Healthcare & Aged Care",
+    "criteria": [
+      {
+        "id": "clinical_practice_community",
+        "label": "RN clinical practice in community/disability",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "complex_care_planning",
+        "label": "Complex care planning and health monitoring",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ndis_disability_fit",
+        "label": "NDIS / disability sector fit",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "delegation_supervision",
+        "label": "Clinical delegation and support-worker supervision",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation and reporting",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_rn",
+        "label": "AHPRA RN registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ndis_screening",
+        "label": "NDIS Worker Screening Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_cpr",
+        "label": "First Aid and CPR",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_pharmacist_au_v1",
+    "role": "Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "dispensing_clinical",
+        "label": "Dispensing accuracy and clinical counselling",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "professional_services",
+        "label": "Professional services (vaccinations, MedsCheck, DAA, screening)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "s8_compliance",
+        "label": "S8/controlled-drug register and regulatory compliance",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "software_throughput",
+        "label": "Dispensary software fluency and workflow throughput",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "leadership_incharge",
+        "label": "Pharmacist-in-charge / staff supervision (senior roles)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA registration as a Pharmacist (Pharmacy Board), current, no restrictive conditions",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_assistant_au_v1",
+    "role": "Pharmacy Assistant / Dispensary Technician",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "dispensary_support",
+        "label": "Dispensary support (data entry, labelling, DAA/Webster packing)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pharmacy_retail_advice",
+        "label": "Pharmacy retail service and scheduled-medicine referral discipline",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "software_familiarity",
+        "label": "Dispensary/POS software familiarity (Fred/Minfos/Z)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_compliance",
+        "label": "Accuracy and compliance mindset",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and availability",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_pic_au_v1",
+    "role": "Pharmacist in Charge / Managing Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "dispensary_governance",
+        "label": "Dispensary governance and in-charge accountability",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_dispensing",
+        "label": "Clinical dispensing and counselling",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "s8_compliance",
+        "label": "S8/controlled-drug and regulatory compliance",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "professional_services",
+        "label": "Professional services (vaccinations, MedsCheck, DAA)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "staff_leadership",
+        "label": "Staff supervision and workflow leadership",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA registration as a Pharmacist (Pharmacy Board), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_intern_au_v1",
+    "role": "Intern Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "provisional_registration"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "intern_practice",
+        "label": "Intern-year practice under supervision",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_knowledge",
+        "label": "Clinical/pharmacology knowledge",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "dispensing_accuracy",
+        "label": "Dispensing accuracy and software",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "exam_progress",
+        "label": "Registration exam progress",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "professionalism",
+        "label": "Professionalism and learning attitude",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "provisional_registration",
+        "label": "AHPRA provisional registration (intern)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_dispensary_technician_au_v1",
+    "role": "Dispensary Technician",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "dispensary_support",
+        "label": "Dispensary support competency",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "software_throughput",
+        "label": "Dispensary software fluency (Fred/Minfos/Z)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_compliance",
+        "label": "Accuracy and compliance discipline",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pharmacy_knowledge",
+        "label": "Pharmacy/product knowledge",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and availability",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_manager_retail_au_v1",
+    "role": "Pharmacy Manager (retail/business)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "retail_pnl",
+        "label": "Retail P&L and business ownership",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "category_merchandising",
+        "label": "Category management and merchandising",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_leadership",
+        "label": "Team leadership (front-of-shop)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stock_ordering",
+        "label": "Stock, ordering and supplier management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_experience",
+        "label": "Customer experience and retail standards",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_compounding_technician_au_v1",
+    "role": "Compounding Technician",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "compounding_skill",
+        "label": "Compounding skill (accuracy, technique)",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_quality",
+        "label": "Accuracy and quality control",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "gmp_safety",
+        "label": "GMP / safety and documentation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "formulation_knowledge",
+        "label": "Formulation and product knowledge",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and attention to detail",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_daa_packer_au_v1",
+    "role": "DAA / Webster Packer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.6,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "daa_packing_accuracy",
+        "label": "DAA/Webster packing accuracy",
+        "weight": 0.34,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "throughput",
+        "label": "Throughput and workflow",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_check",
+        "label": "Compliance and check discipline",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems",
+        "label": "Packing systems / software",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and attention to detail",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_beauty_advisor_au_v1",
+    "role": "Beauty / Retail Advisor (pharmacy)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.6,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "beauty_retail_advice",
+        "label": "Beauty/skincare advice and selling",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_knowledge",
+        "label": "Product and brand knowledge",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sales_service",
+        "label": "Sales and customer service",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "merchandising",
+        "label": "Category merchandising and standards",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and availability",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_acop_au_v1",
+    "role": "Aged Care On-site Pharmacist (ACOP)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist",
+      "acop_credential",
+      "police_check"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "aged_care_medication_review",
+        "label": "Aged-care medication review practice (RMMR)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_governance_racf",
+        "label": "Medication safety stewardship in RACFs",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "credential_scope",
+        "label": "Credential currency and scope (ACOP/MMR)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "staff_resident_education",
+        "label": "Staff education and resident/family counselling",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration_mac",
+        "label": "MDT/MAC collaboration and transition-of-care",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (reports, CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA pharmacist registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "acop_credential",
+        "label": "APC-accredited ACOP Credential",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check / Aged Care Worker Screening",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_consultant_mmr_au_v1",
+    "role": "Consultant / Credentialed (MMR) Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist",
+      "mmr_credential"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "medication_review_practice",
+        "label": "Medication review practice (HMR/RMMR)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_reasoning",
+        "label": "Clinical reasoning and recommendations",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "credential_currency",
+        "label": "Credential currency (MMR/ACOP)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "report_communication",
+        "label": "Report writing and GP communication",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration_gp",
+        "label": "Collaboration with GPs and pharmacies",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA pharmacist registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "mmr_credential",
+        "label": "APC MMR Credential (credentialed/accredited pharmacist)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_vaccinating_au_v1",
+    "role": "Vaccinating Pharmacist / Immuniser",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist",
+      "immunisation_accreditation",
+      "first_aid_cpr"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "vaccination_practice",
+        "label": "Vaccination administration practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "immunisation_compliance",
+        "label": "Immunisation program compliance and cold chain",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_safety_anaphylaxis",
+        "label": "Clinical safety and anaphylaxis management",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "patient_counselling",
+        "label": "Consent and patient counselling",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "dispensing_baseline",
+        "label": "Baseline dispensing/pharmacist practice",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA pharmacist registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation_accreditation",
+        "label": "Immunisation/vaccination accreditation (state program)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_cpr",
+        "label": "First Aid, CPR and anaphylaxis management",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_gp_pharmacist_au_v1",
+    "role": "General Practice Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "gp_integration_practice",
+        "label": "Primary-care integrated pharmacist practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "clinical_medication_expertise",
+        "label": "Clinical medication expertise",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "chronic_disease_qum",
+        "label": "Chronic-disease support and QUM",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration_prescribers",
+        "label": "Collaboration with GPs and the care team",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and documentation",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA pharmacist registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_pharmacy_hospital_au_v1",
+    "role": "Hospital Pharmacist",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "ahpra_pharmacist",
+      "police_check",
+      "immunisation"
+    ],
+    "industry": "Pharmacy",
+    "criteria": [
+      {
+        "id": "hospital_clinical_practice",
+        "label": "Hospital clinical pharmacy practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ward_medication_management",
+        "label": "Ward medication management and reconciliation",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "specialty_fit",
+        "label": "Specialty fit (oncology / ICU / paeds / general)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "mdt_collaboration",
+        "label": "MDT collaboration",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "governance_safety",
+        "label": "Medication safety and governance",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ahpra_pharmacist",
+        "label": "AHPRA pharmacist registration, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "immunisation",
+        "label": "Immunisation history",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_electrician_au_v1",
+    "role": "Electrician",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "electrical_licence",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "trade_competency",
+        "label": "Licensed electrical competency and breadth",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sector_fit",
+        "label": "Sector fit (domestic / commercial / industrial / solar)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_testing",
+        "label": "Compliance, testing and certificate-of-compliance discipline",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety, SWMS and risk awareness",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "leadership_leadinghand",
+        "label": "Leading-hand / crew supervision (senior roles)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and licences currency",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "electrical_licence",
+        "label": "State electrical licence (e.g. QLD Electrical Work Licence / NSW/VIC equivalent), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_carpenter_au_v1",
+    "role": "Carpenter",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "trade_skill",
+        "label": "Carpentry skill and quality to tolerance",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (residential / commercial / formwork / fit-out)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "plan_reading_setout",
+        "label": "Plan reading and set-out",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "leadership_leadinghand",
+        "label": "Leading-hand / crew supervision (senior)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_plumber_au_v1",
+    "role": "Plumber",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "plumbing_licence",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "trade_competency",
+        "label": "Licensed plumbing competency and breadth",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sector_fit",
+        "label": "Sector fit (domestic / commercial / civil / maintenance / fire)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_certification",
+        "label": "Compliance, code knowledge and certificate-of-compliance discipline",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety, SWMS and risk awareness",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "leadership_leadinghand",
+        "label": "Leading-hand / apprentice supervision (senior roles)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and licence/endorsement currency",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "plumbing_licence",
+        "label": "State plumbing licence/registration (QBCC QLD, VBA/BPC VIC, NSW Fair Trading, and state equivalents), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_site_supervisor_au_v1",
+    "role": "Site Supervisor / Foreman",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "site_coordination",
+        "label": "Site coordination and programme management",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "whs_compliance",
+        "label": "WHS leadership (SWMS, inductions, incident management)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "subcontractor_mgmt",
+        "label": "Subcontractor and supplier management",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "quality_defects",
+        "label": "Quality control and defect management",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Client/PM communication and reporting",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_labourer_au_v1",
+    "role": "Construction Labourer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.5,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "site_labouring",
+        "label": "Construction-site labouring",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "physical_reliability",
+        "label": "Physical reliability and work ethic",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tickets_tools",
+        "label": "Tickets and tools (White Card, plant tickets, hand tools)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_awareness",
+        "label": "Site safety awareness",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork and taking direction",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_painter_au_v1",
+    "role": "Painter",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "painting_skill",
+        "label": "Painting skill and finish quality",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "surface_prep",
+        "label": "Surface preparation and product knowledge",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (domestic / commercial / industrial)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and licence currency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_bricklayer_au_v1",
+    "role": "Bricklayer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "bricklaying_skill",
+        "label": "Bricklaying / blocklaying skill and quality",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (residential / commercial / structural)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "plan_reading",
+        "label": "Plan reading and set-out",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_concreter_au_v1",
+    "role": "Concreter",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "concreting_skill",
+        "label": "Concreting skill (place, screed, finish)",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "formwork_finish",
+        "label": "Formwork and finishing quality",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (residential / commercial / civil)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_tiler_au_v1",
+    "role": "Tiler",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "tiling_skill",
+        "label": "Tiling skill and finish quality",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "waterproofing",
+        "label": "Waterproofing competence (wet areas)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (residential / commercial)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_plasterer_au_v1",
+    "role": "Plasterer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "plastering_skill",
+        "label": "Plastering skill (fix/set or solid render)",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "finish_quality",
+        "label": "Finish quality and detail",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (drywall / solid / commercial)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_roofer_au_v1",
+    "role": "Roofer / Roof Tiler",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "roofing_skill",
+        "label": "Roofing installation skill",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "heights_safety",
+        "label": "Working-at-heights safety and fall protection",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_type_fit",
+        "label": "Work-type fit (metal / tile / residential / commercial)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_hvac_au_v1",
+    "role": "HVAC / Refrigeration Mechanic",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "arctick",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "hvac_competency",
+        "label": "HVAC/refrigeration competency and breadth",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "refrigerant_compliance",
+        "label": "Refrigerant handling and ARCtick compliance",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "fault_diagnosis",
+        "label": "Fault diagnosis and electrical/controls competence",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_licences",
+        "label": "Reliability and licence currency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "arctick",
+        "label": "ARCtick Refrigerant Handling Licence (ARC)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_plant_operator_au_v1",
+    "role": "Plant / Machine Operator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "plant_operation_skill",
+        "label": "Plant operation skill and productivity",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "machine_range",
+        "label": "Range of machines operated",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_ground_awareness",
+        "label": "Safety and ground/services awareness",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tickets_voc",
+        "label": "Tickets / VOC currency and correctness",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and productivity",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence (often HR/HC for float/truck)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_crane_rigger_dogger_au_v1",
+    "role": "Crane Operator / Rigger / Dogger",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "hrwl",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "rigging_crane_competency",
+        "label": "Dogging/rigging/crane competency and breadth",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "load_calc_safety",
+        "label": "Load estimation, lift planning and safety",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "hrwl_class_breadth",
+        "label": "HRWL class breadth (DG/RB/RI/RA/crane classes)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and ticket currency",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "hrwl",
+        "label": "High Risk Work Licence - Dogging (DG), Rigging (RB/RI/RA) and/or Crane class (C2/C6/CN/CV/CB)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence (HR/HC for mobile cranes)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_scaffolder_au_v1",
+    "role": "Scaffolder",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "hrwl_scaffolding"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "scaffolding_competency",
+        "label": "Scaffolding competency and breadth (class held)",
+        "weight": 0.32,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "heights_safety",
+        "label": "Working-at-heights and fall-protection safety",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "scaffold_class_breadth",
+        "label": "Scaffold class breadth (SB/SI/SA)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_swms",
+        "label": "Site safety and SWMS discipline",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and ticket currency",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "hrwl_scaffolding",
+        "label": "Scaffolding High Risk Work Licence (SB / SI / SA)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_construction_pm_au_v1",
+    "role": "Project Manager (construction)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "white_card",
+      "drivers_licence"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "project_delivery",
+        "label": "Project delivery ownership (scope, time, handover)",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "program_cost_control",
+        "label": "Program and cost control (budget, forecasting)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_contract_mgmt",
+        "label": "Contract, subcontractor and client management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "whs_quality",
+        "label": "WHS governance and quality",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_leadership",
+        "label": "Team leadership",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "white_card",
+        "label": "Construction Induction (White Card)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "drivers_licence",
+        "label": "Driver's licence",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_estimator_au_v1",
+    "role": "Estimator (construction)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "estimating_competency",
+        "label": "Estimating competency and accuracy",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "takeoff_measurement",
+        "label": "Quantity take-off and measurement",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tendering",
+        "label": "Tendering and bid management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "software_systems",
+        "label": "Estimating software (Buildxact, Cubit, Databuild)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "commercial_accuracy",
+        "label": "Commercial acumen and accuracy",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_trades_contract_administrator_au_v1",
+    "role": "Contract Administrator (construction)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Construction & Trades",
+    "criteria": [
+      {
+        "id": "contract_administration",
+        "label": "Contract administration (head/subcontracts)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "progress_claims_variations",
+        "label": "Progress claims and variations management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cost_reporting",
+        "label": "Cost reporting and forecasting",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_software",
+        "label": "Systems/software (Procore, Jobpac, Cheops)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (contractual correspondence, CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_office_manager_au_v1",
+    "role": "Office Manager / Administrator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "operations_ownership",
+        "label": "Office operations ownership (process, vendors, facilities)",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "finance_admin",
+        "label": "Bookkeeping / accounts / invoicing exposure",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_proficiency",
+        "label": "Systems proficiency (M365, accounting, CRM)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "coordination_org",
+        "label": "Coordination, prioritisation and organisation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity, professionalism)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_bookkeeper_au_v1",
+    "role": "Bookkeeper / Accounts Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "full_cycle_bookkeeping",
+        "label": "Full-cycle bookkeeping and reconciliations",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "payroll_bas",
+        "label": "Payroll processing and BAS/GST familiarity",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "software_fluency",
+        "label": "Accounting-software fluency (Xero/MYOB/QBO)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_controls",
+        "label": "Accuracy, controls and attention to detail",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_receptionist_au_v1",
+    "role": "Receptionist / Administrative Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "admin_frontdesk",
+        "label": "Front-desk and administrative support skill",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_office",
+        "label": "Office-software proficiency (M365, calendars, email)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication_phone",
+        "label": "Communication and phone/customer manner",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "organisation_reliability",
+        "label": "Organisation and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "presentation",
+        "label": "CV presentation and professionalism",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_executive_assistant_au_v1",
+    "role": "Executive Assistant / Personal Assistant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "exec_support",
+        "label": "Executive support depth",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "diary_travel_coordination",
+        "label": "Diary, travel and meeting coordination",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "discretion_confidentiality",
+        "label": "Discretion, judgement and confidentiality",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_office",
+        "label": "Office systems (M365, calendars, expense tools)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication and professionalism",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_ap_ar_au_v1",
+    "role": "Accounts Payable / Receivable Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "ap_ar_processing",
+        "label": "AP/AR processing",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reconciliation_accuracy",
+        "label": "Reconciliation and accuracy",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "credit_collections",
+        "label": "Credit control and collections",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_erp",
+        "label": "Finance systems/ERP proficiency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_payroll_officer_au_v1",
+    "role": "Payroll Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "payroll_processing",
+        "label": "End-to-end payroll processing",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "award_interpretation",
+        "label": "Award / EBA interpretation",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_stp_super",
+        "label": "Compliance (STP, super, PAYG, leave)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_payroll",
+        "label": "Payroll systems proficiency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_confidentiality",
+        "label": "Accuracy and confidentiality",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_accountant_au_v1",
+    "role": "Assistant Accountant / Accountant",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "accounting_competency",
+        "label": "Accounting competency (accounts preparation, journals)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "month_end_reporting",
+        "label": "Month-end and management reporting",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tax_bas_compliance",
+        "label": "Tax / BAS / compliance exposure",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_excel",
+        "label": "Accounting software and Excel",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "professional_progress",
+        "label": "CA/CPA progress and professional development",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_customer_service_officer_au_v1",
+    "role": "Customer Service Officer (office/finance)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "client_service",
+        "label": "Client service and rapport",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "issue_resolution",
+        "label": "Issue resolution and case handling",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "product_process_knowledge",
+        "label": "Product/process knowledge (finance/insurance)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_crm",
+        "label": "CRM and systems proficiency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and professionalism",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_legal_secretary_paralegal_au_v1",
+    "role": "Legal Secretary / Paralegal",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "legal_support_competency",
+        "label": "Legal support / paralegal competency",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "matter_document_management",
+        "label": "Matter and document management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "legal_knowledge_terminology",
+        "label": "Legal knowledge, terminology and practice-area fit",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_legal_software",
+        "label": "Legal practice-management software",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "accuracy_confidentiality",
+        "label": "Accuracy and confidentiality",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_hr_administrator_au_v1",
+    "role": "HR Administrator / Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "hr_administration",
+        "label": "HR administration (onboarding, records, lifecycle)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "hris_systems",
+        "label": "HRIS / systems proficiency",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "recruitment_onboarding",
+        "label": "Recruitment and onboarding coordination",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_records",
+        "label": "Compliance and records management",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and discretion",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_marketing_coordinator_au_v1",
+    "role": "Marketing Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "marketing_execution",
+        "label": "Marketing execution and coordination",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "digital_content_social",
+        "label": "Digital, content and social skills",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "campaign_coordination",
+        "label": "Campaign and event coordination",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "analytics_reporting",
+        "label": "Analytics and reporting",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (copy, CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_bdm_au_v1",
+    "role": "Business Development Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "new_business_pipeline",
+        "label": "New-business pipeline ownership",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "target_attainment",
+        "label": "Target/quota attainment",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "relationship_account_growth",
+        "label": "Relationship and account growth",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sector_fit",
+        "label": "Sector/offering fit",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and pitching",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_profsvc_project_coordinator_au_v1",
+    "role": "Project Coordinator / Administrator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Professional Services",
+    "criteria": [
+      {
+        "id": "project_coordination",
+        "label": "Project coordination",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "scheduling_tracking",
+        "label": "Scheduling and progress tracking",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_comms",
+        "label": "Stakeholder communication",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_pm_tools",
+        "label": "PM tools (MS Project, Jira, Smartsheet)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_early_childhood_educator_au_v1",
+    "role": "Early Childhood Educator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "educator_practice",
+        "label": "Educator practice quality (EYLF/NQF program delivery)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "age_group_fit",
+        "label": "Age-group fit (nursery / toddler / preschool / OSHC)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_programming",
+        "label": "Learning documentation and programming",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_wellbeing",
+        "label": "Child safety, wellbeing and duty of care",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_engagement",
+        "label": "Family engagement and communication",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and qualification currency",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card (state-issued), current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid incl. CPR, anaphylaxis and asthma (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_centre_director_au_v1",
+    "role": "Centre Director / Nominated Supervisor",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "acecqa_qual",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "service_leadership",
+        "label": "Service leadership and NQF/regulatory compliance",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "occupancy_budget",
+        "label": "Occupancy, enrolments and budget ownership",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_leadership",
+        "label": "Team leadership, rostering-to-ratio and development",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "quality_qip",
+        "label": "Quality improvement (QIP, A&R rating outcomes)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_community",
+        "label": "Family and community engagement",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "acecqa_qual",
+        "label": "ACECQA-approved Diploma (min) or ECT qualification",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid incl. CPR/anaphylaxis/asthma",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_diploma_educator_au_v1",
+    "role": "Diploma Educator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "educator_practice",
+        "label": "Educator practice quality (diploma level)",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "programming_documentation",
+        "label": "Programming and learning documentation",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "age_group_fit",
+        "label": "Age-group fit (nursery / toddler / preschool)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_wellbeing",
+        "label": "Child safety, wellbeing and duty of care",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_engagement",
+        "label": "Family engagement",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and qualification currency",
+        "weight": 0.06,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid incl. CPR, anaphylaxis and asthma (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_ect_au_v1",
+    "role": "Early Childhood Teacher (ECT)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "ect_qualification",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "teaching_practice",
+        "label": "Early childhood teaching practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "curriculum_pedagogy",
+        "label": "Curriculum and pedagogy (EYLF/NQF)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ect_qualification_scope",
+        "label": "Qualification and registration currency",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "child_outcomes",
+        "label": "Child learning outcomes and assessment",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_engagement",
+        "label": "Family engagement",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ect_qualification",
+        "label": "ACECQA-approved early childhood teaching degree",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_room_leader_au_v1",
+    "role": "Room Leader",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "room_leadership",
+        "label": "Room leadership and team coordination",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "programming_curriculum",
+        "label": "Programming and curriculum (EYLF/NQF)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_coordination",
+        "label": "Team coordination and rostering to ratio",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_compliance",
+        "label": "Safety, wellbeing and NQF compliance",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_engagement",
+        "label": "Family engagement",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_educational_leader_au_v1",
+    "role": "Educational Leader",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "pedagogical_leadership",
+        "label": "Pedagogical leadership",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "curriculum_mentoring",
+        "label": "Curriculum mentoring and coaching",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "qip_quality",
+        "label": "Quality improvement (QIP, A&R)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "educator_development",
+        "label": "Educator development and practice change",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and influence",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_assistant_director_au_v1",
+    "role": "Assistant Director / 2IC (childcare)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.95,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "service_2ic_leadership",
+        "label": "Service 2IC leadership",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_ratios",
+        "label": "NQF compliance and ratio management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_leadership",
+        "label": "Team leadership and development",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_enrolment",
+        "label": "Family engagement and enrolments",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_oshc_educator_au_v1",
+    "role": "OSHC Educator / Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "oshc_practice",
+        "label": "OSHC program delivery",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "program_activities",
+        "label": "Activity planning and engagement",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_supervision",
+        "label": "Safety, supervision and duty of care",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "coordination_admin",
+        "label": "Coordination and administration (for coordinator roles)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_engagement",
+        "label": "Family engagement",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_trainee_educator_au_v1",
+    "role": "Trainee / Unqualified Educator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.5,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "educator_support",
+        "label": "Educator support under supervision",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "learning_progress",
+        "label": "Study progress towards Cert III",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_wellbeing",
+        "label": "Child safety and wellbeing basics",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability_attitude",
+        "label": "Reliability and learning attitude",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "teamwork",
+        "label": "Teamwork",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_family_day_care_au_v1",
+    "role": "Family Day Care Educator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "first_aid_child"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "fdc_practice",
+        "label": "Family day care practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "programming_documentation",
+        "label": "Programming and documentation (EYLF)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "home_safety_compliance",
+        "label": "Home safety and NQF compliance",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "family_relationships",
+        "label": "Family relationships and trust",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "business_admin",
+        "label": "Small-business administration (scheme requirements)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card (educator and household adults)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_child",
+        "label": "First Aid (HLTAID012)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_teachers_aide_au_v1",
+    "role": "Teacher's Aide / Education Support Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.75,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "learning_support",
+        "label": "Classroom / learning support practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "student_needs_fit",
+        "label": "Student-needs fit (disability, EAL/D, behaviour)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "classroom_support",
+        "label": "Working with teachers and classroom routines",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_wellbeing",
+        "label": "Student safety and wellbeing",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication with teachers and families",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check / Blue Card",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_edu_childcare_cook_au_v1",
+    "role": "Cook (childcare centre)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.7,
+    "hard_gates": [
+      "work_eligibility",
+      "food_safety"
+    ],
+    "industry": "Education & Childcare",
+    "criteria": [
+      {
+        "id": "cooking_menu",
+        "label": "Cooking to a menu (volume, routine)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "nutrition_allergen",
+        "label": "Nutrition and allergen/dietary management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "food_safety_hygiene",
+        "label": "Food safety and hygiene compliance",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "budget_ordering",
+        "label": "Budget and ordering",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and organisation",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "food_safety",
+        "label": "Food safety / handling (Food Safety Supervisor for the service)",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_disability_support_worker_au_v1",
+    "role": "Disability Support Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility",
+      "ndis_screening",
+      "police_check",
+      "first_aid_cpr"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "support_practice",
+        "label": "Participant-centred support practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_fit",
+        "label": "Cohort fit (disability / aged / mental health / youth)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_goals",
+        "label": "Documentation against NDIS/care goals and reporting",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safety_manual_handling",
+        "label": "Safety, manual handling and incident response",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "empathy_boundaries",
+        "label": "Empathy, professional boundaries and reliability",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ndis_screening",
+        "label": "NDIS Worker Screening Check, current",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "first_aid_cpr",
+        "label": "First Aid and CPR",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_case_manager_au_v1",
+    "role": "Case Manager / Support Coordinator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "casework_practice",
+        "label": "Casework: assessment, planning, coordination and advocacy",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sector_funder_fit",
+        "label": "Sector/funder fit (NDIS / aged / child & family / housing / AOD)",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "risk_safeguarding",
+        "label": "Risk assessment and safeguarding/duty of care",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_reporting",
+        "label": "Documentation, funder reporting and outcomes measurement",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_engagement",
+        "label": "Stakeholder engagement (clients, families, services)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_mental_health_support_worker_au_v1",
+    "role": "Mental Health Support Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "mh_support_practice",
+        "label": "Mental health / psychosocial support practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "recovery_planning",
+        "label": "Recovery-oriented / person-centred planning",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "risk_safety",
+        "label": "Risk assessment and safety response",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_fit",
+        "label": "Cohort fit (severe mental illness / AOD / youth)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "empathy_boundaries",
+        "label": "Empathy, professional boundaries and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_youth_worker_au_v1",
+    "role": "Youth Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "youth_engagement",
+        "label": "Youth engagement and support practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "program_case_support",
+        "label": "Program delivery and case support",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "risk_safeguarding",
+        "label": "Risk, safeguarding and duty of care",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_setting",
+        "label": "Cohort/setting fit (residential / OOHC / community / justice)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "boundaries_reliability",
+        "label": "Professional boundaries and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_support_coordinator_ndis_au_v1",
+    "role": "Support Coordinator (NDIS)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "ndis_screening",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "plan_implementation",
+        "label": "NDIS plan implementation and coordination",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "provider_navigation",
+        "label": "Service-system navigation and provider negotiation",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "capacity_building",
+        "label": "Participant capacity building and advocacy",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "budget_reporting",
+        "label": "Budget management and reporting to goals",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder",
+        "label": "Stakeholder engagement",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "ndis_screening",
+        "label": "NDIS Worker Screening Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_team_leader_au_v1",
+    "role": "Team Leader / Coordinator (community)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "team_leadership",
+        "label": "Team leadership and staff supervision",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "service_delivery_oversight",
+        "label": "Service delivery oversight",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "staff_supervision",
+        "label": "Supervision and development of workers",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_quality",
+        "label": "Compliance and quality (funder/standards)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder",
+        "label": "Stakeholder engagement",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_program_service_manager_au_v1",
+    "role": "Program / Service Manager (NFP)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.1,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "program_leadership",
+        "label": "Program/service leadership",
+        "weight": 0.26,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "funder_contract_mgmt",
+        "label": "Funder contract and grant management",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "people_leadership",
+        "label": "People leadership",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "financial_governance",
+        "label": "Financial and risk governance",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "outcomes_quality",
+        "label": "Outcomes measurement and quality",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_family_support_worker_au_v1",
+    "role": "Family Support Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility",
+      "wwcc",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "family_support_practice",
+        "label": "Family and child support practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "child_safety_risk",
+        "label": "Child safety and risk assessment",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "case_support",
+        "label": "Case support and referral",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_fit",
+        "label": "Cohort/program fit (early intervention / OOHC / DV)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "boundaries_reliability",
+        "label": "Professional boundaries and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "wwcc",
+        "label": "Working With Children Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_aod_worker_au_v1",
+    "role": "Alcohol & Other Drugs (AOD) Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "aod_practice",
+        "label": "AOD support/clinical practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "assessment_casework",
+        "label": "Assessment and case work",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "harm_reduction",
+        "label": "Harm reduction and evidence-based approaches",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cohort_dual_diagnosis",
+        "label": "Cohort/dual-diagnosis fit",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "boundaries_reliability",
+        "label": "Professional boundaries and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_housing_homelessness_worker_au_v1",
+    "role": "Housing / Homelessness Support Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "housing_support_practice",
+        "label": "Housing / homelessness support practice",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "casework_advocacy",
+        "label": "Casework and advocacy",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "crisis_risk",
+        "label": "Crisis response and risk management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_referral",
+        "label": "Service-system knowledge and referral",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "boundaries_reliability",
+        "label": "Professional boundaries and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_aboriginal_worker_au_v1",
+    "role": "Aboriginal & Torres Strait Islander Community Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "community_engagement",
+        "label": "Community engagement and support practice",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cultural_knowledge_liaison",
+        "label": "Cultural knowledge and liaison",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "case_program_support",
+        "label": "Case and program support",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "safeguarding_risk",
+        "label": "Safeguarding and risk awareness",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "relationships_reliability",
+        "label": "Relationships, trust and reliability",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_social_worker_au_v1",
+    "role": "Social Worker",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility",
+      "aasw_eligible_degree",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "social_work_practice",
+        "label": "Social work practice depth",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "assessment_intervention",
+        "label": "Assessment and intervention skill",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sector_fit",
+        "label": "Sector/field fit (health / child protection / mental health / community)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "risk_safeguarding",
+        "label": "Risk assessment and safeguarding",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "professional_ethics",
+        "label": "Professional ethics and reflective practice",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.08,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "aasw_eligible_degree",
+        "label": "AASW-accredited Bachelor/Master of Social Work",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_community_intake_assessment_officer_au_v1",
+    "role": "Intake / Assessment Officer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility",
+      "police_check"
+    ],
+    "industry": "Community Services & NFP",
+    "criteria": [
+      {
+        "id": "intake_assessment",
+        "label": "Intake and needs assessment",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "risk_triage",
+        "label": "Risk screening and triage",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "referral_navigation",
+        "label": "Referral and service-system navigation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation_systems",
+        "label": "Documentation and client systems",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and rapport",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      },
+      {
+        "id": "police_check",
+        "label": "National Police Check",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_software_engineer_au_v1",
+    "role": "Software Developer / Engineer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "engineering_depth",
+        "label": "Engineering depth and shipped production work",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stack_fit",
+        "label": "Tech-stack fit (languages, frameworks, cloud)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "engineering_practices",
+        "label": "Engineering practices (testing, CI/CD, code review, git)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "problem_solving",
+        "label": "Problem solving and system/design reasoning",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration and communication (async, docs, reviews)",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_it_support_au_v1",
+    "role": "IT Support / Helpdesk",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "troubleshooting",
+        "label": "Technical troubleshooting (endpoint, identity, network, apps)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "environment_fit",
+        "label": "Environment fit (M365/Entra, Windows/Mac, tools in use)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "itsm_sla",
+        "label": "ITSM discipline and SLA/ticket ownership",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_service",
+        "label": "End-user customer service and communication",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and on-call willingness",
+        "weight": 0.12,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_frontend_developer_au_v1",
+    "role": "Frontend Developer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "frontend_engineering",
+        "label": "Frontend engineering depth and shipped work",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stack_fit",
+        "label": "Stack fit (React/Vue/Angular, TypeScript, CSS)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ui_practices",
+        "label": "UI engineering practices (accessibility, performance, testing)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "problem_solving",
+        "label": "Problem solving and design reasoning",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration (reviews, docs, async)",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_backend_developer_au_v1",
+    "role": "Backend Developer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "backend_engineering",
+        "label": "Backend engineering depth and shipped work",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stack_fit",
+        "label": "Stack fit (language/framework, databases)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "api_data_practices",
+        "label": "API design, data and engineering practices",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "problem_solving",
+        "label": "System design and problem solving",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration and communication",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_devops_sre_au_v1",
+    "role": "DevOps / Site Reliability Engineer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "infra_automation",
+        "label": "Infrastructure automation and IaC",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cloud_platforms",
+        "label": "Cloud platform depth (AWS/Azure/GCP, containers)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ci_cd_reliability",
+        "label": "CI/CD and reliability engineering",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "incident_response",
+        "label": "Observability and incident response",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration and documentation",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_qa_test_engineer_au_v1",
+    "role": "QA / Test Engineer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "testing_competency",
+        "label": "Testing competency (design, execution, coverage)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "automation",
+        "label": "Test automation (Selenium/Playwright/Cypress, CI)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "test_process",
+        "label": "Test process and quality practices",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "defect_analysis",
+        "label": "Defect analysis and root cause",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration with dev/product",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_service_desk_l2_au_v1",
+    "role": "Service Desk Analyst (L2)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.8,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "l2_troubleshooting",
+        "label": "L2 technical troubleshooting",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "environment_fit",
+        "label": "Environment fit (M365/Entra, apps, infrastructure)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "itsm_sla",
+        "label": "ITSM discipline and SLA ownership",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "escalation_knowledge",
+        "label": "Escalation handling and knowledge contribution",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "customer_service",
+        "label": "End-user customer service",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_systems_administrator_au_v1",
+    "role": "Systems Administrator",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "sysadmin_competency",
+        "label": "Systems administration competency",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "infra_platforms",
+        "label": "Infrastructure/platform breadth (Windows/Linux, cloud, M365)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "security_patching",
+        "label": "Security, patching and backups",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "automation_scripting",
+        "label": "Automation and scripting (PowerShell/Bash)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and on-call",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_network_engineer_au_v1",
+    "role": "Network Engineer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "networking_competency",
+        "label": "Networking competency (routing, switching, config)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "vendor_tech_fit",
+        "label": "Vendor/technology fit (Cisco/Fortinet/etc.)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "security_firewall",
+        "label": "Network security and firewalls",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "troubleshooting",
+        "label": "Troubleshooting and diagnostics",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "reliability",
+        "label": "Reliability and on-call",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_data_analyst_au_v1",
+    "role": "Data Analyst",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "data_analysis",
+        "label": "Data analysis competency and impact",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "sql_bi_tools",
+        "label": "SQL and BI tools (Power BI/Tableau)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "viz_reporting",
+        "label": "Visualisation and reporting",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "business_acumen",
+        "label": "Business acumen and problem framing",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication of insights",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_data_engineer_au_v1",
+    "role": "Data Engineer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "data_engineering",
+        "label": "Data engineering (pipelines, ETL/ELT)",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pipeline_platforms",
+        "label": "Platform/tooling (Airflow, dbt, Spark, Snowflake/Databricks)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "modelling_quality",
+        "label": "Data modelling and quality",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "cloud_data",
+        "label": "Cloud data services",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration",
+        "label": "Collaboration and documentation",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_product_manager_au_v1",
+    "role": "Product Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "product_ownership",
+        "label": "Product ownership and outcomes",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "discovery_prioritisation",
+        "label": "Discovery and prioritisation",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "delivery_outcomes",
+        "label": "Delivery and measurable impact",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder",
+        "label": "Stakeholder and customer management",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and influence",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_project_manager_scrum_au_v1",
+    "role": "Project Manager / Scrum Master (tech)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.9,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "delivery_management",
+        "label": "Delivery management and outcomes",
+        "weight": 0.28,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "agile_facilitation",
+        "label": "Agile facilitation (Scrum/Kanban)",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_risk",
+        "label": "Stakeholder, risk and dependency management",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tooling",
+        "label": "Delivery tooling (Jira/Azure DevOps)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and leadership",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_ux_ui_designer_au_v1",
+    "role": "UX / UI Designer",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "design_craft",
+        "label": "Design craft and shipped product work",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "ux_process_research",
+        "label": "UX process and user research",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tooling_figma",
+        "label": "Tooling (Figma, design systems)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "collaboration_handoff",
+        "label": "Collaboration and developer handoff",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "portfolio_communication",
+        "label": "Portfolio and communication",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_business_analyst_au_v1",
+    "role": "Business Analyst (tech)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 2.85,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "requirements_analysis",
+        "label": "Requirements elicitation and analysis",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "process_modelling",
+        "label": "Process modelling and solution design",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_elicitation",
+        "label": "Stakeholder engagement and elicitation",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation quality",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and facilitation",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_tech_cybersecurity_analyst_au_v1",
+    "role": "Cybersecurity Analyst",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3,
+    "hard_gates": [
+      "work_eligibility"
+    ],
+    "industry": "Technology",
+    "criteria": [
+      {
+        "id": "security_operations",
+        "label": "Security operations competency",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "threat_detection",
+        "label": "Threat detection and incident response",
+        "weight": 0.22,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tools_siem",
+        "label": "Security tooling (SIEM, EDR, vuln scanners)",
+        "weight": 0.18,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_frameworks",
+        "label": "Frameworks and compliance (Essential Eight, ISO 27001)",
+        "weight": 0.16,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Communication and reporting",
+        "weight": 0.14,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "work_eligibility",
+        "label": "AU work rights",
+        "weight": 0,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_ci_analyst_au_v1",
+    "role": "Continuous Improvement Analyst (Customer Service, Contract)",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.4,
+    "hard_gates": [
+      "location_eligibility"
+    ],
+    "criteria": [
+      {
+        "id": "process_improvement_depth",
+        "label": "Process improvement / business analysis experience",
+        "weight": 0.25,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "workflow_mapping",
+        "label": "Workflow mapping and analysis ability",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "lean_methodology",
+        "label": "Lean / continuous improvement methodology",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "stakeholder_engagement",
+        "label": "Stakeholder engagement (all levels)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "domain_fit_cs_ops",
+        "label": "Customer service / operations / support domain fit",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity, quantified outcomes)",
+        "weight": 0.05,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "location_eligibility",
+        "label": "AU work rights and Brisbane / hybrid available",
+        "weight": 0.1,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_sales_ae_au_v1",
+    "role": "Sales Account Executive",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.4,
+    "hard_gates": [
+      "location_eligibility"
+    ],
+    "criteria": [
+      {
+        "id": "quota_attainment",
+        "label": "Quota attainment history",
+        "weight": 0.3,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "deal_size",
+        "label": "Average deal size and complexity",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "segment_fit",
+        "label": "Segment fit (SMB vs mid-market vs enterprise)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tenure_stability",
+        "label": "Tenure pattern",
+        "weight": 0.05,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "pipeline_management",
+        "label": "Pipeline and forecasting discipline signals",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "location_eligibility",
+        "label": "AU work rights / location",
+        "weight": 0.1,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  },
+  {
+    "rubric_id": "rub_ops_manager_au_v1",
+    "role": "Operations Manager",
+    "country": "AU",
+    "version": 1,
+    "minimum_score_to_advance": 3.4,
+    "hard_gates": [
+      "location_eligibility"
+    ],
+    "criteria": [
+      {
+        "id": "process_design",
+        "label": "Process design and improvement",
+        "weight": 0.25,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "team_leadership",
+        "label": "Team size led and direct reports",
+        "weight": 0.2,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "compliance_awareness",
+        "label": "Compliance and WHS awareness",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "systems_proficiency",
+        "label": "Systems and tooling proficiency",
+        "weight": 0.1,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "tenure_stability",
+        "label": "Tenure pattern",
+        "weight": 0.05,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "communication",
+        "label": "Written communication (CV clarity)",
+        "weight": 0.15,
+        "type": "ordinal_5"
+      },
+      {
+        "id": "location_eligibility",
+        "label": "AU work rights / location",
+        "weight": 0.1,
+        "type": "binary",
+        "hard_gate": true
+      }
+    ]
+  }
+]

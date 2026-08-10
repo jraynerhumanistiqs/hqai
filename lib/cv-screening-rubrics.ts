@@ -1,3 +1,10 @@
+// SERVER-SIDE rubric catalogue. This module imports the full AU rubric library
+// (data/rubrics/au-industry-role-rubrics.json via ./rubrics-au) with all its
+// server-only metadata (anchors, gate_tokens, execution guards, sources,
+// awards, ...). Import it ONLY from server code (API routes, the scorer, the
+// generator/validator scripts). Client components must import the stripped,
+// client-safe summaries from lib/cv-screening/rubric-summaries.ts instead, so
+// the heavy library never enters the browser bundle.
 import type { Rubric } from './cv-screening-types'
 import { INDUSTRY_RUBRICS } from './rubrics-au'
 

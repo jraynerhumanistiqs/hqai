@@ -2,7 +2,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { ALL_RUBRICS } from '@/lib/cv-screening-rubrics'
+// Client-safe rubric summaries (role + criteria only). Keeps the full library
+// + taxonomy out of the browser bundle. Aliased to ALL_RUBRICS so the usage
+// below is unchanged.
+import { RUBRIC_SUMMARIES as ALL_RUBRICS } from '@/lib/cv-screening/rubric-summaries'
 import {
   type CandidateScreening,
   type Rubric,

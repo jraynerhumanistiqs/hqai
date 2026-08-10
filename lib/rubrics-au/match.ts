@@ -202,6 +202,14 @@ export function roleByKey(roleKey: string | null | undefined): FlatRole | null {
   return ALL_ROLES.find(r => r.role_key === roleKey) ?? null
 }
 
+// Reverse lookup: the taxonomy role_key for a library rubric id (so a
+// recruiter-selected standard rubric can still record which role it maps to).
+// Returns null for custom rubrics (no taxonomy entry).
+export function roleKeyForRubric(rubricId: string | null | undefined): string | null {
+  if (!rubricId) return null
+  return ALL_ROLES.find(r => r.rubric_id === rubricId)?.role_key ?? null
+}
+
 // The full flat role list (canonical role, aliases, rubric id, industry) - for
 // building a role picker in the UI or a rubric-suggestion dropdown.
 export function allTaxonomyRoles(): FlatRole[] {

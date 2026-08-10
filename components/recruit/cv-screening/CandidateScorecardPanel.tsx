@@ -12,7 +12,9 @@ import {
   CONSIDERATION_LABELS,
   deriveConsiderations,
 } from '@/lib/cv-screening-types'
-import { getRubric } from '@/lib/cv-screening-rubrics'
+// Client-safe rubric summaries (role + criteria only) - keeps the full library
+// out of the browser bundle. Aliased to getRubric so usage below is unchanged.
+import { getRubricSummary as getRubric } from '@/lib/cv-screening/rubric-summaries'
 import ScoreMeaningGuide from './ScoreMeaningGuide'
 import CvDownloadButton from './CvDownloadButton'
 

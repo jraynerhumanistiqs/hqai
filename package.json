@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "gen:rubric-summaries": "tsx scripts/gen-rubric-summaries.ts",
+    "validate:rubrics": "tsx scripts/validate-au-rubrics.ts",
     "ingest:awards": "tsx scripts/ingest/ingest-awards.ts",
     "ingest:fwo": "tsx scripts/ingest/ingest-fwo.ts",
     "ingest:act": "tsx scripts/ingest/ingest-act.ts",
