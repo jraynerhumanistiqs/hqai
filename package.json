@@ -22,6 +22,8 @@
     "axe:strict": "node scripts/axe-scan.mjs --strict"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.37",
+    "@ai-sdk/react": "^4.0.62",
     "@anthropic-ai/sdk": "^0.24.0",
     "@mediapipe/tasks-vision": "^0.10.35",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -49,6 +51,7 @@
     "@tiptap/suggestion": "^3.23.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "^7.0.59",
     "class-variance-authority": "^0.7.1",
     "cohere-ai": "^8.0.0",
     "docx": "^9.6.1",
@@ -70,7 +73,8 @@
     "stripe": "^15.7.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "tiptap-extension-global-drag-handle": "^0.1.18"
+    "tiptap-extension-global-drag-handle": "^0.1.18",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@axe-core/cli": "^4.11.3",
