@@ -1,11 +1,29 @@
 'use client'
 import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
+import { Check, Clock, Copy, Download, ExternalLink, FileText, Pencil, Plus, RefreshCcw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-react'
 import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
 import { parseCitations, type Citation } from '@/lib/parse-citations'
-import CitationChip from './CitationChip'
-import MessageCitations from './MessageCitations'
 import TopicPicker from './TopicPicker'
+import TierNotice, { type Tier } from './TierNotice'
+// Vercel AI Elements - the chat surface is rebuilt on these primitives,
+// re-skinned to the Wattle Gold tokens. The proven /api/chat SSE transport
+// (streaming + status + replaceText + citations + clarify + escalate/triage)
+// is preserved as-is; only the presentation layer moves to AI Elements.
+import { Conversation, ConversationContent, ConversationScrollButton } from '@/components/ai-elements/conversation'
+import { Message as UiMessage, MessageContent } from '@/components/ai-elements/message'
+import { Response } from '@/components/ai-elements/response'
+import { Actions, Action } from '@/components/ai-elements/actions'
+import { Suggestions, Suggestion } from '@/components/ai-elements/suggestion'
+import { Sources, SourcesTrigger, SourcesContent, Source } from '@/components/ai-elements/sources'
+import { Loader } from '@/components/ai-elements/loader'
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputTools,
+  PromptInputSubmit,
+} from '@/components/ai-elements/prompt-input'
 
 interface ClarifyPayload {
   question: string
@@ -13,10 +31,20 @@ interface ClarifyPayload {
   followUpHint: string
 }
 
+interface TriagePayload {
+  category: string
+  summary: string
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  // Three-tier safety surfacing (Safe / Caution / Escalate). Derived from the
+  // backend `escalate` + `triage` signals today; forward-compatible with an
+  // explicit `tier` field once the ML gate populates one (see deriveTier).
+  tier?: Tier
   escalate?: boolean
+  triage?: TriagePayload | null
   docType?: string | null
   docId?: string | null
   formType?: string | null
@@ -26,6 +54,19 @@ interface Message {
   citations?: Citation[]
   clarify?: ClarifyPayload
   clarifyAnswered?: boolean
+  // Lightweight helpful / not-helpful signal (feeds the quality loop via
+  // /api/chat/feedback). Local UI state; the POST is best-effort.
+  feedback?: 'up' | 'down'
+}
+
+// Map the backend signals onto the three calm tiers. An explicit `tier` from
+// the route (future ML gate) always wins; otherwise a hard-triage decline is
+// Escalate, a softer keyword escalation is Caution, everything else is Safe.
+function deriveTier(d: { tier?: unknown; triage?: unknown; escalate?: unknown }): Tier {
+  if (d.tier === 'safe' || d.tier === 'caution' || d.tier === 'escalate') return d.tier
+  if (d.triage) return 'escalate'
+  if (d.escalate === true) return 'caution'
+  return 'safe'
 }
 
 // Build DOC_FORMS lookup from template-ip definitions
@@ -74,6 +115,9 @@ function getGreeting() {
   return 'Good evening'
 }
 
+const TIMEOUT_COPY =
+  "I'm taking longer than I should on this one. Rather than leave you waiting, let me hand it to your Humanistiqs advisor. Want me to send them a context summary, or book a call?"
+
 export default function ChatInterface({ module, userName, bizName, advisorName, industry, state, award, initialPrompt }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -92,7 +136,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameDraft, setRenameDraft] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const advisorModalHeadingId = useId()
@@ -155,10 +198,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
   }
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isLoading])
-
   async function ensureConversation(firstMessage: string) {
     if (conversationId) return conversationId
     try {
@@ -215,8 +254,31 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     } catch {}
   }
 
-  // Direct message send (no form interception) - must be defined before handleFormSubmit
-  const sendMessageDirect = useCallback(async (content: string) => {
+  // Per-message thumbs. Best-effort POST to the quality-loop sink; UI never
+  // waits on it. Clicking the same rating again clears it.
+  const submitFeedback = useCallback((idx: number, rating: 'up' | 'down') => {
+    const target = messages[idx]
+    const userMsg = messages[idx - 1]
+    const willSet = target?.feedback !== rating
+    setMessages(prev => prev.map((m, i) => i === idx ? { ...m, feedback: willSet ? rating : undefined } : m))
+    if (!willSet) return
+    fetch('/api/chat/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId,
+        module,
+        rating,
+        tier: target?.tier,
+        userMessage: userMsg?.content,
+        assistantText: target?.content,
+      }),
+    }).catch(() => {})
+  }, [messages, conversationId, module])
+
+  // Direct message send (no form interception). `base` lets regenerate resend
+  // from a truncated history without racing the `messages` state.
+  const sendMessageDirect = useCallback(async (content: string, base?: Message[]) => {
     if (!content || isLoading) return
 
     const controller = new AbortController()
@@ -234,27 +296,19 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       setMessages(prev => {
         const updated = [...prev]
         const last = updated[updated.length - 1]
+        const timeoutMsg: Message = { role: 'assistant', content: TIMEOUT_COPY, tier: 'escalate', escalate: true }
         if (last && last.role === 'assistant') {
-          updated[updated.length - 1] = {
-            role: 'assistant',
-            content:
-              "I'm taking longer than I should on this one. Rather than leave you waiting, let me hand it to your Humanistiqs advisor. Want me to send them a context summary, or book a call?",
-            escalate: true,
-          }
+          updated[updated.length - 1] = timeoutMsg
         } else {
-          updated.push({
-            role: 'assistant',
-            content:
-              "I'm taking longer than I should on this one. Rather than leave you waiting, let me hand it to your Humanistiqs advisor. Want me to send them a context summary, or book a call?",
-            escalate: true,
-          })
+          updated.push(timeoutMsg)
         }
         return updated
       })
     }, TIMEOUT_MS)
 
     setIsLoading(true)
-    const newMessages: Message[] = [...messages, { role: 'user', content }]
+    const priorMessages = base ?? messages
+    const newMessages: Message[] = [...priorMessages, { role: 'user', content }]
     setMessages(newMessages)
 
     const convId = await ensureConversation(content)
@@ -284,27 +338,25 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       const reader = res.body.getReader()
       // utf-8 decoder with stream:true so multi-byte chars (emoji, em
-      // dashes, smart quotes) split across SSE chunks decode cleanly
-      // instead of producing garbled Latin-1 bytes.
+      // dashes, smart quotes) split across SSE chunks decode cleanly.
       const decoder = new TextDecoder('utf-8')
       let assistantContent = ''
       let statusMessage = ''
       let finalEscalate = false
+      let finalTierExplicit: unknown = undefined
+      let finalTriage: TriagePayload | null = null
       let finalDocType: string | null = null
       let finalCitations: Citation[] | undefined = undefined
       let finalClarify: ClarifyPayload | undefined = undefined
-      // When the backend emits {error, detail}, we need to surface it directly
-      // in the chat bubble - previously the frontend ignored the field and
-      // the user saw a blank reply. Demo-critical: lets us diagnose API key /
-      // credit / Anthropic outages on sight instead of having to open dev tools.
+      // When the backend emits {error, detail}, surface it directly so an
+      // API key / credit / Anthropic outage is visible instead of a blank reply.
       let serverError: { error: string; detail?: string } | null = null
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
       const renderCurrent = () => {
-        // Status pulses use a sentinel prefix instead of markdown underscores
-        // - MessageContent strips the prefix and renders the rest as italics
-        // via CSS. Avoids literal "_" leaking into the bubble.
+        // Status pulses use a sentinel prefix (stripped server-side before
+        // hitting Anthropic) so they render as a calm Loader line, not prose.
         const display = assistantContent || (statusMessage ? `__STATUS__${statusMessage}` : '')
         setMessages(prev => {
           const updated = [...prev]
@@ -331,23 +383,31 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               assistantContent += data.text
               renderCurrent()
             }
-            if (data.done) {
-              finalEscalate = data.escalate
-              finalDocType = data.docType
-              if (Array.isArray(data.citations)) {
-                finalCitations = data.citations as Citation[]
-              }
+            // replaceText overwrites the streamed prose with the server's
+            // cleaned text (fenced ```citations``` block already stripped).
+            if (typeof data.replaceText === 'string') {
+              statusMessage = ''
+              assistantContent = data.replaceText
+              renderCurrent()
             }
             if (data.clarify && typeof data.clarify === 'object') {
               finalClarify = data.clarify as ClarifyPayload
-              // Render the question as assistant text immediately so the user
-              // sees it without waiting for the final 'done' event.
+              // Render the question immediately so the user sees it without
+              // waiting for the final 'done' event.
               assistantContent = finalClarify.question
               renderCurrent()
             }
             if (Array.isArray(data.citations)) {
-              // Some wire formats emit citations as a separate event before done
               finalCitations = data.citations as Citation[]
+            }
+            if (data.done) {
+              finalEscalate = data.escalate
+              finalDocType = data.docType
+              finalTriage = (data.triage as TriagePayload) ?? null
+              finalTierExplicit = data.tier
+              if (Array.isArray(data.citations)) {
+                finalCitations = data.citations as Citation[]
+              }
             }
             if (data.error) {
               serverError = { error: String(data.error), detail: data.detail }
@@ -358,19 +418,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
 
       setMessages(prev => {
         const updated = [...prev]
-        // If the backend sent an explicit error event AND we have no usable
-        // text, render a diagnostic bubble so the user can see the real cause
-        // (API key, credit, Anthropic 5xx, Supabase auth) without dev tools.
+        // Explicit server error with no usable text -> diagnostic bubble.
         if (serverError && !assistantContent.trim()) {
           console.error('[chat] server error:', serverError.error, serverError.detail)
-          updated[updated.length - 1] = {
-            role: 'assistant',
-            content: '__API_ERROR__',
-          }
+          updated[updated.length - 1] = { role: 'assistant', content: '__API_ERROR__' }
           return updated
         }
         // Fallback: if the route didn't send a separate citations array,
-        // parse the trailing ```citations``` block from the assistant text.
+        // parse the trailing ```citations``` block out of the text.
         let citations = finalCitations
         let displayContent = assistantContent
         if (!citations) {
@@ -378,10 +433,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           citations = parsed.citations
           displayContent = parsed.cleanText
         }
+        const tier = deriveTier({ tier: finalTierExplicit, triage: finalTriage, escalate: finalEscalate })
         updated[updated.length - 1] = {
           role: 'assistant',
           content: displayContent,
+          tier,
           escalate: finalEscalate,
+          triage: finalTriage,
           docType: finalDocType,
           citations: citations && citations.length > 0 ? citations : undefined,
           clarify: finalClarify,
@@ -394,15 +452,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       }
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        // Either the user stopped or the timeout above tripped. The timeout
-        // handler has already injected the escalation card, so just exit.
-        // User-stop case keeps partial content with no extra error message.
+        // User stop or timeout. The timeout handler already injected the
+        // escalation card; user-stop keeps partial content with no error.
       } else {
         console.error('[chat] fetch error:', err)
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '__API_ERROR__',
-        }])
+        setMessages(prev => [...prev, { role: 'assistant', content: '__API_ERROR__' }])
       }
     }
 
@@ -411,6 +465,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     setIsLoading(false)
     void timedOut
   }, [messages, isLoading, conversationId, module])
+
+  // Regenerate an assistant answer: drop the answer + its user turn, then
+  // resend the same user message on top of the truncated history.
+  const regenerate = useCallback((assistantIdx: number) => {
+    if (isLoading) return
+    const userMsg = messages[assistantIdx - 1]
+    if (!userMsg || userMsg.role !== 'user') return
+    const base = messages.slice(0, assistantIdx - 1)
+    setMessages(base)
+    sendMessageDirect(userMsg.content, base)
+  }, [messages, isLoading, sendMessageDirect])
 
   // Handle form submission - generate DOCX backend-side and deliver download
   const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
@@ -444,8 +509,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       }
 
       // Capture the saved document id so the re-download button can fetch
-      // the actual DOCX from the library rather than regenerating from the
-      // chat confirmation message text.
+      // the actual DOCX from the library rather than regenerating from text.
       const newDocId = res.headers.get('X-Document-Id')
 
       // Download the DOCX blob
@@ -453,7 +517,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       const url = URL.createObjectURL(blob)
       const filename = `${docType.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
 
-      // Trigger download
       const a = document.createElement('a')
       a.href = url
       a.download = filename
@@ -473,7 +536,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         return updated
       })
 
-      // Clean up
       setTimeout(() => URL.revokeObjectURL(url), 30000)
       setSavedDocId('generated') // Flag for UI
 
@@ -538,16 +600,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
   }, [initialPrompt, sendMessage, messages.length])
 
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
-  }
-
-  function autoResize(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setInput(e.target.value)
-    e.target.style.height = 'auto'
-    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
-  }
-
   function handleSendContext() {
     if (extraContext.trim()) {
       sendMessage(`Additional context: ${extraContext}`)
@@ -556,386 +608,326 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     }
   }
 
+  function onComposerSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (isLoading) { stopGeneration(); return }
+    sendMessage()
+  }
+
   const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'
   const greeting = getGreeting()
+  const composerStatus = isLoading ? 'streaming' : 'ready'
 
   return (
     <div className="flex h-full bg-bg-elevated">
       {/* Main chat column */}
       <div className={`flex flex-col flex-1 min-w-0 ${historyOpen ? 'hidden sm:flex' : ''}`}>
-      {/* Topbar */}
-      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
-        <div className="min-w-0">
-          <h1 className="font-sans text-base sm:text-lg font-bold text-charcoal uppercase tracking-wider truncate">{moduleLabel}</h1>
+        {/* Topbar */}
+        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
+          <div className="min-w-0">
+            <h1 className="font-sans text-base sm:text-lg font-bold text-ink uppercase tracking-wider truncate">{moduleLabel}</h1>
+          </div>
+          <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={toggleHistory}
+              aria-label="Chat History"
+              className="bg-bg-soft rounded-full min-h-touch min-w-touch sm:min-w-0 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center justify-center sm:gap-1.5"
+            >
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Chat History</span>
+            </button>
+            <button
+              onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
+              className="bg-bg-soft rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              New chat
+            </button>
+          </div>
         </div>
-        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={toggleHistory}
-            aria-label="Chat History"
-            className="bg-light rounded-full min-h-touch min-w-touch sm:min-w-0 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap flex items-center justify-center sm:gap-1.5"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-            </svg>
-            <span className="hidden sm:inline">Chat History</span>
-          </button>
-          <button
-            onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
-            className="bg-light rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-mid hover:bg-border transition-colors whitespace-nowrap"
-          >
-            + New chat
-          </button>
-        </div>
-      </div>
 
-      {/* Messages */}
-      <div className={`flex-1 overflow-y-auto scrollbar-thin px-3 sm:px-6 ${messages.length === 0 ? 'py-4 sm:py-6 flex flex-col justify-center' : 'py-6 sm:py-10'}`}>
-        {messages.length === 0 && (
-          module === 'people' && !skipTopicPicker ? (
-            <TopicPicker
-              userName={userName}
-              greeting={greeting}
-              bizName={bizName}
-              onPick={(q) => { setSkipTopicPicker(true); sendMessage(q) }}
-              onSkip={() => setSkipTopicPicker(true)}
-            />
-          ) : (
-            <div className="max-w-2xl mx-auto">
-              {/* Centred greeting */}
-              <div className="text-center pt-8 sm:pt-16 pb-8">
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-charcoal tracking-tight mb-2">
-                  {userName ? `${greeting}, ${userName}` : greeting}
-                </h2>
-                <p className="text-sm text-mid max-w-md mx-auto leading-relaxed">
-                  {module === 'recruit'
-                    ? 'Ask me anything about hiring - I\'ll help you write ads, screen candidates, and shortlist faster.'
-                    : 'Tell me the specific situation, who is involved, and what you have tried so far - I\'ll give you the right guidance.'
-                  }
-                </p>
-              </div>
-
-              {/* Pill-chip suggestions */}
-              <div className="flex flex-wrap gap-2 justify-center">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(s)}
-                    className="bg-light hover:bg-border text-charcoal text-sm font-medium px-4 py-2 rounded-full transition-colors"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )
-        )}
-
-        <div className="max-w-3xl mx-auto space-y-5">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} group`}>
-              {/* User messages: contained bg-black bubble, right-aligned */}
-              {msg.role === 'user' && (
-                <div className="bg-ink text-bg-elevated text-sm leading-relaxed px-4 py-2.5 rounded-2xl rounded-tr-md max-w-[85%]">
-                  <MessageContent content={msg.content} isUser />
-                </div>
-              )}
-
-              {/* Assistant: flat prose full-width */}
-              {msg.role === 'assistant' && (
-                <div className="w-full">
-
-                  {/* Form or flat prose */}
-                  {msg.formType && !msg.formCompleted ? (
-                    <DocumentFormCard
-                      docType={msg.formType}
-                      onSubmit={handleFormSubmit}
-                      onSkip={() => {
-                        setActiveForm(null)
-                        setMessages(prev => prev.map(m =>
-                          m.formType === msg.formType && !m.formCompleted
-                            ? { ...m, formCompleted: true }
-                            : m
-                        ))
-                        sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
-                      }}
-                      bizName={bizName}
-                    />
-                  ) : msg.formType && msg.formCompleted ? (
-                    <p className="text-sm text-mid">
-                      <span className="text-charcoal font-semibold">{msg.formType}</span> details submitted - generating your document…
+        {/* Messages - AI Elements Conversation (auto-sticks to bottom while streaming) */}
+        <Conversation className="bg-bg-elevated">
+          <ConversationContent className={`max-w-3xl mx-auto w-full ${messages.length === 0 ? 'py-4 sm:py-6' : 'py-6 sm:py-10'}`}>
+            {messages.length === 0 && (
+              module === 'people' && !skipTopicPicker ? (
+                <TopicPicker
+                  userName={userName}
+                  greeting={greeting}
+                  bizName={bizName}
+                  onPick={(q) => { setSkipTopicPicker(true); sendMessage(q) }}
+                  onSkip={() => setSkipTopicPicker(true)}
+                />
+              ) : (
+                <div className="max-w-2xl mx-auto">
+                  <div className="text-center pt-8 sm:pt-16 pb-8">
+                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight mb-2">
+                      {userName ? `${greeting}, ${userName}` : greeting}
+                    </h2>
+                    <p className="text-sm text-ink-soft max-w-md mx-auto leading-relaxed">
+                      {module === 'recruit'
+                        ? "Ask me anything about hiring - I'll help you write ads, screen candidates, and shortlist faster."
+                        : "Tell me the specific situation, who is involved, and what you have tried so far - I'll give you the right guidance."
+                      }
                     </p>
-                  ) : msg.content === '__API_ERROR__' ? (
-                    <div className="bg-danger/5 border border-danger/20 rounded-xl p-3.5 text-sm text-charcoal leading-relaxed">
-                      Something went wrong. Please try again - if it keeps happening, contact support.
-                    </div>
-                  ) : msg.content ? (
-                    (() => {
-                      // If the route attached citations, trust them; otherwise
-                      // try to parse a trailing ```citations``` block out of
-                      // the content (streaming fallback / legacy messages).
-                      const cites = msg.citations
-                        ? { cleanText: msg.content, citations: msg.citations }
-                        : parseCitations(msg.content)
-                      const isStreamingThis = isLoading && i === messages.length - 1
-                      return (
+                  </div>
+                  <Suggestions className="justify-center">
+                    {suggestions.map((s, i) => (
+                      <Suggestion key={i} suggestion={s} onClick={(q) => sendMessage(q)} />
+                    ))}
+                  </Suggestions>
+                </div>
+              )
+            )}
+
+            <div className="space-y-5">
+              {messages.map((msg, i) => {
+                const isStreamingThis = isLoading && i === messages.length - 1
+                if (msg.role === 'user') {
+                  return (
+                    <UiMessage key={i} from="user">
+                      <MessageContent variant="contained">
+                        <span className="whitespace-pre-wrap break-words">{msg.content}</span>
+                      </MessageContent>
+                    </UiMessage>
+                  )
+                }
+
+                // Assistant turn
+                const cites = msg.citations
+                  ? { cleanText: msg.content, citations: msg.citations }
+                  : parseCitations(msg.content)
+                const isStatus = msg.content.startsWith('__STATUS__')
+                const isError = msg.content === '__API_ERROR__'
+                const hasBody = !!msg.content && !isStatus && !isError && !msg.formType
+
+                return (
+                  <UiMessage key={i} from="assistant">
+                    <MessageContent variant="flat">
+                      {/* Doc form (pre-fill) or its submitted placeholder */}
+                      {msg.formType && !msg.formCompleted ? (
+                        <DocumentFormCard
+                          docType={msg.formType}
+                          onSubmit={handleFormSubmit}
+                          onSkip={() => {
+                            setActiveForm(null)
+                            setMessages(prev => prev.map(m =>
+                              m.formType === msg.formType && !m.formCompleted
+                                ? { ...m, formCompleted: true }
+                                : m
+                            ))
+                            sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
+                          }}
+                          bizName={bizName}
+                        />
+                      ) : msg.formType && msg.formCompleted ? (
+                        <p className="text-sm text-ink-soft">
+                          <span className="text-ink font-semibold">{msg.formType}</span> details submitted - generating your document...
+                        </p>
+                      ) : isError ? (
+                        <div className="bg-danger/5 border border-danger/20 rounded-xl p-3.5 text-sm text-ink leading-relaxed">
+                          Something went wrong. Please try again - if it keeps happening, contact support.
+                        </div>
+                      ) : isStatus ? (
+                        <div className="flex items-center gap-2 text-sm text-ink-muted">
+                          <Loader size={15} />
+                          <span className="italic">{msg.content.slice('__STATUS__'.length)}</span>
+                        </div>
+                      ) : msg.content ? (
                         <>
-                          <div className="text-sm text-charcoal leading-relaxed">
-                            <MessageContent
-                              content={cites.cleanText}
-                              isUser={false}
-                              citations={cites.citations}
-                            />
-                          </div>
+                          <Response>{cites.cleanText}</Response>
                           {cites.citations.length > 0 && !isStreamingThis && (
-                            <MessageCitations citations={cites.citations} />
+                            <Sources>
+                              <SourcesTrigger count={dedupeCitations(cites.citations).length} />
+                              <SourcesContent>
+                                {dedupeCitations(cites.citations).map(c => (
+                                  <Source key={c.n} n={c.n} title={c.label} href={c.url} />
+                                ))}
+                                <p className="text-[10px] text-ink-muted leading-snug pt-1">
+                                  General information only, not legal advice. For advice specific to your situation, speak with your Humanistiqs advisor.
+                                </p>
+                              </SourcesContent>
+                            </Sources>
                           )}
                         </>
-                      )
-                    })()
-                  ) : (
-                    // Pre-stream: pulsing dot where tokens will land
-                    <span
-                      role="status"
-                      aria-label="Assistant is thinking"
-                      className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse"
-                    />
-                  )}
+                      ) : (
+                        // Pre-stream: quiet loader where tokens will land
+                        <Loader size={16} />
+                      )}
 
-                  {/* Action row (Copy) - only for non-form completed assistant messages with content */}
-                  {!msg.formType && msg.content && msg.content !== '__API_ERROR__' && !(isLoading && i === messages.length - 1) && (
-                    <div className="mt-2 flex items-center gap-1 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => copyMessage(msg.content, i)}
-                        title="Copy"
-                        className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-light hover:text-charcoal transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-                      >
-                        {copiedIdx === i ? (
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
-                          </svg>
-                        )}
-                      </button>
-                      {copiedIdx === i && <span className="text-[10px] text-mid font-medium">Copied</span>}
-                    </div>
-                  )}
-
-                  {/* Clarify card - clickable disambiguation chips */}
-                  {msg.clarify && !msg.clarifyAnswered && (
-                    <div className="mt-3 bg-bg-elevated border border-border rounded-xl p-3.5">
-                      <p className="text-xs font-bold text-charcoal mb-2.5">Pick the option that fits:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {msg.clarify.options.map((opt, oi) => (
-                          <button
-                            key={oi}
-                            onClick={() => {
-                              const followUp = msg.clarify!.followUpHint.replace('{option}', opt.label)
-                              // Mark this card answered so it doesn't render twice
-                              setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
-                              sendMessage(followUp)
-                            }}
-                            className="bg-light hover:bg-border text-charcoal text-xs sm:text-sm font-medium px-3 py-2 rounded-full transition-colors text-left"
+                      {/* Action row (copy / regenerate / feedback) */}
+                      {hasBody && !isStreamingThis && (
+                        <Actions className="mt-2 opacity-70 sm:opacity-0 sm:group-hover/message:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <Action tooltip="Copy" label="Copy answer" onClick={() => copyMessage(msg.content, i)}>
+                            {copiedIdx === i
+                              ? <Check className="w-3.5 h-3.5 text-success" />
+                              : <Copy className="w-3.5 h-3.5" />}
+                          </Action>
+                          <Action tooltip="Regenerate" label="Regenerate answer" onClick={() => regenerate(i)}>
+                            <RefreshCcw className="w-3.5 h-3.5" />
+                          </Action>
+                          <Action
+                            tooltip="Helpful"
+                            label="Mark helpful"
+                            active={msg.feedback === 'up'}
+                            onClick={() => submitFeedback(i, 'up')}
                           >
-                            <span className="font-semibold">{opt.label}</span>
-                            {opt.hint && <span className="block text-[10px] text-mid mt-0.5">{opt.hint}</span>}
-                          </button>
-                        ))}
-                      </div>
-                      <ClarifyFreeText
-                        followUpHint={msg.clarify.followUpHint}
-                        onSubmit={(text) => {
-                          setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
-                          sendMessage(text)
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Escalation card */}
-                  {msg.escalate && (
-                    <div className="mt-3 bg-warning/10 border border-warning/20 rounded-xl p-3.5 flex gap-3">
-                      <span className="w-8 h-8 flex-shrink-0 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
-                        <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-                        </svg>
-                      </span>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-warning mb-1">Advisor recommended for this situation</p>
-                        <p className="text-xs text-mid leading-relaxed mb-2.5">
-                          This involves real legal exposure. A HQ Advisor can give you specific, protected advice before you act.
-                        </p>
-                        <div className="flex gap-2 flex-wrap">
-                          <button onClick={() => setShowAdvisorModal(true)}
-                            className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                            Book a call with an HQ Advisor
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowAdvisorModal(false)
-                              setMessages(prev => prev.map((m, idx) =>
-                                idx === i ? { ...m, escalate: false } : m
-                              ))
-                            }}
-                            className="bg-bg-elevated text-mid text-xs font-bold px-3 py-1.5 rounded-full border border-border hover:bg-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                            Continue talking with the AI Advisor
-                          </button>
-                          <button onClick={() => setShowContextInput(!showContextInput)}
-                            className="text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-warning/10 hover:text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                            + Add more context
-                          </button>
-                        </div>
-                        {showContextInput && (
-                          <div className="mt-3 space-y-2">
-                            <textarea
-                              value={extraContext}
-                              onChange={e => setExtraContext(e.target.value)}
-                              placeholder="Add additional context about your situation..."
-                              rows={3}
-                              className="w-full px-3 py-2 bg-bg-elevated border border-border rounded-lg text-sm text-charcoal placeholder-muted resize-none outline-none focus:border-ink transition-colors"
-                            />
-                            <button onClick={handleSendContext}
-                              disabled={!extraContext.trim()}
-                              className="bg-accent text-ink-on-accent text-xs font-bold px-4 py-1.5 rounded-full hover:bg-accent-hover disabled:opacity-40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-                              Send context
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Document saved indicator with download */}
-                  {msg.docType && msg.content.length > 200 && (
-                    <div className="mt-3 bg-light rounded-xl px-3.5 py-2.5">
-                      <div className="flex items-center gap-2.5 mb-2">
-                        <span className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center ${savedDocId ? 'bg-success/10 text-success' : 'bg-info/10 text-info'}`}>
-                          {savedDocId ? (
-                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                              <path d="M5 10.5l3.5 3.5L15 6.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-                            </svg>
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                          </Action>
+                          <Action
+                            tooltip="Not helpful"
+                            label="Mark not helpful"
+                            active={msg.feedback === 'down'}
+                            onClick={() => submitFeedback(i, 'down')}
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5" />
+                          </Action>
+                          {msg.feedback && (
+                            <span className="ml-1 text-[10px] font-medium text-ink-muted">Thanks for the feedback</span>
                           )}
-                        </span>
-                        <p className="text-xs text-charcoal flex-1">
-                          <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 ml-6">
-                        <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} docId={msg.docId || null} />
-                        {savedDocId && (
-                          <a href="/dashboard/documents" className="border border-border text-mid text-xs font-bold px-3 py-1.5 rounded-full hover:bg-bg-elevated transition-colors">
-                            View in library →
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                        </Actions>
+                      )}
+
+                      {/* Clarify card - clickable disambiguation chips */}
+                      {msg.clarify && !msg.clarifyAnswered && (
+                        <div className="mt-3 bg-bg-elevated border border-border rounded-xl p-3.5">
+                          <p className="text-xs font-bold text-ink mb-2.5">Pick the option that fits:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {msg.clarify.options.map((opt, oi) => (
+                              <button
+                                key={oi}
+                                onClick={() => {
+                                  const followUp = msg.clarify!.followUpHint.replace('{option}', opt.label)
+                                  setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
+                                  sendMessage(followUp)
+                                }}
+                                className="bg-bg-soft hover:bg-border text-ink text-xs sm:text-sm font-medium px-3 py-2 rounded-full transition-colors text-left"
+                              >
+                                <span className="font-semibold">{opt.label}</span>
+                                {opt.hint && <span className="block text-[10px] text-ink-muted mt-0.5">{opt.hint}</span>}
+                              </button>
+                            ))}
+                          </div>
+                          <ClarifyFreeText
+                            followUpHint={msg.clarify.followUpHint}
+                            onSubmit={(text) => {
+                              setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, clarifyAnswered: true } : m))
+                              sendMessage(text)
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Three-tier safety surfacing (Safe = nothing) */}
+                      {(msg.tier === 'caution' || msg.tier === 'escalate') && (
+                        <TierNotice
+                          tier={msg.tier}
+                          onPrepare={() => setShowAdvisorModal(true)}
+                          onContinue={() => setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, tier: 'safe' } : m))}
+                          onToggleContext={() => setShowContextInput(v => !v)}
+                          showContextInput={showContextInput}
+                          extraContext={extraContext}
+                          onExtraContextChange={setExtraContext}
+                          onSendContext={handleSendContext}
+                        />
+                      )}
+
+                      {/* Document saved indicator with download */}
+                      {msg.docType && msg.content.length > 200 && (
+                        <div className="mt-3 bg-bg-soft rounded-xl px-3.5 py-2.5">
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <span className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center ${savedDocId ? 'bg-success/10 text-success' : 'bg-info/10 text-info'}`}>
+                              {savedDocId ? <Check className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                            </span>
+                            <p className="text-xs text-ink flex-1">
+                              <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
+                            </p>
+                          </div>
+                          <div className="flex gap-2 ml-6">
+                            <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} docId={msg.docId || null} />
+                            {savedDocId && (
+                              <a href="/dashboard/documents" className="inline-flex items-center gap-1 border border-border text-ink-soft text-xs font-bold px-3 py-1.5 rounded-full hover:bg-bg-elevated transition-colors">
+                                View in library
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </MessageContent>
+                  </UiMessage>
+                )
+              })}
+
+              {/* Pre-stream thinking indicator when no assistant placeholder yet */}
+              {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                <UiMessage from="assistant">
+                  <MessageContent variant="flat">
+                    <Loader size={16} />
+                  </MessageContent>
+                </UiMessage>
               )}
             </div>
-          ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
-          {/* Pre-stream thinking indicator (only when no assistant placeholder is present yet) */}
-          {isLoading && messages[messages.length - 1]?.role === 'user' && (
-            <div className="flex flex-col items-start">
-              <span
-                role="status"
-                aria-label="Assistant is thinking"
-                className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse"
+        {/* Composer - AI Elements PromptInput */}
+        <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
+          <div className="max-w-3xl mx-auto">
+            <PromptInput onSubmit={onComposerSubmit}>
+              <PromptInputTextarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder={module === 'recruit'
+                  ? 'Ask HQ Recruit about ads, screening, candidates...'
+                  : 'Describe the situation - who is involved and what you have tried so far...'
+                }
               />
-            </div>
-          )}
-        </div>
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 bg-bg-elevated border border-border rounded-3xl px-4 py-2 focus-within:border-ink transition-colors shadow-sm">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={autoResize}
-              onKeyDown={handleKey}
-              placeholder={module === 'recruit'
-                ? 'Ask HQ Recruit about ads, screening, candidates...'
-                : 'Describe the situation - who is involved and what you have tried so far...'
-              }
-              rows={1}
-              className="flex-1 bg-transparent text-sm text-charcoal placeholder-muted resize-none outline-none leading-relaxed max-h-[160px] py-1"
-            />
-            {isLoading ? (
-              <button
-                onClick={stopGeneration}
-                title="Stop generating"
-                aria-label="Stop generating"
-                className="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-              >
-                <span className="w-3 h-3 bg-bg-elevated rounded-sm" aria-hidden="true" />
-              </button>
-            ) : (
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim()}
-                title="Send"
-                aria-label="Send message"
-                className="min-h-touch min-w-touch bg-accent rounded-full flex items-center justify-center text-ink-on-accent flex-shrink-0 hover:bg-accent-hover disabled:bg-muted disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-              >
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10 3a1 1 0 01.707.293l5 5a1 1 0 01-1.414 1.414L11 6.414V16a1 1 0 11-2 0V6.414L5.707 9.707a1 1 0 01-1.414-1.414l5-5A1 1 0 0110 3z"/>
-                </svg>
-              </button>
+              <PromptInputToolbar>
+                <PromptInputTools />
+                <PromptInputSubmit status={composerStatus} disabled={!input.trim()} />
+              </PromptInputToolbar>
+            </PromptInput>
+            {messages.length === 0 && (
+              <p className="text-xs text-ink-muted text-center mt-2 leading-relaxed px-4">
+                General guidance only - not legal advice.{' '}
+                <Link href="/dashboard/booking" className="text-ink-soft font-semibold hover:text-ink underline underline-offset-2">
+                  Talk to an HQ Advisor
+                </Link>
+              </p>
             )}
           </div>
-          {messages.length === 0 && (
-            <p className="text-xs text-muted text-center mt-2 leading-relaxed px-4">
-              General guidance only - not legal advice.{' '}
-              <Link href="/dashboard/booking" className="text-mid font-semibold hover:text-charcoal underline underline-offset-2">
-                Talk to an HQ Advisor
-              </Link>
-            </p>
-          )}
         </div>
-      </div>
-
       </div>
 
       {/* Chat History sidebar */}
       {historyOpen && (
         <div className="w-full sm:w-[280px] md:w-[320px] border-l border-border bg-bg-elevated flex flex-col flex-shrink-0 h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <h2 className="font-sans text-sm font-bold text-charcoal uppercase tracking-wider">Chat History</h2>
+            <h2 className="font-sans text-sm font-bold text-ink uppercase tracking-wider">Chat History</h2>
             <button
               onClick={() => setHistoryOpen(false)}
               aria-label="Close history"
-              className="min-h-touch min-w-touch rounded-full hover:bg-light flex items-center justify-center text-mid hover:text-charcoal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+              className="min-h-touch min-w-touch rounded-full hover:bg-bg-soft flex items-center justify-center text-ink-soft hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             {historyLoading ? (
               <div className="flex items-center justify-center py-10">
-                <span className="inline-block w-2 h-2 rounded-full bg-charcoal animate-pulse" />
+                <Loader size={16} />
               </div>
             ) : historyItems.length === 0 ? (
               <div className="text-center py-10 px-4">
-                <p className="text-sm text-muted">No conversations yet</p>
+                <p className="text-sm text-ink-muted">No conversations yet</p>
               </div>
             ) : (
               <ul className="divide-y divide-border">
                 {historyItems.map(c => (
-                  <li key={c.id} className="hover:bg-light transition-colors group">
+                  <li key={c.id} className="hover:bg-bg-soft transition-colors group">
                     <div className="flex items-start gap-2 px-4 py-3">
                       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${c.escalated ? 'bg-warning' : 'bg-ink'}`} />
                       <div className="min-w-0 flex-1">
@@ -949,12 +941,12 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                               if (e.key === 'Escape') setRenamingId(null)
                             }}
                             onBlur={() => commitRename(c.id)}
-                            className="w-full text-sm font-medium text-charcoal bg-bg-elevated border border-ink rounded-md px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                            className="w-full text-sm font-medium text-ink bg-bg-elevated border border-ink rounded-md px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                             maxLength={120}
                           />
                         ) : (
                           <button
-                            className="w-full text-left text-sm font-medium text-charcoal truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
+                            className="w-full text-left text-sm font-medium text-ink truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
                             onClick={() => {
                               setConversationId(c.id)
                               setHistoryOpen(false)
@@ -963,7 +955,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             {(c.title || 'Untitled').replace(/[—–]/g, '-')}
                           </button>
                         )}
-                        <p className="text-xs text-muted mt-0.5">
+                        <p className="text-xs text-ink-muted mt-0.5">
                           {c.module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'}
                           {' - '}
                           {formatHistoryDate(c.created_at)}
@@ -978,28 +970,24 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             onClick={() => startRename(c.id, c.title)}
                             title="Rename"
                             aria-label="Rename conversation"
-                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-border hover:text-charcoal transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink-soft hover:bg-border hover:text-ink transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                            </svg>
+                            <Pencil className="w-3 h-3" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(c.id)}
                             title="Delete"
                             aria-label="Delete conversation"
-                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-mid hover:bg-danger/10 hover:text-danger transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink-soft hover:bg-danger/10 hover:text-danger transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
-                            </svg>
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </button>
                         </div>
                       )}
                     </div>
                     {confirmDeleteId === c.id && (
                       <div className="flex items-center gap-2 px-4 pb-3 pl-7">
-                        <span className="text-xs text-mid">Delete this chat?</span>
+                        <span className="text-xs text-ink-soft">Delete this chat?</span>
                         <button
                           onClick={() => deleteConversation(c.id)}
                           className="text-xs font-bold text-danger hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30 rounded"
@@ -1008,7 +996,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          className="text-xs font-bold text-mid hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
+                          className="text-xs font-bold text-ink-soft hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
                         >
                           Cancel
                         </button>
@@ -1022,13 +1010,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         </div>
       )}
 
-      {/* Advisor modal */}
+      {/* Advisor modal (doubles as the Escalate prep pack) */}
       {showAdvisorModal && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby={advisorModalHeadingId}
-          className="fixed inset-0 bg-ink/60 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[color-mix(in_srgb,var(--ink)_55%,transparent)] flex items-center justify-center z-50 p-4"
           onClick={() => setShowAdvisorModal(false)}
           onKeyDown={e => { if (e.key === 'Escape') setShowAdvisorModal(false) }}
         >
@@ -1047,128 +1035,16 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   )
 }
 
-// Render markdown-lite message content (with optional inline citation chips)
-function MessageContent({
-  content,
-  isUser,
-  citations,
-}: {
-  content: string
-  isUser: boolean
-  citations?: Citation[]
-}) {
-  if (!content) return null
-
-  // Status pulses arrive marked with a __STATUS__ prefix so we can render
-  // them as italic placeholder copy without leaking literal underscores.
-  if (content.startsWith('__STATUS__')) {
-    return <p className="text-sm text-mid italic">{content.slice('__STATUS__'.length)}</p>
-  }
-
-  // Build a lookup by citation number so we can render chips with label+url.
-  const byN = new Map<number, Citation>()
-  if (citations) {
-    for (const c of citations) if (!byN.has(c.n)) byN.set(c.n, c)
-  }
-
-  // Split a line on [n] markers and return React nodes. Each non-marker
-  // segment uses formatInline (markdown-lite) via dangerouslySetInnerHTML,
-  // which is safe because we only produce a controlled whitelist of tags.
-  const renderInline = (text: string, keyPrefix: string): React.ReactNode[] => {
-    const re = /\[(\d+)\]/g
-    const parts: React.ReactNode[] = []
-    let last = 0
-    let m: RegExpExecArray | null
-    let idx = 0
-    while ((m = re.exec(text)) !== null) {
-      if (m.index > last) {
-        const seg = text.slice(last, m.index)
-        parts.push(
-          <span
-            key={`${keyPrefix}-t${idx++}`}
-            dangerouslySetInnerHTML={{ __html: formatInline(seg, isUser) }}
-          />
-        )
-      }
-      const n = Number(m[1])
-      const cite = byN.get(n)
-      if (cite) {
-        parts.push(
-          <CitationChip key={`${keyPrefix}-c${idx++}`} n={cite.n} label={cite.label} url={cite.url} />
-        )
-      } else {
-        // Unknown marker - render as plain [n] fallback
-        parts.push(<span key={`${keyPrefix}-c${idx++}`}>{m[0]}</span>)
-      }
-      last = m.index + m[0].length
-    }
-    if (last < text.length) {
-      const seg = text.slice(last)
-      parts.push(
-        <span
-          key={`${keyPrefix}-t${idx++}`}
-          dangerouslySetInnerHTML={{ __html: formatInline(seg, isUser) }}
-        />
-      )
-    }
-    return parts
-  }
-
-  const lines = content.split('\n')
-  const elements: React.ReactNode[] = []
-  let listItems: string[] = []
-
-  const flushList = () => {
-    if (listItems.length) {
-      const items = listItems
-      elements.push(
-        <ul key={elements.length} className="list-disc pl-5 space-y-1 my-2">
-          {items.map((item, i) => (
-            <li key={i}>{renderInline(item, `l${elements.length}-${i}`)}</li>
-          ))}
-        </ul>
-      )
-      listItems = []
-    }
-  }
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed) { flushList(); continue }
-
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      listItems.push(trimmed.slice(2))
-    } else if (trimmed.match(/^\d+\. /)) {
-      listItems.push(trimmed.replace(/^\d+\. /, ''))
-    } else if (trimmed.startsWith('## ')) {
-      flushList()
-      const key = elements.length
-      elements.push(
-        <h3 key={key} className="font-bold text-[15px] mt-3 mb-1 first:mt-0">
-          {renderInline(trimmed.slice(3), `h3-${key}`)}
-        </h3>
-      )
-    } else if (trimmed.startsWith('# ')) {
-      flushList()
-      const key = elements.length
-      elements.push(
-        <h2 key={key} className="font-bold text-base mt-3 mb-1 first:mt-0">
-          {renderInline(trimmed.slice(2), `h2-${key}`)}
-        </h2>
-      )
-    } else {
-      flushList()
-      const key = elements.length
-      elements.push(
-        <p key={key} className="mb-2 last:mb-0">
-          {renderInline(trimmed, `p-${key}`)}
-        </p>
-      )
-    }
-  }
-  flushList()
-
-  return <div>{elements}</div>
+// De-duplicate citations by n (first occurrence wins), sorted numerically.
+function dedupeCitations(citations: Citation[]): Citation[] {
+  const seen = new Set<number>()
+  return citations
+    .filter(c => {
+      if (seen.has(c.n)) return false
+      seen.add(c.n)
+      return true
+    })
+    .sort((a, b) => a.n - b.n)
 }
 
 function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onSubmit: (text: string) => void }) {
@@ -1178,7 +1054,7 @@ function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onS
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-2 text-[11px] font-bold text-mid hover:text-charcoal hover:underline"
+        className="mt-2 text-[11px] font-bold text-ink-soft hover:text-ink hover:underline"
       >
         + Type a different answer
       </button>
@@ -1224,14 +1100,6 @@ function formatHistoryDate(iso: string) {
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
-function formatInline(text: string, isUser: boolean): string {
-  const codeCls = isUser ? 'bg-white/15 px-1 rounded text-xs font-mono' : 'bg-light px-1 rounded text-xs font-mono'
-  return text
-    .replace(/\*\*(.*?)\*\*/g, `<strong class="font-semibold">$1</strong>`)
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, `<code class="${codeCls}">$1</code>`)
-}
-
 function DocumentFormCard({
   docType,
   onSubmit,
@@ -1259,24 +1127,22 @@ function DocumentFormCard({
     onSubmit(docType, formData)
   }
 
-  const inputCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-charcoal placeholder-muted focus:outline-none focus:border-ink transition-colors"
+  const inputCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink transition-colors"
 
   return (
     <div className="bg-bg-elevated shadow-card rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="bg-light border-b border-border px-5 py-4">
+      <div className="bg-bg-soft border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-ink/10 rounded-xl flex items-center justify-center">
-            <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-            </svg>
+            <FileText className="w-4 h-4 text-ink" />
           </div>
           <div>
-            <h3 className="font-sans text-base font-bold text-charcoal uppercase tracking-wider">{formDef.title}</h3>
-            <p className="text-xs text-muted mt-0.5">{bizName}</p>
+            <h3 className="font-sans text-base font-bold text-ink uppercase tracking-wider">{formDef.title}</h3>
+            <p className="text-xs text-ink-muted mt-0.5">{bizName}</p>
           </div>
         </div>
-        <p className="text-xs text-mid mt-3 leading-relaxed">{formDef.description}</p>
+        <p className="text-xs text-ink-soft mt-3 leading-relaxed">{formDef.description}</p>
       </div>
 
       {/* Form fields */}
@@ -1285,7 +1151,7 @@ function DocumentFormCard({
           const fieldId = `docform-${docType}-${field.key}`.replace(/\s+/g, '-').toLowerCase()
           return (
           <div key={field.key}>
-            <label htmlFor={fieldId} className="block text-xs font-bold text-mid mb-1.5">
+            <label htmlFor={fieldId} className="block text-xs font-bold text-ink-soft mb-1.5">
               {field.label}
               {field.required && <span className="text-danger ml-0.5">*</span>}
             </label>
@@ -1347,12 +1213,12 @@ function DocumentFormCard({
           <button
             type="button"
             onClick={onSkip}
-            className="bg-bg-elevated hover:bg-light text-mid font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
+            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
           >
             Skip form
           </button>
         </div>
-        <p className="text-[10px] text-muted text-center">
+        <p className="text-[10px] text-ink-muted text-center">
           HQ will use your business profile details for employer information, award, and state jurisdiction.
         </p>
       </form>
@@ -1370,8 +1236,7 @@ function DownloadDocxButton({ content, title, docType, docId }: { content: strin
     try {
       // Prefer the library download endpoint when we have a saved doc id -
       // that fetches the original generated content. The /generate fallback
-      // would otherwise re-render whatever string was last shown in chat
-      // (often the confirmation copy, not the actual document body).
+      // would otherwise re-render whatever string was last shown in chat.
       const res = docId
         ? await fetch(`/api/documents/download?id=${encodeURIComponent(docId)}`)
         : await fetch('/api/documents/generate', {
@@ -1405,10 +1270,8 @@ function DownloadDocxButton({ content, title, docType, docId }: { content: strin
         disabled={downloading}
         className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors inline-flex items-center gap-1 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
       >
-        <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
-        </svg>
-        {downloading ? 'Generating…' : 'Download DOCX'}
+        <Download className="w-3 h-3" aria-hidden="true" />
+        {downloading ? 'Generating...' : 'Download DOCX'}
       </button>
       {dlError && (
         <p role="alert" className="text-xs text-danger mt-1">{dlError}</p>
@@ -1445,24 +1308,24 @@ function AdvisorModalContent({
       className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal"
       onClick={e => e.stopPropagation()}
     >
-      <h3 id={headingId} className="font-display text-xl font-bold text-charcoal uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
-      <p className="text-sm text-mid mb-4 leading-relaxed">
+      <h3 id={headingId} className="font-display text-xl font-bold text-ink uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
+      <p className="text-sm text-ink-soft mb-4 leading-relaxed">
         HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
       </p>
-      <div className="bg-light rounded-xl p-4 mb-4 text-sm text-mid leading-relaxed space-y-1">
-        <p><strong className="font-bold text-charcoal">Business:</strong> {bizName}</p>
-        <p><strong className="font-bold text-charcoal">Industry:</strong> {industry}</p>
-        <p><strong className="font-bold text-charcoal">State:</strong> {state}</p>
-        <p><strong className="font-bold text-charcoal">Award:</strong> {award || 'Not specified'}</p>
+      <div className="bg-bg-soft rounded-xl p-4 mb-4 text-sm text-ink-soft leading-relaxed space-y-1">
+        <p><strong className="font-bold text-ink">Business:</strong> {bizName}</p>
+        <p><strong className="font-bold text-ink">Industry:</strong> {industry}</p>
+        <p><strong className="font-bold text-ink">State:</strong> {state}</p>
+        <p><strong className="font-bold text-ink">Award:</strong> {award || 'Not specified'}</p>
         {messages.length > 0 && (
-          <p><strong className="font-bold text-charcoal">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}…</p>
+          <p><strong className="font-bold text-ink">Last topic:</strong> {messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.substring(0, 80)}...</p>
         )}
       </div>
       <div className="flex gap-3">
         <button
           ref={firstFocusRef}
           onClick={onClose}
-          className="flex-1 py-2.5 bg-bg-elevated hover:bg-light text-mid rounded-full text-sm font-bold border border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+          className="flex-1 py-2.5 bg-bg-elevated hover:bg-bg-soft text-ink-soft rounded-full text-sm font-bold border border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
         >
           Close
         </button>

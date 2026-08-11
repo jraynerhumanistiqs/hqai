@@ -57,6 +57,34 @@ const config: Config = {
         success:          'var(--success)',
         info:             'var(--info)',
 
+        // ── shadcn / Vercel AI Elements token bridge ──────────────
+        // AI Elements (components/ai-elements/*) is authored against
+        // shadcn's semantic token names. Rather than inject shadcn's
+        // own oklch :root/.dark block (which would fork the design
+        // system), we MAP those names onto the existing Wattle Gold
+        // CSS vars so the AI Elements primitives repaint per-theme for
+        // free and stay 100% brand-consistent. These names are not used
+        // anywhere else in the app, so the aliases are purely additive.
+        // NB: `accent`/`accent-hover`/`accent-soft` are already defined
+        // above as the brand CTA colour; we only add the missing
+        // `accent-foreground` companion here.
+        background:              'var(--bg)',
+        foreground:              'var(--ink)',
+        card:                    'var(--bg-elevated)',
+        'card-foreground':       'var(--ink)',
+        popover:                 'var(--bg-elevated)',
+        'popover-foreground':    'var(--ink)',
+        primary:                 'var(--accent)',
+        'primary-foreground':    'var(--ink-on-accent)',
+        secondary:               'var(--bg-soft)',
+        'secondary-foreground':  'var(--ink)',
+        'muted-foreground':      'var(--ink-muted)',
+        'accent-foreground':     'var(--ink)',
+        destructive:             'var(--danger)',
+        'destructive-foreground':'var(--ink-on-accent)',
+        input:                   'var(--border)',
+        ring:                    'var(--accent)',
+
         // ── Legacy aliases kept so the ~hundreds of existing
         //    `text-charcoal` / `text-mid` / `text-muted` / `bg-light`
         //    callsites keep rendering. Each maps to a token via CSS
