@@ -23,32 +23,29 @@ export default async function DashboardHome() {
   // Fetch recent conversations - use OR to catch conversations created both
   // with business_id and with user_id (covers cases where business_id was
   // null at creation time, or where the user didn't have a business yet).
-  // NB `escalated` is intentionally NOT selected: the column is defined in
-  // schema.sql but is not present on the live DB, so selecting it made the
-  // whole query fail (PostgREST: "column conversations.escalated does not
-  // exist") - which silently rendered an empty panel before DASH-09, and a
-  // false error card after it. Following the repo's "retry-without an
-  // unapplied migration" pattern, we drop it; the Escalated indicator simply
-  // stays off until the column is added to the DB. Re-add it to both selects
-  // once the migration lands.
-  const convoQuery = business?.id
-    ? supabase
-        .from('conversations')
-        .select('id, title, module, created_at')
-        .or(`business_id.eq.${business.id},user_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(5)
-    : supabase
-        .from('conversations')
-        .select('id, title, module, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
+  //
+  // `escalated` lives in schema.sql but may not yet be applied to the live DB
+  // (see supabase/migrations/add_conversations_escalated.sql). Selecting a
+  // missing column fails the whole query, so we try WITH `escalated` first and
+  // retry WITHOUT it on error. Once the migration lands, the first query
+  // succeeds and the Escalated dot/pill light up automatically - no code
+  // change, and no breakage window in between.
+  const convoQueryFor = (cols: string) => {
+    const base = supabase.from('conversations').select(cols)
+    const filtered = business?.id
+      ? base.or(`business_id.eq.${business.id},user_id.eq.${user.id}`)
+      : base.eq('user_id', user.id)
+    return filtered.order('created_at', { ascending: false }).limit(5)
+  }
 
-  // DASH-09 - keep the query error so an outage renders a distinct error
-  // state, not the friendly "nothing here yet" empty state (which hid
-  // failures behind a false-empty).
-  const { data: recentConvos, error: convoErr } = await convoQuery
+  // DASH-09 - a genuine outage keeps its error so the panel renders a distinct
+  // error state (not a false "nothing here yet"). A missing `escalated` column
+  // is NOT an outage: the retry below clears it. A real outage fails both
+  // attempts, so convoErr stays set and the error card still shows.
+  let { data: recentConvos, error: convoErr } = await convoQueryFor('id, title, module, created_at, escalated')
+  if (convoErr) {
+    ;({ data: recentConvos, error: convoErr } = await convoQueryFor('id, title, module, created_at'))
+  }
 
   // Fetch recent documents
   const docQuery = supabase
@@ -136,7 +133,9 @@ export default async function DashboardHome() {
                   {recentConvos!.map((c: any) => (
                     <li key={c.id} className="px-5 py-4 hover:bg-bg-soft transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-ink'}`} />
+                        {/* Non-escalated dot carries the eyebrow gold (clay-ink in
+                            light, clay in dark); escalated keeps the warning tone. */}
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.escalated ? 'bg-warning' : 'bg-clay-ink dark:bg-clay'}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-ink truncate">{normaliseDashes(c.title)}</p>
                           <p className="text-xs text-ink-muted">
@@ -156,7 +155,7 @@ export default async function DashboardHome() {
                   title="No conversations yet"
                   description="Ask your AI Advisor an HR question to get started."
                   action={
-                    <Link href="/dashboard/people" className={buttonVariants({ size: 'md' })}>
+                    <Link href="/dashboard/people/advisor" className={buttonVariants({ size: 'md' })}>
                       Start your first chat
                     </Link>
                   }
@@ -221,7 +220,10 @@ function QuickAction({ href, title, desc, icon }: { href: string; title: string;
         className="block bg-bg-elevated border border-border rounded-3xl p-6 transition-all hover:-translate-y-0.5 hover:border-ink/30
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-bg-soft rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-ink/10 transition-colors">
+          {/* Icon tile carries the eyebrow gold (clay-ink in light, clay in
+              dark); the glyph inside uses the contrasting ink-on-accent so it
+              stays legible on gold in both modes. */}
+          <div className="w-12 h-12 bg-clay-ink dark:bg-clay rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-clay-ink/90 dark:group-hover:bg-clay-hover transition-colors">
             {icon}
           </div>
           <p className="font-display text-lg font-bold tracking-tight text-ink">{title}</p>
@@ -253,22 +255,22 @@ function formatDate(iso: string) {
 
 // Icons
 function PeopleIcon() {
-  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
   </svg>
 }
 function RecruitIcon() {
-  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
     <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
   </svg>
 }
 function DocsIcon() {
-  return <svg className="w-4 h-4 text-ink" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-4 h-4 text-clay-ink dark:text-clay" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
   </svg>
 }
 function SettingsIcon() {
-  return <svg className="w-5 h-5 text-ink" viewBox="0 0 20 20" fill="currentColor">
+  return <svg className="w-5 h-5 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
   </svg>
 }
