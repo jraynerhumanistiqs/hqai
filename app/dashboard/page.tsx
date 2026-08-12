@@ -23,32 +23,29 @@ export default async function DashboardHome() {
   // Fetch recent conversations - use OR to catch conversations created both
   // with business_id and with user_id (covers cases where business_id was
   // null at creation time, or where the user didn't have a business yet).
-  // NB `escalated` is intentionally NOT selected: the column is defined in
-  // schema.sql but is not present on the live DB, so selecting it made the
-  // whole query fail (PostgREST: "column conversations.escalated does not
-  // exist") - which silently rendered an empty panel before DASH-09, and a
-  // false error card after it. Following the repo's "retry-without an
-  // unapplied migration" pattern, we drop it; the Escalated indicator simply
-  // stays off until the column is added to the DB. Re-add it to both selects
-  // once the migration lands.
-  const convoQuery = business?.id
-    ? supabase
-        .from('conversations')
-        .select('id, title, module, created_at')
-        .or(`business_id.eq.${business.id},user_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(5)
-    : supabase
-        .from('conversations')
-        .select('id, title, module, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
+  //
+  // `escalated` lives in schema.sql but may not yet be applied to the live DB
+  // (see supabase/migrations/add_conversations_escalated.sql). Selecting a
+  // missing column fails the whole query, so we try WITH `escalated` first and
+  // retry WITHOUT it on error. Once the migration lands, the first query
+  // succeeds and the Escalated dot/pill light up automatically - no code
+  // change, and no breakage window in between.
+  const convoQueryFor = (cols: string) => {
+    const base = supabase.from('conversations').select(cols)
+    const filtered = business?.id
+      ? base.or(`business_id.eq.${business.id},user_id.eq.${user.id}`)
+      : base.eq('user_id', user.id)
+    return filtered.order('created_at', { ascending: false }).limit(5)
+  }
 
-  // DASH-09 - keep the query error so an outage renders a distinct error
-  // state, not the friendly "nothing here yet" empty state (which hid
-  // failures behind a false-empty).
-  const { data: recentConvos, error: convoErr } = await convoQuery
+  // DASH-09 - a genuine outage keeps its error so the panel renders a distinct
+  // error state (not a false "nothing here yet"). A missing `escalated` column
+  // is NOT an outage: the retry below clears it. A real outage fails both
+  // attempts, so convoErr stays set and the error card still shows.
+  let { data: recentConvos, error: convoErr } = await convoQueryFor('id, title, module, created_at, escalated')
+  if (convoErr) {
+    ;({ data: recentConvos, error: convoErr } = await convoQueryFor('id, title, module, created_at'))
+  }
 
   // Fetch recent documents
   const docQuery = supabase
