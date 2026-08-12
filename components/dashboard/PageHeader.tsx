@@ -23,8 +23,12 @@ export interface PageHeaderProps {
 export function PageHeader({ eyebrow, title, subtitle, className }: PageHeaderProps) {
   return (
     <div className={twMerge('mb-6', className)}>
-      <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
-        <span aria-hidden className="h-px w-5 bg-clay" />
+      {/* Gold eyebrow. Bright Wattle Gold (text-clay, #E8B23A) is ~1.9:1 on a
+          white surface - fine on the dark surface, but it fails contrast in
+          light mode. Per the design system, gold TEXT on light uses the darker
+          clay-ink (#8A6D12, AA); the dark surface keeps the bright gold. */}
+      <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay-ink dark:text-clay">
+        <span aria-hidden className="h-px w-5 bg-clay-ink dark:bg-clay" />
         {eyebrow}
       </p>
       <h1 className="font-display text-2xl sm:text-h1 font-bold tracking-tight text-ink">

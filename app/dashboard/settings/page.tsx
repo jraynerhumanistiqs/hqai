@@ -28,7 +28,9 @@ export default function SettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin bg-bg">
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
+      {/* pb generous so the sticky SaveBar rests clear of the last section
+          (Billing) instead of hovering over its lower edge. */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 pb-24">
         {s.loading ? (
           <SettingsSkeleton />
         ) : (
