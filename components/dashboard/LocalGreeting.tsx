@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { PageHeader } from '@/components/dashboard/PageHeader'
 
 function getGreeting(): string {
   const hour = new Date().getHours()
@@ -8,7 +9,7 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
-export function LocalGreeting({ firstName, bizName }: { firstName: string; bizName: string }) {
+export function LocalGreeting({ firstName, bizName: _bizName }: { firstName: string; bizName: string }) {
   const [greeting, setGreeting] = useState('')
 
   useEffect(() => {
@@ -16,18 +17,15 @@ export function LocalGreeting({ firstName, bizName }: { firstName: string; bizNa
     setGreeting(getGreeting())
   }, [])
 
+  // DASH-06 - consumes the shared PageHeader so Home and Settings share one
+  // eyebrow/h1 grammar. Home controls its own vertical rhythm through the
+  // parent flex gap, so the header's default mb-6 is trimmed to mb-1 here.
   return (
-    <div className="mb-1">
-      <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
-        <span aria-hidden className="h-px w-5 bg-clay" />
-        Your dashboard
-      </p>
-      <h1 className="font-display text-2xl sm:text-h1 font-bold tracking-tight text-ink">
-        {greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
-      </h1>
-      <p className="text-sm sm:text-body text-ink-soft mt-1">
-        Welcome to your HQ.ai dashboard, jump back in below!
-      </p>
-    </div>
+    <PageHeader
+      className="mb-1"
+      eyebrow="Your dashboard"
+      title={greeting ? `${greeting}, ${firstName}` : `Welcome, ${firstName}`}
+      subtitle="Welcome to your HQ.ai dashboard, jump back in below!"
+    />
   )
 }

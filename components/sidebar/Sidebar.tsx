@@ -129,10 +129,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
     return pathname.startsWith(href)
   }
 
-  const planLabel: Record<string, string> = {
-    essentials: 'Essentials', growth: 'Growth', scale: 'Scale'
-  }
-
   function handleContactPartner() {
     setSupportType(null)
     setSupportSummary('')
@@ -747,11 +743,6 @@ function LeaderIcon({ active }: { active: boolean }) {
 function BusinessIcon({ active }: { active: boolean }) {
   return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path d="M4 4a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h3a1 1 0 010 2H7a1 1 0 01-1-1z"/>
-  </svg>
-}
-function SearchIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
   </svg>
 }
 function ToolsIcon({ active }: { active: boolean }) {

@@ -14,7 +14,24 @@
 
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// The design system defines custom font sizes (text-display/h1/h2/h3/body/
+// small in tailwind.config.ts). Default tailwind-merge doesn't know these are
+// FONT SIZES, so it misclassifies e.g. `text-small` as a text COLOUR and then
+// treats it as conflicting with `text-ink-on-accent` in the same class - and
+// silently drops the colour. That made every filled <Button> lose its label
+// colour: invisible on the near-black primary in light mode, and wrong (white
+// instead of the intended near-black) on the gold primary in dark mode.
+// Registering the custom sizes as font-size classes keeps them out of the
+// text-colour group, so the colour survives.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [{ text: ['display', 'h1', 'h2', 'h3', 'body', 'small'] }],
+    },
+  },
+})
 
 function cn(...classes: Array<string | undefined | false | null>) {
   return twMerge(classes.filter(Boolean).join(' '))
