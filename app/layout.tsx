@@ -54,6 +54,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-AU" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${schibsted.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        {/* CHR-10 - pre-paint theme shim. ThemeBoundary sets data-app +
+            the .dark class in a useEffect, so a cold dashboard load painted
+            :root light for a frame, then hydrated dark - a visible flash.
+            This stamps data-app="product" and the stored theme onto <html>
+            BEFORE first paint, but ONLY on /dashboard routes so marketing,
+            login, prescreen and review are untouched. The dashboard default
+            is dark (matches ThemeBoundary themeMode="dashboard"); the value
+            is read from next-themes' storageKey "hqai-theme". <html> already
+            carries suppressHydrationWarning, so mutating it here is
+            hydration-clean. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(location.pathname.indexOf('/dashboard')===0){var d=document.documentElement;d.setAttribute('data-app','product');if(localStorage.getItem('hqai-theme')!=='light'){d.classList.add('dark')}}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>
         {children}
