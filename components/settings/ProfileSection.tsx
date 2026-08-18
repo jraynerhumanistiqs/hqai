@@ -19,7 +19,7 @@ export function ProfileSection({
   return (
     <SettingsSection id="profile" title="Your profile">
       <div className="space-y-4">
-        <Field label="Your name" htmlFor="s-name">
+        <Field label="Your name" htmlFor="s-name" required>
           <input
             id="s-name"
             className={inputCls}
@@ -29,7 +29,7 @@ export function ProfileSection({
           />
         </Field>
 
-        <Field label="Job title" htmlFor="s-job-title" hint="Shown on documents you generate that need a signatory.">
+        <Field label="Job title" htmlFor="s-job-title" optional hint="Shown on documents you generate that need a signatory.">
           <input
             id="s-job-title"
             className={inputCls}

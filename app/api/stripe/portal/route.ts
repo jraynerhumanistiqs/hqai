@@ -32,9 +32,17 @@ export async function POST(req: NextRequest) {
     // (Stripe Dashboard > Settings > Billing > Customer portal) to create the
     // default configuration; until then this call throws a "configuration"
     // error. Surface the real reason instead of a generic connection error.
-    const hint = /configuration/i.test(message)
+    // A stale / cross-environment stripe_customer_id (e.g. a test-mode
+    // customer with a live key, or a customer from an old Stripe account)
+    // throws "No such customer" / resource_missing. Say so plainly instead of
+    // "try again", which would never work.
+    const isMissingCustomer =
+      /no such customer/i.test(message) || (err as { code?: string })?.code === 'resource_missing'
+    const hint = isMissingCustomer
+      ? 'We could not find your billing account - it may need reconnecting. Please contact support and we will sort it.'
+      : /configuration/i.test(message)
       ? 'Billing management is not switched on yet. Please contact support and we will sort it.'
       : 'Could not open the billing portal. Please try again or contact support.'
-    return NextResponse.json({ error: hint, detail: message }, { status: 502 })
+    return NextResponse.json({ error: hint, detail: message, code: isMissingCustomer ? 'customer_missing' : undefined }, { status: 502 })
   }
 }

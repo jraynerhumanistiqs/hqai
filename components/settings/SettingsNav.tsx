@@ -25,7 +25,7 @@ const GROUPS: Array<{ label: string; items: Array<{ id: SettingsSectionKey; labe
     label: 'Workspace',
     items: [
       { id: 'general', label: 'General' },
-      { id: 'advisor', label: 'Advisor handoff' },
+      { id: 'advisor', label: 'AI Advisor' },
       { id: 'billing', label: 'Billing & plan' },
     ],
   },

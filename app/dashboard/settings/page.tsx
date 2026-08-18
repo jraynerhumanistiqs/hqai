@@ -74,7 +74,7 @@ export default function SettingsPage() {
                   </>
                 )}
                 {active === 'advisor' && (
-                  <AdvisorSection form={s.form} setForm={s.setForm} plan={s.plan} />
+                  <AdvisorSection form={s.form} setForm={s.setForm} />
                 )}
                 {active === 'billing' && (
                   <BillingSection plan={s.plan} subscriptionStatus={s.subscriptionStatus} hasStripe={s.hasStripe} />

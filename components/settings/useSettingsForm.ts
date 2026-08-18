@@ -1,15 +1,13 @@
 'use client'
 
-// SET-08 / SET-04 / SET-05 - shared Settings form state.
-//
-// Lifts the profile + business + advisor form, the async load, the honest
-// save (error-checked, dirty-tracked) and the loading flag out of the
-// former 454-line page monolith so the section components can stay dumb
-// and presentational. Billing (checkout / portal) is self-contained in
-// BillingSection - it acts immediately and is not part of this save.
+// Shared Settings form state - profile + business + AI advisor, the async
+// load, the honest self-healing save, dirty tracking and required-field
+// validation. Section components stay dumb and presentational. Billing
+// (checkout / portal) is self-contained in BillingSection.
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { splitCsv, type AwardEntry } from './options'
 
 export interface SettingsForm {
   name: string
@@ -19,25 +17,32 @@ export interface SettingsForm {
   website: string
   phone: string
   industry: string
-  state: string
-  award: string
+  state: string            // headquarters
+  operating_states: string // comma-joined list of all states
+  awards: AwardEntry[]     // structured Modern Awards (primary/secondary + roles)
   headcount: string
-  employment_types: string
+  employment_types: string // comma-joined
   advisor_name: string
-  advisor_email: string
+  advisor_tone: string
+  advisor_detail: string
+  advisor_instructions: string
 }
 
 const EMPTY_FORM: SettingsForm = {
   name: '', legal_name: '', abn: '', address: '', website: '', phone: '',
-  industry: '', state: '', award: '', headcount: '', employment_types: '',
-  advisor_name: '', advisor_email: '',
+  industry: '', state: '', operating_states: '', awards: [],
+  headcount: '', employment_types: '',
+  advisor_name: '', advisor_tone: '', advisor_detail: '', advisor_instructions: '',
 }
 
-// Columns added by add_settings_depth_fields.sql. If the live DB hasn't had
-// that migration applied yet, updating them fails the whole row - so the
-// save retries without them (core fields still save; the new fields light up
-// once the migration lands, self-healing, same pattern as the dashboard).
-const DEPTH_BIZ_COLS = ['legal_name', 'abn', 'address', 'website', 'phone'] as const
+// Columns added by add_settings_depth_fields.sql + add_settings_v2_fields.sql.
+// If the live DB hasn't had them applied, updating them fails the whole row,
+// so the save retries without them (core fields still save; the new fields
+// light up once the migrations land - self-healing).
+const DEPTH_BIZ_COLS = [
+  'legal_name', 'abn', 'address', 'website', 'phone',
+  'operating_states', 'awards', 'advisor_tone', 'advisor_detail', 'advisor_instructions',
+] as const
 
 export function useSettingsForm() {
   const supabase = createClient()
@@ -58,11 +63,20 @@ export function useSettingsForm() {
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
 
-  // Baseline snapshot for dirty tracking. Set on load and after each
-  // successful save; `dirty` is a live diff against it, so we do not need
-  // to wire a markDirty into every onChange.
   const snapshotRef = useRef<string>(JSON.stringify({ form: EMPTY_FORM, userName: '', jobTitle: '' }))
   const dirty = JSON.stringify({ form, userName, jobTitle }) !== snapshotRef.current
+
+  // Required fields (mandatory helps HQ tailor advice + documents). Optional:
+  // legal_name, abn, address, website, phone, job_title, advisor prefs.
+  const missingRequired: string[] = []
+  if (!userName.trim()) missingRequired.push('Your name')
+  if (!form.name.trim()) missingRequired.push('Business name')
+  if (!form.industry) missingRequired.push('Industry')
+  if (!form.state) missingRequired.push('Headquarters')
+  if (!splitCsv(form.operating_states).length) missingRequired.push('Operating states')
+  if (!form.headcount) missingRequired.push('Headcount')
+  if (!splitCsv(form.employment_types).length) missingRequired.push('Employment types')
+  if (!form.awards.length) missingRequired.push('Modern Awards')
 
   useEffect(() => {
     let cancelled = false
@@ -89,17 +103,26 @@ export function useSettingsForm() {
           setSubscriptionStatus(biz.subscription_status || 'trialing')
           setHasStripe(!!biz.stripe_customer_id)
           setLogoUrl(biz.logo_url || '')
-          // Missing (un-migrated) columns simply come back undefined -> ''.
+
+          // awards: prefer the structured jsonb; fall back to the legacy single
+          // `award` text so existing businesses are not blanked.
+          let awards: AwardEntry[] = Array.isArray(biz.awards) ? biz.awards : []
+          if (awards.length === 0 && biz.award && biz.award !== 'Multiple awards apply') {
+            awards = [{ name: biz.award, tier: 'primary', roles: '' }]
+          }
+          // operating states: fall back to the HQ state so it is never empty.
+          const operatingStates = biz.operating_states || biz.state || ''
+
           nextForm = {
             name: biz.name || '', legal_name: biz.legal_name || '', abn: biz.abn || '',
             address: biz.address || '', website: biz.website || '', phone: biz.phone || '',
-            industry: biz.industry || '', state: biz.state || '', award: biz.award || '',
-            headcount: biz.headcount || '', employment_types: biz.employment_types || '',
-            advisor_name: biz.advisor_name || '', advisor_email: biz.advisor_email || '',
+            industry: biz.industry || '', state: biz.state || '', operating_states: operatingStates,
+            awards, headcount: biz.headcount || '', employment_types: biz.employment_types || '',
+            advisor_name: biz.advisor_name || '', advisor_tone: biz.advisor_tone || '',
+            advisor_detail: biz.advisor_detail || '', advisor_instructions: biz.advisor_instructions || '',
           }
           setForm(nextForm)
         }
-        // Reset the dirty baseline to the loaded values.
         snapshotRef.current = JSON.stringify({ form: nextForm, userName: nextUserName, jobTitle: nextJobTitle })
       } finally {
         if (!cancelled) setLoading(false)
@@ -110,9 +133,6 @@ export function useSettingsForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // SET-04 - warn before a hard unload (tab close / refresh) while there
-  // are unsaved edits. In-app soft navigation between sidebar items is not
-  // intercepted here (App Router has no stable router-guard hook yet).
   useEffect(() => {
     if (!dirty) return
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
@@ -122,19 +142,25 @@ export function useSettingsForm() {
 
   async function save() {
     if (!bizId || !userId) return
+    if (missingRequired.length) {
+      setSaveError(`Please complete the required fields: ${missingRequired.join(', ')}.`)
+      return
+    }
     setSaving(true)
     setSaveError('')
 
-    // businesses - try the full row; if a depth column is un-migrated the
-    // whole update fails, so retry with only the pre-migration columns.
-    let bizErr = (await supabase.from('businesses').update(form).eq('id', bizId)).error
+    // Derive the legacy primary-award text column from the structured awards,
+    // so document generation + chat (which read businesses.award) keep working.
+    const primaryAward = form.awards.find(a => a.tier === 'primary')?.name || form.awards[0]?.name || ''
+    const bizUpdate: Record<string, unknown> = { ...form, award: primaryAward }
+
+    let bizErr = (await supabase.from('businesses').update(bizUpdate).eq('id', bizId)).error
     if (bizErr) {
-      const core: Record<string, unknown> = { ...form }
+      const core = { ...bizUpdate }
       for (const c of DEPTH_BIZ_COLS) delete core[c]
       bizErr = (await supabase.from('businesses').update(core).eq('id', bizId)).error
     }
 
-    // profiles - full_name + job_title; retry without job_title if un-migrated.
     let profErr = (await supabase.from('profiles').update({ full_name: userName, job_title: jobTitle }).eq('id', userId)).error
     if (profErr) {
       profErr = (await supabase.from('profiles').update({ full_name: userName }).eq('id', userId)).error
@@ -157,6 +183,6 @@ export function useSettingsForm() {
     userEmail,
     logoUrl, setLogoUrl,
     bizId, plan, subscriptionStatus, hasStripe,
-    loading, saving, saved, saveError, dirty, save,
+    loading, saving, saved, saveError, dirty, missingRequired, save,
   }
 }
