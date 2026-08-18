@@ -226,7 +226,10 @@ function Shortcut({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center rounded-full border border-border bg-bg-elevated px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+      // Filled inverse pill: near-black in light (bg-ink = #111), inverting to
+      // near-white in dark; the label uses the opposite surface so it stays
+      // legible in both themes.
+      className="inline-flex items-center rounded-full bg-ink text-bg-elevated px-4 py-2 text-sm font-medium transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       {label}
     </Link>
