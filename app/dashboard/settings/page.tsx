@@ -58,7 +58,13 @@ export default function SettingsPage() {
 
               <div className="w-full max-w-2xl">
                 {active === 'profile' && (
-                  <ProfileSection userName={s.userName} setUserName={s.setUserName} />
+                  <ProfileSection
+                    userName={s.userName}
+                    setUserName={s.setUserName}
+                    jobTitle={s.jobTitle}
+                    setJobTitle={s.setJobTitle}
+                    userEmail={s.userEmail}
+                  />
                 )}
                 {active === 'appearance' && <AppearanceSection />}
                 {active === 'general' && (
