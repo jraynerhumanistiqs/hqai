@@ -158,6 +158,10 @@ export async function POST(req: NextRequest) {
       empTypes: business?.employment_types || 'Mixed',
       advisorName: business?.advisor_name || 'Sarah',
       userName: profile?.full_name || '',
+      // AI Advisor customisation (Settings > AI Advisor). Style only.
+      tone: business?.advisor_tone || undefined,
+      detail: business?.advisor_detail || undefined,
+      instructions: business?.advisor_instructions || undefined,
     })
 
     // Save user message (fire-and-forget to avoid blocking the response)

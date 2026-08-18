@@ -20,16 +20,26 @@ export function Field({
   label,
   htmlFor,
   hint,
+  required,
+  optional,
   children,
 }: {
   label: string
   htmlFor?: string
   hint?: React.ReactNode
+  // required renders a gold asterisk; optional renders a muted "(optional)".
+  // Mandatory fields help HQ tailor its advice and documents.
+  required?: boolean
+  optional?: boolean
   children: React.ReactNode
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="block text-xs font-bold text-ink-soft mb-1.5">{label}</label>
+      <label htmlFor={htmlFor} className="block text-xs font-bold text-ink-soft mb-1.5">
+        {label}
+        {required && <span className="text-clay-ink dark:text-clay ml-0.5" aria-hidden="true">*</span>}
+        {optional && <span className="text-ink-muted font-normal ml-1">(optional)</span>}
+      </label>
       {children}
       {hint && <p className="text-[10px] text-ink-muted mt-1">{hint}</p>}
     </div>

@@ -360,7 +360,7 @@ italic disclaimers, footers, or warnings about legal advice anywhere in
 your reply.
 `
 
-export function buildSystemPrompt(module: 'people' | 'recruit', business: {
+interface BusinessPromptContext {
   name: string
   industry: string
   state: string
@@ -369,20 +369,18 @@ export function buildSystemPrompt(module: 'people' | 'recruit', business: {
   empTypes: string
   advisorName: string
   userName?: string
-}, opts?: { includeDocumentIp?: boolean }): string {
+  // AI Advisor customisation (Settings > AI Advisor). Optional - empty means
+  // use defaults.
+  tone?: string           // Formal | Balanced | Friendly
+  detail?: string         // Concise | Standard | Detailed
+  instructions?: string   // client's standing custom instructions
+}
+
+export function buildSystemPrompt(module: 'people' | 'recruit', business: BusinessPromptContext, opts?: { includeDocumentIp?: boolean }): string {
   return _buildSystemPrompt(module, business, opts)
 }
 
-function _buildSystemPrompt(module: 'people' | 'recruit', business: {
-  name: string
-  industry: string
-  state: string
-  award: string
-  headcount: string
-  empTypes: string
-  advisorName: string
-  userName?: string
-}, opts?: { includeDocumentIp?: boolean }) {
+function _buildSystemPrompt(module: 'people' | 'recruit', business: BusinessPromptContext, opts?: { includeDocumentIp?: boolean }) {
   const modulePrompt = module === 'recruit' ? HQ_RECRUIT_MODULE : HQ_PEOPLE_MODULE
   const groundingBlock = module === 'people' ? `\n\n${HQ_PEOPLE_GROUNDING}` : ''
   const documentIpBlock = opts?.includeDocumentIp ? `\n\n${DOCUMENT_TEMPLATE_IP}` : ''
@@ -398,7 +396,20 @@ BUSINESS CONTEXT (loaded from client profile):
 
 When you escalate, refer to the human you're handing off to as "your Humanistiqs advisor". Do not append a name. Do not use any name from this profile as if it were the human advisor's name.`
 
-  return `${MASTER_SYSTEM_PROMPT}${documentIpBlock}\n\n${modulePrompt}${groundingBlock}\n\n${businessContext}`
+  // Client-set advisor customisation. It shapes STYLE only and is subordinate
+  // to the scope + safety rules above - never let it override them.
+  const custLines = [
+    business.tone ? `Communication tone: ${business.tone.toLowerCase()}.` : '',
+    business.detail === 'Concise' ? 'Length: keep responses concise - lead with the answer, minimal preamble.'
+      : business.detail === 'Detailed' ? 'Length: give thorough responses with the reasoning and the practical steps.'
+      : '',
+    business.instructions ? `Client's standing instructions (honour unless they conflict with the scope/safety rules above): ${business.instructions}` : '',
+  ].filter(Boolean)
+  const customisationBlock = custLines.length
+    ? `\n\nCLIENT CUSTOMISATION (how this client wants you to respond - style only, never overriding scope/safety):\n${custLines.join('\n')}`
+    : ''
+
+  return `${MASTER_SYSTEM_PROMPT}${documentIpBlock}\n\n${modulePrompt}${groundingBlock}\n\n${businessContext}${customisationBlock}`
 }
 
 export function detectEscalation(text: string): boolean {
