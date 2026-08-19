@@ -61,7 +61,7 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
 
 // Pre-filled AI summary query, URL-encoded once and reused per engine.
 const AI_QUERY = encodeURIComponent(
-  'What is HQ.ai (hqai.vercel.app), the Australian AI HR and recruitment tool, and who is it for?',
+  'What is HQ.ai (humanistiqs.ai), the Australian AI HR and recruitment tool, and who is it for?',
 )
 
 const AI_SUMMARY_LINKS: { label: string; href: string }[] = [

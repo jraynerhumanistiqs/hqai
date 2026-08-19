@@ -158,7 +158,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const headerMenuRef = useRef<HTMLDivElement | null>(null)
 
   const pathSegment = session.slug || session.id
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.humanistiqs.ai'
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://humanistiqs.ai'
   const candidateUrl = initialCandidateUrl || `${origin}/prescreen/${pathSegment}`
 
   const [prevSessionId, setPrevSessionId] = useState(session.id)

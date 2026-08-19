@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
             if (recipient) {
               const display = PLAN_DISPLAY[planKey] ?? { name: planKey, band: 'plan' }
-              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'
+              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://humanistiqs.ai'
               const dashboardUrl = `${baseUrl}/dashboard`
               const nextBillDate = subscription.current_period_end
                 ? new Date(subscription.current_period_end * 1000)

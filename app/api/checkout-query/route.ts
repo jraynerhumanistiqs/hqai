@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   const origin = req.headers.get('origin')
     || process.env.NEXT_PUBLIC_BASE_URL
-    || 'https://hqai.vercel.app'
+    || 'https://humanistiqs.ai'
   // Onboarding resume-guards an unpaid business straight to the payment step.
   const resumeUrl = `${origin}/onboarding`
 

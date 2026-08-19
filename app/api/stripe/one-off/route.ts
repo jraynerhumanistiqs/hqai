@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   const origin = req.headers.get('origin')
     || process.env.NEXT_PUBLIC_BASE_URL
-    || 'https://www.humanistiqs.ai'
+    || 'https://humanistiqs.ai'
   const successUrl = (typeof body.successUrl === 'string' && body.successUrl.startsWith(origin))
     ? body.successUrl
     : `${origin}/offer/success?session_id={CHECKOUT_SESSION_ID}`

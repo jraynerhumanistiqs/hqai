@@ -87,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
     const slug = (session as any).slug || row.session_id
     // The ?response= query param lets the prescreen page pass it back
     // to the responses POST so we can UPDATE this specific placeholder

@@ -3,12 +3,12 @@
 // hanging or producing a server error event.
 //
 // Usage:
-//   BASE_URL=https://hqai.vercel.app EVAL_BYPASS_TOKEN=xxx node scripts/smoke-chat.mjs
+//   BASE_URL=https://humanistiqs.ai EVAL_BYPASS_TOKEN=xxx node scripts/smoke-chat.mjs
 //
 // EVAL_BYPASS_TOKEN must match the env var on the deployment. Without it the
 // route will 401 because there's no real Supabase session.
 
-const BASE_URL = process.env.BASE_URL || 'https://hqai.vercel.app'
+const BASE_URL = process.env.BASE_URL || 'https://humanistiqs.ai'
 const TOKEN = process.env.EVAL_BYPASS_TOKEN
 const SOFT_LIMIT_MS = 60_000
 const HARD_LIMIT_MS = 90_000

@@ -9,7 +9,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const FROM_EMAIL = 'HQ.ai by Humanistiqs <noreply@humanistiqs.ai>'
-const APP_URL = Deno.env.get('APP_URL') || 'https://hqai.vercel.app'
+const APP_URL = Deno.env.get('APP_URL') || 'https://humanistiqs.ai'
 
 // ── Email templates ───────────────────────────────────────────
 

@@ -42,7 +42,7 @@ import { buildMarkdownReport } from './report'
 import type { Category, EvalRun, GoldenQuestion, RunQuestionResult } from './types'
 
 const BASE_URL = process.env.HQAI_EVAL_BASE_URL ?? 'http://localhost:3000'
-if (BASE_URL.includes('hqai.vercel.app') || BASE_URL.includes('production')) {
+if (BASE_URL.includes('hqai.vercel.app') || BASE_URL.includes('humanistiqs.ai') || BASE_URL.includes('production')) {
   console.error('Refusing to run evaluation against what looks like production. Unset HQAI_EVAL_BASE_URL or point it at a preview.')
   process.exit(1)
 }

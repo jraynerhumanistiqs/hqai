@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
     const slug = (session.slug as string | null) ?? session.id
     return NextResponse.json({
       session_id: session.id,

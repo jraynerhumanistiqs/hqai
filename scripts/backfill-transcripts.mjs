@@ -35,7 +35,7 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-const BASE = process.env.HQAI_TRANSCRIBE_BASE_URL ?? 'https://hqai.vercel.app'
+const BASE = process.env.HQAI_TRANSCRIBE_BASE_URL ?? 'https://humanistiqs.ai'
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 if (!SUPA_URL || !SUPA_KEY) {

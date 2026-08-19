@@ -39,7 +39,7 @@ export async function POST(
 
     if (error || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
     const inviteUrl = `${baseUrl}/prescreen/${(session as any).slug || session_id}`
 
     await sendCandidateInviteEmail({

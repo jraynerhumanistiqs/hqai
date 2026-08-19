@@ -38,8 +38,8 @@ const jsonLd = {
     {
       '@type': 'Organization',
       name: 'HQ.ai',
-      url: 'https://hqai.vercel.app',
-      logo: 'https://hqai.vercel.app/logo.svg',
+      url: 'https://humanistiqs.ai',
+      logo: 'https://humanistiqs.ai/logo.svg',
       parentOrganization: {
         '@type': 'Organization',
         name: 'Humanistiqs (Rayner Consulting Group Pty Ltd)',

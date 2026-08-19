@@ -20,7 +20,7 @@ import { resolveStripeKey } from './stripe-key'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ENV_LOCAL = join(__dirname, '..', '.env.local')
-const ORIGIN = 'https://hqai.vercel.app'
+const ORIGIN = 'https://humanistiqs.ai'
 
 // Expected AUD whole-dollar amounts, keyed by the env var the app resolves.
 const EXPECTED: Record<string, number> = {
@@ -82,7 +82,7 @@ async function main() {
 
   // ---- Phase 2: live Checkout Session smoke test (unpaid, expires) ----
   console.log('\n== Phase 2: live Checkout Session creation (no charge; sessions expire unpaid) ==')
-  const stamp = 'verify-noreply@hqai.vercel.app'
+  const stamp = 'verify-noreply@humanistiqs.ai'
   for (const key of SUB_KEYS) {
     const id = ids[key]
     if (!id) { console.log(`  SKIP  ${key} (no id)`); continue }

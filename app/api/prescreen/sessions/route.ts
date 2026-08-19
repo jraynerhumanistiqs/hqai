@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
     const pathSegment = data.slug || data.id
     return NextResponse.json({
       session: data,

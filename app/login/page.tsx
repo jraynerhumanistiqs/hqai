@@ -136,7 +136,7 @@ function LoginInner() {
     // callback passes them through its redirect.
     const callback = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/callback${readPlanQuery()}`
-      : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.humanistiqs.ai'}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://humanistiqs.ai'}/auth/callback`
     const { error: magicError } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: callback },

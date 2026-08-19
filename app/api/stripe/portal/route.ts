@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No billing account' }, { status: 400 })
   }
 
-  const origin = req.headers.get('origin') || 'https://www.humanistiqs.ai'
+  const origin = req.headers.get('origin') || 'https://humanistiqs.ai'
 
   try {
     const session = await getStripe().billingPortal.sessions.create({

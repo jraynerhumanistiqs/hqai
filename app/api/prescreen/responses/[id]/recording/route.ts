@@ -26,7 +26,7 @@ interface Body {
 }
 
 async function triggerScoringPipeline(responseId: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
   try {
     const tx = await fetch(`${baseUrl}/api/prescreen/responses/${responseId}/transcribe`, { method: 'POST' })
     if (!tx.ok) {

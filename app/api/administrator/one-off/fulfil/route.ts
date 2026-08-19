@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 6. Email
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.humanistiqs.ai'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://humanistiqs.ai'
   const shareUrl = `${baseUrl}/doc/${row.id}`
   const mail = await sendOneOffLetterOfOfferEmail({
     toEmail:       email,

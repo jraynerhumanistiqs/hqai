@@ -9,7 +9,7 @@
 // Designed to run against a deployed environment OR a local dev server.
 // Usage:
 //   BASE_URL=http://localhost:3000 AUTH_COOKIE="<sb-...>=<value>" node scripts/smoke-doc-engine.mjs
-//   BASE_URL=https://hqai.vercel.app AUTH_COOKIE="..." node scripts/smoke-doc-engine.mjs
+//   BASE_URL=https://humanistiqs.ai AUTH_COOKIE="..." node scripts/smoke-doc-engine.mjs
 //
 // The script uses a signed-in user's auth cookie to call the protected
 // API. In CI we'd swap to a service-role / eval token, but for now a
