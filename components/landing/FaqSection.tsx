@@ -1,4 +1,4 @@
-// FAQ - decision-making rewrite (May 2026). Nine Q&A pairs, less
+// FAQ - decision-making rewrite (May 2026). Eight Q&A pairs, less
 // Fair-Work-heavy, more time/cost/trust framing. Native <details>/<summary>
 // disclosure accordion: one markup block works with or without JS, so the
 // copy is served to the DOM exactly once (no <noscript> duplicate, no
@@ -7,15 +7,11 @@
 const FAQS: Array<{ q: string; a: string }> = [
   {
     q: 'Will it actually save me time?',
-    a: "Yes. That's the whole point. A job that used to eat half a day - Googling, calling an advisor, drafting a document - takes three minutes here. We track it for every customer in their first month.",
+    a: "Yes. That's the whole point. A job that used to eat half a day - Googling, calling an advisor, waiting for a callback - takes three minutes here. We track it for every customer in their first month.",
   },
   {
     q: 'Why pay when I can just Google it?',
     a: 'Google gives you 47 American answers and a few Fair Work pages buried on page two. We give you the right answer for your business in 30 seconds, and show you where it comes from. Your time is worth more than $59 a month.',
-  },
-  {
-    q: 'I only need one document. Do I have to subscribe?',
-    a: 'No. One-off documents are pay-as-you-go - buy just the document you need from $39, with no subscription and no account.',
   },
   {
     q: 'Can I trust the AI on real decisions?',
@@ -23,7 +19,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'What does it cost?',
-    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has unlimited logins. Cancel any time. One-off documents start at $39 with no signup.',
+    a: 'Pick what you need. HQ People (HR help) is from $59 a month. HQ Recruit (hiring) is a $40 add-on. Or take the HQ Business bundle - $89 a month for a small team, $269 for a bigger one. Every plan has unlimited logins. Cancel any time.',
   },
   {
     q: 'Do you offer a dedicated advisor?',

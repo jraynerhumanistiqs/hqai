@@ -37,7 +37,7 @@ const EXCHANGES: Exchange[] = [
   {
     q: 'Do I have to pay out unused annual leave?',
     a: 'Yes. When someone leaves, their unused annual leave is paid out, at the rate they would have been paid.',
-    marker: 'Want the letter? One click.',
+    marker: 'Answered in seconds',
   },
 ]
 

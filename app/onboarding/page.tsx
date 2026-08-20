@@ -499,7 +499,7 @@ export default function OnboardingPage() {
                 Getting started
               </p>
               <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Tell us about your business</h2>
-              <p className="text-sm text-mid mb-6">HQ uses this to tailor every answer and document to your business. Takes about a minute.</p>
+              <p className="text-sm text-mid mb-6">HQ uses this to tailor every answer to your business. Takes about a minute.</p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-mid mb-1.5">Business name</label>

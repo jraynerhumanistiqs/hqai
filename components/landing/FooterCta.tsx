@@ -10,7 +10,7 @@ export default function FooterCta() {
           Three minutes. Better decisions today.
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base text-ink-soft md:text-lg">
-          You&apos;ll have your first HR question answered, your first document drafted, and your team set up before the kettle boils.
+          You&apos;ll have your first HR question answered and your team set up before the kettle boils.
         </p>
         <div className="mt-8">
           <Link

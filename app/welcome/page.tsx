@@ -16,7 +16,7 @@ import { trackFunnelEvent } from '@/lib/analytics'
 
 const FIRST_ACTIONS: Array<[string, string]> = [
   ['Ask one real question', 'A leave question, a pay question - anything on your plate right now.'],
-  ['Draft your first document', 'Try "draft a letter of offer for a part-time retail assistant."'],
+  ['Check a rule you are unsure about', 'Try "how much notice do I owe a casual after seven months?"'],
   ['Add your managers', 'Unlimited logins on every plan, at no extra cost.'],
 ]
 

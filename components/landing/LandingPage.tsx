@@ -4,7 +4,7 @@
 //
 //   Hero -> SocialProof -> Problem (Without/With) -> Metrics (deltas) ->
 //   ToolExplorer (animated tabbed centerpiece) -> Persona band ->
-//   Marketplace -> CustomerStory -> Comparison -> Pricing -> FAQ ->
+//   CustomerStory -> Comparison -> Pricing -> FAQ ->
 //   FooterCta -> StickyMobile
 //
 // The single-tool deep-dives (ProductPillars / People / Recruit) now live
@@ -28,16 +28,13 @@ import StickyMobileCta from './StickyMobileCta'
 
 // Below-the-fold, interaction-heavy sections are code-split so they don't
 // weigh down the landing page's initial JS bundle. ToolExplorer (the
-// animated tabbed centerpiece) and the Marketplace carousel keep SSR on
-// (ssr defaults to true) so their content still server-renders - no layout
-// shift or SEO loss - while their client JS is deferred into separate chunks
-// that hydrate after the above-the-fold content. A min-height placeholder
-// reserves space to avoid CLS if a chunk is slow.
+// animated tabbed centerpiece) keeps SSR on (ssr defaults to true) so its
+// content still server-renders - no layout shift or SEO loss - while its
+// client JS is deferred into a separate chunk that hydrates after the
+// above-the-fold content. A min-height placeholder reserves space to avoid
+// CLS if the chunk is slow.
 const ToolExplorer = dynamic(() => import('./ToolExplorer'), {
   loading: () => <div className="min-h-[560px]" aria-hidden="true" />,
-})
-const MarketplaceCarousel = dynamic(() => import('./MarketplaceCarousel'), {
-  loading: () => <div className="min-h-[420px]" aria-hidden="true" />,
 })
 
 export default function LandingPage() {
@@ -50,7 +47,6 @@ export default function LandingPage() {
         <MetricsStrip />
         <div id="product"><ToolExplorer /></div>
         <PersonaBand />
-        <MarketplaceCarousel />
         <CustomerStory />
         <ComparisonSection />
         <PricingSection />

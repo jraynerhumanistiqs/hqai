@@ -66,7 +66,7 @@ export default function PeopleDeepDive() {
               Every answer is in plain English with the working shown - so you can see how it got there and decide with confidence.
             </p>
             <p>
-              Need a document? It writes contracts, warnings, offer letters and more - every HR document you are likely to need - with your logo on them, in an editor that feels just like Word.
+              And when a question is genuinely hard - a dismissal, a serious complaint, anything heading for a dispute - it says so and brings in a real Humanistiqs advisor rather than guessing.
             </p>
           </div>
         </div>

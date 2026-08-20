@@ -3,8 +3,7 @@
 // Persona band - "self-segment" section. A broad set of Australian
 // industries, each with the one HR/hiring pain HQ.ai takes off their
 // plate. An arrowed carousel (prev/next + dots) shows a few at a time so
-// a visitor sees themselves on the page in a glance. Mirrors the carousel
-// pattern in PricingSection's DOC_CATEGORIES.
+// a visitor sees themselves on the page in a glance.
 //
 // Accessible: arrow buttons + dots are real buttons with aria labels, the
 // region is keyboard-reachable (left/right arrows move it), and the fade
@@ -19,21 +18,21 @@ interface Persona {
 }
 
 const PERSONAS: Persona[] = [
-  { label: 'Pubs and hospitality', pain: 'Casuals, split shifts and the right penalty rates - sorted without a phone call.', icon: PubIcon },
-  { label: 'Cafes and restaurants', pain: 'Rosters, junior pay and quick casual hiring, handled between services.', icon: CafeIcon },
-  { label: 'Trades and construction', pain: 'Apprentice pay, contracts and warnings, drafted between jobs.', icon: TradesIcon },
-  { label: 'Retail', pain: 'Rosters, probation and quick seasonal hiring, handled in minutes.', icon: RetailIcon },
-  { label: 'Clinics and allied health', pain: 'Classifications and safe records, without the admin pile-up.', icon: HealthIcon },
-  { label: 'Medical and dental', pain: 'Onboarding, leave and policies for a busy practice, done in minutes.', icon: MedicalIcon },
-  { label: 'Fitness and gyms', pain: 'Casual trainers, contracts and shift cover, sorted on the spot.', icon: FitnessIcon },
-  { label: 'Beauty and salons', pain: 'Junior pay, contracts and warnings, written for you in minutes.', icon: SalonIcon },
-  { label: 'Childcare and early learning', pain: 'Onboarding, records and policies for your educators, kept tidy.', icon: ChildcareIcon },
-  { label: 'Professional services', pain: 'Offer letters, performance plans and policies, drafted in your voice.', icon: ProfessionalIcon },
-  { label: 'Real estate', pain: 'Commission roles, contracts and quick hiring, handled in minutes.', icon: RealEstateIcon },
-  { label: 'Automotive', pain: 'Apprentices, shift cover and warnings, drafted between jobs.', icon: AutoIcon },
-  { label: 'Transport and logistics', pain: 'Driver onboarding, contracts and records, kept in order.', icon: TransportIcon },
-  { label: 'Not-for-profits', pain: 'Volunteers, casual staff and policies, handled without the overhead.', icon: NfpIcon },
-  { label: 'Agriculture', pain: 'Seasonal workers, contracts and records, sorted before the season starts.', icon: AgIcon },
+  { label: 'Pubs and hospitality', pain: 'Casuals, split shifts and the right penalty rates - answered without a phone call.', icon: PubIcon },
+  { label: 'Cafes and restaurants', pain: 'Rosters, junior pay and quick casual hiring - answered between services.', icon: CafeIcon },
+  { label: 'Trades and construction', pain: 'Apprentice pay, notice periods and warnings - answered between jobs.', icon: TradesIcon },
+  { label: 'Retail', pain: 'Rosters, probation and seasonal hiring - a clear answer in minutes.', icon: RetailIcon },
+  { label: 'Clinics and allied health', pain: 'Classifications, leave and what you must keep on file - answered without the admin pile-up.', icon: HealthIcon },
+  { label: 'Medical and dental', pain: 'Onboarding, leave and the rules for a busy practice - answered in minutes.', icon: MedicalIcon },
+  { label: 'Fitness and gyms', pain: 'Casual trainers, shift cover and pay - answered on the spot.', icon: FitnessIcon },
+  { label: 'Beauty and salons', pain: 'Junior pay, probation and warnings - a clear answer in minutes.', icon: SalonIcon },
+  { label: 'Childcare and early learning', pain: 'Onboarding, leave and records for your educators - answered in plain English.', icon: ChildcareIcon },
+  { label: 'Professional services', pain: 'Hiring, performance and pay questions - answered in plain English.', icon: ProfessionalIcon },
+  { label: 'Real estate', pain: 'Commission roles, hiring and pay - answered in minutes.', icon: RealEstateIcon },
+  { label: 'Automotive', pain: 'Apprentices, shift cover and warnings - answered between jobs.', icon: AutoIcon },
+  { label: 'Transport and logistics', pain: 'Driver onboarding, hours and pay - answered clearly.', icon: TransportIcon },
+  { label: 'Not-for-profits', pain: 'Volunteers, casual staff and the rules - answered without the overhead.', icon: NfpIcon },
+  { label: 'Agriculture', pain: 'Seasonal workers, pay rates and hours - answered before the season starts.', icon: AgIcon },
 ]
 
 // How many cards show at once at each breakpoint informs the page count.

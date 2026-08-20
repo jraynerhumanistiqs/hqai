@@ -1,7 +1,7 @@
 'use client'
 
 // "Explore the tools" - the homepage centerpiece (qase-modelled tabbed
-// switcher). Three tabs (HQ People / HQ Recruit / Pay-as-you-go); clicking
+// switcher). Two tabs (HQ People / HQ Recruit); clicking
 // a tab swaps the copy AND an animated in-browser preview. Auto-advances
 // slowly to invite exploration, pauses on hover/focus, and honours
 // prefers-reduced-motion (no auto-advance, previews render in final state).
@@ -47,12 +47,11 @@ const TABS: Tab[] = [
     desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute, in plain English.',
     bullets: [
       'Clear answers to your everyday HR questions',
-      'Drafts every HR document you are likely to need',
+      'Answers that fit your business, your industry and your staff',
       'A real human advisor steps in when it gets tricky',
     ],
     tools: [
       { name: 'AI Assistant chat', desc: 'Plain-English answers to your everyday people questions.' },
-      { name: 'AI Administrator', desc: 'Drafts the documents you need - offer letters, contracts, warnings, performance plans, policies - filled in with your details.' },
       { name: 'A real advisor on call', desc: 'HR365 steps in for the hard calls, with the same person every time.' },
     ],
     cta: { label: 'See HQ People', href: '/product/people' },

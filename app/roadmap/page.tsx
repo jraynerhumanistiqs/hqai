@@ -21,8 +21,7 @@ const COLUMNS: { heading: string; blurb: string; items: string[] }[] = [
     heading: 'Shipped',
     blurb: 'Live in the product today.',
     items: [
-      'HQ People - an AI HR assistant backed by a library of 33 ready-to-use HR documents',
-      'One-off document marketplace - buy a single HR document without a subscription',
+      'HQ People - an AI HR assistant that answers your everyday HR questions in plain English',
       'Campaign Coach - a step-by-step wizard that helps you write a better job ad',
       'CV Scoring Agent - scores every CV against the role, with the evidence behind each score shown',
       'Shortlist Agent - bulk shortlisting with personalised screening questions for each candidate',

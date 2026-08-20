@@ -41,11 +41,6 @@ const ROWS: { dimension: string; traditional: string; hqai: string }[] = [
     hqai: 'Ask the AI, answered in seconds, any hour',
   },
   {
-    dimension: 'Documents',
-    traditional: 'Requested through your provider',
-    hqai: '33 templates ready in your library, generated on the spot',
-  },
-  {
     dimension: 'Pricing',
     traditional: 'Quoted on a sales call',
     hqai: `Published on our pricing page, from $${peopleFrom}/mo`,

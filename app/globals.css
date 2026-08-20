@@ -105,7 +105,7 @@
      text becomes off-white, and the ink "secondary" accent flips to
      light so secondary buttons stay visible. Clay (#D97757) is the
      unchanged brand highlight and still carries the primary CTAs.
-     Login, onboarding, /offer and the dashboard are untouched. */
+     Login, onboarding and the dashboard are untouched. */
   [data-app="marketing"] {
     --bg:               #0A0A0B;
     --bg-soft:          #131417;

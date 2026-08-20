@@ -24,7 +24,7 @@ const LIMITS: { title: string; body: string }[] = [
   },
   {
     title: 'It does not make decisions for you',
-    body: 'It prepares the documents, drafts the letters and answers the everyday questions. The judgement calls stay with you.',
+    body: 'It answers the everyday questions and lays out your options in plain English. The judgement calls stay with you.',
   },
   {
     title: 'It does not guess quietly',
@@ -98,7 +98,7 @@ export default function AiStandardPage() {
                 {[
                   'We review and update the AI\'s grounding when significant workplace changes land, including the annual wage review each July.',
                   'We are building deeper coverage of the most recent financial year\'s reforms right now - it is on our public roadmap, not hidden in a backlog.',
-                  'When something changes that affects documents you have already created, our aim is to tell you, not leave you to find out the hard way.',
+                  'When something changes that affects an answer you have already acted on, our aim is to tell you, not leave you to find out the hard way.',
                 ].map((item) => (
                   <li key={item} className="flex gap-2.5 text-[15px] leading-relaxed text-ink-soft">
                     <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-clay" />

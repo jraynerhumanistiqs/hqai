@@ -6,9 +6,9 @@ import MarketingFooter from '@/components/landing/MarketingFooter'
 import PricingPageClient from '@/components/landing/PricingPageClient'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai pricing - HR from $59/mo, or one document from $39',
+  title: 'HQ.ai pricing - HR from $59/mo, hiring from $65/mo',
   description:
-    'Simple Australian pricing for small business HR and recruitment. Pick HR help, hiring help, or both: HQ People from $59/mo, the HQ Business bundle $89-$269/mo, or buy one HR document from $39 with no subscription.',
+    'Simple Australian pricing for small business HR and recruitment. Pick HR help, hiring help, or both: HQ People from $59/mo, HQ Recruit from $65/mo, or the HQ Business bundle $89-$269/mo. Unlimited logins, no lock-in.',
   alternates: { canonical: '/pricing' },
   robots: { index: true, follow: true },
 }
@@ -27,8 +27,7 @@ export default function PricingPage() {
             Simple pricing. No surprises.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
-            Pay monthly for everything, or buy one document at a time. Unlimited logins on every plan.
-            No lock-in.
+            Pay monthly for HR, hiring, or both. Unlimited logins on every plan. No lock-in.
           </p>
         </section>
         <PricingPageClient />

@@ -78,7 +78,7 @@ export default function HeroSection() {
             <span className="text-clay">easy, quick and accurate.</span>
           </h1>
           <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
-            HQ.ai handles the everyday HR work and hiring processes that cost you time and money. All the questions, the admin, the documents, so the work that used to take hours or days, now takes three minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
+            HQ.ai handles the everyday HR work and hiring processes that cost you time and money. Ask a question, get a clear answer for your business, and get back to work - so the jobs that used to take hours now take minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
           </p>
 
           <div className={`mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 ${reveal(stage >= 2)}`}>
@@ -88,14 +88,8 @@ export default function HeroSection() {
             >
               Get started
             </Link>
-            <a
-              href="#marketplace"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-accent bg-transparent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              See one-off documents from $39 -&gt;
-            </a>
           </div>
-          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>Three minutes to your first document.</p>
+          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>Three minutes to set up. Answers from day one.</p>
         </div>
 
         {/* Right: HQ People is the star; HQ Recruit is a quiet secondary tile. */}

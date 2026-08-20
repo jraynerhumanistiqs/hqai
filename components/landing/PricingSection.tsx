@@ -4,13 +4,12 @@
 // Three self-serve choices: HQ People (HR-only base), HQ Recruit (metered
 // add-on), and Complete (the bundle, which reuses the existing solo/business
 // plan ids + Stripe prices and keeps the $89 / $269 anchors). Below: the
-// on-demand document library (carousel) and the HR365 / RECRUIT365
-// done-for-you teaser.
+// HR365 / RECRUIT365 done-for-you teaser.
 //
 // All prices source from lib/pricing-config.ts - never duplicate inline.
 
 import Link from 'next/link'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
 import { trackFunnelEvent } from '@/lib/analytics'
 
@@ -21,55 +20,14 @@ function funnelSource(): string {
   return window.location.pathname.startsWith('/pricing') ? 'pricing_page' : 'landing_section'
 }
 
-// On-demand document library - grouped by the most commonly requested HR
-// categories. No per-document pricing here; this is the self-service AI
-// Administrator surface ("starting at" the cheapest one-off).
-const DOC_CATEGORIES: { title: string; docs: { name: string; desc: string }[] }[] = [
-  {
-    title: 'Hiring and onboarding',
-    docs: [
-      { name: 'Job descriptions', desc: 'Set out the role, responsibilities and the must-haves.' },
-      { name: 'Employment contracts', desc: 'Pay, hours and conditions, tailored to full-time, part-time or casual.' },
-      { name: 'Onboarding checklists', desc: 'Every form, tax declaration and system set-up, in order.' },
-      { name: 'Workplace policies', desc: 'Conduct, leave, anti-discrimination and internet use - the ground rules.' },
-    ],
-  },
-  {
-    title: 'Performance management',
-    docs: [
-      { name: 'Probation reviews', desc: 'Check a new hire is the right fit in their first weeks.' },
-      { name: 'Performance plans and reviews', desc: 'Set goals and track progress across the year.' },
-      { name: 'Performance improvement plans (PIPs)', desc: 'A fair, clear path to fix underperformance.' },
-    ],
-  },
-  {
-    title: 'Employee relations and leave',
-    docs: [
-      { name: 'Leave request forms', desc: 'Annual, sick or parental leave, captured cleanly for payroll.' },
-      { name: 'Flexible work agreements', desc: 'Request, review and approve arrangements like working from home.' },
-      { name: 'Warning and disciplinary letters', desc: 'Worded properly to address conduct, with procedural fairness.' },
-    ],
-  },
-  {
-    title: 'Offboarding',
-    docs: [
-      { name: 'Resignation acknowledgements', desc: 'A clean, formal acceptance of a resignation.' },
-      { name: 'Exit checklists', desc: 'Return equipment, revoke access and handle final pay.' },
-      { name: 'Exit interview forms', desc: 'Capture why someone is leaving and what to learn from it.' },
-    ],
-  },
-]
-
 export default function PricingSection() {
   // Team size sets the band for the Complete bundle. HQ People always
   // leads with its $59 entry price (see below), so the toggle drives the
   // bundle figure - keeping HQ Business on its $269 (up to 150) anchor.
   const [size, setSize] = useState<0 | 1>(1) // 0 = up to 25, 1 = up to 150
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
-  const [cat, setCat] = useState(0) // active document category
 
   const { people, recruit, bundle } = C10_SELF_SERVE
-  const oneOffs = PRICING.oneOffs
 
   // pricing_viewed - once, when the section enters the viewport. The
   // refs keep the toggle values current without re-observing.
@@ -107,11 +65,6 @@ export default function PricingSection() {
     })
   }
 
-  const cheapestOneOff = useMemo(
-    () => oneOffs.reduce((min, sku) => (sku.price < min.price ? sku : min), oneOffs[0]),
-    [oneOffs],
-  )
-
   const bundlePlan = size === 0 ? bundle.solo : bundle.business
   const annual = cycle === 'annual'
 
@@ -140,9 +93,6 @@ export default function PricingSection() {
   const bundleBig = annual ? fmt(bundlePlan.annualTotal) : fmt(bundlePlan.monthly)
   const bundleSuffix = annual ? '/yr' : '/mo'
   const bundleNote = annual ? `${fmt(Math.round(bundlePlan.annualTotal / 12))} a month, billed annually` : ''
-
-  const activeCat = DOC_CATEGORIES[cat]
-  const moveCat = (dir: 1 | -1) => setCat((c) => (c + dir + DOC_CATEGORIES.length) % DOC_CATEGORIES.length)
 
   return (
     <section id="pricing" ref={sectionRef} className="bg-bg py-14 md:py-20" aria-labelledby="pricing-heading">
@@ -185,7 +135,7 @@ export default function PricingSection() {
           <PlanCard
             kicker="HR only"
             name={people.name}
-            desc="The AI HR assistant, a full document library and the everyday HR jobs handled - no hiring tools."
+            desc="The AI HR advisor for your everyday HR questions, plus the everyday HR jobs handled - no hiring tools."
             price={peopleBig}
             priceSuffix={peopleSuffix}
             priceNote={peopleNote}
@@ -239,69 +189,11 @@ export default function PricingSection() {
           Three minutes from here: create your account, answer a few questions about your business, start your plan. Unlimited logins on every plan - you are never charged per person.
         </p>
 
-        {/* Bottom row: on-demand document library (carousel) + HR365/RECRUIT365 teaser */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-          {/* On-demand documents - AI Administrator */}
-          <div className="rounded-2xl border border-border bg-bg-soft p-7 md:p-8">
-            <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">On-demand documents</p>
-            <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
-              Your self-service AI Administrator
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Need a document right now? Your AI Administrator drafts it on demand - professionally written
-              and ready to use. The HR and recruitment documents that employers ask for most, filled in with
-              your details, ready the moment you are. No subscription needed.
-            </p>
-            <p className="mt-3 text-sm font-semibold text-ink">Starting at ${cheapestOneOff.price}.</p>
-
-            {/* Category carousel */}
-            <div className="mt-6 rounded-2xl border border-border bg-bg p-5">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                  Most commonly requested document types
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <CarouselBtn dir="prev" onClick={() => moveCat(-1)} />
-                  <CarouselBtn dir="next" onClick={() => moveCat(1)} />
-                </div>
-              </div>
-
-              <div key={cat} className="cat-fade mt-4 min-h-[188px]">
-                <h4 className="font-display text-lg font-bold tracking-tight text-ink">{activeCat.title}</h4>
-                <ul className="mt-3 space-y-2.5">
-                  {activeCat.docs.map((d) => (
-                    <li key={d.name} className="flex items-start gap-2.5">
-                      <svg viewBox="0 0 16 16" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-soft" aria-hidden>
-                        <path fill="currentColor" d="M6.2 11.4 3 8.2l1.1-1.1 2.1 2.1 5.7-5.7 1.1 1.1z" />
-                      </svg>
-                      <span className="text-sm leading-snug text-ink-soft">
-                        <strong className="font-semibold text-ink">{d.name}.</strong> {d.desc}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Dots */}
-              <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-3" role="tablist" aria-label="Document categories">
-                {DOC_CATEGORIES.map((c, i) => (
-                  <button
-                    key={c.title}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === cat}
-                    aria-label={c.title}
-                    onClick={() => setCat(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === cat ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          {/* HR365 / RECRUIT365 teaser */}
-          <aside className="flex flex-col rounded-2xl border border-border bg-bg-soft p-7">
+        {/* Bottom row: the HR365 / RECRUIT365 done-for-you teaser. One
+            full-width panel: copy on the left, the conceptual graphic on
+            the right from md up. */}
+        <aside className="mt-10 flex flex-col gap-8 rounded-2xl border border-border bg-bg-soft p-7 md:flex-row md:items-center md:justify-between md:gap-12 md:p-8">
+          <div className="max-w-xl">
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Want a human on call?</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
               HR365 and RECRUIT365
@@ -312,66 +204,45 @@ export default function PricingSection() {
             </p>
             <Link
               href="/outsourcing"
-              className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft"
+              className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full border border-accent bg-transparent px-5 text-sm font-semibold text-accent transition-colors hover:bg-accent-soft sm:w-auto"
             >
               See HR365 and RECRUIT365 -&gt;
             </Link>
+          </div>
 
-            {/* Conceptual graphic - a real one-to-one between your advisor and you, AI quietly doing the admin */}
-            <div className="mt-auto pt-8">
-              <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden role="img">
-                {/* the two people, leaning in toward each other - a genuine conversation */}
-                <g className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  {/* your dedicated advisor (left) */}
-                  <circle cx="64" cy="74" r="16" />
-                  <path d="M40 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
-                  {/* you (right), turned toward them */}
-                  <circle cx="150" cy="74" r="16" />
-                  <path d="M126 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
-                </g>
-                {/* warmth between them - a shared speech bubble with a heart, personal and approachable */}
-                <g className="text-clay" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                  <path d="M88 38h38a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8h-19l-9 8v-8h-1a8 8 0 0 1-8-8V46a8 8 0 0 1 8-8z" />
-                </g>
-                {/* a small heart inside the bubble - approachable, personal */}
-                <path d="M107 49c-2.6-3.6-9-3-9 2 0 3.5 4.6 6.4 9 9.4 4.4-3 9-5.9 9-9.4 0-5-6.4-5.6-9-2z" className="text-clay" fill="currentColor" stroke="none" />
-                {/* AI, off to the side, quietly handling the admin */}
-                <g className="text-ink-muted">
-                  <rect x="218" y="92" width="40" height="40" rx="11" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7" />
-                  <path d="M238 100l3.2 7 7 3.2-7 3.2-3.2 7-3.2-7-7-3.2 7-3.2z" fill="currentColor" opacity="0.7" />
-                </g>
-                <path d="M180 112h32" className="text-ink-muted" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="1 8" opacity="0.7" />
-              </svg>
-              <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-                One advisor who knows you - the AI just does the admin.
-              </p>
-            </div>
-          </aside>
-        </div>
+          {/* Conceptual graphic - a real one-to-one between your advisor and you, AI quietly doing the admin */}
+          <div className="shrink-0 md:w-[300px]">
+            <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden role="img">
+              {/* the two people, leaning in toward each other - a genuine conversation */}
+              <g className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                {/* your dedicated advisor (left) */}
+                <circle cx="64" cy="74" r="16" />
+                <path d="M40 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
+                {/* you (right), turned toward them */}
+                <circle cx="150" cy="74" r="16" />
+                <path d="M126 116c0-13.3 10.7-24 24-24s24 10.7 24 24" />
+              </g>
+              {/* warmth between them - a shared speech bubble with a heart, personal and approachable */}
+              <g className="text-clay" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                <path d="M88 38h38a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8h-19l-9 8v-8h-1a8 8 0 0 1-8-8V46a8 8 0 0 1 8-8z" />
+              </g>
+              {/* a small heart inside the bubble - approachable, personal */}
+              <path d="M107 49c-2.6-3.6-9-3-9 2 0 3.5 4.6 6.4 9 9.4 4.4-3 9-5.9 9-9.4 0-5-6.4-5.6-9-2z" className="text-clay" fill="currentColor" stroke="none" />
+              {/* AI, off to the side, quietly handling the admin */}
+              <g className="text-ink-muted">
+                <rect x="218" y="92" width="40" height="40" rx="11" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7" />
+                <path d="M238 100l3.2 7 7 3.2-7 3.2-3.2 7-3.2-7-7-3.2 7-3.2z" fill="currentColor" opacity="0.7" />
+              </g>
+              <path d="M180 112h32" className="text-ink-muted" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="1 8" opacity="0.7" />
+            </svg>
+            <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
+              One advisor who knows you - the AI just does the admin.
+            </p>
+          </div>
+        </aside>
 
       </div>
-
-      <style jsx>{`
-        .cat-fade { animation: catFade 320ms ease-out both; }
-        @keyframes catFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        @media (prefers-reduced-motion: reduce) { .cat-fade { animation: none; } }
-      `}</style>
     </section>
-  )
-}
-
-function CarouselBtn({ dir, onClick }: { dir: 'prev' | 'next'; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={dir === 'prev' ? 'Previous category' : 'Next category'}
-      className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-ink-soft transition-colors hover:border-ink hover:text-ink"
-    >
-      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        {dir === 'prev' ? <path d="M10 3 5 8l5 5" /> : <path d="M6 3l5 5-5 5" />}
-      </svg>
-    </button>
   )
 }
 

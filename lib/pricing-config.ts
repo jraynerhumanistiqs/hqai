@@ -178,9 +178,7 @@ export const PRICING: PricingShape = {
       stripePriceIdAnnual: 'STRIPE_PRICE_ID_SOLO_ANNUAL',
       features: [
         'AI HR assistant for everyday questions',
-        'A full HR document library',
         'HQ Recruit (1 active role)',
-        'Document library (100 docs)',
         '500 AI credits/month',
         'Pay-as-you-go advisor escalation ($80/session)',
         'Email support',
@@ -206,7 +204,6 @@ export const PRICING: PricingShape = {
         'Everything in Solo',
         '15 seats',
         'HQ Recruit (unlimited roles)',
-        'Unlimited document library',
         '2,500 AI credits/month',
         '2 advisor escalations included/month',
         'Founder-led onboarding call (30 min)',
@@ -632,15 +629,15 @@ export const C10_SELF_SERVE = {
   people: {
     name: 'HQ People',
     kicker: 'HR help',
-    desc: 'The AI HR assistant, a full document library and the everyday HR jobs handled. The everyday HR product, used all year.',
+    desc: 'The AI HR assistant for your everyday HR questions and the everyday HR jobs handled. The everyday HR product, used all year.',
     bands: [
       { label: 'up to 25', monthly: 59, annualTotal: 590, credits: 400 },
       { label: 'up to 150', monthly: 179, annualTotal: 1790, credits: 1500 },
     ] as C10Band[],
     features: [
       'AI HR assistant for everyday questions',
-      'A full HR document library',
-      'Award interpreter',
+      'Answers grounded in Australian workplace rules',
+      'Set up around your industry and your award',
       'Unlimited logins',
     ],
   },

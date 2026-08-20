@@ -11,7 +11,7 @@ import Cited from '@/components/landing/Cited'
 export const metadata: Metadata = {
   title: 'HQ People - AI that handles your everyday HR work',
   description:
-    'Ask any HR question and get a clear answer in plain English, draft the documents you need, and hand off to a real advisor when it matters.',
+    'Ask any HR question and get a clear answer in plain English, for your business and your industry, and hand off to a real advisor when it matters.',
   alternates: { canonical: '/product/people' },
   robots: { index: true, follow: true },
 }
@@ -29,9 +29,9 @@ const FEATURES = [
     icon: CheckIcon,
   },
   {
-    t: 'The documents, written for you',
-    d: 'Offer letters, warnings, performance plans, contracts and more - filled in with your details, ready to send.',
-    icon: DocumentIcon,
+    t: 'Built around your business',
+    d: 'It remembers your industry, your award and how you run things, so the answer fits you - not a generic template.',
+    icon: BuildingIcon,
   },
   {
     t: 'A real human when it counts',
@@ -46,7 +46,7 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '3 min', label: 'to a finished HR document' },
+  { value: '3 min', label: 'to set up your business' },
   { value: '30 sec', label: 'to a clear answer' },
   { value: 'Every', label: 'Australian industry covered' },
 ]
@@ -66,8 +66,8 @@ export default function ProductPeoplePage() {
             An HR assistant that does the everyday work for you.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
-            Ask anything about your staff, pay or the rules. HQ People answers in plain English, drafts
-            the document, and hands you to a real human when the stakes are high.
+            Ask anything about your staff, pay or the rules. HQ People answers in plain English, shows
+            you how it got there, and hands you to a real human when the stakes are high.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
@@ -110,7 +110,7 @@ export default function ProductPeoplePage() {
               Everything HQ People does for you.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-              The everyday HR work, taken off your plate - the questions answered, the documents drafted.
+              The everyday HR work, taken off your plate - the questions answered, the guesswork gone.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">
@@ -148,12 +148,13 @@ function CheckIcon() {
     </svg>
   )
 }
-function DocumentIcon() {
+function BuildingIcon() {
   return (
     <svg aria-hidden viewBox="0 0 32 32" className="h-6 w-6 stroke-current" fill="none" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 5h10l5 5v17H9V5Z" />
-      <path d="M19 5v5h5" />
-      <path d="M13 16h7M13 20h7" />
+      <path d="M7 27V8l9-3v22" />
+      <path d="M16 27V13l9 3v11" />
+      <path d="M11 12h1M11 17h1M11 22h1M20 19h1M20 23h1" />
+      <path d="M4 27h24" />
     </svg>
   )
 }

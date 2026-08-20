@@ -14,7 +14,7 @@ import LandingPage from '@/components/landing/LandingPage'
 export const dynamic = 'force-dynamic'
 
 const DESCRIPTION =
-  'AI that takes the busywork out of HR and hiring for Australian small business. Answers the everyday questions, drafts the documents, and hands off to a real advisor when it matters. For businesses under 250 staff.'
+  'AI that takes the busywork out of HR and hiring for Australian small business. Answers the everyday questions, runs your hiring, and hands off to a real advisor when it matters. For businesses under 250 staff.'
 
 export const metadata = {
   title: 'HQ.ai - AI that takes the grunt work out of HR and hiring',

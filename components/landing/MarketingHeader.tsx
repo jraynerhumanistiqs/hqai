@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 // place that flags the marketing theme scope on <html>. The dark
 // (inverted) marketing palette lives under [data-app="marketing"] in
 // globals.css, so it applies only to pages with this nav - login,
-// onboarding, offer and the dashboard are unaffected.
+// onboarding and the dashboard are unaffected.
 function useMarketingScope() {
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -29,7 +29,7 @@ function useMarketingScope() {
 const PRODUCTS = [
   { label: 'HQ People', href: '/product/people', blurb: 'AI HR help for the everyday people questions' },
   { label: 'HQ Recruit', href: '/product/recruit', blurb: 'Score CVs, pre-screen, shortlist' },
-  { label: 'Document Marketplace', href: '/marketplace', blurb: 'Buy individual HR documents, pay as you go' },
+  { label: 'Marketplace', href: '/marketplace', blurb: 'Coming soon' },
   { label: 'Outsourced HR & Recruitment', href: '/outsourcing', blurb: 'A dedicated advisor on call - HR365 & Recruit365' },
 ]
 
