@@ -1,6 +1,6 @@
 'use client'
 
-// SlashCommand - Notion-style "/" menu for the AI Administrator DocEditor.
+// SlashCommand - Notion-style "/" menu for the DocEditor.
 //
 // Built on @tiptap/suggestion (an MIT Tiptap primitive) so the trigger,
 // query matching and keyboard plumbing come for free, and rendered as a

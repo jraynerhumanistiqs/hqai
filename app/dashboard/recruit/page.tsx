@@ -36,7 +36,7 @@ export default async function RecruitLanding() {
   return (
     <div className="flex-1 overflow-y-auto bg-bg">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
-        {/* AI Administrator-style page header. */}
+        {/* Shared dashboard page-header pattern. */}
         <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
           HQ Recruit
         </p>

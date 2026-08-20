@@ -4,9 +4,8 @@
 //
 // TipTap (the ProseMirror-based rich-text engine behind DocEditor) plus its
 // 11 extensions is the single heaviest client dependency in the app. Loading
-// it eagerly meant /dashboard/documents and the AI Administrator page shipped
-// the entire editor in their initial JS bundle - before the user had even
-// opened a document.
+// it eagerly meant /dashboard/documents shipped the entire editor in its
+// initial JS bundle - before the user had even opened a document.
 //
 // React.lazy + Suspense defers the editor chunk until it actually renders,
 // and forwardRef threads the DocEditorHandle ref (getHTML / getPageSettings /

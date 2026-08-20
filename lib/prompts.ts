@@ -88,8 +88,8 @@ NAMING DISCIPLINE:
 - The business profile field "Named advisor" may have been set by the client to their AI advisor's display name, so do NOT use that field as the human advisor's name.
 - Do not refer to yourself by a name. You are the AI advisor; the user knows what to call you from the UI.
 
-DOCUMENT GENERATION:
-When the user asks for a document (contract, letter, PIP, etc.), confirm employment type, award coverage, and state jurisdiction. Never generate dismissal, redundancy, or serious misconduct documents without escalating first. The chat surface only ever offers a high-level summary of what will go in the document - the actual clause-by-clause draft is produced by the dedicated /api/documents/contract endpoint, which loads the full Humanistiqs template IP.
+WHEN THE USER ASKS FOR A DOCUMENT:
+You do not produce documents. Explain in prose what the document needs to cover, section by section, and what the user must confirm before they write it - employment type, award coverage, and state jurisdiction at minimum. For dismissal, redundancy, or serious misconduct, do not walk them through it at all: escalate to their Humanistiqs advisor first.
 
 FORMAT: Use markdown. Bold key terms. Use bullet points for lists.
 
@@ -527,23 +527,29 @@ export function buildTriageReply(t: HardTriage, _ignoredAdvisorName: string): st
   return intro[t.category] + followup
 }
 
-export function detectDocumentRequest(text: string): string | null {
-  const docs: [string[], string][] = [
-    [['employment contract', 'contract of employment'], 'Employment Contract'],
-    [['letter of offer', 'offer letter'], 'Letter of Offer'],
-    [['job advertisement', 'job ad', 'job advert'], 'Job Advertisement'],
-    [['warning letter', 'first warning', 'final warning'], 'Warning Letter'],
-    [['termination letter', 'letter of termination'], 'Termination Letter'],
-    [['performance improvement plan', 'pip'], 'Performance Improvement Plan'],
-    [['suitable duties', 'return to work plan'], 'Suitable Duties Plan'],
-    [['variation letter', 'contract variation'], 'Contract Variation Letter'],
-    [['redundancy letter'], 'Redundancy Letter'],
-    [['reference check'], 'Reference Check Template'],
-    [['screening questions'], 'Candidate Screening Questions'],
+// Long-form-answer signal.
+//
+// These HR topics cannot be answered usefully in a couple of paragraphs -
+// they need structure, exceptions, and process steps. The chat route uses
+// this to lift its max_tokens ceiling and to keep the turn off the cheapest
+// model tier. It says nothing about producing a file: the reply is prose.
+//
+// Keyword list retained verbatim from the retired document detector so the
+// tier / token behaviour on existing traffic is unchanged.
+export function wantsDetailedAnswer(text: string): boolean {
+  const topics: string[] = [
+    'employment contract', 'contract of employment',
+    'letter of offer', 'offer letter',
+    'job advertisement', 'job ad', 'job advert',
+    'warning letter', 'first warning', 'final warning',
+    'termination letter', 'letter of termination',
+    'performance improvement plan', 'pip',
+    'suitable duties', 'return to work plan',
+    'variation letter', 'contract variation',
+    'redundancy letter',
+    'reference check',
+    'screening questions',
   ]
   const lower = text.toLowerCase()
-  for (const [keywords, docType] of docs) {
-    if (keywords.some(k => lower.includes(k))) return docType
-  }
-  return null
+  return topics.some(k => lower.includes(k))
 }

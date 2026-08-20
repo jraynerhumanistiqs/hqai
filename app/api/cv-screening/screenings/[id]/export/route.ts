@@ -5,7 +5,7 @@
 //   mode=combined   → A single docx with the score summary on page one,
 //                     then the formatted CV from page two onwards.
 //
-// The CV formatter logic mirrors app/api/administrator/ingest/route.ts
+// The CV formatter logic mirrors app/api/recruit/ingest/route.ts
 // but reads cv_text off the existing cv_screenings row (so there's no
 // new upload step - we already have the CV text from when the candidate
 // was scored).
@@ -52,7 +52,7 @@ type Mode = 'score' | 'formatted' | 'combined'
 // Word, Pages, and Google Docs without font substitution.
 const FONT = 'Arial'
 
-// ── CV formatter tool (mirrors administrator/ingest) ────────────────
+// ── CV formatter tool (mirrors recruit/ingest) ─────────────────────
 interface CvPayload {
   full_name?: string
   candidate_email?: string

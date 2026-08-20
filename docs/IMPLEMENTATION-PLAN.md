@@ -7,6 +7,27 @@ described in:
 - docs/research/2026-05-16_brand-kit-benchmark.md (Section 4.4 approved)
 - docs/research/2026-05-16_ai-doc-creation-teardown.md (full recommendations approved)
 
+> **Superseded, 2026-08-20.** The AI Administrator product was removed from
+> the member app. This file is kept as the historical record of the May 2026
+> build; the paths it links to under `app/dashboard/people/administrator/`,
+> `app/api/administrator/` and `app/dashboard/templates/` no longer exist and
+> now live under `_archive/ai-administrator/`.
+>
+> What survived the removal, and where it lives now:
+>
+> | Was | Is now |
+> |---|---|
+> | `components/administrator/{DocEditor,DocEditorLazy,SlashCommand,EditorSkeleton}.tsx` | `components/docs/` |
+> | `app/api/administrator/documents/[id]/render` | `app/api/documents/[id]/render` |
+> | `app/api/administrator/documents/[id]/render-html` | `app/api/documents/[id]/render-html` |
+> | `app/api/administrator/ingest` | `app/api/recruit/ingest` |
+> | `app/dashboard/people/administrator/ingest` | `app/dashboard/recruit/ingest` |
+>
+> `lib/doc-model.ts`, `lib/render/*`, `lib/template-ip.ts` and `lib/router.ts`
+> are all still live - HQ Recruit's CV Formatter and the `/doc/[id]` share
+> page run on the same render pipeline. The `administrator_ingests` table
+> keeps its name; no migration was renamed or dropped.
+
 ## Status
 
 The full ordered scope from the brief is now in the repo. Every item

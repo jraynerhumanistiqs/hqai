@@ -4,7 +4,7 @@
 // Run: node scripts/build-pilot-guide-pdf.mjs
 //
 // Uses the same puppeteer-core + @sparticuz/chromium stack that the
-// AI Administrator PDF export route uses, so the local build works
+// document PDF export route uses, so the local build works
 // without installing a full Chromium download.
 
 import { readFile, writeFile } from 'node:fs/promises'

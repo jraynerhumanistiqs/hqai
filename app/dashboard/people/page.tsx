@@ -11,7 +11,9 @@ export const dynamic = 'force-dynamic'
 //
 // Unlike Recruit (a sequential funnel with numbered steps), HQ People is a
 // set of PARALLEL tools, so there are no "Step N" labels - just a short
-// descriptor per tile.
+// descriptor per tile. The AI Advisor is the only tool in the pillar today;
+// the hub stays in place so the ?prompt= deep-link and the pillar nav keep
+// one stable entry point as more tools land.
 //
 // The ?prompt= passthrough is preserved: seed prompts from elsewhere in the
 // product still deep-link past the hub straight into the AI Advisor chat, so
@@ -24,20 +26,6 @@ const TILES = [
     kicker: 'Chat',
     title: 'AI Advisor',
     blurb: 'Ask any HR or people question - performance, leave, awards, tricky conversations - and get clear, practical steps. It flags the hard cases for your human advisor.',
-  },
-  {
-    href: '/dashboard/people/administrator',
-    emoji: '📝',
-    kicker: 'Generate',
-    title: 'AI Administrator',
-    blurb: 'Every HR document you need in under 3 minutes. Pick a template, fill the form, generate, edit inline, and export a polished PDF or Word file.',
-  },
-  {
-    href: '/dashboard/templates',
-    emoji: '🗂️',
-    kicker: 'Library',
-    title: 'HR Templates',
-    blurb: 'Browse the full library of HR and employment document templates, ready to customise whenever you need them.',
   },
 ]
 
@@ -67,12 +55,11 @@ export default async function PeopleLanding({
           Your HR, off your plate.
         </h1>
         <p className="text-body text-ink-soft mb-6 max-w-2xl">
-          Ask your AI Advisor anything, generate any HR document in minutes, or
-          browse the template library. Your human advisor steps in when it gets
-          complex.
+          Ask your AI Advisor anything - performance, leave, awards, tricky
+          conversations. Your human advisor steps in when it gets complex.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:max-w-md">
           {TILES.map(t => (
             <Link
               key={t.href}
@@ -93,8 +80,8 @@ export default async function PeopleLanding({
         </div>
 
         <p className="text-xs text-ink-muted mt-8 leading-relaxed">
-          New here? Start with the AI Advisor - it can answer a question outright
-          or point you to the right document to generate.
+          New here? Just describe the situation in your own words - the AI
+          Advisor will ask for whatever else it needs.
         </p>
       </div>
     </div>

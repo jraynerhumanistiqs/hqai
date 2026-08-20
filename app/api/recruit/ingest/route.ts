@@ -1,5 +1,5 @@
 // B9 - file ingestion (CV formatter + contract review).
-// POST /api/administrator/ingest  multipart/form-data file= + kind=(cv_formatter|contract|resume)
+// POST /api/recruit/ingest  multipart/form-data file= + kind=(cv_formatter|contract|resume)
 //
 // Extracts plain text from a PDF / .docx / .txt upload, then runs a
 // Claude tool-use call to produce a structured payload:
@@ -8,7 +8,7 @@
 //     + experience). The wording is preserved verbatim from the
 //     source CV; only the structure / section ordering changes. The
 //     response includes a `document_id` the caller can hit at
-//     /api/administrator/documents/<id>/render?format=docx to download
+//     /api/documents/<id>/render?format=docx to download
 //     the reformatted .docx.
 //   - contract: AU Fair Work review with severity-tagged findings.
 //   - resume: kept as an alias for cv_formatter for backward compat.
@@ -186,8 +186,8 @@ export async function POST(req: NextRequest) {
     : text
 
   const tool = kindParam === 'cv_formatter' ? CV_FORMATTER_TOOL : CONTRACT_TOOL
-  const intent: 'administrator-template-fill' | 'administrator-complex-contract' =
-    kindParam === 'cv_formatter' ? 'administrator-template-fill' : 'administrator-complex-contract'
+  const intent: 'document-template-fill' | 'document-complex-contract' =
+    kindParam === 'cv_formatter' ? 'document-template-fill' : 'document-complex-contract'
   const model = resolveModel({ tool: 'administrator', intent })
 
   const systemText = kindParam === 'cv_formatter'
@@ -223,7 +223,7 @@ Output via the emit_humanistiqs_cv tool exactly once.`
 
   // CV formatter: also build a StructuredDocument and persist it to
   // the documents table so the front end can hit
-  // /api/administrator/documents/<id>/render?format=docx to download
+  // /api/documents/<id>/render?format=docx to download
   // the reformatted CV as a Word file. Contract review skips this -
   // the findings are reviewed in-product, not downloaded.
   let document_id: string | null = null
@@ -284,7 +284,7 @@ Output via the emit_humanistiqs_cv tool exactly once.`
 // Maps the model's structured CV payload into a StructuredDocument
 // that the existing renderers (docx, html, pdf, pptx) already know
 // how to print. This is what makes the "download reformatted .docx"
-// step on /dashboard/people/administrator/ingest work without any
+// step on /dashboard/recruit/ingest work without any
 // new renderer code.
 
 interface HumanistiqsCvPayload {

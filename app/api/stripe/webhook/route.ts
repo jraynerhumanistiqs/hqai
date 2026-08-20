@@ -164,23 +164,6 @@ export async function POST(req: NextRequest) {
             console.error('[stripe/webhook] post-payment email/telemetry failed (webhook still OK):', err)
           }
         }
-      } else if (session.metadata?.offer_id) {
-        // B10 - one-off Letter-of-Offer purchase. Records a credit
-        // ledger row keyed by the customer email so the fulfilment
-        // worker can locate it when the user follows the success
-        // URL.
-        const offerId = String(session.metadata.offer_id)
-        const credits = Number(session.metadata.credit_amount ?? '1')
-        const email = String(session.metadata.customer_email ?? session.customer_email ?? '')
-        await supabase.from('credit_ledger').insert({
-          business_id:     null,
-          user_id:         null,
-          tool:            'one_off',
-          intent:          `one_off:${offerId}`,
-          cost:            -credits, // negative = credit granted
-          stripe_event_id: event.id,
-          notes:           email ? `one-off purchase for ${email}` : null,
-        })
       }
       break
     }

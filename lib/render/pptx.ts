@@ -122,7 +122,7 @@ function addTitle(slide: PptxGenJS.Slide, title: string) {
 export async function renderPptx(doc: StructuredDocument): Promise<Buffer> {
   const pptx = new PptxGenJS()
   pptx.layout = 'LAYOUT_WIDE' // 13.33 x 7.5 inches
-  pptx.author = 'HQ.ai AI Administrator'
+  pptx.author = 'HQ.ai'
   pptx.title  = doc.title
 
   // Fetch the issuer logo once (if present) so the title slide can use

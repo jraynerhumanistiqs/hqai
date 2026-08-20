@@ -1,5 +1,5 @@
 // B4 / B5 / B6 / B7 - render-by-format endpoint.
-// GET /api/administrator/documents/[id]/render?format=docx|pdf|pptx|html
+// GET /api/documents/[id]/render?format=docx|pdf|pptx|html
 //
 // Loads the structured_payload jsonb off the documents row and streams
 // the requested format. Renderers all read the same canonical doc tree
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       case 'pdf':  body = await renderPdf(doc); break
     }
   } catch (err) {
-    console.error('[administrator/render]', formatParam, err)
+    console.error('[documents/render]', formatParam, err)
     return NextResponse.json({ error: 'Render failed', detail: (err as Error).message }, { status: 502 })
   }
 

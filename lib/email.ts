@@ -395,67 +395,6 @@ export async function sendCandidateReviewLinkEmail({
 // rendered inside the branded HTML shell. Reply-to can be set to the
 // logged-in staff user's email so candidates can reply to a real person.
 
-// B10 - delivers the one-off Letter of Offer purchased through /offer.
-// The buyer paid $25 in Stripe Checkout; the fulfilment endpoint
-// (app/api/administrator/one-off/fulfil/route.ts) calls this with the
-// generated PDF and DOCX as attachments plus a /doc/<id> link they
-// can forward to the candidate.
-export async function sendOneOffLetterOfOfferEmail({
-  toEmail,
-  candidateName,
-  roleTitle,
-  employerName,
-  shareUrl,
-  pdfBuffer,
-  docxBuffer,
-}: {
-  toEmail: string
-  candidateName: string
-  roleTitle: string
-  employerName: string
-  shareUrl: string
-  pdfBuffer: Buffer
-  docxBuffer: Buffer
-}) {
-  const resend = getResend()
-  if (!resend) return { ok: false, reason: 'no_resend_key' }
-
-  const subject = `Your Letter of Offer for ${candidateName} - ${roleTitle}`
-  const fileBase = (candidateName || 'letter-of-offer')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'letter-of-offer'
-
-  const html = renderEmailShell({
-    heading: 'Your Letter of Offer is ready',
-    bodyHtml: `
-      <p style="margin:0 0 14px 0;">Here is the Letter of Offer for <strong>${escapeHtml(candidateName)}</strong> joining ${escapeHtml(employerName)} as ${escapeHtml(roleTitle)}.</p>
-      <p style="margin:0 0 14px 0;">Two files are attached: the editable Word doc and a PDF for signing. The same letter is also available at the button below if you want to forward a preview to the candidate.</p>
-      <p style="margin:0 0 14px 0;color:${BRAND.muted};font-size:14px;">Every clause references the Fair Work Act, the NES, or the relevant Modern Award. The footnotes at the end of the letter list them so you and the candidate can both check the source.</p>
-      <p style="margin:0;color:${BRAND.muted};font-size:14px;">If anything looks off, reply to this email - it goes to a human, not a noreply queue.</p>
-    `,
-    cta: { label: 'Open the shareable link', url: shareUrl },
-  })
-
-  try {
-    await resend.emails.send({
-      from: FROM,
-      to: toEmail,
-      subject,
-      html,
-      text: `Your Letter of Offer for ${candidateName} - ${roleTitle}.\n\nOpen the shareable link: ${shareUrl}\n\nReply to this email if anything needs adjusting.`,
-      attachments: [
-        { filename: `${fileBase}.pdf`,  content: pdfBuffer },
-        { filename: `${fileBase}.docx`, content: docxBuffer },
-      ],
-    })
-    return { ok: true }
-  } catch (err) {
-    console.error('[email] sendOneOffLetterOfOfferEmail failed:', err)
-    return { ok: false, reason: 'send_failed' }
-  }
-}
-
 // -- Enterprise inquiry notification (founder) -----------------------------
 // Sent to the founder when a new inquiry lands on /enterprise. Structured
 // for fast triage - the founder reads this in 30 seconds and decides

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { buildSystemPrompt, detectEscalation, detectDocumentRequest, detectHardTriage, buildTriageReply } from '@/lib/prompts'
+import { buildSystemPrompt, detectEscalation, wantsDetailedAnswer, detectHardTriage, buildTriageReply } from '@/lib/prompts'
 import { tools, runTool, ToolRunResult } from '@/lib/chat-tools'
 import { parseCitations } from '@/lib/parse-citations'
 // B3 - Anthropic prompt caching. `withPromptCache` wraps the system
@@ -82,7 +82,11 @@ export async function POST(req: NextRequest) {
     const mod: 'people' | 'recruit' = module === 'recruit' ? 'recruit' : 'people'
 
     const lastUserMsg = messages[messages.length - 1]?.content || ''
-    const requestedDoc = detectDocumentRequest(lastUserMsg)
+    // Long-form-answer signal. Certain HR topics (contracts, warning
+    // letters, PIPs, redundancy) cannot be answered usefully in a couple
+    // of paragraphs, so we lift the token ceiling and keep the turn off
+    // the cheapest tier. Nothing is generated - the reply is still prose.
+    const wantsDetail = wantsDetailedAnswer(lastUserMsg)
     const triage = detectHardTriage(lastUserMsg)
 
     // Pre-flight short-circuit: high-stakes incidents go straight to a triage
@@ -200,7 +204,7 @@ export async function POST(req: NextRequest) {
         supabase,
         systemPrompt,
         claudeMessages,
-        maxTokens: requestedDoc ? 4096 : 1500,
+        maxTokens: wantsDetail ? 4096 : 1500,
         conversationId,
         lastUserMsg,
       })
@@ -212,13 +216,13 @@ export async function POST(req: NextRequest) {
     // tool_choice loop and go straight to streaming - cuts latency ~50%.
     const skipRag = isSimpleQuery(lastUserMsg, claudeMessages)
 
-    // A10 - pick the Claude tier for this turn. Document generation and
+    // A10 - pick the Claude tier for this turn. Detailed-answer topics and
     // escalation language never drop below standard; hard-triage turns
     // never reach here (short-circuited above with no LLM call at all).
     const routed = routeModel({
       message: lastUserMsg,
       historyLength: claudeMessages.length,
-      hasDocumentIntent: !!requestedDoc,
+      hasDocumentIntent: wantsDetail,
     })
     const model = routed.model
     console.log(`[chat] model route tier=${routed.tier} model=${routed.model} reason="${routed.reason}"`)
@@ -483,7 +487,7 @@ export async function POST(req: NextRequest) {
             const streamPromise = anthropic.messages.create(
               {
                 model,
-                max_tokens: requestedDoc ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
+                max_tokens: wantsDetail ? 4096 : (elapsed > SOFT_BUDGET_MS ? 800 : 1500),
                 // B3 - keep the stable MASTER prefix cacheable; iter-1
                 // steering text rides along uncached so it doesn't bust
                 // the cache for iter-0 hits.
@@ -762,10 +766,9 @@ async function finalise(opts: {
     module, user, business, citations, toolCalls, latencyMs, model,
   } = opts
   const escalate = detectEscalation(lastUserMsg + ' ' + fullResponse)
-  const docType = detectDocumentRequest(lastUserMsg)
 
   controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-    done: true, escalate, docType,
+    done: true, escalate,
   })}\n\n`))
 
   if (conversationId) {
@@ -775,7 +778,8 @@ async function finalise(opts: {
         role: 'assistant',
         content: fullResponse,
         has_escalation: escalate,
-        has_document: !!docType,
+        // Real column. Chat is Q&A only now - it never produces a document.
+        has_document: false,
       })
       if (escalate) {
         await supabase.from('conversations')
@@ -804,7 +808,8 @@ async function finalise(opts: {
           citations,
           tool_calls: toolCalls,
           escalated: escalate,
-          doc_type: docType,
+          // Real column, kept on the insert so it still matches the schema.
+          doc_type: null,
           latency_ms: latencyMs,
           model,
         })
@@ -900,15 +905,15 @@ async function legacyStream(opts: {
           }
         }
         const escalate = detectEscalation(lastUserMsg + ' ' + fullResponse)
-        const docType = detectDocumentRequest(lastUserMsg)
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, escalate, docType })}\n\n`))
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, escalate })}\n\n`))
         if (conversationId) {
           await supabase.from('messages').insert({
             conversation_id: conversationId,
             role: 'assistant',
             content: fullResponse,
             has_escalation: escalate,
-            has_document: !!docType,
+            // Real column. Chat is Q&A only now.
+            has_document: false,
           })
           if (escalate) {
             await supabase.from('conversations')

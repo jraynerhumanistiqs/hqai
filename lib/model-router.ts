@@ -30,7 +30,8 @@ export interface RouteModelInput {
   message: string
   /** Number of prior messages in the conversation sent to the model. */
   historyLength: number
-  /** True when the turn asks for document generation (detectDocumentRequest hit). */
+  /** True when the turn is on a topic that needs a long, structured answer
+   *  (lib/prompts.ts wantsDetailedAnswer hit). Guards it off the cheap tier. */
   hasDocumentIntent?: boolean
   /** True when the caller already knows this turn is in an escalation flow. */
   escalationSignals?: boolean

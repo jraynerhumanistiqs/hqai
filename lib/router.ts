@@ -5,16 +5,16 @@
 // job done. Industry-standard saving from this pattern is 40-70% of
 // Anthropic spend at HQ.ai's current traffic profile.
 //
-// The router is TOOL-AWARE: AI Advisor (chat) and AI Administrator (doc
-// engine) live under HQ People but have different cost / latency / quality
-// trade-offs, so the intent space is split per tool. Recruit lives in
-// its own family because the chat shell is shared but the scoring routes
-// have their own complexity envelopes.
+// The router is TOOL-AWARE: conversational answers and document rendering
+// have different cost / latency / quality trade-offs, so the intent space
+// is split per tool. Recruit lives in its own family because the chat
+// shell is shared but the scoring routes have their own complexity
+// envelopes.
 //
 // IMPORTANT - this file does NOT make Anthropic calls. It only resolves
 // (a) which model id to use and (b) how to wrap the system prompt for
-// caching. The call sites in app/api/chat/route.ts and the upcoming
-// app/api/administrator/* routes import this module and pass the
+// caching. The call sites in app/api/chat/route.ts and the document
+// routes import this module and pass the
 // resolved model into their existing Anthropic SDK invocations. That
 // keeps the change surface minimal and preserves the existing
 // tool-use, streaming, heartbeat and retry behaviour.
@@ -48,7 +48,7 @@ export const MODELS: Record<Tier, string> = {
 // and the cache_control system-prompt id can all be split per surface.
 export type Tool =
   | 'advisor'        // AI Advisor (HR chat, Fair Work grounded)
-  | 'administrator'  // AI Administrator (doc engine, multi-format)
+  | 'administrator'  // document engine (multi-format render pipeline)
   | 'recruit'        // CV scoring + Shortlist Agent scoring
   | 'shared'         // util calls that don't belong to one tool
 
@@ -57,18 +57,16 @@ export type AdvisorIntent =
   | 'advisor-rag-cite'      // RAG-grounded answer, multi-hit citations
   | 'advisor-escalation'    // hand-off, high-stakes, complex reasoning
 
-export type AdministratorIntent =
-  | 'administrator-template-fill'    // routine merge-field substitution
-  | 'administrator-edit-section'     // edit a block in a doc
-  | 'administrator-clause-cite'      // pull and cite a Fair Work clause
-  | 'administrator-complex-contract' // multi-section bespoke contract
+export type DocumentIntent =
+  | 'document-template-fill'    // routine merge-field substitution
+  | 'document-complex-contract' // multi-section bespoke document
 
 export type RecruitIntent =
   | 'recruit-cv-score'     // criterion-by-criterion scoring on one CV
   | 'recruit-batch-score'  // population-level shortlist work
   | 'recruit-transcribe-score' // video-transcript scoring rubric
 
-export type Intent = AdvisorIntent | AdministratorIntent | RecruitIntent
+export type Intent = AdvisorIntent | DocumentIntent | RecruitIntent
 
 // ── Routing signals ──────────────────────────────────────────────────
 
@@ -108,24 +106,17 @@ export function routeTask(input: RoutingSignals): Tier {
     case 'advisor-escalation':
       return 'complex'
 
-    // AI Administrator ---------------------------------------------
-    case 'administrator-template-fill':
+    // Document engine ----------------------------------------------
+    case 'document-template-fill':
       // Was 'simple' (Haiku) but Haiku was repeatedly emitting
       // heading-only documents - sections with a title and no
       // paragraph blocks under them. Sonnet follows the structured
       // output schema reliably and is the right baseline for a doc
       // that ends up in front of an employee. The cost delta is a
       // few cents per generation; the quality delta is the difference
-      // between a real Letter of Offer and an empty template.
+      // between a real formatted document and an empty template.
       return 'standard'
-    case 'administrator-edit-section':
-      // Either: small textual tweak (Haiku) or rewrite-a-paragraph
-      // (Sonnet). Default to Sonnet for safety; call site can pass
-      // forceEscalation=false explicitly if they know it's trivial.
-      return (input.conversationDepth ?? 0) > 0 ? 'standard' : 'simple'
-    case 'administrator-clause-cite':
-      return 'standard'
-    case 'administrator-complex-contract':
+    case 'document-complex-contract':
       return 'complex'
 
     // HQ Recruit ----------------------------------------------------

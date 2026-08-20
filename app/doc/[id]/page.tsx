@@ -54,24 +54,24 @@ export default async function DocPreviewPage({ params }: { params: Promise<{ id:
   return (
     <main className="min-h-screen bg-bg">
       <header className="border-b border-border px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-        <Link href="/dashboard/people/administrator" className="text-xs font-bold uppercase tracking-wider text-ink-muted hover:text-ink">
-          HQ.ai - AI Administrator
+        <Link href="/" className="text-xs font-bold uppercase tracking-wider text-ink-muted hover:text-ink">
+          HQ.ai
         </Link>
         <div className="flex items-center gap-2">
           <a
-            href={`/api/administrator/documents/${row.id}/render?format=pdf`}
+            href={`/api/documents/${row.id}/render?format=pdf`}
             className="text-xs font-bold rounded-full px-4 py-2 bg-accent text-ink-on-accent hover:bg-accent-hover"
           >
             Download PDF
           </a>
           <a
-            href={`/api/administrator/documents/${row.id}/render?format=docx`}
+            href={`/api/documents/${row.id}/render?format=docx`}
             className="text-xs font-bold rounded-full px-4 py-2 border border-border text-ink hover:bg-bg-soft"
           >
             Download DOCX
           </a>
           <a
-            href={`/api/administrator/documents/${row.id}/render?format=pptx`}
+            href={`/api/documents/${row.id}/render?format=pptx`}
             className="text-xs font-bold rounded-full px-4 py-2 border border-border text-ink hover:bg-bg-soft"
           >
             Download PPTX

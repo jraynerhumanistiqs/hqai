@@ -625,7 +625,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const railFooter = (
     <p className="text-[11px] text-ink-soft leading-relaxed">
       Have an existing CV?{' '}
-      <Link href="/dashboard/people/administrator/ingest" className="text-clay underline-offset-2 hover:underline font-bold">
+      <Link href="/dashboard/recruit/ingest" className="text-clay underline-offset-2 hover:underline font-bold">
         Reformat it with the CV Formatter
       </Link>{' '}
       - it restructures the CV into the Humanistiqs house format without changing a word.
@@ -1592,7 +1592,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
            in the detail panel header. -- */}
       <div className={`w-full md:w-64 md:flex-shrink-0 border-b md:border-b-0 md:border-r border-border bg-bg-elevated flex-col ${prescreenSessionId ? 'hidden' : (showListPanel ? 'flex' : 'hidden md:flex')}`}>
 
-        {/* Header - AI Administrator pattern (eyebrow + sans h1 + body). */}
+        {/* Header - house page-header pattern (eyebrow + sans h1 + body). */}
         <div className="px-4 pt-5 pb-4 border-b border-border">
           <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-1">
             HQ Recruit
@@ -1609,14 +1609,13 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
           >
             + New scoring criteria
           </button>
-          {/* CV Formatter cross-link (relocated here from the AI
-              Administrator subheading). Lives in the standalone Quick CV
+          {/* CV Formatter cross-link. Lives in the standalone Quick CV
               score header only - this whole left panel is hidden in the
               in-role stepper, so the role flow stays uncluttered. */}
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-[11px] text-ink-soft leading-relaxed">
               Have an existing CV?{' '}
-              <Link href="/dashboard/people/administrator/ingest" className="text-accent underline-offset-2 hover:underline font-bold">
+              <Link href="/dashboard/recruit/ingest" className="text-accent underline-offset-2 hover:underline font-bold">
                 Reformat it with the CV Formatter
               </Link>{' '}
               - it restructures the CV into the Humanistiqs house format without changing a word.

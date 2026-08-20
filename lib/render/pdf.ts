@@ -10,7 +10,7 @@
 // keeps PDF + web preview pixel-identical without two code paths.
 //
 // Cold-start cost: ~1-2s in serverless. The route that wraps this
-// already has `maxDuration: 60` in the existing /api/documents/generate
+// already has `maxDuration: 60` in the /api/documents/[id]/render
 // handler, which is plenty.
 //
 // Failure mode: throws on Puppeteer launch failures so the API route

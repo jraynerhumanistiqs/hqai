@@ -1,8 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
-import { Check, Clock, Copy, Download, ExternalLink, FileText, Pencil, Plus, RefreshCcw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-react'
-import { detectTemplate, ALL_TEMPLATES, type TemplateFormField } from '@/lib/template-ip'
+import { Check, Clock, Copy, Pencil, Plus, RefreshCcw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-react'
 import { parseCitations, type Citation } from '@/lib/parse-citations'
 import TopicPicker from './TopicPicker'
 import TierNotice, { type Tier } from './TierNotice'
@@ -45,10 +44,6 @@ interface Message {
   tier?: Tier
   escalate?: boolean
   triage?: TriagePayload | null
-  docType?: string | null
-  docId?: string | null
-  formType?: string | null
-  formCompleted?: boolean
   // NOTE: persisted client-side only for now. If the Supabase messages schema
   // later accepts a `citations` jsonb column, wire it in the chat route too.
   citations?: Citation[]
@@ -67,19 +62,6 @@ function deriveTier(d: { tier?: unknown; triage?: unknown; escalate?: unknown })
   if (d.triage) return 'escalate'
   if (d.escalate === true) return 'caution'
   return 'safe'
-}
-
-// Build DOC_FORMS lookup from template-ip definitions
-const DOC_FORMS: Record<string, { title: string; description: string; fields: TemplateFormField[] }> = Object.fromEntries(
-  ALL_TEMPLATES
-    .filter(t => t.formFields.length > 0)
-    .map(t => [t.title, { title: t.title, description: t.description, fields: t.formFields }])
-)
-
-// Client-side document detection - powered by template-ip.ts (33 template types)
-function detectDocType(text: string): string | null {
-  const tmpl = detectTemplate(text)
-  return tmpl ? tmpl.title : null
 }
 
 interface ChatInterfaceProps {
@@ -125,10 +107,8 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [skipTopicPicker, setSkipTopicPicker] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [showAdvisorModal, setShowAdvisorModal] = useState(false)
-  const [savedDocId, setSavedDocId] = useState<string | null>(null)
   const [showContextInput, setShowContextInput] = useState(false)
   const [extraContext, setExtraContext] = useState('')
-  const [activeForm, setActiveForm] = useState<string | null>(null)
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [historyItems, setHistoryItems] = useState<Array<{ id: string; title: string; module: string; created_at: string; escalated: boolean }>>([])
@@ -223,21 +203,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       console.warn('[chat] conversation creation error:', err)
       return null
     }
-  }
-
-  async function saveDocument(content: string, docType: string) {
-    const res = await fetch('/api/documents', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: `${docType} - ${new Date().toLocaleDateString('en-AU')}`,
-        type: docType.toLowerCase().replace(/\s+/g, '-'),
-        content,
-        conversationId,
-      })
-    })
-    const data = await res.json()
-    setSavedDocId(data.id)
   }
 
   function stopGeneration() {
@@ -345,7 +310,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
       let finalEscalate = false
       let finalTierExplicit: unknown = undefined
       let finalTriage: TriagePayload | null = null
-      let finalDocType: string | null = null
       let finalCitations: Citation[] | undefined = undefined
       let finalClarify: ClarifyPayload | undefined = undefined
       // When the backend emits {error, detail}, surface it directly so an
@@ -402,7 +366,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
             }
             if (data.done) {
               finalEscalate = data.escalate
-              finalDocType = data.docType
               finalTriage = (data.triage as TriagePayload) ?? null
               finalTierExplicit = data.tier
               if (Array.isArray(data.citations)) {
@@ -440,16 +403,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           tier,
           escalate: finalEscalate,
           triage: finalTriage,
-          docType: finalDocType,
           citations: citations && citations.length > 0 ? citations : undefined,
           clarify: finalClarify,
         }
         return updated
       })
-
-      if (finalDocType && assistantContent.length > 200) {
-        await saveDocument(assistantContent, finalDocType)
-      }
     } catch (err: any) {
       if (err?.name === 'AbortError') {
         // User stop or timeout. The timeout handler already injected the
@@ -477,119 +435,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     sendMessageDirect(userMsg.content, base)
   }, [messages, isLoading, sendMessageDirect])
 
-  // Handle form submission - generate DOCX backend-side and deliver download
-  const handleFormSubmit = useCallback(async (docType: string, formData: Record<string, string>) => {
-    setActiveForm(null)
-
-    // Mark form as completed
-    setMessages(prev => prev.map(m =>
-      m.formType === docType && !m.formCompleted
-        ? { ...m, formCompleted: true }
-        : m
-    ))
-
-    // Add a "generating" message
-    setMessages(prev => [...prev, {
-      role: 'assistant',
-      content: `Generating your **${docType}** as a Word document. This may take a moment...`,
-      docType: null,
-    }])
-    setIsLoading(true)
-
-    try {
-      const res = await fetch('/api/documents/contract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formData, docType, templateId: ALL_TEMPLATES.find(t => t.title === docType)?.id }),
-      })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Generation failed' }))
-        throw new Error(err.error || 'Generation failed')
-      }
-
-      // Capture the saved document id so the re-download button can fetch
-      // the actual DOCX from the library rather than regenerating from text.
-      const newDocId = res.headers.get('X-Document-Id')
-
-      // Download the DOCX blob
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const filename = `${docType.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
-
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-
-      // Update message to show success with re-download option
-      setMessages(prev => {
-        const updated = [...prev]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: `Your **${docType}** has been generated and downloaded as a Word document. It's also been saved to your documents library.\n\nThe document includes your company logo and all required clauses tailored to your business. Please review it carefully and make any necessary adjustments before issuing to the employee.`,
-          docType: docType,
-          docId: newDocId,
-        }
-        return updated
-      })
-
-      setTimeout(() => URL.revokeObjectURL(url), 30000)
-      setSavedDocId('generated') // Flag for UI
-
-    } catch (err: any) {
-      setMessages(prev => {
-        const updated = [...prev]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: `I wasn't able to generate the document: ${err.message}. Let me try creating it here in chat instead.`,
-        }
-        return updated
-      })
-
-      // Fallback to chat-based generation
-      const formDef = DOC_FORMS[docType]
-      let prompt = `Please generate a complete ${docType} with the following details:\n\n`
-      if (formDef) {
-        for (const field of formDef.fields) {
-          const val = formData[field.key]
-          if (val && val.trim()) {
-            prompt += `**${field.label}:** ${val}\n`
-          }
-        }
-      }
-      prompt += `\nGenerate the FULL, COMPLETE document. Do not abbreviate.`
-      await sendMessageDirect(prompt)
-      return
-    }
-
-    setIsLoading(false)
-  }, [sendMessageDirect])
-
   const sendMessage = useCallback(async (text?: string) => {
     const content = text || input.trim()
     if (!content || isLoading) return
 
-    // Check if this is a document request - show form instead
-    const detectedDoc = detectDocType(content)
-    if (detectedDoc && DOC_FORMS[detectedDoc] && !activeForm) {
-      setInput('')
-      setMessages(prev => [
-        ...prev,
-        { role: 'user', content },
-        { role: 'assistant', content: '', formType: detectedDoc, formCompleted: false },
-      ])
-      setActiveForm(detectedDoc)
-      await ensureConversation(content)
-      return
-    }
-
     setInput('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
     await sendMessageDirect(content)
-  }, [input, isLoading, activeForm, sendMessageDirect])
+  }, [input, isLoading, sendMessageDirect])
 
   // Auto-send initial prompt (e.g. from templates page "Customise" button)
   const initialPromptSent = useRef(false)
@@ -637,7 +490,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <span className="hidden sm:inline">Chat History</span>
             </button>
             <button
-              onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setSavedDocId(null) }}
+              onClick={() => { stopGeneration(); setMessages([]); setConversationId(null) }}
               className="bg-bg-soft rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" aria-hidden="true" />
@@ -699,32 +552,12 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                   : parseCitations(msg.content)
                 const isStatus = msg.content.startsWith('__STATUS__')
                 const isError = msg.content === '__API_ERROR__'
-                const hasBody = !!msg.content && !isStatus && !isError && !msg.formType
+                const hasBody = !!msg.content && !isStatus && !isError
 
                 return (
                   <UiMessage key={i} from="assistant">
                     <MessageContent variant="flat">
-                      {/* Doc form (pre-fill) or its submitted placeholder */}
-                      {msg.formType && !msg.formCompleted ? (
-                        <DocumentFormCard
-                          docType={msg.formType}
-                          onSubmit={handleFormSubmit}
-                          onSkip={() => {
-                            setActiveForm(null)
-                            setMessages(prev => prev.map(m =>
-                              m.formType === msg.formType && !m.formCompleted
-                                ? { ...m, formCompleted: true }
-                                : m
-                            ))
-                            sendMessageDirect(`Please generate a ${msg.formType}. Use my business details from the profile and ask me for any details you need.`)
-                          }}
-                          bizName={bizName}
-                        />
-                      ) : msg.formType && msg.formCompleted ? (
-                        <p className="text-sm text-ink-soft">
-                          <span className="text-ink font-semibold">{msg.formType}</span> details submitted - generating your document...
-                        </p>
-                      ) : isError ? (
+                      {isError ? (
                         <div className="bg-danger/5 border border-danger/20 rounded-xl p-3.5 text-sm text-ink leading-relaxed">
                           Something went wrong. Please try again - if it keeps happening, contact support.
                         </div>
@@ -832,28 +665,6 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         />
                       )}
 
-                      {/* Document saved indicator with download */}
-                      {msg.docType && msg.content.length > 200 && (
-                        <div className="mt-3 bg-bg-soft rounded-xl px-3.5 py-2.5">
-                          <div className="flex items-center gap-2.5 mb-2">
-                            <span className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center ${savedDocId ? 'bg-success/10 text-success' : 'bg-info/10 text-info'}`}>
-                              {savedDocId ? <Check className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                            </span>
-                            <p className="text-xs text-ink flex-1">
-                              <strong>{msg.docType}</strong>{savedDocId ? ' saved to your documents library' : ' generated'}
-                            </p>
-                          </div>
-                          <div className="flex gap-2 ml-6">
-                            <DownloadDocxButton content={msg.content} title={msg.docType || 'Document'} docType={msg.docType || 'Document'} docId={msg.docId || null} />
-                            {savedDocId && (
-                              <a href="/dashboard/documents" className="inline-flex items-center gap-1 border border-border text-ink-soft text-xs font-bold px-3 py-1.5 rounded-full hover:bg-bg-elevated transition-colors">
-                                View in library
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </MessageContent>
                   </UiMessage>
                 )
@@ -1098,186 +909,6 @@ function formatHistoryDate(iso: string) {
   const diffDays = Math.floor(diffHrs / 24)
   if (diffDays < 7) return `${diffDays}d ago`
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
-}
-
-function DocumentFormCard({
-  docType,
-  onSubmit,
-  onSkip,
-  bizName,
-}: {
-  docType: string
-  onSubmit: (docType: string, data: Record<string, string>) => void
-  onSkip: () => void
-  bizName: string
-}) {
-  const formDef = DOC_FORMS[docType]
-  const [formData, setFormData] = useState<Record<string, string>>({})
-
-  if (!formDef) return null
-
-  const updateField = (key: string, value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const missing = formDef.fields.filter(f => f.required && !formData[f.key]?.trim())
-    if (missing.length > 0) return
-    onSubmit(docType, formData)
-  }
-
-  const inputCls = "w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-ink transition-colors"
-
-  return (
-    <div className="bg-bg-elevated shadow-card rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="bg-bg-soft border-b border-border px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-ink/10 rounded-xl flex items-center justify-center">
-            <FileText className="w-4 h-4 text-ink" />
-          </div>
-          <div>
-            <h3 className="font-sans text-base font-bold text-ink uppercase tracking-wider">{formDef.title}</h3>
-            <p className="text-xs text-ink-muted mt-0.5">{bizName}</p>
-          </div>
-        </div>
-        <p className="text-xs text-ink-soft mt-3 leading-relaxed">{formDef.description}</p>
-      </div>
-
-      {/* Form fields */}
-      <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-        {formDef.fields.map(field => {
-          const fieldId = `docform-${docType}-${field.key}`.replace(/\s+/g, '-').toLowerCase()
-          return (
-          <div key={field.key}>
-            <label htmlFor={fieldId} className="block text-xs font-bold text-ink-soft mb-1.5">
-              {field.label}
-              {field.required && <span className="text-danger ml-0.5">*</span>}
-            </label>
-            {field.type === 'select' ? (
-              <select
-                id={fieldId}
-                className={inputCls + " appearance-none"}
-                value={formData[field.key] || ''}
-                onChange={e => updateField(field.key, e.target.value)}
-                required={field.required}
-              >
-                <option value="">Select...</option>
-                {field.options?.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            ) : field.type === 'textarea' ? (
-              <textarea
-                id={fieldId}
-                className={inputCls + " resize-none"}
-                rows={3}
-                value={formData[field.key] || ''}
-                onChange={e => updateField(field.key, e.target.value)}
-                placeholder={field.placeholder}
-                required={field.required}
-              />
-            ) : field.type === 'date' ? (
-              <input
-                id={fieldId}
-                type="date"
-                className={inputCls}
-                value={formData[field.key] || ''}
-                onChange={e => updateField(field.key, e.target.value)}
-                required={field.required}
-              />
-            ) : (
-              <input
-                id={fieldId}
-                type={field.type === 'number' ? 'number' : 'text'}
-                className={inputCls}
-                value={formData[field.key] || ''}
-                onChange={e => updateField(field.key, e.target.value)}
-                placeholder={field.placeholder}
-                required={field.required}
-              />
-            )}
-          </div>
-          )
-        })}
-
-        {/* Actions */}
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            className="flex-1 bg-accent hover:bg-accent-hover text-ink-on-accent font-bold py-2.5 rounded-full text-sm transition-colors"
-          >
-            Generate {formDef.title}
-          </button>
-          <button
-            type="button"
-            onClick={onSkip}
-            className="bg-bg-elevated hover:bg-bg-soft text-ink-soft font-bold py-2.5 px-4 rounded-full text-sm border border-border transition-colors"
-          >
-            Skip form
-          </button>
-        </div>
-        <p className="text-[10px] text-ink-muted text-center">
-          HQ will use your business profile details for employer information, award, and state jurisdiction.
-        </p>
-      </form>
-    </div>
-  )
-}
-
-function DownloadDocxButton({ content, title, docType, docId }: { content: string; title: string; docType: string; docId: string | null }) {
-  const [downloading, setDownloading] = useState(false)
-  const [dlError, setDlError] = useState<string | null>(null)
-
-  async function handleDownload() {
-    setDownloading(true)
-    setDlError(null)
-    try {
-      // Prefer the library download endpoint when we have a saved doc id -
-      // that fetches the original generated content. The /generate fallback
-      // would otherwise re-render whatever string was last shown in chat.
-      const res = docId
-        ? await fetch(`/api/documents/download?id=${encodeURIComponent(docId)}`)
-        : await fetch('/api/documents/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, title: `${title} - ${new Date().toLocaleDateString('en-AU')}`, docType }),
-          })
-
-      if (!res.ok) throw new Error('Generation failed')
-
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_')}.docx`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('[download]', err)
-      setDlError('Could not generate document. Please try again.')
-    }
-    setDownloading(false)
-  }
-
-  return (
-    <div>
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        className="bg-accent text-ink-on-accent text-xs font-bold px-3 py-1.5 rounded-full hover:bg-accent-hover transition-colors inline-flex items-center gap-1 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-      >
-        <Download className="w-3 h-3" aria-hidden="true" />
-        {downloading ? 'Generating...' : 'Download DOCX'}
-      </button>
-      {dlError && (
-        <p role="alert" className="text-xs text-danger mt-1">{dlError}</p>
-      )}
-    </div>
-  )
 }
 
 function AdvisorModalContent({

@@ -3,9 +3,14 @@
 // Source: docs/research/2026-05-16_ai-doc-creation-teardown.md
 // section 7. Every model call that costs credits records a row in
 // `credit_ledger` keyed by business + tool + intent, so unit
-// economics are queryable per surface (advisor vs administrator vs
-// recruit). The actual balance is read by the API gates before
-// permitting the call; this file is the write side.
+// economics are queryable per surface. The actual balance is read by
+// the API gates before permitting the call; this file is the write
+// side.
+//
+// CreditTool keeps every value the public.credit_tool DB enum holds -
+// historical ledger rows still carry 'administrator' and 'one_off' even
+// though nothing writes them any more, and getCreditBalance never
+// filters on tool. Narrowing the union would only break reads.
 //
 // Schema: supabase/migrations/credit_ledger.sql
 

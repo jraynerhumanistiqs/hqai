@@ -1,6 +1,6 @@
 // Live-edit PDF endpoint.
 //
-// The AI Administrator preview pane is contenteditable. When the user
+// The document editor preview pane is contenteditable. When the user
 // clicks "Download PDF", the client POSTs the current innerHTML of the
 // editable region here; we wrap it in the standard print stylesheet
 // and run it through Puppeteer just like /render?format=pdf does for
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await browser.close()
     }
   } catch (err) {
-    console.error('[administrator/render-html]', err)
+    console.error('[documents/render-html]', err)
     return NextResponse.json({ error: 'PDF render failed', detail: (err as Error).message }, { status: 502 })
   }
 }

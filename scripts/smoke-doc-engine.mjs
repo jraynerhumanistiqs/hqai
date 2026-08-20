@@ -1,31 +1,70 @@
 #!/usr/bin/env node
 // Doc-engine smoke test.
 //
-// End-to-end check that the AI Administrator pipeline can:
-//   1. generate a structured document via /api/administrator/documents/generate
+// End-to-end check that the document render pipeline can:
+//   1. seed a documents row carrying a known structured_payload
+//      (service role, so no LLM call and no generation route needed)
 //   2. render it back in all four formats (html, docx, pdf, pptx)
+//      via /api/documents/[id]/render
 //   3. confirm each format returned a non-trivial body with the right MIME
+//   4. confirm the public /doc/<id> preview page renders the title
+//   5. delete the seeded row again
+//
+// This used to drive the retired AI Administrator generation route. HQ
+// Recruit still depends on the same render pipeline (the CV Formatter
+// writes a structured_payload and the user downloads .docx / .pdf off
+// these exact endpoints), so the end-to-end render check is kept - only
+// the "how the row got there" step changed. Seeding is also strictly
+// better for a smoke test: the fixture is deterministic, costs nothing,
+// and a failure points at the renderers rather than at model output.
 //
 // Designed to run against a deployed environment OR a local dev server.
 // Usage:
 //   BASE_URL=http://localhost:3000 AUTH_COOKIE="<sb-...>=<value>" node scripts/smoke-doc-engine.mjs
 //   BASE_URL=https://humanistiqs.ai AUTH_COOKIE="..." node scripts/smoke-doc-engine.mjs
 //
-// The script uses a signed-in user's auth cookie to call the protected
-// API. In CI we'd swap to a service-role / eval token, but for now a
-// browser-copied cookie keeps the script simple.
+// The render endpoint requires a signed-in user, so the script still
+// needs a browser-copied auth cookie. Seeding + cleanup use the
+// service-role key from .env.local (auto-loaded, same as the other
+// scripts in this folder).
 //
 // Exits non-zero on any failure so it can gate a Vercel preview check.
 
 import { mkdtempSync, writeFileSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
-const COOKIE   = process.env.AUTH_COOKIE
+// -- env loading (same shape as scripts/delete-pilot-users.mjs) --------
+async function loadEnvLocal() {
+  for (const f of ['.env.local', '.env']) {
+    try {
+      const raw = await readFile(resolve(process.cwd(), f), 'utf-8')
+      for (const line of raw.split('\n')) {
+        const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/i)
+        if (!m) continue
+        const [, k, vRaw] = m
+        const v = vRaw.replace(/^['"]|['"]$/g, '')
+        if (!process.env[k]) process.env[k] = v
+      }
+      return
+    } catch { /* try next */ }
+  }
+}
+await loadEnvLocal()
+
+const BASE_URL     = process.env.BASE_URL || 'http://localhost:3000'
+const COOKIE       = process.env.AUTH_COOKIE
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
+
 if (!COOKIE) {
   console.error('Set AUTH_COOKIE to a logged-in Supabase session cookie.')
   console.error('In your browser DevTools -> Application -> Cookies, copy the sb-* row(s) into a single semicolon-joined string.')
+  process.exit(2)
+}
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in env. Add them to .env.local and rerun.')
   process.exit(2)
 }
 
@@ -36,43 +75,116 @@ const fmtMime = {
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 }
 
-function log(line)  { process.stdout.write(line + '\n') }
-function fail(line) { process.stderr.write('FAIL: ' + line + '\n'); process.exit(1) }
-
-async function main() {
-  log(`[smoke] base url:  ${BASE_URL}`)
-  log(`[smoke] step 1:    generating document...`)
-  const genRes = await fetch(`${BASE_URL}/api/administrator/documents/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: COOKIE,
+// Deterministic fixture. Shaped to hit every renderer branch that the
+// live surfaces actually produce: recipient + issuer blocks, headings,
+// prose, a list, a key/value table, a citation footnote and a signature
+// line. Matches the StructuredDocument contract in lib/doc-model.ts.
+const TITLE = `Smoke test document ${new Date().toISOString()}`
+const FIXTURE = {
+  title: TITLE,
+  subtitle: 'Automated smoke test - safe to delete',
+  locale: 'en-AU',
+  recipient: { name: 'Test Candidate', role: 'Test Role' },
+  issuer: {
+    business_name: 'Humanistiqs Smoke Test Pty Ltd',
+    abn: '00 000 000 000',
+    signatory_name: 'Smoke Runner',
+    signatory_role: 'Automation',
+  },
+  sections: [
+    {
+      id: 'intro',
+      title: 'Confirmation of employment',
+      blocks: [
+        { type: 'paragraph', text: 'This letter confirms the terms of your engagement. It is generated by an automated smoke test and carries no legal effect.', citations: ['fwa-117'] },
+        { type: 'list', ordered: false, items: ['Position: Test Role', 'Employment type: Full time', 'Location: Melbourne, VIC'] },
+      ],
     },
+    {
+      id: 'terms',
+      title: 'Key terms',
+      blocks: [
+        { type: 'kv', items: [
+          { label: 'Start date', value: '1 January 2026' },
+          { label: 'Ordinary hours', value: '38 per week' },
+          { label: 'Notice period', value: 'As per the NES' },
+        ] },
+        { type: 'table', caption: 'Remuneration', headers: ['Component', 'Amount'], rows: [['Base salary', '$85,000'], ['Superannuation', '12%']] },
+        { type: 'notice', variant: 'info', text: 'This document is a test fixture. Do not send it to anyone.' },
+        { type: 'signature', party: 'employer', name: 'Smoke Runner', label: 'For and on behalf of the employer' },
+      ],
+    },
+  ],
+  citations: [
+    { id: 'fwa-117', source: 'Fair Work Act 2009 (Cth)', locator: 's 117' },
+  ],
+}
+
+function log(line)  { process.stdout.write(line + '\n') }
+// Throws rather than process.exit() so main()'s finally block still gets
+// to delete the seeded row when a render assertion fails.
+class SmokeFailure extends Error {}
+function fail(line) { throw new SmokeFailure(line) }
+
+const restHeaders = {
+  apikey: SERVICE_KEY,
+  Authorization: `Bearer ${SERVICE_KEY}`,
+  'Content-Type': 'application/json',
+}
+
+async function seedDocument() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/documents`, {
+    method: 'POST',
+    headers: { ...restHeaders, Prefer: 'return=representation' },
     body: JSON.stringify({
-      // Minimal payload - no template id, plain prompt. Exercises the
-      // structured-doc tool path end to end without depending on any
-      // specific template definition being present.
-      prompt: 'Generate a short confirmation-of-employment letter for a single test candidate. Three sections max. Cite Fair Work Act s 117 and the NES. Australian English.',
-      intent: 'administrator-template-fill',
+      title: TITLE,
+      type: 'smoke-test',
+      // documents.content is NOT NULL - the renderers read
+      // structured_payload, but the column still has to be populated.
+      content: 'Smoke test fixture. Rendering is driven by structured_payload.',
+      structured_payload: FIXTURE,
     }),
   })
-  if (!genRes.ok) {
-    const body = await genRes.text()
-    fail(`generate returned ${genRes.status}: ${body.slice(0, 400)}`)
+  if (!res.ok) {
+    const body = await res.text()
+    fail(`seed insert returned ${res.status}: ${body.slice(0, 400)}`)
   }
-  const gen = await genRes.json()
-  if (!gen.id || !gen.document) fail('generate returned no id / document')
-  log(`[smoke] step 1 ok: id=${gen.id} title="${gen.document.title}" sections=${gen.document.sections?.length}`)
+  const rows = await res.json()
+  const id = rows?.[0]?.id
+  if (!id) fail('seed insert returned no id')
+  return id
+}
 
+async function deleteDocument(id) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: restHeaders,
+    })
+    if (!res.ok) {
+      const body = await res.text()
+      process.stderr.write(`[smoke] WARNING: could not delete seeded row ${id} (${res.status}): ${body.slice(0, 200)}\n`)
+      return
+    }
+    log(`[smoke] cleanup:   deleted seeded row ${id}`)
+  } catch (err) {
+    process.stderr.write(`[smoke] WARNING: cleanup failed for ${id}: ${err?.message ?? err}\n`)
+  }
+}
+
+async function run(id) {
   const outDir = mkdtempSync(join(tmpdir(), 'hqai-smoke-'))
   log(`[smoke] step 2:    rendering each format (output: ${outDir})...`)
 
   for (const fmt of ['html', 'docx', 'pdf', 'pptx']) {
-    const url = `${BASE_URL}/api/administrator/documents/${gen.id}/render?format=${fmt}`
+    const url = `${BASE_URL}/api/documents/${id}/render?format=${fmt}`
     const t0 = Date.now()
     const r = await fetch(url, { headers: { Cookie: COOKIE } })
     const t = Date.now() - t0
-    if (!r.ok) fail(`render ${fmt} returned ${r.status}`)
+    if (!r.ok) {
+      const body = await r.text().catch(() => '')
+      fail(`render ${fmt} returned ${r.status}: ${body.slice(0, 300)}`)
+    }
     const ct = (r.headers.get('content-type') || '').toLowerCase().split(';')[0].trim()
     if (!ct.startsWith(fmtMime[fmt])) {
       fail(`render ${fmt} returned wrong content-type: ${ct} (expected ${fmtMime[fmt]})`)
@@ -83,22 +195,34 @@ async function main() {
     // pptx >= 8 KiB. Empty / corrupt outputs sit well below.
     const minBytes = ({ html: 800, docx: 8 * 1024, pdf: 10 * 1024, pptx: 8 * 1024 })[fmt]
     if (buf.length < minBytes) fail(`render ${fmt} too small: ${buf.length} bytes (threshold ${minBytes})`)
-    const out = join(outDir, `smoke-${gen.id}.${fmt}`)
+    const out = join(outDir, `smoke-${id}.${fmt}`)
     writeFileSync(out, buf)
     log(`[smoke]   ${fmt.padEnd(4)}  ${buf.length.toLocaleString().padStart(10)} bytes  ${t}ms  ${out}`)
   }
 
-  log(`[smoke] step 3:    /doc/${gen.id} preview page...`)
-  const previewRes = await fetch(`${BASE_URL}/doc/${gen.id}`)
+  log(`[smoke] step 3:    /doc/${id} preview page...`)
+  const previewRes = await fetch(`${BASE_URL}/doc/${id}`)
   if (!previewRes.ok) fail(`/doc preview returned ${previewRes.status}`)
   const html = await previewRes.text()
-  if (!html.includes(gen.document.title)) fail('/doc preview did not include the document title')
+  if (!html.includes(TITLE)) fail('/doc preview did not include the document title')
   log(`[smoke] step 3 ok: title present in /doc preview html`)
+}
 
-  log(`\n[smoke] PASS - doc engine end to end is healthy.`)
+async function main() {
+  log(`[smoke] base url:  ${BASE_URL}`)
+  log(`[smoke] step 1:    seeding a documents row with a structured payload...`)
+  const id = await seedDocument()
+  log(`[smoke] step 1 ok: id=${id} title="${TITLE}" sections=${FIXTURE.sections.length}`)
+  try {
+    await run(id)
+  } finally {
+    await deleteDocument(id)
+  }
+  log(`\n[smoke] PASS - doc render pipeline end to end is healthy.`)
 }
 
 main().catch(err => {
-  console.error('[smoke] crashed:', err?.stack ?? err)
+  if (err instanceof SmokeFailure) process.stderr.write('FAIL: ' + err.message + '\n')
+  else console.error('[smoke] crashed:', err?.stack ?? err)
   process.exit(1)
 })

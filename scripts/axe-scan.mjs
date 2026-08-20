@@ -29,7 +29,7 @@ const PRESCREEN_SLUG = process.env.PRESCREEN_SLUG || ''
 
 const PAGES = [
   { path: '/dashboard/people/advisor',     label: 'AI Advisor chat' },
-  { path: '/dashboard/people/administrator', label: 'AI Administrator' },
+  { path: '/dashboard/recruit/ingest', label: 'HQ Recruit - CV Formatter' },
   { path: '/dashboard/recruit',            label: 'HQ Recruit hub' },
   ...(PRESCREEN_SLUG ? [{ path: `/prescreen/${PRESCREEN_SLUG}`, label: 'Prescreen candidate' }] : []),
   { path: '/login',  label: 'Login (marketing)' },

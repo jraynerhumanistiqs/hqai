@@ -7,10 +7,22 @@
 
 ---
 
+> **Historical, 2026-05-18.** Read with the AI Administrator removal
+> (Aug 2026) in mind: everything this file records under
+> `app/dashboard/people/administrator/`, `app/api/administrator/`,
+> `app/dashboard/templates/`, `app/api/stripe/one-off/` and `/offer` has been
+> archived to `_archive/ai-administrator/`. The shared document plumbing was
+> kept and renamed - `components/administrator/` is now `components/docs/`,
+> the two render routes are now `/api/documents/[id]/render{,-html}`, and the
+> CV Formatter ingest moved to `/api/recruit/ingest` +
+> `/dashboard/recruit/ingest`. Chat is Q&A only: it no longer detects a
+> document request, shows a fill-in form, or saves a generated document.
+> The `administrator_ingests` table is unchanged.
+
 ## 1. Project Goal & Stack
 
 **Product:** HQ.ai — Australian SME HR + recruitment SaaS. Three product surfaces:
-- **HQ People** — AI Advisor (chat against AU statute) + AI Administrator (33 IP HR templates, structured doc generation)
+- **HQ People** — AI Advisor (chat against AU statute). The AI Administrator was removed in Aug 2026 - see the banner at the top of this file.
 - **HQ Recruit** — CV Scoring, Shortlist (phone/video screens), Campaign Coach (job-ad writer)
 - **Marketing / /offer** — $25 Letter of Offer growth experiment landing page
 

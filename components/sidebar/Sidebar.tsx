@@ -83,7 +83,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
 
   const [peopleOpen, setPeopleOpen] = useState(false)
   const [recruitOpen, setRecruitOpen] = useState(false)
-  const [docsOpen, setDocsOpen] = useState(false)
   // Tools is now a collapsible parent containing the (mostly coming-soon)
   // Compliance / Leadership / Business sub-sections. Keeps the sidebar
   // tidy until those modules actually ship.
@@ -99,7 +98,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
     if (collapsed) {
       setPeopleOpen(false)
       setRecruitOpen(false)
-      setDocsOpen(false)
       setToolsOpen(false)
       setComplianceOpen(false)
       setLeadershipOpen(false)
@@ -254,7 +252,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         {/* HQ People dropdown */}
         <button onClick={() => toggleSubmenu(peopleOpen, setPeopleOpen)} title="HQ People" aria-label="HQ People"
           className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-            ${isActive('/dashboard/people') || isActive('/dashboard/templates')
+            ${isActive('/dashboard/people')
               ? 'bg-ink text-bg-elevated font-semibold'
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <PeopleIcon active={isActive('/dashboard/people')} />
@@ -263,24 +261,13 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
         </button>
         {peopleOpen && (
           <div className="ml-6 space-y-0.5">
-            {/* B0.2 - HQ People is split into AI Advisor (chat) and
-                AI Administrator (doc engine). Separate nav items so
-                each tool reads as a named product surface. The
-                Administrator engine ships across Weeks 3-5. */}
+            {/* HQ People is the AI Advisor. Kept as a named sub-item so
+                the pillar can grow a second tool without the nav shifting
+                under people who have learned where the Advisor lives. */}
             <Link href="/dashboard/people/advisor"
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/people/advisor') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               AI Advisor
-            </Link>
-            <Link href="/dashboard/people/administrator"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/people/administrator') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              AI Administrator
-            </Link>
-            <Link href="/dashboard/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              HR Templates
             </Link>
           </div>
         )}
@@ -324,26 +311,6 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
                 ${isActive('/dashboard/recruit/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
               Recruitment Templates
-            </Link>
-          </div>
-        )}
-
-        {/* Documents dropdown */}
-        <button onClick={() => toggleSubmenu(docsOpen, setDocsOpen)} title="Documents" aria-label="Documents"
-          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-            ${isActive('/dashboard/documents', true)
-              ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-          <DocsIcon active={isActive('/dashboard/documents')} />
-          <span className="flex-1 text-left">Documents</span>
-          <ChevronIcon open={docsOpen} />
-        </button>
-        {docsOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/documents"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/documents') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              <span>My Documents</span>
             </Link>
           </div>
         )}
@@ -723,11 +690,6 @@ function RecruitIcon({ active }: { active: boolean }) {
     <circle cx="17" cy="14" r="3.2"/>
     {/* Magnifier handle */}
     <line x1="19.3" y1="16.3" x2="21.5" y2="18.5"/>
-  </svg>
-}
-function DocsIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
   </svg>
 }
 function ShieldIcon({ active }: { active: boolean }) {

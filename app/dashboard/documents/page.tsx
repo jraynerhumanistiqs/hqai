@@ -2,12 +2,12 @@
 
 // My Documents - rebuilt to match the All Templates page layout.
 // Collapsible category list, each row shows the document, and the
-// recruiter can re-download or open the inline editor (powered by
-// the same TipTap editor the AI Administrator uses) to refine the
-// wording before exporting a fresh PDF.
+// recruiter can re-download or open the inline editor (the shared
+// TipTap editor in components/docs) to refine the wording before
+// exporting a fresh PDF.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import DocEditor, { type DocEditorHandle } from '@/components/administrator/DocEditorLazy'
+import DocEditor, { type DocEditorHandle } from '@/components/docs/DocEditorLazy'
 
 interface Doc {
   id: string
@@ -148,7 +148,7 @@ export default function DocumentsPage() {
         <p className="text-xs sm:text-sm text-ink-soft mb-4 sm:mb-6">
           {loading
             ? 'Loading your documents...'
-            : `${total} document${total === 1 ? '' : 's'} generated across the AI Administrator, CV Scoring Agent and chat.`}
+            : `${total} document${total === 1 ? '' : 's'} saved from the CV Formatter and the CV Scoring Agent.`}
         </p>
 
         {/* Fix #8 (M11): sticky search bar with standard bordered input */}
@@ -164,7 +164,7 @@ export default function DocumentsPage() {
         {!loading && total === 0 && (
           <div className="bg-bg-elevated border border-border rounded-3xl px-6 py-10 text-center">
             <p className="text-sm text-ink-soft">
-              No documents yet. Generate one from the AI Administrator, or score a CV in the CV Scoring Agent and download the formatted version.
+              No documents yet. Reformat a CV in HQ Recruit, or score one in the CV Scoring Agent, and the formatted version lands here.
             </p>
           </div>
         )}
@@ -288,7 +288,7 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
   const [error, setError] = useState<string | null>(null)
 
   // Convert the stored plain-text content into the editor's HTML
-  // surface. Documents authored via the Administrator's structured
+  // surface. Documents authored through the structured render
   // pipeline can also be re-fetched as HTML, but the documents table's
   // `content` column is the lowest-common-denominator plain text - so
   // we ship it through with paragraph splits and let the recruiter
@@ -311,7 +311,7 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
     try {
       const html = editorRef.current.getHTML()
       const settings = editorRef.current.getPageSettings()
-      const res = await fetch(`/api/administrator/documents/${doc.id}/render-html`, {
+      const res = await fetch(`/api/documents/${doc.id}/render-html`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html, title: doc.title, settings }),

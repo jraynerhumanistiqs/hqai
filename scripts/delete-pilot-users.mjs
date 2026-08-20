@@ -155,7 +155,7 @@ for (const { needle, user } of found) {
       if (otherOwners <= 0) {
         // Wipe rows that FK back to the business so the business
         // delete doesn't trip a FK violation. Tables here are the
-        // ones the AI Administrator / Recruit surfaces actually
+        // ones the People / Recruit surfaces actually
         // write to; the schema may have more - this list covers the
         // common path.
         const tables = [

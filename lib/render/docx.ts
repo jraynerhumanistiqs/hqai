@@ -3,7 +3,7 @@
 // Uses the existing docx@9 library that already ships in the codebase
 // (so the bundle size hit is zero). Emits a single-section Word
 // document keeping the same fonts + spacing the existing
-// app/api/documents/generate route produces today, but driven from
+// retired document-generation route produced, but driven from
 // the structured model rather than from a markdown string the LLM
 // hand-rolled.
 
@@ -252,7 +252,7 @@ export async function renderDocx(doc: StructuredDocument): Promise<Buffer> {
   const logoFooter = await buildLogoFooter(doc)
 
   const document = new Document({
-    creator: 'HQ.ai AI Administrator',
+    creator: 'HQ.ai',
     title:   doc.title,
     description: doc.subtitle ?? '',
     numbering: {

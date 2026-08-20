@@ -181,8 +181,7 @@ export default async function DashboardHome() {
                 <ul className="divide-y divide-border">
                   {recentDocs!.map((d: any) => (
                     <li key={d.id}>
-                      <Link href="/dashboard/documents"
-                        className="block px-5 py-4 hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset rounded-3xl">
+                      <div className="block px-5 py-4 rounded-3xl">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0">
                             <DocsIcon />
@@ -192,7 +191,7 @@ export default async function DashboardHome() {
                             <p className="text-xs text-ink-muted">{normaliseDashes(d.type) || 'Document'} &middot; {formatDate(d.created_at)}</p>
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -213,7 +212,6 @@ export default async function DashboardHome() {
         <div className="flex flex-wrap items-center gap-2">
           <Shortcut href="/dashboard/people" label="HQ People" />
           <Shortcut href="/dashboard/recruit" label="HQ Recruit" />
-          <Shortcut href="/dashboard/documents" label="Documents" />
           <Shortcut href="/dashboard/settings" label="Settings" />
         </div>
 

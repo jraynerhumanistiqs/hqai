@@ -73,7 +73,7 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
   return (
     <div className="w-full max-w-3xl mx-auto px-2 pt-2 pb-2">
       <div className="text-center mb-5">
-        {/* AI Administrator-style header (eyebrow + sans h1 + body). */}
+        {/* Shared page header (eyebrow + sans h1 + body). */}
         <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
           HQ People - AI Advisor
         </p>

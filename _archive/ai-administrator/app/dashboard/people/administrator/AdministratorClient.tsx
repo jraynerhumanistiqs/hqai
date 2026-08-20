@@ -5,7 +5,7 @@
 // Drives the new B4 generate route. On generate, the response carries
 // the full StructuredDocument plus the persisted document id, which
 // the preview pane renders inline via /doc/[id] and the download
-// buttons point at /api/administrator/documents/[id]/render?format=...
+// buttons point at /api/documents/[id]/render?format=...
 //
 // Deliberately minimal compared with the eventual "Gamma-style"
 // editor - the brief calls for template gallery + form + live preview
@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TemplateFormField } from '@/lib/template-ip'
 import { Button } from '@/components/ui/button'
-import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/administrator/DocEditorLazy'
+import DocEditor, { type DocEditorHandle, type PageSettings } from '@/components/docs/DocEditorLazy'
 
 interface TemplateLite {
   id: string
@@ -76,7 +76,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
 
   async function loadPreview(id: string) {
     try {
-      const res = await fetch(`/api/administrator/documents/${id}/render?format=html`, { cache: 'no-store' })
+      const res = await fetch(`/api/documents/${id}/render?format=html`, { cache: 'no-store' })
       if (!res.ok) throw new Error(`Preview HTTP ${res.status}`)
       const full = await res.text()
       setPreviewHtml(extractDocBody(full))
@@ -97,7 +97,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
     try {
       const html = editorRef.current.getHTML()
       const settings: PageSettings = editorRef.current.getPageSettings()
-      const res = await fetch(`/api/administrator/documents/${previewId}/render-html`, {
+      const res = await fetch(`/api/documents/${previewId}/render-html`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +132,7 @@ export default function AdministratorClient({ templates, categories, initialTemp
     setError(null)
     setPreviewId(null)
     try {
-      const res = await fetch('/api/administrator/documents/generate', {
+      const res = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

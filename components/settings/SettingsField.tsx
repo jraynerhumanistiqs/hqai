@@ -2,8 +2,8 @@
 
 // SET-08 / DASH-02 - shared settings field wrapper + input styles.
 //
-// Follows the FormField token pattern proven in AdministratorClient
-// (ink-soft bold label, ink text, ink-muted placeholder) and adds the
+// Follows the house FormField token pattern (ink-soft bold label, ink
+// text, ink-muted placeholder) and adds the
 // house focus-visible ring the settings inputs were missing. Inputs use a
 // premium underline; selects keep a subtle box because a bare underline +
 // native chevron renders inconsistently across OSes.

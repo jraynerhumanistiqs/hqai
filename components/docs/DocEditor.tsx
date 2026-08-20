@@ -1,6 +1,6 @@
 'use client'
 
-// DocEditor - Word-level rich text editor for AI Administrator documents.
+// DocEditor - Word-level rich text editor for generated documents.
 //
 // Powered by TipTap (ProseMirror) so we get the same family of editing
 // primitives Notion / Google Docs / Word offer (block-level structured
@@ -13,7 +13,7 @@
 // outside the editor in a separate band so they map cleanly to the
 // print stylesheet driving the PDF export. The exported HTML from
 // `editor.getHTML()` is concatenated with the header/footer at PDF
-// render time (see app/api/administrator/documents/[id]/render-html).
+// render time (see app/api/documents/[id]/render-html).
 
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'

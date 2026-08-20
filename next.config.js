@@ -62,7 +62,7 @@ const nextConfig = {
   // See: https://github.com/Sparticuz/chromium#bundler-configuration
   serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   outputFileTracingIncludes: {
-    '/api/administrator/documents/**': ['./node_modules/@sparticuz/chromium/bin/**'],
+    '/api/documents/**': ['./node_modules/@sparticuz/chromium/bin/**'],
     '/api/**/render**':                ['./node_modules/@sparticuz/chromium/bin/**'],
   },
   async headers() {

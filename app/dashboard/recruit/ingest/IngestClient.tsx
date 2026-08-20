@@ -1,7 +1,7 @@
 'use client'
 
 // CV Formatter / Contract ingest UI. Drop-zone style; lets the user
-// pick a PDF / DOCX / TXT, then POSTs it to /api/administrator/ingest
+// pick a PDF / DOCX / TXT, then POSTs it to /api/recruit/ingest
 // with kind=cv_formatter or kind=contract.
 //
 // - CV Formatter restructures a candidate CV into the Humanistiqs
@@ -15,9 +15,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-// Contract Review has moved out of AI Administrator - it will return
-// as its own dedicated tool if/when demand justifies it. This page
-// now only handles the CV Formatter ingest path.
+// Contract Review has moved out of this surface - it will return as
+// its own dedicated tool if/when demand justifies it. This page now
+// only handles the CV Formatter ingest path.
 type IngestKind = 'cv_formatter'
 
 interface CvPayload {
@@ -96,7 +96,7 @@ export default function IngestClient() {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('kind', kind)
-      const res = await fetch('/api/administrator/ingest', { method: 'POST', body: fd })
+      const res = await fetch('/api/recruit/ingest', { method: 'POST', body: fd })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || data?.detail || `HTTP ${res.status}`)
       setResult({ kind: data.kind, payload: data.payload, id: data.id, document_id: data.document_id })
@@ -112,7 +112,7 @@ export default function IngestClient() {
     <div className="h-full overflow-y-auto bg-bg">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
         <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
-          HQ People - AI Administrator - CV Formatter
+          HQ Recruit - CV Formatter
         </p>
         <h1 className="font-sans text-h1 font-bold text-ink mb-2 tracking-tight">
           Drop a CV. I&apos;ll restructure it.
@@ -214,11 +214,11 @@ export default function IngestClient() {
         </div>
 
         <p className="mt-8 text-xs text-ink-muted">
-          Need to generate a document from the extracted data?{' '}
-          <Link href="/dashboard/people/administrator" className="text-accent underline-offset-4 hover:underline">
-            Open the template gallery
+          Want a score alongside the formatted CV?{' '}
+          <Link href="/dashboard/recruit/cv-screening" className="text-accent underline-offset-4 hover:underline">
+            Open the CV Scoring Agent
           </Link>{' '}
-          and paste what you need into the form.
+          and upload the candidate there instead.
         </p>
       </div>
     </div>
@@ -233,13 +233,13 @@ function CvResult({ payload, documentId }: { payload: CvPayload; documentId: str
         {documentId && (
           <div className="flex flex-wrap items-center gap-2">
             <a
-              href={`/api/administrator/documents/${documentId}/render?format=docx`}
+              href={`/api/documents/${documentId}/render?format=docx`}
               className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-2"
             >
               Download .docx
             </a>
             <a
-              href={`/api/administrator/documents/${documentId}/render?format=pdf`}
+              href={`/api/documents/${documentId}/render?format=pdf`}
               className="border border-border hover:bg-bg-soft text-ink text-xs font-bold rounded-full px-4 py-2"
             >
               PDF

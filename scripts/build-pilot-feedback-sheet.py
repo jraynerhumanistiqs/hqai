@@ -52,19 +52,17 @@ ALIGN_CENTER = Alignment(horizontal='center', vertical='center', wrap_text=True)
 THIN = Side(style='thin', color=BORDER)
 BORDER_ALL = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
 
-# Surfaces match the 11 cards in the testing guide (post CV-Formatter removal).
+# Surfaces match the cards in the testing guide.
 SURFACES = [
     'Sign in',
     'Onboarding wizard',
     'Dashboard home',
     'AI Advisor',
-    'AI Administrator',
     'CV Scoring Agent',
     'Shortlist',
     'Campaign Coach',
     'My Documents',
     'Settings',
-    '$25 Letter of Offer',
 ]
 SEVERITY = ['Show-stopper', 'Annoying', 'Polish']
 CATEGORY = ['Bug', 'UX / clarity', 'Copy / language', 'Performance', 'Feature gap', 'Design polish', 'AI quality']
@@ -217,12 +215,12 @@ example = [
     1,
     date.today(),
     'Bianca',
-    'AI Administrator',
+    'AI Advisor',
     'Annoying',
     'AI quality',
-    'Generated a Letter of Offer with the candidate name Sarah Chen',
-    "The body of the letter says 'the successful candidate' instead of using her name",
-    'Her name to appear in the body prose, not just the recipient block',
+    'Asked what notice period applies to a casual on a 3-month engagement',
+    'The answer quoted the award but did not say which clause it came from',
+    'A clause reference next to the number so I can check it myself',
     '',
     '',
     'Chrome desktop',

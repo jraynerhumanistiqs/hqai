@@ -1,9 +1,8 @@
 // AI Advisor - the chat-first HR advisory surface.
 //
-// Lives under HQ People alongside AI Administrator. This page hosts the
-// existing ChatInterface (RAG-grounded, citation-emitting, escalation-
-// aware). The split into Advisor + Administrator is described in the
-// implementation brief Part B0 and the teardown report section 0.
+// The AI Advisor is the HQ People pillar. This page hosts the existing
+// ChatInterface (RAG-grounded, citation-emitting, escalation-aware).
+// It answers questions in prose; it does not generate documents.
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'

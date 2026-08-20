@@ -1,6 +1,6 @@
-// AI Administrator - Ingest IP.
+// HQ Recruit - CV Formatter ingest.
 //
-// Wraps /api/administrator/ingest in a UI page so non-API users can
+// Wraps /api/recruit/ingest in a UI page so non-API users can
 // upload a resume or contract, see the extracted structured payload,
 // and (in a future iteration) feed it into a downstream template.
 
