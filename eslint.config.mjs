@@ -6,6 +6,7 @@ export default [
   {
     ignores: [
       'node_modules/**',
+      '_archive/**',
       '.next/**',
       'out/**',
       'public/**',
