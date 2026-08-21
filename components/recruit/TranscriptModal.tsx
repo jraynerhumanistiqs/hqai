@@ -1,11 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 // `docx` is a large (~hundreds of KB) library. Import it as TYPES ONLY here
 // (erased at build, zero runtime cost) and pull the runtime module in via a
 // dynamic import inside downloadDocx below - so the recruit dashboard's
 // initial bundle no longer ships docx just to power a rarely-clicked
 // "download transcript" button. The chunk is fetched on first download.
 import type { Paragraph } from 'docx'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Props {
   open: boolean
@@ -17,8 +18,6 @@ interface Props {
 }
 
 export function TranscriptModal({ open, onClose, title, candidateName, roleTitle, text }: Props) {
-  const [downloading, setDownloading] = useState(false)
-
   // Lock scroll + ESC-to-close while modal is open.
   useEffect(() => {
     if (!open) return
@@ -35,7 +34,6 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
   if (!open) return null
 
   async function downloadDocx() {
-    setDownloading(true)
     try {
       // Load docx on demand - keeps it out of the initial client bundle.
       const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx')
@@ -115,8 +113,9 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
     } catch (err) {
       console.error('[TranscriptModal] docx error:', err)
       alert('Could not generate Word file. Please try again.')
-    } finally {
-      setDownloading(false)
+      // Rethrow so the control drops back to "Download as Word" rather than
+      // ticking success behind the failure alert.
+      throw err
     }
   }
 
@@ -184,20 +183,15 @@ export function TranscriptModal({ open, onClose, title, candidateName, roleTitle
           >
             Close
           </button>
-          <button
-            onClick={downloadDocx}
-            disabled={downloading}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
-          >
-            {downloading ? (
-              <>
-                <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                Generating…
-              </>
-            ) : (
-              'Download as Word'
-            )}
-          </button>
+          <InlineActionButton
+            size="sm"
+            tone="accent"
+            actionText="Download as Word"
+            ariaLabel={`Download ${title} for ${candidateName} as a Word document`}
+            successLabel="Transcript downloaded"
+            onAction={downloadDocx}
+            width={150}
+          />
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { SettingsSection } from './SettingsSection'
 import { UpgradeModal } from './UpgradeModal'
 import { StatusPill } from '@/components/ui/StatusPill'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 // v2 pricing (May 2026). Plan ids MUST match lib/pricing-config.ts + the
 // /api/stripe/checkout validator, which only accepts 'solo' and 'business'.
@@ -28,7 +29,6 @@ export function BillingSection({
   hasStripe: boolean
 }) {
   const searchParams = useSearchParams()
-  const [billingLoading, setBillingLoading] = useState(false)
   const [billingError, setBillingError] = useState('')
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [checkoutBusyFor, setCheckoutBusyFor] = useState<PaidPlanId | null>(null)
@@ -41,21 +41,25 @@ export function BillingSection({
   // hasStripe - otherwise the picker vanished after one click.
   const isSubscribed = subscriptionStatus === 'active'
 
+  // Resolves only when we are actually navigating to Stripe, so the
+  // control keeps its loading bar running through the redirect. Every
+  // failure throws, which drops it back to "Manage billing" beside the
+  // error banner instead of ticking success on a portal that never opened.
   async function openPortal() {
     setBillingError('')
-    setBillingLoading(true)
+    let url: string | undefined
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-        return
+      url = data.url
+      if (!url) {
+        setBillingError(data.error || 'Could not open the billing portal. Please try again or contact support.')
       }
-      setBillingError(data.error || 'Could not open the billing portal. Please try again or contact support.')
     } catch {
       setBillingError('Could not open the billing portal. Please check your connection and try again.')
     }
-    setBillingLoading(false)
+    if (!url) throw new Error('Billing portal unavailable')
+    window.location.href = url
   }
 
   async function startCheckout(planId: PaidPlanId) {
@@ -117,14 +121,13 @@ export function BillingSection({
           </p>
         </div>
         {hasStripe && (
-          <button
-            onClick={openPortal}
-            disabled={billingLoading}
-            aria-busy={billingLoading}
-            className={`bg-bg-elevated hover:bg-bg-soft text-ink text-xs font-bold px-4 py-2 rounded-full border border-border transition-colors disabled:opacity-60 ${ring}`}
-          >
-            {billingLoading ? 'Loading...' : 'Manage billing'}
-          </button>
+          <InlineActionButton
+            size="sm"
+            actionText="Manage billing"
+            successLabel="Opening the billing portal"
+            onAction={openPortal}
+            width={140}
+          />
         )}
       </div>
 

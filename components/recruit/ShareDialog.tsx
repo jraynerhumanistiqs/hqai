@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { PrescreenShareLink } from '@/lib/recruit-types'
 import { useBackdropClose } from '@/components/recruit/useBackdropClose'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Props {
   responseId: string
@@ -17,7 +18,6 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
   const backdrop = useBackdropClose(onClose)
   const [label, setLabel]       = useState('')
   const [days, setDays]         = useState(14)
-  const [creating, setCreating] = useState(false)
   const [links, setLinks]       = useState<HydratedLink[]>([])
   const [loading, setLoading]   = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -38,24 +38,24 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
     return () => { cancelled = true }
   }, [responseId])
 
+  // Loading/success is owned by InlineActionButton. A failed create now
+  // throws instead of resolving quietly - previously a rejected request
+  // just cleared the spinner and left the recruiter staring at a dialog
+  // that looked like nothing had happened.
   async function create() {
-    setCreating(true)
-    try {
-      const res = await fetch(`/api/prescreen/responses/${responseId}/share`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: label.trim() || undefined, expiresInDays: days }),
-      })
-      const data = await res.json()
-      if (res.ok && data.link && data.url) {
-        const item: HydratedLink = { ...data.link, url: data.url, view_count: 0 }
-        setLinks(prev => [item, ...prev])
-        setJustCreated(item)
-        setLabel('')
-      }
-    } finally {
-      setCreating(false)
+    const res = await fetch(`/api/prescreen/responses/${responseId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: label.trim() || undefined, expiresInDays: days }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data.link || !data.url) {
+      throw new Error(data?.error || `Could not create the link (HTTP ${res.status}).`)
     }
+    const item: HydratedLink = { ...data.link, url: data.url, view_count: 0 }
+    setLinks(prev => [item, ...prev])
+    setJustCreated(item)
+    setLabel('')
   }
 
   async function copyUrl(url: string, id: string) {
@@ -134,13 +134,13 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
               ))}
             </div>
           </div>
-          <button
-            onClick={create}
-            disabled={creating}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-ink-on-accent disabled:opacity-40"
-          >
-            {creating ? 'Creating...' : 'Generate review link'}
-          </button>
+          <InlineActionButton
+            size="sm"
+            actionText="Generate review link"
+            successLabel="Review link created"
+            onAction={create}
+            width={168}
+          />
 
           {justCreated && (
             <div className="mt-2 flex items-center gap-2 bg-bg border border-border rounded-lg px-3 py-2">

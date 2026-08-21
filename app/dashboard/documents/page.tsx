@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import DocEditor, { type DocEditorHandle } from '@/components/docs/DocEditorLazy'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Doc {
   id: string
@@ -69,7 +70,6 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('')
   const [openCategory, setOpenCategory] = useState<string | null>(null)
   const [editing, setEditing] = useState<Doc | null>(null)
-  const [downloading, setDownloading] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -104,19 +104,18 @@ export default function DocumentsPage() {
 
   const total = docs.length
 
+  // InlineActionButton owns the idle -> loading -> success states, so this
+  // only has to describe the work. The anchor click is synchronous, so we
+  // hold the promise open briefly - otherwise the control would snap to the
+  // success tick with no perceptible loading phase.
   async function downloadDocx(doc: Doc) {
-    setDownloading(doc.id)
-    try {
-      const a = document.createElement('a')
-      a.href = `/api/documents/download?id=${doc.id}`
-      a.download = `${doc.title.replace(/[^a-z0-9]/gi, '_')}.docx`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-    } finally {
-      // Brief flash so the user sees feedback even on fast downloads.
-      setTimeout(() => setDownloading(null), 600)
-    }
+    const a = document.createElement('a')
+    a.href = `/api/documents/download?id=${doc.id}`
+    a.download = `${doc.title.replace(/[^a-z0-9]/gi, '_')}.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    await new Promise(resolve => setTimeout(resolve, 600))
   }
 
   // Delete sits alongside Edit/Download with a two-step inline confirm
@@ -245,13 +244,14 @@ export default function DocumentsPage() {
                               >
                                 Edit
                               </button>
-                              <button
-                                onClick={() => downloadDocx(doc)}
-                                disabled={downloading === doc.id}
-                                className="bg-bg-elevated hover:bg-bg-soft text-ink-soft hover:text-ink text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
-                              >
-                                {downloading === doc.id ? 'Preparing...' : 'Download DOCX'}
-                              </button>
+                              <InlineActionButton
+                                size="sm"
+                                actionText="Download DOCX"
+                                ariaLabel={`Download ${doc.title} as DOCX`}
+                                successLabel={`${doc.title} downloaded`}
+                                onAction={() => downloadDocx(doc)}
+                                width={136}
+                              />
                               <button
                                 onClick={() => { setConfirmDeleteId(doc.id); setDeleteError(null) }}
                                 aria-label={`Delete ${doc.title}`}
@@ -284,7 +284,6 @@ export default function DocumentsPage() {
 // -- Editor modal ---------------------------------------------------
 function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) {
   const editorRef = useRef<DocEditorHandle | null>(null)
-  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Convert the stored plain-text content into the editor's HTML
@@ -306,7 +305,6 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
 
   async function downloadPdf() {
     if (!editorRef.current) return
-    setDownloading(true)
     setError(null)
     try {
       const html = editorRef.current.getHTML()
@@ -331,8 +329,9 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
       setTimeout(() => URL.revokeObjectURL(url), 30000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PDF download failed')
-    } finally {
-      setDownloading(false)
+      // Rethrow so InlineActionButton returns to idle rather than showing
+      // its success tick over the top of the error message.
+      throw err
     }
   }
 
@@ -367,14 +366,15 @@ function EditDocumentModal({ doc, onClose }: { doc: Doc; onClose: () => void }) 
               <p id="edit-doc-modal-title" className="text-sm font-bold text-charcoal truncate max-w-[400px]">{doc.title}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={downloadPdf}
-                disabled={downloading}
-                className="bg-accent hover:bg-accent-hover text-ink-on-accent text-xs font-bold rounded-full px-4 py-2 transition-colors disabled:opacity-60"
-              >
-                {downloading ? 'Preparing PDF...' : 'Download PDF'}
-              </button>
+              <InlineActionButton
+                size="sm"
+                tone="accent"
+                actionText="Download PDF"
+                ariaLabel={`Download ${doc.title} as PDF`}
+                successLabel={`${doc.title} downloaded as PDF`}
+                onAction={downloadPdf}
+                width={124}
+              />
               {/* Fix #2 (H3 touch): close button -> w-9 h-9 min-h-touch min-w-touch rounded-full */}
               <button
                 type="button"

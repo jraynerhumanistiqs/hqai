@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { PrescreenNote, TeamMember } from '@/lib/recruit-types'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Props {
   responseId: string
@@ -37,7 +38,6 @@ export function NotesPanel({ responseId }: Props) {
   const [members, setMembers]     = useState<TeamMember[]>([])
   const [text, setText]           = useState('')
   const [mentions, setMentions]   = useState<string[]>([])
-  const [saving, setSaving]       = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [me, setMe]               = useState<string | null>(null)
@@ -142,25 +142,26 @@ export function NotesPanel({ responseId }: Props) {
     else if (e.key === 'Escape') { setAcOpen(false) }
   }
 
+  // InlineActionButton owns the posting/posted states. A failed POST now
+  // throws rather than silently leaving the note in the box with no
+  // explanation - the control drops back to "Post note" so the retry is
+  // obvious and the draft is preserved.
   async function submit() {
     const trimmed = text.trim()
     if (!trimmed) return
-    setSaving(true)
-    try {
-      // Keep only mentions whose handle actually appears in body.
-      const used = mentions.filter(id => {
-        const name = memberById[id]?.name.replace(/\s+/g, '') ?? ''
-        return new RegExp(`@${name}\\b`, 'i').test(trimmed)
-      })
-      const res = await fetch(`/api/prescreen/responses/${responseId}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: trimmed, mentions: used }),
-      })
-      if (res.ok) { setText(''); setMentions([]) }
-    } finally {
-      setSaving(false)
-    }
+    // Keep only mentions whose handle actually appears in body.
+    const used = mentions.filter(id => {
+      const name = memberById[id]?.name.replace(/\s+/g, '') ?? ''
+      return new RegExp(`@${name}\\b`, 'i').test(trimmed)
+    })
+    const res = await fetch(`/api/prescreen/responses/${responseId}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: trimmed, mentions: used }),
+    })
+    if (!res.ok) throw new Error(`Could not post the note (HTTP ${res.status}).`)
+    setText('')
+    setMentions([])
   }
 
   async function saveEdit(id: string) {
@@ -292,13 +293,15 @@ export function NotesPanel({ responseId }: Props) {
           </div>
         )}
         <div className="flex items-center justify-end gap-2 mt-2">
-          <button
-            onClick={submit}
-            disabled={saving || !text.trim()}
-            className="text-xs font-bold px-4 py-2 rounded-full bg-accent text-ink-on-accent hover:bg-accent-hover disabled:opacity-40"
-          >
-            {saving ? 'Posting...' : 'Post note'}
-          </button>
+          <InlineActionButton
+            size="sm"
+            tone="accent"
+            actionText="Post note"
+            successLabel="Note posted"
+            disabled={!text.trim()}
+            onAction={submit}
+            width={104}
+          />
         </div>
       </div>
     </div>

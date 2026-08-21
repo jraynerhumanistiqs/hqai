@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ALL_TEMPLATES, TEMPLATE_CATEGORIES, type TemplateDefinition } from '@/lib/template-ip'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Props {
   title: string
@@ -39,7 +40,6 @@ export function TemplatesList({
   })).filter(cat => cat.templates.length > 0)
 
   const [openCategory, setOpenCategory] = useState<string | null>(categories[0]?.title ?? null)
-  const [downloading, setDownloading] = useState<string | null>(null)
   // Fix #1 (H1): per-row error state instead of alert().
   const [downloadError, setDownloadError] = useState<Record<string, string>>({})
 
@@ -49,8 +49,11 @@ export function TemplatesList({
     setOpenCategory(prev => prev === t ? null : t)
   }
 
+  // InlineActionButton drives the idle -> loading -> success states, so
+  // this only owns the work and the per-row error copy. Failures rethrow:
+  // that is what returns the control to idle instead of ticking green over
+  // the top of an error the user still needs to read.
   async function handleDownload(tmpl: TemplateDefinition) {
-    setDownloading(tmpl.id)
     setDownloadError(prev => { const next = { ...prev }; delete next[tmpl.id]; return next })
     try {
       const res = await fetch('/api/documents/contract', {
@@ -63,11 +66,7 @@ export function TemplatesList({
         }),
       })
 
-      if (!res.ok) {
-        setDownloadError(prev => ({ ...prev, [tmpl.id]: 'Failed to generate document. Please try again.' }))
-        setDownloading(null)
-        return
-      }
+      if (!res.ok) throw new Error('Failed to generate document. Please try again.')
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -78,10 +77,13 @@ export function TemplatesList({
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-    } catch {
-      setDownloadError(prev => ({ ...prev, [tmpl.id]: 'Something went wrong. Please try again.' }))
+    } catch (err) {
+      setDownloadError(prev => ({
+        ...prev,
+        [tmpl.id]: err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      }))
+      throw err
     }
-    setDownloading(null)
   }
 
   function handleCustomise(tmpl: TemplateDefinition) {
@@ -150,13 +152,14 @@ export function TemplatesList({
                         </div>
                         {/* Fix #2 (H3 touch) + Fix #9 (M12): min-h-touch, rename buttons, remove tooltip spans */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => handleDownload(tmpl)}
-                            disabled={downloading === tmpl.id}
-                            className="bg-bg-elevated hover:bg-light text-mid hover:text-charcoal text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full border border-border transition-colors disabled:opacity-50"
-                          >
-                            {downloading === tmpl.id ? 'Generating...' : 'Download blank'}
-                          </button>
+                          <InlineActionButton
+                            size="sm"
+                            actionText="Download blank"
+                            ariaLabel={`Download a blank ${tmpl.title}`}
+                            successLabel={`${tmpl.title} downloaded`}
+                            onAction={() => handleDownload(tmpl)}
+                            width={140}
+                          />
                           <button
                             onClick={() => handleCustomise(tmpl)}
                             className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-colors"

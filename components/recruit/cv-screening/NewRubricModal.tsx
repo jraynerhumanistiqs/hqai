@@ -8,6 +8,7 @@
 
 import { useRef, useState } from 'react'
 import type { Rubric } from '@/lib/cv-screening-types'
+import { InlineActionButton } from '@/components/ui/inline-action'
 import CriteriaEditor, {
   type DraftCriterion,
   toDraft,
@@ -75,10 +76,14 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
     setPdParsing(false)
   }
 
+  // `busy` still gates Cancel and the backdrop close; InlineActionButton
+  // separately owns the drafting -> drafted animation on the trigger. The
+  // catch rethrows so a failed suggestion leaves the control on
+  // "Suggest criteria" beside the error, ready to retry.
   async function suggest() {
     if (!jd.trim() || !label.trim()) {
       setError('Add a name and the job description')
-      return
+      throw new Error('Missing name or job description')
     }
     setBusy(true)
     setError(null)
@@ -101,6 +106,8 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
       setStage('reviewing')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not suggest criteria')
+      setBusy(false)
+      throw err
     }
     setBusy(false)
   }
@@ -246,13 +253,14 @@ export default function NewRubricModal({ onClose, onCreated, initialLabel, initi
               >
                 Cancel
               </button>
-              <button
-                onClick={suggest}
-                disabled={busy || !jd.trim() || !label.trim()}
-                className="flex-1 bg-accent text-ink-on-accent text-sm font-bold rounded-full px-4 py-2.5 hover:bg-accent-hover disabled:opacity-50"
-              >
-                {busy ? 'Drafting your criteria...' : 'Suggest criteria'}
-              </button>
+              <InlineActionButton
+                tone="accent"
+                actionText="Suggest criteria"
+                successLabel="Criteria drafted"
+                disabled={!jd.trim() || !label.trim()}
+                onAction={suggest}
+                width={168}
+              />
             </div>
           </div>
         )}

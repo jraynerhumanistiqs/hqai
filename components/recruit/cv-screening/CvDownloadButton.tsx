@@ -7,6 +7,7 @@
 // surface as a quiet inline bubble - never an alert().
 
 import { useEffect, useRef, useState } from 'react'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Props {
   screeningId: string
@@ -34,7 +35,6 @@ function filenameFrom(res: Response, fallback: string): string {
 }
 
 export default function CvDownloadButton({ screeningId, candidateName, align = 'left', className = '' }: Props) {
-  const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<{ kind: 'notice' | 'error'; text: string } | null>(null)
   const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (clearTimer.current) clearTimeout(clearTimer.current) }, [])
@@ -47,16 +47,17 @@ export default function CvDownloadButton({ screeningId, candidateName, align = '
     if (kind === 'notice') clearTimer.current = setTimeout(() => setMessage(null), 8000)
   }
 
-  async function download(e: React.MouseEvent) {
-    e.stopPropagation()
-    e.preventDefault()
-    if (busy) return
+  // InlineActionButton owns the spinner/tick, so this no longer tracks its
+  // own busy flag. It still owns the message bubble (the "original file
+  // wasn't stored, here's the formatted one instead" notice), and rethrows
+  // on failure so the control returns to the download icon rather than
+  // ticking success above an error the recruiter still needs to read.
+  async function download() {
     setMessage(null)
     if (screeningId.startsWith('local-')) {
       showMessage('error', 'This screening was not saved to the database, so there is no stored CV file to download.')
-      return
+      throw new Error('Screening not persisted')
     }
-    setBusy(true)
     try {
       const res = await fetch(`/api/cv-screening/screenings/${screeningId}/cv`)
       if (res.ok) {
@@ -82,33 +83,29 @@ export default function CvDownloadButton({ screeningId, candidateName, align = '
       }
     } catch (err) {
       showMessage('error', `Could not download the CV - ${err instanceof Error ? err.message : 'unknown error'}`)
+      throw err
     }
-    setBusy(false)
   }
 
   return (
     <span className={`relative inline-flex flex-shrink-0 ${className}`}>
-      <button
-        type="button"
-        onClick={download}
-        disabled={busy}
-        aria-label={`Download CV - ${candidateName}`}
-        title={`Download CV - ${candidateName}`}
-        className="w-6 h-6 rounded-full flex items-center justify-center text-ink-muted hover:text-ink hover:bg-bg-soft transition-colors disabled:opacity-60"
-      >
-        {busy ? (
-          <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2.5" className="opacity-25" />
-            <path d="M18 10a8 8 0 00-8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-        ) : (
-          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M10 3v9" />
-            <path d="M6 9l4 4 4-4" />
-            <path d="M4 16h12" />
-          </svg>
-        )}
-      </button>
+      {/* The row this sits in is a click target, so the trigger must not
+          bubble - hence the wrapper rather than an onClick on the control. */}
+      <span onClick={e => { e.stopPropagation(); e.preventDefault() }}>
+        <InlineActionButton
+          size="xs"
+          triggerIcon={
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M10 3v9" />
+              <path d="M6 9l4 4 4-4" />
+              <path d="M4 16h12" />
+            </svg>
+          }
+          actionText={`Download CV - ${candidateName}`}
+          successLabel={`${candidateName} CV downloaded`}
+          onAction={download}
+        />
+      </span>
       {message && (
         <span
           role={message.kind === 'error' ? 'alert' : 'status'}

@@ -140,11 +140,14 @@ export function useSettingsForm() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [dirty])
 
+  // Throws on every failure path. The SaveBar's control reads the rejection
+  // as "stay idle so the user can fix it and retry"; resolving quietly would
+  // flash a success tick next to the error text explaining what went wrong.
   async function save() {
-    if (!bizId || !userId) return
+    if (!bizId || !userId) throw new Error('Settings are still loading.')
     if (missingRequired.length) {
       setSaveError(`Please complete the required fields: ${missingRequired.join(', ')}.`)
-      return
+      throw new Error('Required fields missing')
     }
     setSaving(true)
     setSaveError('')
@@ -169,7 +172,7 @@ export function useSettingsForm() {
     setSaving(false)
     if (bizErr || profErr) {
       setSaveError('Could not save your changes. Please try again.')
-      return
+      throw new Error('Save failed')
     }
     snapshotRef.current = JSON.stringify({ form, userName, jobTitle })
     setSaved(true)

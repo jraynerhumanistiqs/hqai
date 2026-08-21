@@ -13,7 +13,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { InlineActionButton } from '@/components/ui/inline-action'
 
 // Contract Review has moved out of this surface - it will return as
 // its own dedicated tool if/when demand justifies it. This page now
@@ -72,7 +72,6 @@ interface IngestResult {
 export default function IngestClient() {
   const [kind, setKind] = useState<IngestKind>('cv_formatter')
   const [file, setFile] = useState<File | null>(null)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<IngestResult | null>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -87,9 +86,11 @@ export default function IngestClient() {
     setFile(f)
   }
 
+  // InlineActionButton owns the reading -> done states, so there is no local
+  // busy flag left. The catch rethrows so a failed extract leaves the control
+  // on "Reformat CV" above the error, ready to retry.
   async function submit() {
     if (!file) return
-    setBusy(true)
     setError(null)
     setResult(null)
     try {
@@ -102,8 +103,8 @@ export default function IngestClient() {
       setResult({ kind: data.kind, payload: data.payload, id: data.id, document_id: data.document_id })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not extract document')
+      throw err
     }
-    setBusy(false)
   }
 
   void kind // kept as a single-value union for now; future tools land here
@@ -196,15 +197,15 @@ export default function IngestClient() {
 
               {error && <p className="mt-3 text-xs text-danger" role="alert">{error}</p>}
 
-              <Button
-                onClick={() => void submit()}
-                variant="primary"
-                size="md"
-                disabled={!file || busy}
-                className="mt-4 w-full"
-              >
-                {busy ? 'Reading...' : 'Reformat CV'}
-              </Button>
+              <InlineActionButton
+                fullWidth
+                tone="accent"
+                actionText="Reformat CV"
+                successLabel="CV reformatted"
+                disabled={!file}
+                onAction={submit}
+                className="mt-4"
+              />
             </section>
 
             {result && result.kind === 'cv_formatter' && (
