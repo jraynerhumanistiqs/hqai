@@ -29,37 +29,85 @@ done-for-you human-advisor layer (HR365 / Recruit365).
   component files breaks every import - keep the layout as-is.
 - docs/ (research + specs), supabase/ (schema + migrations), scripts/,
   data/ (award files). .claude/ holds agents/commands/skills/settings.
+- _archive/ holds withdrawn product code kept for reference. It is excluded
+  from tsconfig and eslint and is NOT wired to anything - never import from
+  it, and do not "fix" errors inside it.
 
-## Design system (dual-theme, Wattle Gold - June 2026 rebrand)
+## Withdrawn products (do not resurrect without a decision)
+AI Administrator, the AI HR document-generation product, was removed in Aug
+2026 and archived to _archive/ai-administrator/ (see its README). Chat is
+now Q&A ONLY - it does not generate documents.
+
+Shared doc plumbing SURVIVED under neutral names and is still load-bearing
+for HQ Recruit, the documents library and public /doc/[id] shares:
+components/docs/* (DocEditor), /api/documents/[id]/render(-html),
+/api/documents/contract, /api/documents/download, lib/render/*.
+/dashboard/documents still works at its URL but is intentionally unlinked
+from all navigation.
+
+## Design system (two DIVERGENT palettes - Aug 2026)
 Token source of truth: tailwind.config.ts + app/globals.css + app/layout.tsx.
 The old "Uber / DM Sans / black-and-white" system is retired.
 
-### Two palettes, selected by `data-app` on <html>
-- `data-app="marketing"` - non-member site. Dark, warm (Ivory & Clay). Set
-  by components/landing/MarketingHeader; never mounts ThemeBoundary.
-- `data-app="product"` - member dashboard. Light base + `.dark` variant (Ink
-  & Amber). Mounted by components/theme/ThemeBoundary (`themeMode`:
-  'dashboard' = defaults dark with a light/dark toggle; 'static-light' =
-  forces light). Dashboard defaults dark; /prescreen and /review forced-light.
-  next-themes supplies the `.dark` class; storageKey "hqai-theme".
+IMPORTANT: marketing and product no longer share a palette. Since Aug 2026
+the product surfaces run shadcn preset b1YmvCmim (yellow primary, neutral
+surfaces) while marketing keeps Wattle Gold. Read the right column below
+before touching any colour - a value that is correct on one surface is
+wrong on the other.
 
-### Tokens (never hardcode colours - these flip per theme)
+### Two palettes, selected by `data-app` on <html>
+- `data-app="marketing"` - non-member site. Dark, warm. Wattle Gold
+  (#E8B23A) CTAs, near-black secondary accent, Schibsted Grotesk + Geist.
+  Set by components/landing/MarketingHeader; never mounts ThemeBoundary.
+- `data-app="product"` - dashboard AND /prescreen AND /review. shadcn
+  preset b1YmvCmim. Mounted by components/theme/ThemeBoundary (`themeMode`:
+  'dashboard' = defaults dark with a light/dark toggle; 'static-light' =
+  forces light). Dashboard defaults dark; /prescreen and /review
+  forced-light. next-themes supplies `.dark`; storageKey "hqai-theme".
+
+### Tokens (never hardcode colours - these flip per theme AND per surface)
 - Surfaces: `bg`, `bg-soft`, `bg-elevated`, `surface-inverse`
-- Text: `ink`, `ink-soft`, `ink-muted`, `ink-on-accent`; lines: `border`
-- Accent = Wattle Gold, token name `clay`: `clay` (#E8B23A), `clay-hover`
-  (#D9A52E), `clay-soft` (#F7EBCB), `clay-ink` (#8A6D12). One accent only.
+- Text: `ink`, `ink-soft`, `ink-muted`, `ink-on-accent`, `ink-on-danger`
+- Lines: `border`, `border-strong`, `input`, `ring`
+- Accent, token name stays `clay` / `accent` on both surfaces, DIFFERENT
+  values:
+  - marketing: `accent` near-black (inverts light on dark), `clay` #E8B23A
+  - product:   `accent` #FDC700 light / #F0B100 dark, labels on accent are
+    #733E0A (NOT white - white on yellow is unreadable). `clay` #D08700.
+    Gold TEXT uses `clay-ink` / `accent-text` #733E0A for AA on white.
+- Semantic (product): `danger` #E7000B / #FF6467 dark, `warning` #BB4D00 /
+  #FF6900 dark. Warning is deliberately orange-shifted so it stays
+  distinguishable from the yellow accent - do not move it back to amber.
+- `sidebar*` and `chart-1..5` (blue ramp) exist as preset tokens.
+- Radius (product): --radius 0.625rem with the preset sm..3xl scale.
 - Legacy aliases (text-charcoal/mid/muted, bg-light) resolve to vars. ONLY
   literal bg-white/bg-black/text-gray-*/hex break under `.dark` - never use.
 
 ### Typography (self-hosted via next/font/google in app/layout.tsx)
-- Schibsted Grotesk -> display/headlines (`font-display`)
-- Geist -> body/UI sans; Geist Mono -> eyebrow/caption micro-labels
+- Marketing: Schibsted Grotesk -> display/headlines (`font-display`);
+  Geist -> body/UI sans; Geist Mono -> eyebrow/caption micro-labels
+- Product: Figtree, scoped via --font-app-sans under [data-app="product"]
 - Do NOT reintroduce DM Sans / Bebas Neue / Fraunces (removed)
+
+### Icons
+- remixicon (`@remixicon/react`), per the preset. lucide-react is removed -
+  do not reintroduce it. Remix Line glyphs render ~9% smaller than lucide's
+  equivalents, so size by eye rather than porting classes verbatim.
+
+### Focus indicator (do not remove)
+`html[data-app="product"] :focus-visible` in globals.css paints the only
+keyboard focus indicator the product has. The ~120 `focus-visible:ring-*/NN`
+utilities across the app emit NO CSS: every colour token is a bare `var()`
+and Tailwind v3 alpha modifiers need channel triplets. Those controls also
+set `outline-none`, so without this rule there is no focus ring at all. The
+`html` prefix is load-bearing - it outranks Tailwind's
+`focus-visible:outline-none`, which would otherwise tie and win on source
+order.
 
 ### Component + copy rules (core style - always enforce)
 - Buttons: always rounded-full. Cards: rounded-2xl / rounded-3xl + shadow-card.
 - No gradients, no accent stripes / colour bars / underlines.
-- One filled clay CTA per section (the primary action); everything else is
+- One filled accent CTA per section (the primary action); everything else is
   ghost/outline or a text link.
 - Plain hyphens ONLY - never em/en dashes. ASCII apostrophes. Australian
   English throughout.
@@ -72,7 +120,9 @@ The old "Uber / DM Sans / black-and-white" system is retired.
 - lib/pricing-config.ts - all pricing (C10 self-serve + enterprise); the
   runtime resolver lib/stripe.ts maps plan ids -> Stripe price env vars
 - lib/prompts.ts - AI system prompts + escalation logic
-- lib/template-ip.ts - 33 HR/recruitment document templates (ALL_TEMPLATES)
+- lib/template-ip.ts - 33 HR/recruitment document templates (ALL_TEMPLATES).
+  Only the Recruitment-category slice is still surfaced, at
+  /dashboard/recruit/templates. The HR Templates page was removed Aug 2026.
 - lib/supabase/{server,client,admin}.ts - Supabase clients
 - lib/email.ts - Resend helpers
 - tailwind.config.ts + app/globals.css + app/layout.tsx - design tokens/fonts
@@ -95,10 +145,10 @@ Full set + inline notes live in lib/stripe.ts and .env.local. Categories:
 Supabase, ANTHROPIC_API_KEY (+ optional ANTHROPIC_MODEL_*), Cloudflare
 Stream, Resend, Stripe (STRIPE_SECRET_KEY / _WEBHOOK_SECRET / publishable +
 per-plan price ids: SOLO/BUSINESS/RECRUIT monthly+annual, the six ENTERPRISE
-keys, and the one-off document SKUs incl. the two packs
-STRIPE_PRICE_ID_EMPLOYMENT_PACK / _AWARD_PACK). NB standalone HQ Recruit
-needs STRIPE_PRICE_ID_RECRUIT_MONTHLY, and the re-priced one-off ladder +
-packs need their Stripe prices (re)created, before those checkouts can charge.
+keys). NB standalone HQ Recruit needs STRIPE_PRICE_ID_RECRUIT_MONTHLY.
+The STRIPE_PRICE_ID_* one-off document vars still exist in Vercel but are
+DEAD: the checkout that consumed them was removed and all 12 one-off
+products are archived in Stripe (Aug 2026). Do not wire anything to them.
 
 ## Pricing (C10 - live; single source lib/pricing-config.ts)
 No free trial and no Foundation offer (both removed July 2026). Unlimited
@@ -109,9 +159,12 @@ logins on every plan; no per-seat charge; no lock-in.
   role for $40/mo (exclusive perk, shown via the card info icon).
 - HQ Business (bundle, HR + hiring): $89/mo Solo (up to 25) / $269/mo up to
   150. Reuses the solo/business Stripe ids.
-- One-off documents: 10 SKUs, $25-$49, no signup.
 - Human layer (sales-assisted, /enterprise inquiry, invoiced): HR365 $799/mo,
   Recruit365 $899/mo, HR365+Recruit365 $1,599/mo (annual equivalents).
+- One-off documents: WITHDRAWN Aug 2026. The /offer funnel is removed, the
+  public /marketplace is a Coming Soon stub, and the 12 Stripe products are
+  archived. PRICING.oneOffs still exists in lib/pricing-config.ts but has no
+  live consumer - do not re-surface it without a new product decision.
 
 ## HQ Recruit workflow
 A role runs as a left-rail stepper (RecruitFlowRail -> RoleStepperRail):
@@ -119,7 +172,10 @@ A role runs as a left-rail stepper (RecruitFlowRail -> RoleStepperRail):
    not scored) 2. Prescreen (video + phone) 3. Shortlist (bulk triage,
    multi-select promote; per-candidate personalised screening questions
    generated on allocation) 4. Interviews (AI interview guide, notes,
-   recording; "offer" retired - contracts live in HQ People).
+   recording; "offer" retired - HQ.ai no longer generates contracts at all,
+   see Withdrawn products below).
+CV Formatter lives at /dashboard/recruit/ingest (POST /api/recruit/ingest).
+It moved out of HQ People in Aug 2026; CvScreeningClient links to it twice.
 Campaign Coach = 4-step job-ad wizard (Brief -> Role profile -> Draft & Coach
 -> Finish). Bridge cols: cv_screenings.prescreen_session_id,
 prescreen_responses.cv_screening_id / .custom_questions / .interview_guide.
