@@ -625,7 +625,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const railFooter = (
     <p className="text-[11px] text-ink-soft leading-relaxed">
       Have an existing CV?{' '}
-      <Link href="/dashboard/recruit/ingest" className="text-clay underline-offset-2 hover:underline font-bold">
+      <Link href="/dashboard/recruit/ingest" className="text-clay-ink underline-offset-2 hover:underline font-bold">
         Reformat it with the CV Formatter
       </Link>{' '}
       - it restructures the CV into the Humanistiqs house format without changing a word.

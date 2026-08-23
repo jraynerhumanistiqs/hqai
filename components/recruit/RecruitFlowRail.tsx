@@ -171,7 +171,7 @@ export default function RecruitFlowRail({
                         active
                           ? 'bg-accent text-ink-on-accent border-accent'
                           : step.done
-                            ? 'bg-accent/15 text-clay border-accent/30'
+                            ? 'bg-accent/15 text-clay-ink border-accent/30'
                             : can
                               ? 'bg-bg text-ink-soft border-border'
                               : 'bg-bg text-ink-muted border-border'
