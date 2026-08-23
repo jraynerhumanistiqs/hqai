@@ -622,7 +622,7 @@ export function RecordingFlow({ questions, timeLimitSeconds, onComplete }: Props
         <button
           disabled={recState !== 'review' || submitting}
           onClick={nextQuestion}
-          className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full transition-colors text-sm"
+          className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-ink-on-accent font-bold px-8 py-3 rounded-full transition-colors text-sm"
         >
           {submitting ? 'Submitting…' : isLast ? 'Submit →' : 'Next →'}
         </button>

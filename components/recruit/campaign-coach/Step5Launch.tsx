@@ -278,7 +278,7 @@ export default function Step5Launch() {
               >
                 <div className={`mt-0.5 w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 ${checked ? 'border-ink bg-ink' : 'border-border'}`}>
                   {checked && (
-                    <svg className="w-3 h-3 text-ink-on-accent" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-3 h-3 text-bg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                     </svg>
                   )}
@@ -362,7 +362,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-3 mb-4">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ink text-ink-on-accent text-xs font-bold flex items-center justify-center mt-0.5">
+      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ink text-bg text-xs font-bold flex items-center justify-center mt-0.5">
         {n}
       </div>
       <div>
@@ -489,7 +489,7 @@ function LaunchSuccess({ result }: { result: any }) {
   return (
     <div className="bg-bg-elevated shadow-card rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-ink text-ink-on-accent flex items-center justify-center font-bold">
+        <div className="w-10 h-10 rounded-full bg-ink text-bg flex items-center justify-center font-bold">
           ✓
         </div>
         <div>
@@ -582,7 +582,7 @@ function DeepLinkButton({ href, children }: { href: string; children: React.Reac
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-ink text-ink-on-accent text-xs font-bold px-4 py-2 rounded-full hover:bg-accent-hover transition-colors"
+      className="bg-ink text-bg text-xs font-bold px-4 py-2 rounded-full hover:bg-accent-hover hover:text-ink-on-accent transition-colors"
     >
       {children}
     </a>

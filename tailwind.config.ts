@@ -36,6 +36,12 @@ const config: Config = {
         'ink-soft':       'var(--ink-soft)',
         'ink-muted':      'var(--ink-muted)',
         'ink-on-accent':  'var(--ink-on-accent)',
+        // Label on a --danger fill. Separate from ink-on-accent because
+        // the product preset makes the accent yellow (so its label is a
+        // dark amber-brown) while danger stays a saturated red that
+        // still needs a white label in light / near-black in dark.
+        // Falls back to ink-on-accent so marketing is unchanged.
+        'ink-on-danger':  'var(--ink-on-danger, var(--ink-on-accent))',
         // Brand accent (public = ink; product = Clay, via data-app scope)
         accent:           'var(--accent)',
         'accent-hover':   'var(--accent-hover)',
@@ -51,6 +57,24 @@ const config: Config = {
         // Border + decoration
         border:           'var(--border)',
         'border-strong':  'var(--border-strong)',
+
+        // ── Product chrome + data viz (shadcn preset b1YmvCmim) ────
+        // Defined only under [data-app="product"] in globals.css; the
+        // fallbacks keep these resolvable on marketing, which does not
+        // use them. `sidebar*` is the nav-rail surface; `chart-1..5` is
+        // the preset's blue series ramp, deliberately not the brand
+        // yellow so a data series never reads as an interactive accent.
+        sidebar:                 'var(--sidebar, var(--bg))',
+        'sidebar-ink':           'var(--sidebar-ink, var(--ink))',
+        'sidebar-accent':        'var(--sidebar-accent, var(--bg-soft))',
+        'sidebar-accent-ink':    'var(--sidebar-accent-ink, var(--ink))',
+        'sidebar-primary':       'var(--sidebar-primary, var(--accent-clay))',
+        'sidebar-primary-ink':   'var(--sidebar-primary-ink, var(--ink-on-accent))',
+        'chart-1':               'var(--chart-1, #8EC5FF)',
+        'chart-2':               'var(--chart-2, #2B7FFF)',
+        'chart-3':               'var(--chart-3, #155DFC)',
+        'chart-4':               'var(--chart-4, #1447E6)',
+        'chart-5':               'var(--chart-5, #193CB8)',
         // Semantic (resolved per theme)
         danger:           'var(--danger)',
         warning:          'var(--warning)',
@@ -81,9 +105,9 @@ const config: Config = {
         'muted-foreground':      'var(--ink-muted)',
         'accent-foreground':     'var(--ink)',
         destructive:             'var(--danger)',
-        'destructive-foreground':'var(--ink-on-accent)',
-        input:                   'var(--border)',
-        ring:                    'var(--accent)',
+        'destructive-foreground':'var(--ink-on-danger, var(--ink-on-accent))',
+        input:                   'var(--input, var(--border))',
+        ring:                    'var(--ring, var(--accent))',
 
         // ── Legacy aliases kept so the ~hundreds of existing
         //    `text-charcoal` / `text-mid` / `text-muted` / `bg-light`
@@ -106,6 +130,40 @@ const config: Config = {
         accent3:  'var(--bg-soft, #efefef)',
       },
 
+      // ── Per-utility overrides of `accent` (Aug 2026) ──────────────
+      // The product preset makes --accent a yellow (#FDC700). That is
+      // fine as a FILL but fails as ink or as a focus indicator on a
+      // white page. Rather than rewrite ~160 callsites, we repoint the
+      // three utility families that read accent as a line/label colour
+      // at their own scoped vars. Both vars are defined only under
+      // [data-app="product"], so every marketing callsite falls back to
+      // var(--accent) and renders exactly as it does today.
+
+      // text-accent -> --accent-text. Yellow text on white is 1.6:1;
+      // the product value is the AA-safe amber (#733E0A light,
+      // #F0B100 dark). ~39 callsites, ~25 of them in product.
+      textColor: {
+        accent: 'var(--accent-text, var(--accent))',
+      },
+      // ring-accent -> --ring, the preset's neutral grey. A yellow
+      // focus ring on white is ~1.6:1, i.e. no visible focus state.
+      // Caveat: this only reaches the plain `ring-accent` form. Tailwind
+      // v3 cannot apply an opacity modifier to a bare var() colour, so
+      // the ~120 `ring-accent/30` callsites emit no rule at all and have
+      // never rendered a ring. Pre-existing and NOT fixed here - the fix
+      // is to move the whole token system to channel triplets
+      // (`--accent: 253 199 0` + `rgb(var(--accent) / <alpha-value>)`),
+      // which would also touch :root and marketing.
+      ringColor: {
+        accent: 'var(--ring, var(--accent))',
+      },
+      // outline-accent -> --ring, same reasoning. Notably the paid-plan
+      // banner CTA, which is a yellow pill that would otherwise draw a
+      // yellow focus outline on itself.
+      outlineColor: {
+        accent: 'var(--ring, var(--accent))',
+      },
+
       fontFamily: {
         // June 2026 repositioning pass. Geist = body/UI sans. Schibsted
         // Grotesque = display headlines (replaces Fraunces - a friendly
@@ -114,10 +172,16 @@ const config: Config = {
         // alias) so existing className="font-display"/"font-serif"/
         // "font-fraunces" headlines all pick up the new face. Geist Mono =
         // caption/eyebrow micro-labels.
-        sans:     ['var(--font-geist-sans)', 'Geist', 'system-ui', 'sans-serif'],
-        serif:    ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
-        display:  ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
-        fraunces: ['var(--font-display)', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
+        // Aug 2026 - product surfaces move to Figtree (shadcn preset
+        // b1YmvCmim). --font-app-sans / --font-app-heading are defined
+        // ONLY under [data-app="product"] in globals.css, so marketing
+        // falls through to the Geist / Schibsted pair unchanged. The
+        // preset sets fontHeading to "inherit", which is why the
+        // heading stacks take the same Figtree var as the body.
+        sans:     ['var(--font-app-sans, var(--font-geist-sans))', 'Geist', 'system-ui', 'sans-serif'],
+        serif:    ['var(--font-app-heading, var(--font-display))', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
+        display:  ['var(--font-app-heading, var(--font-display))', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
+        fraunces: ['var(--font-app-heading, var(--font-display))', 'Schibsted Grotesk', 'system-ui', 'sans-serif'],
         mono:     ['var(--font-geist-mono)', 'Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
 
@@ -140,6 +204,11 @@ const config: Config = {
         'xl':    'var(--radius-xl, 16px)',
         '2xl':   'var(--radius-panel, 20px)',
         'panel': 'var(--radius-panel, 20px)',
+        // rounded-3xl previously fell through to Tailwind's stock
+        // 1.5rem. --radius-3xl is only defined under
+        // [data-app="product"], so the preset's 22px applies there and
+        // marketing keeps the 1.5rem it renders today.
+        '3xl':   'var(--radius-3xl, 1.5rem)',
       },
 
       boxShadow: {

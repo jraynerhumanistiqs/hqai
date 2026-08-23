@@ -128,7 +128,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                   key={d}
                   onClick={() => setDays(d)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
-                    days === d ? 'bg-ink text-ink-on-accent border-ink' : 'bg-bg-elevated text-mid border-border hover:text-ink'
+                    days === d ? 'bg-ink text-bg border-ink' : 'bg-bg-elevated text-mid border-border hover:text-ink'
                   }`}
                 >{d} days</button>
               ))}
@@ -211,7 +211,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                       <button
                         onClick={() => sendByEmail(l)}
                         disabled={sending || !emailTo.trim()}
-                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-ink text-ink-on-accent disabled:opacity-40"
+                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-ink text-bg disabled:opacity-40"
                       >{emailSent ? 'Sent' : sending ? 'Sending...' : 'Send'}</button>
                     </div>
                   )}
