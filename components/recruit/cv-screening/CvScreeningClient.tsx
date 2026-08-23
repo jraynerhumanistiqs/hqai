@@ -625,7 +625,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
   const railFooter = (
     <p className="text-[11px] text-ink-soft leading-relaxed">
       Have an existing CV?{' '}
-      <Link href="/dashboard/recruit/ingest" className="text-clay underline-offset-2 hover:underline font-bold">
+      <Link href="/dashboard/recruit/ingest" className="text-clay-ink underline-offset-2 hover:underline font-bold">
         Reformat it with the CV Formatter
       </Link>{' '}
       - it restructures the CV into the Humanistiqs house format without changing a word.
@@ -1537,7 +1537,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             over Choose criteria / Upload. */}
         {standaloneStep === 3 && selectedCount > 0 && (
           <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
-            <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-ink-on-accent rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+            <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-bg rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
               <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
               <span className="text-xs opacity-60 hidden md:inline">
                 Generate a client-ready summary or send to Shortlist Agent.
@@ -1551,7 +1551,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
               <button
                 onClick={batchSendToShortlist}
                 disabled={batchHandoffBusy}
-                className="bg-white/15 text-ink-on-accent text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
+                className="bg-white/15 text-bg text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
                 title="Create one Shortlist Agent role with all selected CVs invited for video pre-screen"
               >
                 {batchHandoffBusy ? 'Creating...' : 'Send to Shortlist Agent'}
@@ -2480,7 +2480,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
       {/* Sticky selection bar - single line, scales width with content */}
       {selectedCount > 0 && (
         <div className="absolute bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
-          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-ink-on-accent rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
+          <div className="mx-auto w-fit max-w-[min(100%,_960px)] bg-ink text-bg rounded-full shadow-card flex items-center gap-3 px-5 py-2.5 whitespace-nowrap pointer-events-auto">
             <span className="text-sm font-bold flex-shrink-0">{selectedCount} selected</span>
             <span className="text-xs opacity-60 hidden md:inline">
               {prescreenSessionId
@@ -2496,7 +2496,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
             <button
               onClick={batchSendToShortlist}
               disabled={batchHandoffBusy}
-              className="bg-white/15 text-ink-on-accent text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
+              className="bg-white/15 text-bg text-sm font-bold rounded-full px-4 py-1.5 hover:bg-white/25 disabled:opacity-50 flex-shrink-0"
               title={prescreenSessionId
                 ? 'Attach the selected CVs to this role and move them to Step 2 (Prescreen)'
                 : 'Create one Shortlist Agent role with all selected CVs invited for video pre-screen'}

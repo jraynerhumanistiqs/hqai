@@ -14,7 +14,7 @@ export default function EditorSkeleton() {
   return (
     <div className="h-full w-full overflow-hidden bg-[#0f0f10] px-6 py-8 sm:px-10 sm:py-10">
       <div className="mx-auto w-full max-w-[210mm]">
-        <p className="mb-8 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-clay">
+        <p className="mb-8 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-clay-ink">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-clay" />
           Preparing your document...
         </p>

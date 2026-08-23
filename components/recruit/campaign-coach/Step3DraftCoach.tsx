@@ -39,7 +39,7 @@ export default function Step3DraftCoach() {
         {state.job_ad_draft && (
           <span
             className={`text-[11px] font-bold uppercase tracking-wider rounded-full px-3 py-1.5 ${
-              allApproved ? 'bg-ink text-ink-on-accent' : 'bg-light text-mid'
+              allApproved ? 'bg-ink text-bg' : 'bg-light text-mid'
             }`}
           >
             {Object.values(state.block_states).filter(s => s === 'approved').length}/
@@ -153,7 +153,7 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
           disabled={blockState === 'approved'}
           className={`text-sm font-bold px-5 py-2.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 ${
             blockState === 'approved'
-              ? 'bg-ink text-ink-on-accent cursor-default'
+              ? 'bg-ink text-bg cursor-default'
               : 'bg-accent text-ink-on-accent hover:bg-accent-hover'
           }`}
         >
@@ -167,7 +167,7 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
 function StatusPill({ state }: { state: 'draft' | 'edited' | 'approved' }) {
   if (state === 'approved') {
     return (
-      <span className="bg-ink text-ink-on-accent text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1">
+      <span className="bg-ink text-bg text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1">
         Approved ✓
       </span>
     )

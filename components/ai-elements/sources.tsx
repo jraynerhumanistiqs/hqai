@@ -6,7 +6,7 @@
 // so sources are glanceable and one tap away - per the UX brief.
 
 import { cn } from '@/lib/utils'
-import { BookOpenIcon, ChevronDownIcon, ExternalLinkIcon } from 'lucide-react'
+import { RiArrowDownSLine, RiBookOpenLine, RiExternalLinkLine } from '@remixicon/react'
 import { createContext, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
 
 const SourcesContext = createContext<{ open: boolean; toggle: () => void }>({
@@ -49,9 +49,9 @@ export const SourcesTrigger = ({ count, className, children, ...props }: Sources
       )}
       {...props}
     >
-      <BookOpenIcon className="h-3 w-3" aria-hidden="true" />
+      <RiBookOpenLine className="h-3 w-3" aria-hidden="true" />
       {children ?? <span>{count} {count === 1 ? 'source' : 'sources'}</span>}
-      <ChevronDownIcon
+      <RiArrowDownSLine
         className={cn('h-3 w-3 transition-transform', open && 'rotate-180')}
         aria-hidden="true"
       />
@@ -89,7 +89,7 @@ export const Source = ({ n, title, href, className }: SourceProps) => (
         className="inline-flex items-start gap-1 text-ink-soft underline underline-offset-2 hover:text-ink"
       >
         <span>{title}</span>
-        <ExternalLinkIcon className="mt-0.5 h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
+        <RiExternalLinkLine className="mt-0.5 h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
       </a>
     ) : (
       <span>{title}</span>

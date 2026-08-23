@@ -6,7 +6,7 @@
 // the Wattle Gold tokens.
 
 import { cn } from '@/lib/utils'
-import { ArrowDownIcon } from 'lucide-react'
+import { RiArrowDownLine } from '@remixicon/react'
 import type { ComponentProps } from 'react'
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'
 
@@ -50,7 +50,7 @@ export const ConversationScrollButton = ({ className, ...props }: ConversationSc
       )}
       {...props}
     >
-      <ArrowDownIcon className="h-4 w-4" aria-hidden="true" />
+      <RiArrowDownLine className="h-4 w-4" aria-hidden="true" />
     </button>
   )
 }

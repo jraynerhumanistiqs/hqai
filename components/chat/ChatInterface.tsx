@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
-import { Check, Clock, Copy, Pencil, Plus, RefreshCcw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-react'
+import { RiAddLine, RiCheckLine, RiCloseLine, RiDeleteBin6Line, RiFileCopyLine, RiPencilLine, RiRefreshLine, RiThumbDownLine, RiThumbUpLine, RiTimeLine } from '@remixicon/react'
 import { parseCitations, type Citation } from '@/lib/parse-citations'
 import TopicPicker from './TopicPicker'
 import TierNotice, { type Tier } from './TierNotice'
@@ -486,14 +486,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               aria-label="Chat History"
               className="bg-bg-soft rounded-full min-h-touch min-w-touch sm:min-w-0 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center justify-center sm:gap-1.5"
             >
-              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+              <RiTimeLine className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">Chat History</span>
             </button>
             <button
               onClick={() => { stopGeneration(); setMessages([]); setConversationId(null) }}
               className="bg-bg-soft rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center gap-1"
             >
-              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <RiAddLine className="w-3.5 h-3.5" aria-hidden="true" />
               New chat
             </button>
           </div>
@@ -593,11 +593,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                         <Actions className="mt-2 opacity-70 sm:opacity-0 sm:group-hover/message:opacity-100 focus-within:opacity-100 transition-opacity">
                           <Action tooltip="Copy" label="Copy answer" onClick={() => copyMessage(msg.content, i)}>
                             {copiedIdx === i
-                              ? <Check className="w-3.5 h-3.5 text-success" />
-                              : <Copy className="w-3.5 h-3.5" />}
+                              ? <RiCheckLine className="w-3.5 h-3.5 text-success" />
+                              : <RiFileCopyLine className="w-3.5 h-3.5" />}
                           </Action>
                           <Action tooltip="Regenerate" label="Regenerate answer" onClick={() => regenerate(i)}>
-                            <RefreshCcw className="w-3.5 h-3.5" />
+                            <RiRefreshLine className="w-3.5 h-3.5" />
                           </Action>
                           <Action
                             tooltip="Helpful"
@@ -605,7 +605,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             active={msg.feedback === 'up'}
                             onClick={() => submitFeedback(i, 'up')}
                           >
-                            <ThumbsUp className="w-3.5 h-3.5" />
+                            <RiThumbUpLine className="w-3.5 h-3.5" />
                           </Action>
                           <Action
                             tooltip="Not helpful"
@@ -613,7 +613,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             active={msg.feedback === 'down'}
                             onClick={() => submitFeedback(i, 'down')}
                           >
-                            <ThumbsDown className="w-3.5 h-3.5" />
+                            <RiThumbDownLine className="w-3.5 h-3.5" />
                           </Action>
                           {msg.feedback && (
                             <span className="ml-1 text-[10px] font-medium text-ink-muted">Thanks for the feedback</span>
@@ -723,7 +723,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               aria-label="Close history"
               className="min-h-touch min-w-touch rounded-full hover:bg-bg-soft flex items-center justify-center text-ink-soft hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
-              <X className="w-4 h-4" aria-hidden="true" />
+              <RiCloseLine className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -783,7 +783,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             aria-label="Rename conversation"
                             className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink-soft hover:bg-border hover:text-ink transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <Pencil className="w-3 h-3" aria-hidden="true" />
+                            <RiPencilLine className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(c.id)}
@@ -791,7 +791,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                             aria-label="Delete conversation"
                             className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink-soft hover:bg-danger/10 hover:text-danger transition-colors focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
                           >
-                            <Trash2 className="w-3 h-3" aria-hidden="true" />
+                            <RiDeleteBin6Line className="w-3 h-3" aria-hidden="true" />
                           </button>
                         </div>
                       )}

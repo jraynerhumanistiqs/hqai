@@ -68,7 +68,7 @@ export function DeleteRoleConfirm({ session, onCancel, onConfirmed }: Props) {
           <button
             onClick={handleConfirm}
             disabled={!canConfirm || loading}
-            className="bg-danger text-ink-on-accent text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-40 flex items-center gap-2"
+            className="bg-danger text-ink-on-danger text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-40 flex items-center gap-2"
           >
             {loading ? (
               <>

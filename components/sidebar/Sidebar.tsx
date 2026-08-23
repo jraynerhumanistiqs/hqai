@@ -175,7 +175,7 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       onMouseEnter={() => setHovered(true)}
       onMouseMove={() => { if (!hovered) setHovered(true) }}
       onMouseLeave={() => { if (!dragRef.current) setHovered(false) }}
-      className={`bg-bg flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out border-r border-border ${
+      className={`bg-sidebar flex flex-col overflow-hidden h-full group/sidebar transition-[width] duration-200 ease-out border-r border-border ${
         isDrawer ? 'relative flex-shrink-0' : 'absolute inset-y-0 left-0 z-40'
       } ${!isDrawer && !collapsed ? 'shadow-float' : ''}`}
       style={{ width: `${widthPx}px` }}

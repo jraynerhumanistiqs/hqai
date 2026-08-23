@@ -16,7 +16,7 @@
 // themes stay calm and legible. Copy is plain, warm, Australian, and never
 // positions the assistant as giving legal advice.
 
-import { LifeBuoy, Send, TriangleAlert } from 'lucide-react'
+import { RiAlertLine, RiLifebuoyLine, RiSendPlaneLine } from '@remixicon/react'
 
 export type Tier = 'safe' | 'caution' | 'escalate'
 
@@ -48,7 +48,7 @@ export default function TierNotice({
       <div className="mt-3 rounded-2xl border border-[color-mix(in_srgb,var(--warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] p-3.5">
         <div className="flex gap-3">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning">
-            <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+            <RiAlertLine className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="flex-1">
             <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-warning">
@@ -83,7 +83,7 @@ export default function TierNotice({
     <div className="mt-3 rounded-2xl border border-[color-mix(in_srgb,var(--danger)_32%,transparent)] bg-[color-mix(in_srgb,var(--danger)_7%,transparent)] p-3.5">
       <div className="flex gap-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--danger)_13%,transparent)] text-danger">
-          <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+          <RiLifebuoyLine className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="flex-1">
           <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-danger">
@@ -128,7 +128,7 @@ export default function TierNotice({
                 disabled={!extraContext.trim()}
                 className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-ink-on-accent transition-colors hover:bg-accent-hover disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                <Send className="h-3 w-3" aria-hidden="true" />
+                <RiSendPlaneLine className="h-3 w-3" aria-hidden="true" />
                 Send context
               </button>
             </div>

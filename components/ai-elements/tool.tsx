@@ -7,7 +7,7 @@
 // be used to show "what I checked" without leaking raw internals.
 
 import { cn } from '@/lib/utils'
-import { CheckCircle2Icon, ChevronDownIcon, WrenchIcon } from 'lucide-react'
+import { RiArrowDownSLine, RiCheckboxCircleLine, RiWrenchLine } from '@remixicon/react'
 import { createContext, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
 
 export type ToolState = 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
@@ -54,12 +54,12 @@ export const ToolHeader = ({ name, state = 'output-available', className, ...pro
       {...props}
     >
       {done ? (
-        <CheckCircle2Icon className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+        <RiCheckboxCircleLine className="h-3.5 w-3.5 text-success" aria-hidden="true" />
       ) : (
-        <WrenchIcon className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
+        <RiWrenchLine className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
       )}
       <span className="flex-1">{name}</span>
-      <ChevronDownIcon
+      <RiArrowDownSLine
         className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')}
         aria-hidden="true"
       />

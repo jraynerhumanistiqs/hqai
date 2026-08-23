@@ -35,7 +35,7 @@ import {
   type Transition,
 } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { Check } from 'lucide-react'
+import { RiCheckLine } from '@remixicon/react'
 
 type Status = 'idle' | 'loading' | 'success'
 
@@ -247,7 +247,7 @@ export const InlineActionButton: React.FC<InlineActionButtonProps> = ({
                 transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
                 className="absolute inset-0 z-10 h-full w-full skew-x-[-40deg] bg-gradient-to-r from-transparent via-bg-elevated/50 to-transparent"
               />
-              <Check className={cn('stroke-2 text-bg-elevated', s.check)} aria-hidden />
+              <RiCheckLine className={cn('text-bg-elevated', s.check)} aria-hidden />
               <span className="sr-only" role="status">{successLabel}</span>
             </motion.div>
           )}

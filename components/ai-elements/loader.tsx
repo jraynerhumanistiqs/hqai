@@ -5,7 +5,7 @@
 // tokens (ink-muted) so it reads calmly in both light and dark product themes.
 
 import { cn } from '@/lib/utils'
-import { Loader2Icon } from 'lucide-react'
+import { RiLoader4Line } from '@remixicon/react'
 import type { ComponentProps } from 'react'
 
 export type LoaderProps = ComponentProps<'span'> & {
@@ -19,6 +19,6 @@ export const Loader = ({ className, size = 16, ...props }: LoaderProps) => (
     className={cn('inline-flex items-center justify-center text-ink-muted', className)}
     {...props}
   >
-    <Loader2Icon className="animate-spin" style={{ width: size, height: size }} aria-hidden="true" />
+    <RiLoader4Line className="animate-spin" style={{ width: size, height: size }} aria-hidden="true" />
   </span>
 )

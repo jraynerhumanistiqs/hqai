@@ -224,7 +224,7 @@ export default function DocumentsPage() {
                               <button
                                 onClick={() => deleteDoc(doc)}
                                 disabled={deletingId === doc.id}
-                                className="bg-danger hover:opacity-90 text-ink-on-accent text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity disabled:opacity-50"
+                                className="bg-danger hover:opacity-90 text-ink-on-danger text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-opacity disabled:opacity-50"
                               >
                                 {deletingId === doc.id ? 'Deleting...' : 'Delete'}
                               </button>
