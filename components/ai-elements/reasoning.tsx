@@ -6,7 +6,7 @@
 // wired to open only when reasoning content is supplied.
 
 import { cn } from '@/lib/utils'
-import { ChevronDownIcon, SparklesIcon } from 'lucide-react'
+import { RiArrowDownSLine, RiSparkling2Line } from '@remixicon/react'
 import { createContext, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
 
 const ReasoningContext = createContext<{ open: boolean; toggle: () => void }>({
@@ -48,9 +48,9 @@ export const ReasoningTrigger = ({ label = 'Thinking', className, ...props }: Re
       )}
       {...props}
     >
-      <SparklesIcon className="h-3.5 w-3.5" aria-hidden="true" />
+      <RiSparkling2Line className="h-3.5 w-3.5" aria-hidden="true" />
       <span>{label}</span>
-      <ChevronDownIcon
+      <RiArrowDownSLine
         className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')}
         aria-hidden="true"
       />

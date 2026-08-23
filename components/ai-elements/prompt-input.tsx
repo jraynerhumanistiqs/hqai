@@ -7,7 +7,7 @@
 // Shift+Enter inserts a newline.
 
 import { cn } from '@/lib/utils'
-import { ArrowUpIcon, Loader2Icon, SquareIcon } from 'lucide-react'
+import { RiArrowUpLine, RiLoader4Line, RiSquareFill } from '@remixicon/react'
 import {
   forwardRef,
   type ButtonHTMLAttributes,
@@ -121,11 +121,11 @@ export const PromptInputSubmit = ({ status = 'ready', className, disabled, ...pr
       {...props}
     >
       {status === 'submitted' ? (
-        <Loader2Icon className="h-4 w-4 animate-spin" aria-hidden="true" />
+        <RiLoader4Line className="h-4 w-4 animate-spin" aria-hidden="true" />
       ) : status === 'streaming' ? (
-        <SquareIcon className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+        <RiSquareFill className="h-3.5 w-3.5" aria-hidden="true" />
       ) : (
-        <ArrowUpIcon className="h-4 w-4" aria-hidden="true" />
+        <RiArrowUpLine className="h-4 w-4" aria-hidden="true" />
       )}
     </button>
   )

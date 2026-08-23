@@ -6,7 +6,7 @@
 // anxious user informed while a grounded answer is retrieved and drafted.
 
 import { cn } from '@/lib/utils'
-import { CheckIcon, ChevronDownIcon, Loader2Icon } from 'lucide-react'
+import { RiArrowDownSLine, RiCheckLine, RiLoader4Line } from '@remixicon/react'
 import { createContext, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
 
 const TaskContext = createContext<{ open: boolean; toggle: () => void }>({
@@ -52,7 +52,7 @@ export const TaskTrigger = ({ title, className, ...props }: TaskTriggerProps) =>
       {...props}
     >
       <span className="flex-1">{title}</span>
-      <ChevronDownIcon
+      <RiArrowDownSLine
         className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')}
         aria-hidden="true"
       />
@@ -87,9 +87,9 @@ export const TaskItem = ({ state = 'pending', className, children, ...props }: T
   >
     <span className="flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden="true">
       {state === 'active' ? (
-        <Loader2Icon className="h-3.5 w-3.5 animate-spin text-clay-ink" />
+        <RiLoader4Line className="h-3.5 w-3.5 animate-spin text-clay-ink" />
       ) : state === 'done' ? (
-        <CheckIcon className="h-3.5 w-3.5 text-success" />
+        <RiCheckLine className="h-3.5 w-3.5 text-success" />
       ) : (
         <span className="h-1.5 w-1.5 rounded-full bg-ink-muted" />
       )}
