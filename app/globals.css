@@ -210,6 +210,11 @@
        ringColor / outlineColor overrides in tailwind.config.ts so the
        ~120 existing `ring-accent` callsites repaint without edits. */
     --ring:             #A1A1A1;   /* preset ring */
+    /* Focus indicator. The preset's --ring #A1A1A1 only reaches 2.3:1 on
+       white, short of the 3:1 WCAG wants for a focus indicator, so the
+       ring itself uses the preset's primary-foreground instead - still a
+       preset colour, at 8.67:1. */
+    --focus-ring:       #733E0A;
 
     /* Sidebar chrome, kept a half-step off the page so the nav rail
        reads as chrome rather than content. Nothing consumes these yet
@@ -232,10 +237,14 @@
     --chart-5:          #193CB8;
 
     --danger:           #E7000B;   /* preset destructive */
-    /* --warning / --success / --info have no preset equivalent and are
-       left as-is. NB --warning #B8770F now sits very close to the new
-       --accent-clay #D08700 - flagged for a follow-up pass. */
-    --warning:          #B8770F;
+    /* The preset has no warning token - shadcn's only negative-state
+       colour is destructive. The old --warning #B8770F sat 33 RGB units
+       from the new --accent-clay #D08700, close enough to read as the
+       same colour, so warnings were no longer distinguishable from the
+       gold brand accent. Moved to Tailwind amber-700, the same ramp the
+       preset draws its yellow and red from: 62 units off clay, 89 off
+       destructive, and 5.03:1 on white so it carries icon and text. */
+    --warning:          #BB4D00;
     --success:          #3D8A5E;
     --info:             #6A9BCC;
 
@@ -315,6 +324,8 @@
     --border-strong:    rgba(255,255,255,0.20);
     --input:            rgba(255,255,255,0.15);
     --ring:             #737373;   /* preset ring */
+    /* Dark focus indicator: the preset primary, 10.36:1 on the dark bg. */
+    --focus-ring:       #F0B100;
 
     --sidebar:              #171717;
     --sidebar-ink:          #FAFAFA;
@@ -324,6 +335,12 @@
     --sidebar-primary-ink:  #733E0A;
 
     --danger:           #FF6467;   /* preset destructive */
+    /* Dark warning. The light amber-700 only reaches 3.94:1 on the dark
+       background, so dark steps up the same ramp to orange-500: 74 units
+       off the gold accent, 103 off danger, 6.86:1 on the dark surface.
+       Previously the dark block never declared --warning at all and
+       silently inherited the light value. */
+    --warning:          #FF6900;
 
     --shadow-hairline: 0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:     0 0 0 1px rgba(255,255,255,0.06);
@@ -344,6 +361,30 @@
     font-family: var(--font-app-sans, var(--font-geist-sans)), 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
+
+  /* Keyboard focus indicator (product surfaces).
+
+     About 120 controls carry `focus-visible:ring-accent/30`, which emits
+     NO CSS in Tailwind v3: every colour token here is a bare var(), and
+     the /30 alpha modifier only works on colours written as channel
+     triplets. Those same controls also set `outline-none`, so keyboard
+     users had no focus indicator at all - the ring was never rendering.
+
+     Rather than convert every token to triplets (which would touch the
+     marketing palette), this gives every focusable product control one
+     indicator. :focus-visible means pointer clicks stay unringed.
+
+     The `html` is load-bearing. Tailwind's `focus-visible:outline-none`
+     compiles to `.focus-visible\:outline-none:focus-visible`, which is
+     0,2,0 - a tie with a plain `[data-app] :focus-visible`, and the
+     utilities layer wins a tie on source order. Adding the element
+     selector makes this 0,2,1 so it beats the utility outright, and the
+     transparent outline `outline-none` sets can no longer swallow the
+     focus indicator. */
+  html[data-app="product"] :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
