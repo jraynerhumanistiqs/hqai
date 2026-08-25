@@ -18,6 +18,7 @@
 
 import type { ReactNode } from 'react'
 import type { RubricCriterion } from '@/lib/cv-screening-types'
+import { AdaptiveSlider } from '@/components/ui/adaptive-slider'
 
 export type DraftCriterion = RubricCriterion & { _key: string }
 
@@ -159,20 +160,21 @@ export default function CriteriaEditor({
                       className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
                     />
                   </div>
+                  {/* Weights are a proportion of the whole rubric, so a track
+                      shows the balance between criteria at a glance in a way
+                      a column of number boxes never did. Stored 0-1, edited
+                      as a percentage. */}
                   <div className="sm:col-span-4">
-                    <label className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Importance share</label>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        value={Math.round((Number(c.weight) || 0) * 100)}
-                        onChange={e => update(c._key, { weight: Math.max(0, Math.min(100, Number(e.target.value))) / 100 })}
-                        className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
-                      />
-                      <span className="text-xs text-ink-muted">%</span>
-                    </div>
+                    <AdaptiveSlider
+                      label="Importance share"
+                      ariaLabel={`Importance share - ${c.label || 'unnamed criterion'}`}
+                      unit="%"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={Math.round((Number(c.weight) || 0) * 100)}
+                      onChange={v => update(c._key, { weight: Math.max(0, Math.min(100, v)) / 100 })}
+                    />
                   </div>
                 </div>
                 <button

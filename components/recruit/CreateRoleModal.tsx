@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { PrescreenSession, RubricDimension, RubricMode } from '@/lib/recruit-types'
 import { DEFAULT_SHORTLISTED_TEMPLATE, DEFAULT_REJECTED_TEMPLATE } from '@/lib/outcome-templates'
+import { AdaptiveSlider } from '@/components/ui/adaptive-slider'
 
 interface Props {
   onClose: () => void
@@ -362,16 +363,22 @@ export function CreateRoleModal({ onClose, onCreated }: Props) {
                     <option value={6}>6 questions</option>
                     <option value={0}>&lt;6 questions</option>
                   </select>
+                  {/* Custom count is a bounded 1-20 value, so the track beats a
+                      blank number box: it shows the range and always carries a
+                      value. Still stored as a string, so the clamp that derives
+                      the final count is unchanged. */}
                   {qCount === 0 && (
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      className={`${inputCls} mt-2`}
-                      value={customQCount}
-                      onChange={e => setCustomQCount(e.target.value)}
-                      placeholder="Enter number of questions"
-                    />
+                    <div className="mt-3">
+                      <AdaptiveSlider
+                        label="How many questions"
+                        unit="questions"
+                        min={1}
+                        max={20}
+                        step={1}
+                        value={Math.max(1, Math.min(20, parseInt(customQCount, 10) || 8))}
+                        onChange={v => setCustomQCount(String(v))}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
