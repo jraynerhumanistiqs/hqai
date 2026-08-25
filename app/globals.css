@@ -154,12 +154,20 @@
      CLI because that emits Tailwind v4 syntax and this project is on
      v3.4. */
   [data-app="product"] {
-    /* The neutral ramp is now pure grey (was warm: #F7F7F2 bg-soft,
-       #E6E5E0 border). The preset is a neutral system - keeping the
-       warm greys under a yellow primary made the surface read muddy. */
-    --bg:               #FFFFFF;   /* preset background */
-    --bg-soft:          #F5F5F5;   /* preset muted, = sidebar-accent */
-    --bg-elevated:      #FFFFFF;   /* preset card */
+    /* Surface ramp - agndex (registry.watermelon.sh/r/agndex-dashboard),
+       Aug 2026. Its oklch greys convert to almost exactly the preset
+       values already in use, with one substantive difference: agndex
+       tints the CARD rather than leaving it white on a white page, and
+       steps insets down again. So the ramp is now three real levels
+       (page -> card -> inset) instead of relying on a border alone to
+       separate a white card from a white page.
+
+       Only the SURFACE ramp is taken from agndex. Its magenta primary
+       is not: brand gold stays on buttons and the interactive
+       components, which is the whole point of the reskin. */
+    --bg:               #FFFFFF;   /* agndex background, oklch(1)     */
+    --bg-soft:          #EBEBEB;   /* agndex card-hover, oklch(0.94)  */
+    --bg-elevated:      #F5F5F5;   /* agndex card, oklch(0.97)        */
     --surface-inverse:  #0A0A0A;
 
     --ink:              #0A0A0A;   /* preset foreground */
@@ -220,9 +228,9 @@
        reads as chrome rather than content. Nothing consumes these yet
        - components/sidebar/Sidebar.tsx still paints the rail with
        bg-bg. See the handover note. */
-    --sidebar:              #FAFAFA;
+    --sidebar:              #FAFAFA;   /* agndex sidebar, oklch(0.985)        */
     --sidebar-ink:          #0A0A0A;
-    --sidebar-accent:       #F5F5F5;
+    --sidebar-accent:       #EBEBEB;   /* agndex sidebar-accent, oklch(0.94)  */
     --sidebar-accent-ink:   #171717;
     --sidebar-primary:      #D08700;
     --sidebar-primary-ink:  #FEFCE8;
@@ -281,9 +289,20 @@
      [data-app="product"] block above, which this selector also
      matches, so they are not repeated. */
   [data-app="product"].dark, .dark[data-app="product"] {
-    --bg:               #0A0A0A;   /* preset background */
-    --bg-soft:          #262626;   /* preset muted, = sidebar-accent */
-    --bg-elevated:      #171717;   /* preset card, = sidebar */
+    /* Surface ramp - agndex, Aug 2026. This is where the reskin is
+       actually visible: the page lifts off true black to a mid
+       charcoal, cards lift further, and the ramp finally runs in one
+       direction (page < inset < card). It used to fold back on itself
+       - --bg-soft #262626 sat LIGHTER than --bg-elevated #171717, so an
+       inset panel on a card was brighter than the card holding it.
+
+       Every foreground pair was re-checked against the lifted surfaces
+       and still clears AA: on the page, ink 15.6:1, ink-muted 6.3:1,
+       gold 8.5:1, danger and warning 5.6:1; on a card the worst pair is
+       5.0:1. Brand and semantic colours below are untouched. */
+    --bg:               #202020;   /* agndex background, oklch(0.244) */
+    --bg-soft:          #262626;   /* agndex muted, oklch(0.269)      */
+    --bg-elevated:      #292929;   /* agndex card, oklch(0.281)       */
     --surface-inverse:  #FAFAFA;
 
     --ink:              #FAFAFA;   /* preset foreground */
@@ -327,9 +346,13 @@
     /* Dark focus indicator: the preset primary, 10.36:1 on the dark bg. */
     --focus-ring:       #F0B100;
 
-    --sidebar:              #171717;
+    /* agndex recesses the rail: the sidebar is DARKER than the page
+       (#101010 against #202020) rather than lifted above it, so the nav
+       reads as chrome the content floats on. Ink is 18.2:1 there and
+       gold 10.0:1. */
+    --sidebar:              #101010;   /* agndex sidebar, oklch(0.173)       */
     --sidebar-ink:          #FAFAFA;
-    --sidebar-accent:       #262626;
+    --sidebar-accent:       #343434;   /* agndex sidebar-accent, oklch(0.325) */
     --sidebar-accent-ink:   #FAFAFA;
     --sidebar-primary:      #F0B100;
     --sidebar-primary-ink:  #733E0A;

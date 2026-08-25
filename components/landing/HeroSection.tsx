@@ -1,63 +1,101 @@
 'use client'
 
-// Section 1: hero. June 2026 frontend-design pass.
+// Section 1: hero.
 //
-// The HQ People chat preview is the star: one orchestrated load reveal
-// runs on mount (eyebrow + headline, then subhead + CTAs, then the
-// headline outcome underline draws last). The HQ Recruit scorecard is
-// demoted to a small, quiet secondary tile beneath it. The hero surface
-// is a clean dark slab - no watermark texture.
+// Aug 2026 - the reveal choreography is now hero-26's
+// (registry.watermelon.sh/r/hero-26.json): one motion variant tree with
+// staggered children, plus an optional full-bleed background image that
+// settles in behind the copy. What was NOT taken from hero-26: its own
+// nav bar (MarketingHeader already owns that, and it is load-bearing -
+// it sets data-app="marketing" on <html>), its App Store / Play buttons,
+// and its "5 stars, over 3k creators" strip. HQ.ai has no mobile apps
+// and no review count to quote, so neither is invented here.
+//
+// The HQ People chat preview is still the star; the HQ Recruit scorecard
+// stays a quiet secondary tile beneath it.
 //
 // prefers-reduced-motion renders the final state instantly (no reveal).
 //
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { motion, useReducedMotion, type Variants } from 'motion/react'
 import HeroChatPreview from './HeroChatPreview'
 
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener?.('change', handler)
-    return () => mq.removeEventListener?.('change', handler)
-  }, [])
-  return reduced
+interface HeroFeature {
+  title: string
+  subtitle: string
 }
 
-export default function HeroSection() {
-  const reduced = usePrefersReducedMotion()
-  // Reveal stage: 0 nothing, 1 eyebrow+headline, 2 subhead+CTAs,
-  // 3 headline underline draws. The chat preview runs its own reveal.
-  const [stage, setStage] = useState(reduced ? 3 : 0)
+// hero-26 ends on a strip of feature cards. Same shape, real content -
+// the three jobs HQ.ai actually does.
+const FEATURES: HeroFeature[] = [
+  { title: 'Answers, not templates', subtitle: 'Ask in plain English, get advice for your business' },
+  { title: 'Hiring end to end', subtitle: 'Score CVs, pre-screen and shortlist in one place' },
+  { title: 'A real advisor', subtitle: 'A person picks up the hard 20 per cent' },
+]
 
-  useEffect(() => {
-    if (reduced) {
-      setStage(3)
-      return
-    }
-    const t1 = setTimeout(() => setStage(1), 80)
-    const t2 = setTimeout(() => setStage(2), 480)
-    const t3 = setTimeout(() => setStage(3), 1600)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-      clearTimeout(t3)
-    }
-  }, [reduced])
+const container: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
+}
 
-  const reveal = (active: boolean) =>
-    reduced
-      ? ''
-      : `transition-all duration-700 ease-smooth ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`
+const rise: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 30, mass: 0.9 } },
+}
+
+const heading: Variants = {
+  hidden: { opacity: 0, y: 40, x: -8 },
+  visible: { opacity: 1, y: 0, x: 0, transition: { type: 'spring', stiffness: 160, damping: 24, mass: 1.2 } },
+}
+
+const backdrop: Variants = {
+  hidden: { opacity: 0, x: 30, scale: 1.04 },
+  visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 1.5, ease: [0.22, 1, 0.36, 1] } },
+}
+
+interface Props {
+  /**
+   * Optional full-bleed backdrop, hero-26 style. Left unset the hero
+   * keeps its clean slab - there is deliberately no default, because
+   * hero-26's own image is hotlinked from the registry's CDN and this
+   * app has no equivalent asset yet. Drop a file in public/ and pass
+   * its path to turn the treatment on.
+   */
+  backgroundImage?: string
+}
+
+export default function HeroSection({ backgroundImage }: Props) {
+  const reduced = useReducedMotion()
+  // With reduced motion we skip straight to the resting state rather
+  // than animating to it, so nothing moves on load.
+  const motionProps = reduced
+    ? { initial: 'visible' as const, animate: 'visible' as const }
+    : { initial: 'hidden' as const, animate: 'visible' as const }
 
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
+      {backgroundImage && (
+        <>
+          <motion.img
+            src={backgroundImage}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center"
+            variants={backdrop}
+            {...motionProps}
+          />
+          {/* Scrim - the copy has to keep its contrast over any photo. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-bg/70" />
+        </>
+      )}
+
+      <motion.div
+        className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16"
+        variants={container}
+        {...motionProps}
+      >
         {/* Left: copy block.
             relative z-20 lifts this column's stacking context above the
             right-hand preview column. Both columns get a transform from the
@@ -66,34 +104,43 @@ export default function HeroSection() {
             covers the "busywork off your plate" popover where it opens into
             the gap between the columns. */}
         <div className="relative z-20 max-w-xl">
-          <p className={`mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay ${reveal(stage >= 1)}`}>
+          <motion.p
+            variants={rise}
+            className="mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay"
+          >
             <span aria-hidden className="h-px w-5 bg-clay" />
             Built for Australian small business
-          </p>
-          <h1
+          </motion.p>
+
+          <motion.h1
             id="hero-heading"
-            className={`font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px] ${reveal(stage >= 1)}`}
+            variants={heading}
+            className="font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px]"
           >
             HR and hiring are complicated. HQ.ai makes it{' '}
             <span className="text-clay">easy, quick and accurate.</span>
-          </h1>
-          <p className={`mt-6 text-lg leading-relaxed text-ink-soft md:text-xl ${reveal(stage >= 2)}`}>
-            HQ.ai handles the everyday HR work and hiring processes that cost you time and money. Ask a question, get a clear answer for your business, and get back to work - so the jobs that used to take hours now take minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
-          </p>
+          </motion.h1>
 
-          <div className={`mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 ${reveal(stage >= 2)}`}>
+          <motion.p variants={rise} className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
+            HQ.ai handles the everyday HR work and hiring processes that cost you time and money. Ask a question, get a clear answer for your business, and get back to work - so the jobs that used to take hours now take minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
+          </motion.p>
+
+          <motion.div variants={rise} className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Link
               href="/signup"
               className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Get started
             </Link>
-          </div>
-          <p className={`mt-4 text-sm text-ink-muted ${reveal(stage >= 2)}`}>Three minutes to set up. Answers from day one.</p>
+          </motion.div>
+
+          <motion.p variants={rise} className="mt-4 text-sm text-ink-muted">
+            Three minutes to set up. Answers from day one.
+          </motion.p>
         </div>
 
         {/* Right: HQ People is the star; HQ Recruit is a quiet secondary tile. */}
-        <div className={`relative w-full ${reveal(stage >= 1)}`}>
+        <motion.div variants={rise} className="relative w-full">
           {/* Feature surface (Tier B) - the signature live preview. */}
           <HeroChatPreview />
 
@@ -130,8 +177,22 @@ export default function HeroSection() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Feature strip - hero-26's closing row, carried over. */}
+      <motion.ul
+        className="mx-auto grid max-w-7xl gap-px overflow-hidden border-t border-border px-6 md:grid-cols-3 md:px-10"
+        variants={container}
+        {...motionProps}
+      >
+        {FEATURES.map((f) => (
+          <motion.li key={f.title} variants={rise} className="py-6 md:px-6 md:first:pl-0 md:last:pr-0">
+            <p className="font-display text-base font-semibold tracking-tight text-ink">{f.title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-soft">{f.subtitle}</p>
+          </motion.li>
+        ))}
+      </motion.ul>
     </section>
   )
 }
