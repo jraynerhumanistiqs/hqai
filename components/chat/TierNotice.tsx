@@ -121,7 +121,7 @@ export default function TierNotice({
                 onChange={(e) => onExtraContextChange(e.target.value)}
                 placeholder="Add anything else about your situation..."
                 rows={3}
-                className="w-full resize-none rounded-lg border border-border bg-bg-elevated px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-ink"
+                className="w-full resize-none rounded-lg border border-border bg-bg-elevated px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted"
               />
               <button
                 onClick={onSendContext}

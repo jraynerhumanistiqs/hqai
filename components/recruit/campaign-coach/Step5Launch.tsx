@@ -216,7 +216,7 @@ export default function Step5Launch() {
                   next[i] = e.target.value
                   setQuestions(next)
                 }}
-                className="flex-1 bg-bg border border-border rounded-2xl px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
+                className="flex-1 bg-bg border border-border rounded-2xl px-3 py-2 text-sm text-charcoal outline-none"
               />
               <button
                 onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))}

@@ -273,7 +273,7 @@ function ChipList({
         }}
         onBlur={add}
         placeholder={placeholder}
-        className="bg-transparent border border-dashed border-border rounded-full px-3 py-1 text-xs text-charcoal placeholder-muted outline-none focus:border-charcoal min-w-[120px]"
+        className="bg-transparent border border-dashed border-border rounded-full px-3 py-1 text-xs text-charcoal placeholder-muted outline-none min-w-[120px]"
       />
     </div>
   )

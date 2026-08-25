@@ -35,6 +35,7 @@ import { analyseSpeech, analyseSpeechForQuestion } from '@/lib/confidence'
 import { SpeechAnalysisPanel } from './SpeechAnalysisPanel'
 import { ReviewerDiagnosticsPanel } from './ReviewerDiagnosticsPanel'
 import { EmptyState } from '@/components/ui/EmptyState'
+import PortalMenu from '@/components/ui/PortalMenu'
 import Link from 'next/link'
 
 interface Booking {
@@ -156,6 +157,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
   const [shareDialogFor, setShareDialogFor] = useState<string | null>(null)
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false)
   const headerMenuRef = useRef<HTMLDivElement | null>(null)
+  const headerMenuTriggerRef = useRef<HTMLButtonElement | null>(null)
 
   const pathSegment = session.slug || session.id
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://humanistiqs.ai'
@@ -472,16 +474,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
     return () => window.removeEventListener('keydown', onEsc)
   }, [legendOpen])
 
-  useEffect(() => {
-    if (!headerMenuOpen) return
-    function onDocClick(e: MouseEvent) {
-      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
-        setHeaderMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [headerMenuOpen])
+  // Outside-click / Escape for the header menu is handled by PortalMenu.
+  // A local listener keyed on headerMenuRef would now fire for clicks on
+  // the menu itself (it is portalled to <body>, outside that ref) and
+  // unmount the item before its click could land.
 
   const expandedResponse = expanded ? mergedResponses.find(r => r.id === expanded) ?? null : null
 
@@ -548,8 +544,10 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
             {/* Overflow menu - Analytics + keyboard shortcuts */}
             <div className="relative" ref={headerMenuRef}>
               <button
+                ref={headerMenuTriggerRef}
                 onClick={() => setHeaderMenuOpen(v => !v)}
                 aria-label="More actions"
+                aria-haspopup="menu"
                 aria-expanded={headerMenuOpen}
                 className="w-7 h-7 flex items-center justify-center rounded-full border border-border bg-bg-elevated text-mid hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
@@ -559,23 +557,33 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                   <circle cx="10" cy="16" r="1.6"/>
                 </svg>
               </button>
-              {headerMenuOpen && (
-                <div className="absolute top-9 right-0 z-20 bg-bg-elevated shadow-modal rounded-xl border border-border py-1 w-44">
-                  <Link
-                    href={`/dashboard/recruit/${session.id}/analytics`}
-                    onClick={() => setHeaderMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
-                  >
-                    Analytics
-                  </Link>
-                  <button
-                    onClick={() => { setLegendOpen(true); setHeaderMenuOpen(false) }}
-                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
-                  >
-                    Keyboard shortcuts
-                  </button>
-                </div>
-              )}
+              {/* Portalled for the same reason as the role rows - this
+                  header sits above an overflow-y-auto content pane and
+                  inside the dashboard's overflow-hidden shell. */}
+              <PortalMenu
+                open={headerMenuOpen}
+                anchorRef={headerMenuTriggerRef}
+                onClose={() => setHeaderMenuOpen(false)}
+                align="right"
+                width={176}
+                aria-label="More actions"
+              >
+                <Link
+                  href={`/dashboard/recruit/${session.id}/analytics`}
+                  role="menuitem"
+                  onClick={() => setHeaderMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+                >
+                  Analytics
+                </Link>
+                <button
+                  role="menuitem"
+                  onClick={() => { setLegendOpen(true); setHeaderMenuOpen(false) }}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-bold text-charcoal hover:bg-light transition-colors"
+                >
+                  Keyboard shortcuts
+                </button>
+              </PortalMenu>
             </div>
           </div>
         </div>
@@ -657,7 +665,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 </code>
                 <input
                   autoFocus
-                  className="flex-1 min-w-[140px] border border-border rounded-lg px-3 py-2 text-xs font-mono text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated"
+                  className="flex-1 min-w-[140px] border border-border rounded-lg px-3 py-2 text-xs font-mono text-ink placeholder-mid/60 focus:outline-none/60 bg-bg-elevated"
                   value={slugDraft}
                   onChange={e => setSlugDraft(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') saveSlug(); if (e.key === 'Escape') { setEditingSlug(false); setSlugError('') } }}
@@ -742,11 +750,11 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-bold text-ink mb-1">Candidate name</label>
-                    <input aria-label="Candidate name" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
+                    <input aria-label="Candidate name" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none/60 bg-bg" placeholder="e.g. Jane Smith" value={inviteName} onChange={e => setInviteName(e.target.value)} />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-ink mb-1">To (email address)</label>
-                    <input type="email" aria-label="Candidate email address" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+                    <input type="email" aria-label="Candidate email address" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none/60 bg-bg" placeholder="jane@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
                   </div>
                 </div>
 
@@ -773,7 +781,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                       <input
                         value={emailSubject}
                         onChange={e => setEmailSubject(e.target.value)}
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal"
+                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none"
                       />
                     </div>
                     <div>
@@ -782,7 +790,7 @@ export function RoleDetail({ session, responses, loadingResponses, initialCandid
                         value={emailBody}
                         onChange={e => setEmailBody(e.target.value)}
                         rows={9}
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal leading-relaxed font-mono"
+                        className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none leading-relaxed font-mono"
                       />
                       <p className="text-[10px] text-muted mt-1">
                         The candidate's video link will appear in the email automatically.

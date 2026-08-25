@@ -7,6 +7,14 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/ui/Modal'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import {
+  RiChat3Line,
+  RiRobot2Line,
+  RiMegaphoneLine,
+  RiFileList3Line,
+  RiUserSearchLine,
+  RiSideBarLine,
+} from '@remixicon/react'
 
 type AppRole = 'owner' | 'test_admin' | 'member'
 
@@ -22,14 +30,16 @@ interface SidebarProps {
 }
 
 const WIDTH_STORAGE_KEY    = 'hqai:sidebar-width'
+const LOCK_STORAGE_KEY     = 'hqai:sidebar-locked'
 const DEFAULT_WIDTH = 232
 const MIN_WIDTH = 200
 const MAX_WIDTH = 360
 const COLLAPSED_WIDTH = 68
 
-export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, plan, role, flags, onClose }: SidebarProps) {
-  const flag = (k: string) => flags?.[k] ?? false
-  const isInternal = role === 'owner' || role === 'test_admin'
+export default function Sidebar({ bizName, bizLogoUrl, role, onClose }: SidebarProps) {
+  // `flags` is still accepted (callers pass it) but nothing in the nav is
+  // flag-gated since the Tools group was removed - re-derive a `flag`
+  // helper here if a gated entry comes back.
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -78,38 +88,29 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
   // drawer (onClose set) never collapses - it always shows the full sidebar.
   const isDrawer = !!onClose
   const [hovered, setHovered] = useState(false)
-  const collapsed = !isDrawer && !hovered
-  useEffect(() => { setHovered(false) }, [pathname])
 
-  const [peopleOpen, setPeopleOpen] = useState(false)
-  const [recruitOpen, setRecruitOpen] = useState(false)
-  // Tools is now a collapsible parent containing the (mostly coming-soon)
-  // Compliance / Leadership / Business sub-sections. Keeps the sidebar
-  // tidy until those modules actually ship.
-  const [toolsOpen, setToolsOpen] = useState(false)
-  const [complianceOpen, setComplianceOpen] = useState(false)
-  const [leadershipOpen, setLeadershipOpen] = useState(false)
-  const [businessOpen, setBusinessOpen] = useState(false)
-
-  // When the sidebar collapses to icons-only, force every submenu
-  // closed so the vertical stack stays compact and clicks on a parent
-  // icon don't open an invisible dropdown.
+  // Pin/lock (Aug 2026). Hover-to-expand stays the PRIMARY behaviour; this
+  // is an opt-in override that keeps the sidebar open until it is clicked
+  // off again. Persisted so the choice survives a reload.
+  const [locked, setLocked] = useState(false)
   useEffect(() => {
-    if (collapsed) {
-      setPeopleOpen(false)
-      setRecruitOpen(false)
-      setToolsOpen(false)
-      setComplianceOpen(false)
-      setLeadershipOpen(false)
-      setBusinessOpen(false)
-    }
-  }, [collapsed])
-
-  // Toggle a submenu. The sidebar always expands on hover before a click can
-  // land, so there is no collapsed branch to handle here.
-  function toggleSubmenu(currentOpen: boolean, setOpen: (b: boolean) => void) {
-    setOpen(!currentOpen)
+    try { setLocked(window.localStorage.getItem(LOCK_STORAGE_KEY) === '1') } catch { /* no-op */ }
+  }, [])
+  function toggleLocked() {
+    setLocked(prev => {
+      const next = !prev
+      try { window.localStorage.setItem(LOCK_STORAGE_KEY, next ? '1' : '0') } catch { /* no-op */ }
+      // Unpinning while the pointer is still over the sidebar would leave
+      // it expanded until the mouse left, which reads as the click having
+      // done nothing. Drop the hover state so it collapses immediately.
+      if (!next) setHovered(false)
+      return next
+    })
   }
+
+  const collapsed = !isDrawer && !locked && !hovered
+  // Collapse on navigation - but not when pinned, which is the whole point.
+  useEffect(() => { if (!locked) setHovered(false) }, [pathname, locked])
   const [showPartnerPopup, setShowPartnerPopup] = useState(false)
   const [supportType, setSupportType] = useState<'hr' | 'recruitment' | null>(null)
   const [supportSummary, setSupportSummary] = useState('')
@@ -192,8 +193,9 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           className="hidden lg:block absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent hover:bg-bg-soft active:bg-border transition-colors"
         />
       )}
-      {/* Top bar - mobile close only. The desktop collapse is now automatic
-          (hover to expand), so the manual collapse toggle was removed. */}
+      {/* Top bar - mobile close, plus the desktop pin toggle. Hover-to-expand
+          remains the primary behaviour; the pin is an override that holds the
+          sidebar open. */}
       <div className="flex items-center justify-end px-2.5 pt-3">
         {/* Mobile close - the brand logo used to sit here too; moved
             to the footer above the advisor support callout. */}
@@ -204,6 +206,22 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
             </svg>
           </button>
         ) : <span aria-hidden className="lg:hidden w-8 h-8" />}
+
+        {/* Desktop pin. Hidden on the mobile drawer, which is never a rail.
+            Rendered only once the sidebar is expanded (ie. hovered or already
+            pinned) - in the 68px rail there is no room beside the icons, and
+            the user has to hover to reach it anyway. */}
+        {!isDrawer && !collapsed && (
+          <button
+            onClick={toggleLocked}
+            aria-pressed={locked}
+            aria-label={locked ? 'Unpin sidebar (return to auto-collapse)' : 'Pin sidebar open'}
+            title={locked ? 'Unpin sidebar' : 'Pin sidebar open'}
+            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-bg-soft transition-colors"
+          >
+            <RiSideBarLine className={`w-[18px] h-[18px] ${locked ? 'text-ink' : ''}`} aria-hidden />
+          </button>
+        )}
       </div>
 
       {/* Business pill - hidden in collapsed mode to keep the rail
@@ -249,186 +267,42 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
           <span className="flex-1">Home</span>
         </Link>
 
-        {/* HQ People dropdown */}
-        <button onClick={() => toggleSubmenu(peopleOpen, setPeopleOpen)} title="HQ People" aria-label="HQ People"
-          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-            ${isActive('/dashboard/people')
-              ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-          <PeopleIcon active={isActive('/dashboard/people')} />
-          <span className="flex-1 text-left">HQ People</span>
-          <ChevronIcon open={peopleOpen} />
-        </button>
-        {peopleOpen && (
-          <div className="ml-6 space-y-0.5">
-            {/* HQ People is the AI Advisor. Kept as a named sub-item so
-                the pillar can grow a second tool without the nav shifting
-                under people who have learned where the Advisor lives. */}
-            <Link href="/dashboard/people/advisor"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/people/advisor') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              AI Advisor
-            </Link>
-          </div>
-        )}
+        {/* Aug 2026 - flat service nav. The HQ People / HQ Recruit
+            collapsible parents were removed in favour of one tab per
+            service, so every tool is reachable in a single click and the
+            icon rail shows a distinct glyph per service rather than two
+            pillars that hide everything behind a chevron. */}
+        <NavTab href="/dashboard/people/advisor" label="AI Advisor"
+          icon={<RiChat3Line className={navIcon(isActive('/dashboard/people/advisor'))} />}
+          active={isActive('/dashboard/people/advisor')} />
 
-        {/* HQ Recruit dropdown */}
-        <button onClick={() => toggleSubmenu(recruitOpen, setRecruitOpen)} title="HQ Recruit" aria-label="HQ Recruit"
-          className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-            ${isActive('/dashboard/recruit')
-              ? 'bg-ink text-bg-elevated font-semibold'
-              : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-          <RecruitIcon active={isActive('/dashboard/recruit')} />
-          <span className="flex-1 text-left">HQ Recruit</span>
-          <ChevronIcon open={recruitOpen} />
-        </button>
-        {recruitOpen && (
-          <div className="ml-6 space-y-0.5">
-            <Link href="/dashboard/recruit/campaign-coach"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/campaign-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              Campaign Coach
-            </Link>
-            {/* CV Scoring Agent comes before the Shortlist Agent - the
-                natural first move is to score the CVs you have, then run the
-                shortlisted pool through the full workflow. The standalone
-                /cv-screening route runs without a role anchor for the ad-hoc
-                "score a CV, no role yet" case; it is also Step 1 inside a
-                role in the Shortlist Agent. */}
-            <Link href="/dashboard/recruit/cv-screening"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/cv-screening') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              CV Scoring Agent
-              <InfoTooltip text="Score one or more CVs against role criteria - no role setup needed." />
-            </Link>
-            <Link href="/dashboard/recruit/shortlist"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/shortlist') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              Shortlist Agent
-              <InfoTooltip text="Full hiring workflow - score, prescreen, shortlist and interview inside one role." />
-            </Link>
-            <Link href="/dashboard/recruit/templates"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-all
-                ${isActive('/dashboard/recruit/templates') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-              Recruitment Templates
-            </Link>
-          </div>
-        )}
+        <NavTab href="/dashboard/assistant" label="AI Assistant"
+          icon={<RiRobot2Line className={navIcon(isActive('/dashboard/assistant'))} />}
+          active={isActive('/dashboard/assistant')} />
 
-        {/* Tools - single collapsible parent wrapping the (active-only)
-            sub-tools (Compliance / Leadership / Business). Only shown
-            when a feature flag is set OR the user is internal staff;
-            active customers don't see a "coming soon" tease. */}
-        {(flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')
-          || flag('team_development') || flag('strategy_coach') || isInternal) && (
-          <>
-            <button onClick={() => toggleSubmenu(toolsOpen, setToolsOpen)} title="Tools" aria-label="Tools"
-              className={`w-full flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all
-                ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
-                  || isActive('/dashboard/performance') || isActive('/dashboard/leadership')
-                  || isActive('/dashboard/business')
-                  ? 'bg-ink text-bg-elevated font-semibold'
-                  : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-              <ToolsIcon active={toolsOpen} />
-              <span className="flex-1 text-left">Tools</span>
-              <ChevronIcon open={toolsOpen} />
-            </button>
-            {toolsOpen && (
-              <div className="ml-3 mb-1 space-y-0.5">
-                {/* Compliance */}
-                {(isInternal || flag('compliance_audit') || flag('compliance_assessment') || flag('awards_interpreter')) && (
-                  <>
-                    <button onClick={() => setComplianceOpen(!complianceOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-                        ${isActive('/dashboard/compliance') || isActive('/dashboard/awards')
-                          ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-                      <ShieldIcon active={isActive('/dashboard/compliance') || isActive('/dashboard/awards')} />
-                      <span className="flex-1 text-left">Compliance</span>
-                      <ChevronIcon open={complianceOpen} />
-                    </button>
-                    {complianceOpen && (
-                      <div className="ml-6 space-y-0.5">
-                        {(isInternal || flag('compliance_audit')) && (
-                          <Link href="/dashboard/compliance/audit"
-                            className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                              ${isActive('/dashboard/compliance/audit') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                            Workplace Compliance Audit
-                          </Link>
-                        )}
-                        {(isInternal || flag('awards_interpreter')) && (
-                          <Link href="/dashboard/awards"
-                            className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                              ${isActive('/dashboard/awards') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                            Award Interpreter
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
+        <NavTab href="/dashboard/recruit/campaign-coach" label="Campaign Coach"
+          icon={<RiMegaphoneLine className={navIcon(isActive('/dashboard/recruit/campaign-coach'))} />}
+          active={isActive('/dashboard/recruit/campaign-coach')} />
 
-                {/* Leadership */}
-                {(isInternal || flag('team_development')) && (
-                  <>
-                    <button onClick={() => setLeadershipOpen(!leadershipOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-                        ${isActive('/dashboard/performance') || isActive('/dashboard/leadership')
-                          ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-                      <LeaderIcon active={isActive('/dashboard/performance') || isActive('/dashboard/leadership')} />
-                      <span className="flex-1 text-left">Leadership</span>
-                      <ChevronIcon open={leadershipOpen} />
-                    </button>
-                    {leadershipOpen && (
-                      <div className="ml-6 space-y-0.5">
-                        <Link href="/dashboard/performance"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                            ${isActive('/dashboard/performance') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                          Performance Management
-                        </Link>
-                        <Link href="/dashboard/leadership/development"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                            ${isActive('/dashboard/leadership/development') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                          Team Development
-                        </Link>
-                        <Link href="/dashboard/leadership/coaching"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                            ${isActive('/dashboard/leadership/coaching') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                          Coaching
-                        </Link>
-                      </div>
-                    )}
-                  </>
-                )}
+        {/* CV Scoring Agent comes before the Shortlist Agent - the natural
+            first move is to score the CVs you have, then run the shortlisted
+            pool through the full workflow. The standalone /cv-screening route
+            runs without a role anchor for the ad-hoc "score a CV, no role
+            yet" case; it is also Step 1 inside a role in the Shortlist
+            Agent. */}
+        <NavTab href="/dashboard/recruit/cv-screening" label="CV Scoring Agent"
+          icon={<RiFileList3Line className={navIcon(isActive('/dashboard/recruit/cv-screening'))} />}
+          active={isActive('/dashboard/recruit/cv-screening')}
+          tooltip="Score one or more CVs against role criteria - no role setup needed." />
 
-                {/* Business */}
-                {(isInternal || flag('strategy_coach')) && (
-                  <>
-                    <button onClick={() => setBusinessOpen(!businessOpen)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 text-sm font-bold transition-all
-                        ${isActive('/dashboard/business')
-                          ? 'bg-ink text-bg-elevated'
-                          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
-                      <BusinessIcon active={isActive('/dashboard/business')} />
-                      <span className="flex-1 text-left">Business</span>
-                      <ChevronIcon open={businessOpen} />
-                    </button>
-                    {businessOpen && (
-                      <div className="ml-6 space-y-0.5">
-                        <Link href="/dashboard/business/strategy-coach"
-                          className={`block px-3 py-1.5 rounded-lg text-[13px] transition-all
-                            ${isActive('/dashboard/business/strategy-coach') ? 'bg-ink text-bg-elevated' : 'text-ink hover:bg-bg-soft'}`}>
-                          Strategy Coach
-                        </Link>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </>
-        )}
+        <NavTab href="/dashboard/recruit/shortlist" label="Shortlist Agent"
+          icon={<RiUserSearchLine className={navIcon(isActive('/dashboard/recruit/shortlist'))} />}
+          active={isActive('/dashboard/recruit/shortlist')}
+          tooltip="Full hiring workflow - score, prescreen, shortlist and interview inside one role." />
+
+        {/* Recruitment Templates is hidden pre-MVP (Aug 2026). The route
+            and lib/template-ip.ts are untouched - restore the tab here to
+            bring it back. */}
 
         {/* Read-only watermark for test_admin - text-heavy, hidden in
             the collapsed icon-rail view. */}
@@ -497,8 +371,8 @@ export default function Sidebar({ userName, bizName, bizLogoUrl, advisorName, pl
       <div className="px-2.5 pb-3 pt-3 flex-shrink-0 border-t border-border space-y-2">
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-1 sidebar-collapsible-hide">
           {/* Theme-aware wordmark - ink on light, white on dark. */}
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto dark:hidden" priority />
-          <Image src="/logo-white.svg" alt="HQ.ai" width={1760} height={570} className="w-[86px] max-w-full h-auto hidden dark:block" priority />
+          <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={812} height={216} className="w-[86px] max-w-full h-auto dark:hidden" priority />
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1077} height={288} className="w-[86px] max-w-full h-auto hidden dark:block" priority />
         </Link>
         <p className="px-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted sidebar-collapsible-hide">v0.4 preview</p>
       </div>
@@ -658,11 +532,42 @@ function InfoTooltip({ text }: { text: string }) {
   )
 }
 
-function ChevronIcon({ open }: { open: boolean }) {
+
+// Shared class for the flat service-tab icons, matching the opacity
+// treatment the hand-rolled SVG icons below already use.
+function navIcon(active: boolean) {
+  return `w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`
+}
+
+/**
+ * One service = one top-level tab. Replaces the HQ People / HQ Recruit
+ * collapsible parents, so nothing is buried behind a chevron and the 68px
+ * rail shows a distinct glyph per service.
+ */
+function NavTab({
+  href, label, icon, active, tooltip,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+  active: boolean
+  tooltip?: string
+}) {
   return (
-    <svg className={`w-4 h-4 transition-transform sidebar-collapsible-hide ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-    </svg>
+    <Link
+      href={href}
+      title={label}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all group
+        ${active
+          ? 'bg-ink text-bg-elevated font-semibold'
+          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}
+    >
+      {icon}
+      <span className="flex-1">{label}</span>
+      {tooltip && <InfoTooltip text={tooltip} />}
+    </Link>
   )
 }
 
@@ -670,46 +575,6 @@ function ChevronIcon({ open }: { open: boolean }) {
 function HomeIcon({ active }: { active: boolean }) {
   return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-  </svg>
-}
-function PeopleIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-  </svg>
-}
-function RecruitIcon({ active }: { active: boolean }) {
-  // Briefcase-with-magnifier pattern - reads universally as "search
-  // for hires" / recruitment. Distinct from the multi-person PeopleIcon
-  // used by HQ People so the two sidebar entries do not blur together.
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {/* Briefcase body */}
-    <rect x="2.5" y="7.5" width="14" height="11" rx="1.5"/>
-    {/* Handle */}
-    <path d="M7 7.5V5.5a1.5 1.5 0 0 1 1.5 -1.5h2A1.5 1.5 0 0 1 12 5.5V7.5"/>
-    {/* Magnifier circle */}
-    <circle cx="17" cy="14" r="3.2"/>
-    {/* Magnifier handle */}
-    <line x1="19.3" y1="16.3" x2="21.5" y2="18.5"/>
-  </svg>
-}
-function ShieldIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-  </svg>
-}
-function LeaderIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-  </svg>
-}
-function BusinessIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M4 4a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h6a1 1 0 010 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h3a1 1 0 010 2H7a1 1 0 01-1-1z"/>
-  </svg>
-}
-function ToolsIcon({ active }: { active: boolean }) {
-  return <svg className={`w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd"/>
   </svg>
 }
 function SettingsIcon({ active }: { active: boolean }) {

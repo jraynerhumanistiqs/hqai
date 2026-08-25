@@ -146,7 +146,7 @@ export function CandidateEmailInvite({ response, session, candidateUrl, onSent }
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="candidate@example.com"
-            className="w-full text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
+            className="w-full text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none"
             onKeyDown={e => { if (e.key === 'Enter' && !busy) send() }}
           />
         </div>
@@ -158,7 +158,7 @@ export function CandidateEmailInvite({ response, session, candidateUrl, onSent }
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Candidate full name"
-            className="w-full text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
+            className="w-full text-sm bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none"
           />
         </div>
       </div>
@@ -183,7 +183,7 @@ export function CandidateEmailInvite({ response, session, candidateUrl, onSent }
             <input
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal"
+              className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none"
             />
           </div>
           <div>
@@ -192,7 +192,7 @@ export function CandidateEmailInvite({ response, session, candidateUrl, onSent }
               value={body}
               onChange={e => setBody(e.target.value)}
               rows={9}
-              className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:border-charcoal leading-relaxed font-mono"
+              className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none leading-relaxed font-mono"
             />
             <p className="text-[10px] text-muted mt-1">
               Their unique pre-screen link is included - if you remove it, we add it back at the end automatically.

@@ -13,7 +13,7 @@ import { ADVISOR_TONES, ADVISOR_DETAILS } from './options'
 import type { SettingsForm } from './useSettingsForm'
 
 const textareaCls =
-  'w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors resize-none leading-relaxed focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-accent/30'
+  'w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors resize-none leading-relaxed focus-visible:ring-2 focus-visible:ring-accent/30'
 
 export function AdvisorSection({
   form,

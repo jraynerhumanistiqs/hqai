@@ -220,7 +220,7 @@ export function NotesPanel({ responseId }: Props) {
                 {editingId === n.id ? (
                   <div className="mt-1 flex items-end gap-2">
                     <textarea
-                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-border-strong bg-bg-soft"
+                      className="flex-1 border border-border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none bg-bg-soft"
                       rows={2}
                       value={editDraft}
                       onChange={e => setEditDraft(e.target.value)}
@@ -264,7 +264,7 @@ export function NotesPanel({ responseId }: Props) {
       <div className="border-t border-border p-4 relative">
         <textarea
           ref={textareaRef}
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-border-strong bg-bg-soft"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none bg-bg-soft"
           rows={2}
           placeholder="Add a note. Type @ to tag a teammate."
           value={text}

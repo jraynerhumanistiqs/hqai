@@ -369,7 +369,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                   value={renameDraft}
                   onChange={e => setRenameDraft(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenameOpen(false) }}
-                  className="w-full text-base font-bold text-charcoal bg-bg border border-border rounded-full px-3 py-1.5 outline-none focus:border-charcoal"
+                  className="w-full text-base font-bold text-charcoal bg-bg border border-border rounded-full px-3 py-1.5 outline-none"
                   aria-label="Candidate name"
                 />
                 <div className="flex items-center gap-2">
@@ -811,7 +811,7 @@ export default function CandidateScorecardPanel({ screening, customRubrics, onCl
                               value={q}
                               onChange={e => setDraftQuestions(qs => qs ? qs.map((row, idx) => idx === i ? e.target.value : row) : qs)}
                               rows={2}
-                              className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-ink resize-y text-charcoal"
+                              className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none resize-y text-charcoal"
                             />
                             <button
                               type="button"

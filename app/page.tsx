@@ -28,7 +28,7 @@ export const metadata = {
     siteName: 'HQ.ai',
     locale: 'en_AU',
     type: 'website',
-    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'HQ.ai' }],
+    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 812, height: 216, alt: 'HQ.ai' }],
   },
 }
 
@@ -39,7 +39,7 @@ const jsonLd = {
       '@type': 'Organization',
       name: 'HQ.ai',
       url: 'https://humanistiqs.ai',
-      logo: 'https://humanistiqs.ai/logo.svg',
+      logo: 'https://humanistiqs.ai/logo/png/hqai-lockup-navy.png',
       parentOrganization: {
         '@type': 'Organization',
         name: 'Humanistiqs (Rayner Consulting Group Pty Ltd)',

@@ -128,7 +128,7 @@ export default function CriteriaEditor({
             id="criteria-editor-role"
             value={role}
             onChange={e => onRoleChange(e.target.value)}
-            className="w-full max-w-lg text-sm text-ink bg-bg-elevated border border-border rounded-full px-4 py-2.5 outline-none focus:border-ink"
+            className="w-full max-w-lg text-sm text-ink bg-bg-elevated border border-border rounded-full px-4 py-2.5 outline-none"
             maxLength={80}
           />
         </div>
@@ -156,7 +156,7 @@ export default function CriteriaEditor({
                         id: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || c.id,
                       })}
                       placeholder="e.g. Customer service skills"
-                      className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none focus:border-ink"
+                      className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
                     />
                   </div>
                   <div className="sm:col-span-4">
@@ -169,7 +169,7 @@ export default function CriteriaEditor({
                         max="100"
                         value={Math.round((Number(c.weight) || 0) * 100)}
                         onChange={e => update(c._key, { weight: Math.max(0, Math.min(100, Number(e.target.value))) / 100 })}
-                        className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none focus:border-ink"
+                        className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
                       />
                       <span className="text-xs text-ink-muted">%</span>
                     </div>
@@ -221,7 +221,7 @@ export default function CriteriaEditor({
                       <select
                         value={c.type}
                         onChange={e => update(c._key, { type: e.target.value as 'ordinal_5' | 'binary' })}
-                        className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none focus:border-ink"
+                        className="w-full text-sm text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
                       >
                         <option value="ordinal_5">Score from 1 (weakest) to 5 (strongest)</option>
                         <option value="binary">Yes / No only</option>
@@ -269,7 +269,7 @@ export default function CriteriaEditor({
                                 value={c.anchors?.[level] ?? ''}
                                 onChange={e => updateAnchor(c._key, level, e.target.value)}
                                 placeholder={placeholderMap[level]}
-                                className="w-full text-xs text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none focus:border-ink"
+                                className="w-full text-xs text-ink bg-bg-elevated border border-border rounded-xl px-3 py-2 outline-none"
                               />
                             </div>
                           )

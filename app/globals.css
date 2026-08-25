@@ -385,6 +385,29 @@
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
+
+  /* ...except text entry. Founder call (Aug 2026): the coloured ring
+     around focused text boxes - brown on light, gold on dark - reads as
+     the box changing colour and was disliked. Text fields keep their own
+     unambiguous focus affordance (a blinking caret), so dropping the
+     outline here costs nothing a keyboard user relies on, whereas buttons
+     and links have no such cue and KEEP the indicator above.
+
+     Scoped to text entry only - do not widen this to `*` or the whole
+     product surface loses its keyboard focus indicator (WCAG 2.4.7). */
+  html[data-app="product"] :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+    textarea,
+    [contenteditable="true"],
+    [contenteditable=""]
+  ):focus-visible,
+  html[data-app="product"] :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    [contenteditable="true"]
+  ):focus {
+    outline: none;
+  }
 }
 
 @layer components {

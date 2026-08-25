@@ -231,7 +231,7 @@ export function Step4Interviews({ session, responses, onPatchResponse }: Props) 
                           if (v !== (r.decision_reason ?? '')) commitReason(r.id, v)
                         }}
                         placeholder="e.g. Strong CV but limited customer-facing experience for the role."
-                        className="w-full text-sm bg-bg border border-border focus:border-ink rounded-2xl px-3 py-2 outline-none"
+                        className="w-full text-sm bg-bg border border-border rounded-2xl px-3 py-2 outline-none"
                       />
                     </div>
                   )}
@@ -287,7 +287,7 @@ export function Step4Interviews({ session, responses, onPatchResponse }: Props) 
                         if (v !== (r.interview_notes ?? '')) commitNotes(r.id, v)
                       }}
                       placeholder="Notes from the interview - what stood out, any follow-ups."
-                      className="w-full text-sm bg-bg border border-border focus:border-ink rounded-2xl px-3 py-2 outline-none"
+                      className="w-full text-sm bg-bg border border-border rounded-2xl px-3 py-2 outline-none"
                     />
                   </div>
 
@@ -304,7 +304,7 @@ export function Step4Interviews({ session, responses, onPatchResponse }: Props) 
                         if (v !== (r.interview_recording_url ?? '')) commitRecording(r.id, v)
                       }}
                       placeholder="Paste a Zoom/Teams/Cloudflare link, or note where the recording is saved."
-                      className="w-full text-sm bg-bg border border-border focus:border-ink rounded-2xl px-3 py-2 outline-none"
+                      className="w-full text-sm bg-bg border border-border rounded-2xl px-3 py-2 outline-none"
                     />
                   </div>
                 </li>

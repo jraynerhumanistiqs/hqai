@@ -51,7 +51,7 @@ export function DeleteRoleConfirm({ session, onCancel, onConfirmed }: Props) {
           value={typed}
           onChange={e => setTyped(e.target.value)}
           placeholder="Type the role title to confirm"
-          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-accent/60 bg-bg-elevated transition-colors"
+          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-sm text-ink placeholder-mid/60 focus:outline-none/60 bg-bg-elevated transition-colors"
           autoFocus
         />
 

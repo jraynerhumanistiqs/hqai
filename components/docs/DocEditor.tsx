@@ -362,7 +362,7 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
             onChange={e => setLinkUrl(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') applyLink() }}
             placeholder="https://..."
-            className="flex-1 bg-bg-elevated border border-border rounded px-2 py-1 text-ink focus:outline-none focus:border-ink"
+            className="flex-1 bg-bg-elevated border border-border rounded px-2 py-1 text-ink focus:outline-none"
           />
           <button onClick={applyLink} className="font-bold text-ink hover:text-accent">{linkUrl ? 'Apply' : 'Remove'}</button>
           <button onClick={() => setLinkOpen(false)} className="text-ink-muted">Cancel</button>
@@ -481,7 +481,7 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
           if (v === 'p') editor.chain().focus().setParagraph().run()
           else editor.chain().focus().toggleHeading({ level: Number(v) as 1 | 2 | 3 | 4 }).run()
         }}
-        className="h-7 bg-bg-elevated border border-border rounded px-1 text-xs font-bold text-ink focus:outline-none focus:border-ink"
+        className="h-7 bg-bg-elevated border border-border rounded px-1 text-xs font-bold text-ink focus:outline-none"
         title="Block type"
       >
         <option value="p">Body</option>
@@ -499,7 +499,7 @@ function Toolbar({ editor, onInsertImage, onOpenLink, onTogglePageMenu }: {
           if (!v) editor.chain().focus().unsetMark('textStyle').run()
           else (editor.chain().focus() as unknown as { setFontSize: (s: string) => { run: () => void } }).setFontSize(v).run()
         }}
-        className="h-7 bg-bg-elevated border border-border rounded px-1 text-xs font-bold text-ink focus:outline-none focus:border-ink"
+        className="h-7 bg-bg-elevated border border-border rounded px-1 text-xs font-bold text-ink focus:outline-none"
         title="Font size"
       >
         <option value="">Size</option>

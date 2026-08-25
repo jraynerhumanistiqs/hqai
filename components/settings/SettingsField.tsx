@@ -11,10 +11,10 @@
 import * as React from 'react'
 
 export const inputCls =
-  'w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-accent/30 rounded-sm'
+  'w-full border-b border-ink/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent/30 rounded-sm'
 
 export const selectCls =
-  'w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-accent/30'
+  'w-full px-3 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-ink placeholder-ink-muted outline-none transition-colors appearance-none focus-visible:ring-2 focus-visible:ring-accent/30'
 
 export function Field({
   label,

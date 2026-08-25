@@ -143,7 +143,7 @@ function BlockCard({ blockKey }: { blockKey: BlockKey }) {
           value={value as string}
           onChange={e => setValue(e.target.value)}
           rows={4}
-          className="w-full bg-bg border border-border rounded-2xl px-3.5 py-2.5 text-sm text-charcoal leading-relaxed outline-none focus:border-charcoal resize-y"
+          className="w-full bg-bg border border-border rounded-2xl px-3.5 py-2.5 text-sm text-charcoal leading-relaxed outline-none resize-y"
         />
       )}
 
@@ -210,7 +210,7 @@ function ListEditor({ items, onChange }: { items: string[]; onChange: (v: string
               next[i] = e.target.value
               onChange(next)
             }}
-            className="flex-1 bg-bg border border-border rounded-full px-3 py-1.5 text-sm text-charcoal outline-none focus:border-charcoal"
+            className="flex-1 bg-bg border border-border rounded-full px-3 py-1.5 text-sm text-charcoal outline-none"
           />
           <button
             onClick={() => onChange(items.filter((_, idx) => idx !== i))}

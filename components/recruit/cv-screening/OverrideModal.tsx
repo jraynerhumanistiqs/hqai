@@ -158,7 +158,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
             <select
               value={action}
               onChange={e => setAction(e.target.value as NextAction)}
-              className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink"
+              className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none"
             >
               {ACTION_OPTIONS.map(a => (
                 <option key={a} value={a}>{ACTION_LABELS[a]}</option>
@@ -181,7 +181,7 @@ export default function OverrideModal({ screening, onClose, onSaved }: Props) {
               placeholder="Why are you changing the AI's call? e.g. Strong domain match they didn't pick up on, prefer video over phone, etc."
               rows={4}
               maxLength={1000}
-              className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none focus:border-ink resize-none"
+              className="w-full text-sm text-charcoal bg-bg-elevated border border-border rounded-lg px-3 py-2 outline-none resize-none"
             />
             <p className="text-[10px] text-muted mt-1">{comment.length}/1000</p>
           </div>

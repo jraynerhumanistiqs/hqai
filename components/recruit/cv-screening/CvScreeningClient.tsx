@@ -1118,7 +1118,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                             }
                                           }
                                         }}
-                                        className="w-full text-xs text-ink bg-bg border border-border rounded-full px-2 py-1 outline-none focus:border-ink"
+                                        className="w-full text-xs text-ink bg-bg border border-border rounded-full px-2 py-1 outline-none"
                                       />
                                       {renameState.error && <span className="text-[10px] text-danger block">{renameState.error}</span>}
                                     </div>
@@ -2000,7 +2000,7 @@ export default function CvScreeningClient({ businessName, initialScreenings, ini
                                             }
                                           }
                                         }}
-                                        className="w-full text-xs text-charcoal bg-bg border border-border rounded-full px-2 py-1 outline-none focus:border-charcoal"
+                                        className="w-full text-xs text-charcoal bg-bg border border-border rounded-full px-2 py-1 outline-none"
                                       />
                                       {renameState.error && <span className="text-[10px] text-danger block">{renameState.error}</span>}
                                     </div>

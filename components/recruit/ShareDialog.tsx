@@ -113,7 +113,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
           <div>
             <label className="block text-xs font-bold text-ink mb-1">Label (optional)</label>
             <input
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none focus:border-border-strong bg-bg-soft"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink placeholder-mid/60 focus:outline-none bg-bg-soft"
               placeholder="e.g. Sarah - Hiring Manager"
               value={label}
               onChange={e => setLabel(e.target.value)}
@@ -204,7 +204,7 @@ export function ShareDialog({ responseId, candidateName, roleTitle, company, onC
                       <input
                         type="email"
                         placeholder="recipient@company.com"
-                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none focus:border-border-strong bg-bg-soft"
+                        className="flex-1 border border-border rounded-lg px-3 py-1.5 text-xs text-ink focus:outline-none bg-bg-soft"
                         value={emailTo}
                         onChange={e => setEmailTo(e.target.value)}
                       />

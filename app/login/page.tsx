@@ -162,7 +162,7 @@ function LoginInner() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo-black.svg" alt="HQ.ai" width={1760} height={570} className="w-[112px] h-auto mx-auto block" />
+          <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={812} height={216} className="w-[112px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-white shadow-modal rounded-2xl p-8">

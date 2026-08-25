@@ -49,13 +49,18 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: 'HQ.ai by Humanistiqs',
   description: 'AI-powered HR & recruitment for Australian businesses',
+  // Aug 2026 brand kit (public/logo). The SVG is the heavier-stroke
+  // favicon master, which stays legible below 24px; the PNGs are the
+  // fallback for clients that ignore SVG favicons. The previous
+  // '/favicon.ico' entry pointed at a file that never existed and 404'd.
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/logo/favicon.svg', type: 'image/svg+xml' },
+      { url: '/logo/png/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo/png/favicon-16.png', sizes: '16x16', type: 'image/png' },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    shortcut: '/logo/favicon.svg',
+    apple: '/logo/png/hqai-appicon-black-180.png',
   },
 }
 

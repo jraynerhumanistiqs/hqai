@@ -32,13 +32,13 @@ export const metadata: Metadata = {
     siteName: 'HQ.ai',
     locale: 'en_AU',
     type: 'website',
-    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'HR365 + Recruit365' }],
+    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 812, height: 216, alt: 'HR365 + Recruit365' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'HR365 + Recruit365 - AI does the admin, a real person makes the call',
     description: PAGE_DESCRIPTION,
-    images: ['/logo.svg'],
+    images: ['/logo/png/hqai-lockup-navy.png'],
   },
 }
 

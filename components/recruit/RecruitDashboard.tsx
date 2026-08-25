@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import type { PrescreenSession, CandidateResponse } from '@/lib/recruit-types'
 import { RoleDetail } from './RoleDetail'
+import PortalMenu from '@/components/ui/PortalMenu'
 // The create / edit / delete-role modals and the bin panel only render when
 // the recruiter opens them, so keep their JS out of the recruit dashboard's
 // initial bundle - each chunk loads the first time it's opened. (Named
@@ -27,7 +28,6 @@ export function RecruitDashboard() {
   const [menuOpenFor, setMenuOpenFor]   = useState<string | null>(null)
   const [editTarget, setEditTarget]     = useState<PrescreenSession | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<PrescreenSession | null>(null)
-  const menuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     fetch('/api/prescreen/sessions')
@@ -49,17 +49,9 @@ export function RecruitDashboard() {
       .finally(() => setLoadingSessions(false))
   }, [requestedSessionId])
 
-  // Close the per-row actions menu on outside click
-  useEffect(() => {
-    if (!menuOpenFor) return
-    function onDocClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpenFor(null)
-      }
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [menuOpenFor])
+  // Outside-click / Escape for the per-row actions menu now lives in
+  // PortalMenu, which owns the menu element and so can tell a click on
+  // itself from a click outside it.
 
   const loadResponses = useCallback(async (session: PrescreenSession) => {
     setLoadingResponses(true)
@@ -279,7 +271,6 @@ export function RecruitDashboard() {
                 emptyLabel="No active roles."
                 menuOpenFor={menuOpenFor}
                 setMenuOpenFor={setMenuOpenFor}
-                menuRef={menuRef}
                 onSelect={(s) => { setSelected(s); setCandidateUrl('') }}
                 onEdit={(s) => { setEditTarget(s); setMenuOpenFor(null) }}
                 onDelete={(s) => { setDeleteTarget(s); setMenuOpenFor(null) }}
@@ -293,7 +284,6 @@ export function RecruitDashboard() {
                 emptyLabel='No drafts. Use "Save as draft" when creating a role.'
                 menuOpenFor={menuOpenFor}
                 setMenuOpenFor={setMenuOpenFor}
-                menuRef={menuRef}
                 onSelect={(s) => { setSelected(s); setCandidateUrl('') }}
                 onEdit={(s) => { setEditTarget(s); setMenuOpenFor(null) }}
                 onDelete={(s) => { setDeleteTarget(s); setMenuOpenFor(null) }}
@@ -487,7 +477,7 @@ function SwitcherGroup({
 
 function RoleGroup({
   label, count, open, onToggle, sessions, emptyLabel,
-  menuOpenFor, setMenuOpenFor, menuRef, onSelect, onEdit, onDelete,
+  menuOpenFor, setMenuOpenFor, onSelect, onEdit, onDelete,
 }: {
   label: string
   count: number
@@ -497,7 +487,6 @@ function RoleGroup({
   emptyLabel: string
   menuOpenFor: string | null
   setMenuOpenFor: React.Dispatch<React.SetStateAction<string | null>>
-  menuRef: React.RefObject<HTMLDivElement | null>
   onSelect: (s: PrescreenSession) => void
   onEdit: (s: PrescreenSession) => void
   onDelete: (s: PrescreenSession) => void
@@ -534,7 +523,7 @@ function RoleGroup({
                 s={s}
                 menuOpen={menuOpenFor === s.id}
                 onMenuToggle={() => setMenuOpenFor(prev => prev === s.id ? null : s.id)}
-                menuRef={menuRef}
+                onMenuClose={() => setMenuOpenFor(null)}
                 onSelect={() => onSelect(s)}
                 onEdit={() => onEdit(s)}
                 onDelete={() => onDelete(s)}
@@ -548,16 +537,17 @@ function RoleGroup({
 }
 
 function RoleRow({
-  s, menuOpen, onMenuToggle, menuRef, onSelect, onEdit, onDelete,
+  s, menuOpen, onMenuToggle, onMenuClose, onSelect, onEdit, onDelete,
 }: {
   s: PrescreenSession
   menuOpen: boolean
   onMenuToggle: () => void
-  menuRef: React.RefObject<HTMLDivElement | null>
+  onMenuClose: () => void
   onSelect: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
   const isActive = s.status === 'active'
   const statusLabel = isActive ? 'Active' : (s.status === 'closed' ? 'Closed' : 'Draft')
   const chipCls = isActive
@@ -582,6 +572,7 @@ function RoleRow({
       </button>
 
       <button
+        ref={triggerRef}
         onClick={(e) => { e.stopPropagation(); onMenuToggle() }}
         className="absolute top-1/2 -translate-y-1/2 right-2 w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
         aria-label="Role actions"
@@ -595,29 +586,33 @@ function RoleRow({
         </svg>
       </button>
 
-      {menuOpen && (
-        <div
-          ref={menuRef}
-          role="menu"
-          className="absolute top-11 right-2 z-20 bg-bg-elevated shadow-modal rounded-xl border border-border py-1 w-36"
-          onClick={e => e.stopPropagation()}
+      {/* Portalled: this row sits inside an overflow-hidden list which can
+          itself sit inside the overflow-y-auto role switcher, so an
+          absolutely-positioned menu got clipped by whichever ancestor cut
+          first. See components/ui/PortalMenu.tsx. */}
+      <PortalMenu
+        open={menuOpen}
+        anchorRef={triggerRef}
+        onClose={onMenuClose}
+        align="right"
+        width={144}
+        aria-label={`Actions for ${s.role_title}`}
+      >
+        <button
+          role="menuitem"
+          onClick={onEdit}
+          className="w-full text-left px-3 py-2 text-sm font-bold text-ink hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
         >
-          <button
-            role="menuitem"
-            onClick={onEdit}
-            className="w-full text-left px-3 py-2 text-sm font-bold text-ink hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-          >
-            Edit
-          </button>
-          <button
-            role="menuitem"
-            onClick={onDelete}
-            className="w-full text-left px-3 py-2 text-sm font-bold text-danger hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-          >
-            Delete
-          </button>
-        </div>
-      )}
+          Edit
+        </button>
+        <button
+          role="menuitem"
+          onClick={onDelete}
+          className="w-full text-left px-3 py-2 text-sm font-bold text-danger hover:bg-bg-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+        >
+          Delete
+        </button>
+      </PortalMenu>
     </div>
   )
 }

@@ -884,7 +884,7 @@ function ClarifyFreeText({ followUpHint, onSubmit }: { followUpHint: string; onS
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleSend() }}
         placeholder="Type your answer..."
-        className="flex-1 text-xs px-3 py-2 bg-bg-elevated border border-border rounded-full outline-none focus:border-ink"
+        className="flex-1 text-xs px-3 py-2 bg-bg-elevated border border-border rounded-full outline-none"
       />
       <button
         onClick={handleSend}

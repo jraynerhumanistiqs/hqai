@@ -156,7 +156,7 @@ export default function DocumentsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search documents"
-            className="w-full bg-bg border border-border rounded-full px-4 py-2.5 text-sm text-ink placeholder-ink-muted focus:border-ink focus:outline-none transition-colors"
+            className="w-full bg-bg border border-border rounded-full px-4 py-2.5 text-sm text-ink placeholder-ink-muted focus:outline-none transition-colors"
           />
         </div>
 

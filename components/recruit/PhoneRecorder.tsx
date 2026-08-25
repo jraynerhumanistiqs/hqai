@@ -249,13 +249,13 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, initialQue
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Candidate name</label>
-              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-border-strong" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
+              <input className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-mid uppercase tracking-wider mb-1.5">Phone screen commenced</label>
               <input
                 type="datetime-local"
-                className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-border-strong"
+                className="w-full text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none"
                 value={commencedAt}
                 onChange={e => setCommencedAt(e.target.value)}
               />
@@ -296,7 +296,7 @@ export function PhoneRecorder({ sessionId, responseId, candidateName, initialQue
                   value={q}
                   onChange={e => setQuestions(qs => qs.map((row, idx) => idx === i ? e.target.value : row))}
                   rows={2}
-                  className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none focus:border-ink resize-y"
+                  className="flex-1 text-sm px-3 py-2 bg-bg-elevated border border-border rounded-lg outline-none resize-y"
                 />
                 <button
                   type="button"
