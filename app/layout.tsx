@@ -47,7 +47,7 @@ const figtree = Figtree({
 })
 
 export const metadata: Metadata = {
-  title: 'HQ.ai by Humanistiqs',
+  title: 'HQ.AI by Humanistiqs',
   description: 'AI-powered HR & recruitment for Australian businesses',
   // Aug 2026 brand kit (public/logo). The SVG is the heavier-stroke
   // favicon master, which stays legible below 24px; the PNGs are the

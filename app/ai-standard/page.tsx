@@ -10,7 +10,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'Our AI Accuracy Standard - how HQ.ai keeps its answers honest',
+  title: 'Our AI Accuracy Standard - how HQ.AI keeps its answers honest',
   description:
     'How HQ.ai grounds its answers in Australian workplace-law sources, keeps them current, and hands the hard calls to a real person. Plain English, no fine print.',
   alternates: { canonical: '/ai-standard' },

@@ -454,7 +454,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1077} height={288} className="w-[112px] h-auto mx-auto block" />
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="w-[112px] h-auto mx-auto block" />
         </div>
 
         <div className="bg-bg-elevated rounded-3xl border border-border shadow-card p-8">

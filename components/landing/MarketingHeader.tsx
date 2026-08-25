@@ -29,8 +29,8 @@ function useMarketingScope() {
 const PRODUCTS = [
   { label: 'HQ People', href: '/product/people', blurb: 'AI HR help for the everyday people questions' },
   { label: 'HQ Recruit', href: '/product/recruit', blurb: 'Score CVs, pre-screen, shortlist' },
-  { label: 'Marketplace', href: '/marketplace', blurb: 'Coming soon' },
   { label: 'Outsourced HR & Recruitment', href: '/outsourcing', blurb: 'A dedicated advisor on call - HR365 & Recruit365' },
+  { label: 'Marketplace', href: '/marketplace', blurb: 'Coming soon' },
 ]
 
 const NAV = [
@@ -59,7 +59,7 @@ export default function MarketingHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
         <Link href="/" aria-label="HQ.ai home" className="flex items-center">
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1077} height={288} className="h-7 w-auto" priority />
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="h-7 w-auto" priority />
         </Link>
 
         {/* Desktop nav */}

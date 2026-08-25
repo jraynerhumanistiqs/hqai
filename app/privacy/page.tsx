@@ -11,7 +11,7 @@ import Link from 'next/link'
 // version string whenever the substance changes.
 
 export const metadata = {
-  title: 'Privacy Policy - HQ.ai by Humanistiqs',
+  title: 'Privacy Policy - HQ.AI by Humanistiqs',
   description: 'How HQ.ai (operated by Rayner Consulting Group Pty Ltd t/a Humanistiqs) collects, uses, stores and protects personal information.',
 }
 

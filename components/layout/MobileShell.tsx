@@ -65,8 +65,8 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
             {/* Theme-aware wordmark: ink logo on the light surface, white
                 logo on the dark surface. Toggled purely via the .dark
                 class so there's no swap flash. */}
-            <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={812} height={216} className="h-[26px] w-auto dark:hidden" />
-            <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1077} height={288} className="h-[26px] w-auto hidden dark:block" />
+            <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={791} height={204} className="h-[26px] w-auto dark:hidden" />
+            <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="h-[26px] w-auto hidden dark:block" />
           </Link>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle variant="icon" />

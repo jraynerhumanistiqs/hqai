@@ -11,7 +11,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai Marketplace - coming soon',
+  title: 'HQ.AI Marketplace - coming soon',
   description:
     'The HQ.ai marketplace is not open yet. In the meantime, HQ People answers your everyday HR questions and HQ Recruit handles your hiring.',
   alternates: { canonical: '/marketplace' },

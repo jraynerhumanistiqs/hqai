@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: 'HQ.ai',
     locale: 'en_AU',
     type: 'website',
-    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 812, height: 216, alt: 'HR365 + Recruit365' }],
+    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 791, height: 204, alt: 'HR365 + Recruit365' }],
   },
   twitter: {
     card: 'summary_large_image',

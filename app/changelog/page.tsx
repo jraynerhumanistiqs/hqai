@@ -8,7 +8,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai changelog - what\'s new',
+  title: 'HQ.AI changelog - what\'s new',
   description:
     'Meaningful updates to HQ.ai, newest first. New features, pricing changes and improvements to the AI HR and recruitment tools for Australian small business.',
   alternates: { canonical: '/changelog' },

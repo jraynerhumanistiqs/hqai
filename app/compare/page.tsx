@@ -12,7 +12,7 @@ import MarketingFooter from '@/components/landing/MarketingFooter'
 import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
 
 export const metadata: Metadata = {
-  title: 'Why businesses switch to HQ.ai - HR support without the lock-in',
+  title: 'Why businesses switch to HQ.AI - HR support without the lock-in',
   description:
     'Comparing HQ.ai with the traditional outsourced-HR model: contract length, wait times, pricing transparency and how fast you can get started.',
   alternates: { canonical: '/compare' },

@@ -17,18 +17,18 @@ const DESCRIPTION =
   'AI that takes the busywork out of HR and hiring for Australian small business. Answers the everyday questions, runs your hiring, and hands off to a real advisor when it matters. For businesses under 250 staff.'
 
 export const metadata = {
-  title: 'HQ.ai - AI that takes the grunt work out of HR and hiring',
+  title: 'Taking the grunt work out of HR & hiring for Australian businesses',
   description: DESCRIPTION,
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'HQ.ai - AI that takes the grunt work out of HR and hiring',
+    title: 'Taking the grunt work out of HR & hiring for Australian businesses',
     description: DESCRIPTION,
     url: '/',
     siteName: 'HQ.ai',
     locale: 'en_AU',
     type: 'website',
-    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 812, height: 216, alt: 'HQ.ai' }],
+    images: [{ url: '/logo/png/hqai-lockup-navy.png', width: 791, height: 204, alt: 'HQ.ai' }],
   },
 }
 

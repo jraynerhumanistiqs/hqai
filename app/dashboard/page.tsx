@@ -60,22 +60,13 @@ export default async function DashboardHome() {
         .limit(5)
   const { data: openEscalations } = await escQuery
 
-  // Fetch recent documents
-  const docQuery = supabase
-    .from('documents')
-    .select('id, title, type, created_at')
-    .order('created_at', { ascending: false })
-    .limit(5)
-  if (business?.id) {
-    docQuery.eq('business_id', business.id)
-  }
-  const { data: recentDocs, error: docErr } = await docQuery
+  // The recent-documents query went with the Recent documents card (Aug
+  // 2026). /dashboard/documents still serves the full library at its own
+  // URL - only the home-page summary is gone.
 
   if (convoErr) console.error('[dashboard] recent conversations query failed:', convoErr.message)
-  if (docErr) console.error('[dashboard] recent documents query failed:', docErr.message)
 
   const hasConversations = !convoErr && recentConvos && recentConvos.length > 0
-  const hasDocs = !docErr && recentDocs && recentDocs.length > 0
   const escalations = openEscalations && openEscalations.length > 0 ? openEscalations : []
 
   // Normalise em/en dashes in any string coming from DB to plain hyphens
@@ -120,8 +111,10 @@ export default async function DashboardHome() {
           </div>
         )}
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity. Single column since Recent documents was removed
+            (Aug 2026) - a lg:grid-cols-2 with one child left the card
+            stranded at half width. */}
+        <div className="grid grid-cols-1 gap-6">
 
           {/* Recent Conversations */}
           <div className="flex flex-col">
@@ -165,47 +158,6 @@ export default async function DashboardHome() {
             </div>
           </div>
 
-          {/* Recent Documents */}
-          <div className="flex flex-col">
-            <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-4">Recent documents</h2>
-            <div className="bg-bg-elevated border border-border rounded-3xl flex-1 flex flex-col transition-colors min-h-[220px]">
-              {docErr ? (
-                <EmptyState
-                  className="flex-1"
-                  tone="bg-danger/10 text-danger"
-                  icon={<AlertIcon />}
-                  title="Couldn't load your documents"
-                  description="Something went wrong reaching your recent documents. Refresh to try again."
-                />
-              ) : hasDocs ? (
-                <ul className="divide-y divide-border">
-                  {recentDocs!.map((d: any) => (
-                    <li key={d.id}>
-                      <div className="block px-5 py-4 rounded-3xl">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-ink/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <DocsIcon />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-ink truncate">{normaliseDashes(d.title)}</p>
-                            <p className="text-xs text-ink-muted">{normaliseDashes(d.type) || 'Document'} &middot; {formatDate(d.created_at)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState
-                  className="flex-1"
-                  tone="bg-bg-soft text-ink-muted"
-                  icon={<DocsEmptyIcon />}
-                  title="No documents yet"
-                  description="Documents are auto-saved when HQ generates them."
-                />
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Slim shortcuts - the quick-action cards, demoted now the composer leads */}
@@ -252,16 +204,6 @@ function formatDate(iso: string) {
 function ChatIcon() {
   return <svg className="w-7 h-7" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 01-3.11-.56c-.32.12-1.03.4-2.26.8a.5.5 0 01-.64-.62c.34-1.02.53-1.72.57-2.09C2.9 14.29 2 12.24 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" clipRule="evenodd"/>
-  </svg>
-}
-function DocsIcon() {
-  return <svg className="w-4 h-4 text-clay-ink dark:text-clay" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-  </svg>
-}
-function DocsEmptyIcon() {
-  return <svg className="w-7 h-7" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
   </svg>
 }
 function AlertIcon() {

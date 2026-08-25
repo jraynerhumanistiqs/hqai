@@ -9,7 +9,7 @@ import MarketingFooter from '@/components/landing/MarketingFooter'
 import ContactForm from '@/components/landing/ContactForm'
 
 export const metadata: Metadata = {
-  title: 'Contact HQ.ai',
+  title: 'Contact HQ.AI',
   description: 'Get in touch with the Humanistiqs team behind HQ.ai. We read every message and reply, usually within one business day.',
   alternates: { canonical: '/contact' },
   robots: { index: true, follow: true },

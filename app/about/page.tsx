@@ -13,7 +13,7 @@ import FooterCta from '@/components/landing/FooterCta'
 import Cited from '@/components/landing/Cited'
 
 export const metadata: Metadata = {
-  title: 'About HQ.ai - the Humanistiqs team behind the AI HR advisor',
+  title: 'About HQ.AI - the Humanistiqs team behind the AI HR advisor',
   description:
     'HQ.ai is built by Humanistiqs, an Australian HR and recruitment consultancy with 80+ years of combined director experience. Smart AI for the everyday work, real people for the hard calls, built only for Australian workplaces.',
   alternates: { canonical: '/about' },

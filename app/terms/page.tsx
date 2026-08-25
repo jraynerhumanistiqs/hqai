@@ -7,7 +7,7 @@ import Link from 'next/link'
 // linkable terms document rather than the previous dead "#" link.
 
 export const metadata = {
-  title: 'Terms of Service - HQ.ai by Humanistiqs',
+  title: 'Terms of Service - HQ.AI by Humanistiqs',
   description: 'The terms under which you use HQ.ai, operated by Rayner Consulting Group Pty Ltd t/a Humanistiqs.',
 }
 

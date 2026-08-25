@@ -371,8 +371,8 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose }: SidebarP
       <div className="px-2.5 pb-3 pt-3 flex-shrink-0 border-t border-border space-y-2">
         <Link href="/dashboard" onClick={() => onClose?.()} aria-label="Go to dashboard home" className="flex items-center justify-start px-1 pt-1 sidebar-collapsible-hide">
           {/* Theme-aware wordmark - ink on light, white on dark. */}
-          <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={812} height={216} className="w-[86px] max-w-full h-auto dark:hidden" priority />
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1077} height={288} className="w-[86px] max-w-full h-auto hidden dark:block" priority />
+          <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={791} height={204} className="w-[86px] max-w-full h-auto dark:hidden" priority />
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="w-[86px] max-w-full h-auto hidden dark:block" priority />
         </Link>
         <p className="px-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted sidebar-collapsible-hide">v0.4 preview</p>
       </div>

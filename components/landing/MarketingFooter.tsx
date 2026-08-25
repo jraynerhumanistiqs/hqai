@@ -10,8 +10,8 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
     links: [
       { label: 'HQ People', href: '/product/people' },
       { label: 'HQ Recruit', href: '/product/recruit' },
-      { label: 'Marketplace', href: '/marketplace' },
       { label: 'Outsourced HR & Recruitment', href: '/outsourcing' },
+      { label: 'Marketplace', href: '/marketplace' },
       { label: 'Pricing', href: '/pricing' },
     ],
   },

@@ -1,7 +1,7 @@
 import ComingSoon from '@/components/dashboard/ComingSoon'
 
 export const metadata = {
-  title: 'AI Assistant - HQ.ai',
+  title: 'AI Assistant - HQ.AI',
 }
 
 // Placeholder route so AI Assistant can sit in the sidebar as a first-class

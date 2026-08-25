@@ -156,7 +156,7 @@ export async function generateMetadata({
   const { business_slug, campaign_slug } = await params
   const campaign = await fetchCampaign(business_slug, campaign_slug)
   if (!campaign || !campaign.businesses) {
-    return { title: 'Role not found · HQ.ai' }
+    return { title: 'Role not found · HQ.AI' }
   }
   const role = campaign.role_profile
   const biz = campaign.businesses

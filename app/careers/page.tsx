@@ -9,7 +9,7 @@ export const revalidate = 600
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://humanistiqs.ai'
 
 export const metadata: Metadata = {
-  title: 'Hiring with HQ.ai · Open roles across Australia',
+  title: 'Hiring with HQ.AI · Open roles across Australia',
   description:
     'Live roles published by Australian businesses using HQ.ai. Indexed by Google for Jobs and Jora.',
   alternates: { canonical: `${BASE_URL}/careers` },

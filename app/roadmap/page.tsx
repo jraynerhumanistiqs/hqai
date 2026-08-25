@@ -9,7 +9,7 @@ import MarketingHeader from '@/components/landing/MarketingHeader'
 import MarketingFooter from '@/components/landing/MarketingFooter'
 
 export const metadata: Metadata = {
-  title: 'HQ.ai roadmap - what we\'ve shipped and what\'s coming',
+  title: 'HQ.AI roadmap - what we\'ve shipped and what\'s coming',
   description:
     'The public record of the HQ.ai roadmap: everything that has shipped, what we are building now, and what comes next for Australian small business HR and hiring.',
   alternates: { canonical: '/roadmap' },
