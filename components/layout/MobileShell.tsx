@@ -20,6 +20,9 @@ interface SidebarProps {
 
 export default function MobileShell({ sidebarProps, children }: { sidebarProps: SidebarProps; children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Mirrors what the desktop rail is claiming. Starts at the collapsed
+  // width; the sidebar corrects it once it has read its pinned state.
+  const [railWidth, setRailWidth] = useState(68)
   const pathname = usePathname()
 
   // Close sidebar on route change (mobile)
@@ -29,11 +32,20 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      {/* Desktop sidebar - a 68px icon rail that auto-expands (overlaying the
-          content) on hover. The wrapper reserves the rail width and is the
-          positioning context for the absolute, expanding aside inside it. */}
-      <div className="hidden lg:block flex-shrink-0 relative w-[68px]">
-        <Sidebar {...sidebarProps} />
+      {/* Desktop sidebar - a 68px icon rail that auto-expands on hover. The
+          wrapper reserves the rail's width and is the positioning context
+          for the absolute, expanding aside inside it.
+
+          The reserved width is driven by the sidebar rather than fixed at
+          68px: hovering overlays the page on purpose, but PINNING is a
+          layout change, and while the wrapper stayed at 68px the pinned
+          rail sat on top of the content and clipped it. Transitions in
+          step with the aside's own width animation. */}
+      <div
+        className="hidden lg:block flex-shrink-0 relative transition-[width] duration-200 ease-out"
+        style={{ width: `${railWidth}px` }}
+      >
+        <Sidebar {...sidebarProps} onRailWidthChange={setRailWidth} />
       </div>
 
       {/* Mobile sidebar overlay */}

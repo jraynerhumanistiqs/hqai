@@ -27,6 +27,15 @@ interface SidebarProps {
   role?: AppRole
   flags?: Record<string, boolean>
   onClose?: () => void
+  /**
+   * Reports how much horizontal space the rail is actually claiming, so
+   * the shell can reserve it. Hover-expand overlays the content on
+   * purpose and keeps reporting the collapsed width; pinning it is a
+   * layout change, and without this the expanded rail sat on top of the
+   * page instead of pushing it across. Desktop instance only - the
+   * mobile drawer floats over everything and reserves nothing.
+   */
+  onRailWidthChange?: (px: number) => void
 }
 
 const WIDTH_STORAGE_KEY    = 'hqai:sidebar-width'
@@ -36,7 +45,7 @@ const MIN_WIDTH = 200
 const MAX_WIDTH = 360
 const COLLAPSED_WIDTH = 68
 
-export default function Sidebar({ bizName, bizLogoUrl, role, onClose }: SidebarProps) {
+export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidthChange }: SidebarProps) {
   // `flags` is still accepted (callers pass it) but nothing in the nav is
   // flag-gated since the Tools group was removed - re-derive a `flag`
   // helper here if a gated entry comes back.
@@ -97,15 +106,17 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose }: SidebarP
     try { setLocked(window.localStorage.getItem(LOCK_STORAGE_KEY) === '1') } catch { /* no-op */ }
   }, [])
   function toggleLocked() {
-    setLocked(prev => {
-      const next = !prev
-      try { window.localStorage.setItem(LOCK_STORAGE_KEY, next ? '1' : '0') } catch { /* no-op */ }
-      // Unpinning while the pointer is still over the sidebar would leave
-      // it expanded until the mouse left, which reads as the click having
-      // done nothing. Drop the hover state so it collapses immediately.
-      if (!next) setHovered(false)
-      return next
-    })
+    // Computed outside the updater on purpose: a setState updater has to
+    // be pure, so the setHovered call below cannot live inside one. It
+    // used to, and unpinning then left the rail stuck open because the
+    // hover reset never landed.
+    const next = !locked
+    setLocked(next)
+    try { window.localStorage.setItem(LOCK_STORAGE_KEY, next ? '1' : '0') } catch { /* no-op */ }
+    // Unpinning while the pointer is still over the sidebar would leave
+    // it expanded until the mouse left, which reads as the click having
+    // done nothing. Drop the hover state so it collapses immediately.
+    if (!next) setHovered(false)
   }
 
   const collapsed = !isDrawer && !locked && !hovered
@@ -169,6 +180,14 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose }: SidebarP
   // Width: user-resizable when expanded (200-360px), locked to 68px
   // when collapsed. Set inline so the value can come from React state.
   const widthPx = collapsed ? COLLAPSED_WIDTH : width
+
+  // Space the shell must reserve. Hovering deliberately overlays the page,
+  // so that case still reports the rail width; only pinning reflows. The
+  // drawer reserves nothing - it floats over the page with a backdrop.
+  const reservedWidth = isDrawer ? 0 : (locked ? width : COLLAPSED_WIDTH)
+  useEffect(() => {
+    onRailWidthChange?.(reservedWidth)
+  }, [reservedWidth, onRailWidthChange])
 
   return (
     <aside
