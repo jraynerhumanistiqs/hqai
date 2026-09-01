@@ -66,7 +66,7 @@ export default async function PeopleLanding({
           conversations. Your human advisor steps in when it gets complex.
         </p>
 
-        <div className="grid grid-cols-1 gap-4 sm:max-w-md">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:max-w-3xl">
           {TILES.map(t => (
             <Link
               key={t.href}

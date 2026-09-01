@@ -77,8 +77,17 @@ export default async function DashboardHome() {
     <div className="flex-1 overflow-y-auto bg-bg text-ink">
       <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 sm:pt-6 pb-8 sm:pb-10 flex flex-col gap-6 sm:gap-7">
 
-        {/* Welcome */}
-        <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
+        {/* Welcome + module shortcuts. The shortcuts sit top-right so the two
+            products and settings are visible on arrival, rather than sitting
+            below the fold under the composer and recent activity. */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
+          <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0 sm:justify-end">
+            <Shortcut href="/dashboard/people" label="HQ People" />
+            <Shortcut href="/dashboard/recruit" label="HQ Recruit" />
+            <Shortcut href="/dashboard/settings" label="Settings" />
+          </div>
+        </div>
 
         {/* Chat-first hero - the composer leads the home */}
         <ChatComposer firstName={firstName} />
@@ -158,13 +167,6 @@ export default async function DashboardHome() {
             </div>
           </div>
 
-        </div>
-
-        {/* Slim shortcuts - the quick-action cards, demoted now the composer leads */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Shortcut href="/dashboard/people" label="HQ People" />
-          <Shortcut href="/dashboard/recruit" label="HQ Recruit" />
-          <Shortcut href="/dashboard/settings" label="Settings" />
         </div>
 
       </div>
