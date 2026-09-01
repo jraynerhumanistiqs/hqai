@@ -83,7 +83,8 @@ export default function MobileShell({ sidebarProps, children }: { sidebarProps: 
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle variant="icon" />
             {sidebarProps.bizLogoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
+              /* Plain <img>, not next/image: customer-uploaded logo at an
+                 arbitrary Supabase storage URL. Mirrors Sidebar.tsx. */
               <img
                 src={sidebarProps.bizLogoUrl}
                 alt={sidebarProps.bizName}

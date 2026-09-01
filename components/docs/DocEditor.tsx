@@ -134,7 +134,6 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
     if (initialHtml && editor.getHTML() !== initialHtml) {
       editor.commands.setContent(initialHtml, { emitUpdate: false })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialHtml, editor])
 
   useImperativeHandle(ref, () => ({

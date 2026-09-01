@@ -249,7 +249,9 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
       <div className="px-3 pt-3 pb-1.5 sidebar-collapsible-hide">
         <div className="bg-bg-soft rounded-lg px-2.5 py-2 flex items-center gap-2 min-h-[40px]">
           {bizLogoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
+            /* Plain <img>, not next/image: this is a customer-uploaded
+               logo at an arbitrary Supabase storage URL, which the image
+               optimiser would need a remotePatterns entry to accept. */
             <img
               src={bizLogoUrl}
               alt={bizName}
