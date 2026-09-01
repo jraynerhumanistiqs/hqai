@@ -131,7 +131,7 @@ const config: Config = {
       },
 
       // ── Per-utility overrides of `accent` (Aug 2026) ──────────────
-      // The product preset makes --accent a yellow (#FDC700). That is
+      // The product accent is Wattle Gold (#E8B23A). That is
       // fine as a FILL but fails as ink or as a focus indicator on a
       // white page. Rather than rewrite ~160 callsites, we repoint the
       // three utility families that read accent as a line/label colour
@@ -139,7 +139,7 @@ const config: Config = {
       // [data-app="product"], so every marketing callsite falls back to
       // var(--accent) and renders exactly as it does today.
 
-      // text-accent -> --accent-text. Yellow text on white is 1.6:1;
+      // text-accent -> --accent-text. Gold text on white is 1.9:1;
       // the product value is the AA-safe amber (#733E0A light,
       // #F0B100 dark). ~39 callsites, ~25 of them in product.
       textColor: {

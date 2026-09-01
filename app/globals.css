@@ -166,8 +166,8 @@
        is not: brand gold stays on buttons and the interactive
        components, which is the whole point of the reskin. */
     --bg:               #FFFFFF;   /* agndex background, oklch(1)     */
-    --bg-soft:          #EBEBEB;   /* agndex card-hover, oklch(0.94)  */
-    --bg-elevated:      #F5F5F5;   /* agndex card, oklch(0.97)        */
+    --bg-soft:          #E4E4E4;   /* inset - widened ramp, Aug 2026 */
+    --bg-elevated:      #F2F2F2;   /* card  - widened ramp, Aug 2026 */
     --surface-inverse:  #0A0A0A;
 
     --ink:              #0A0A0A;   /* preset foreground */
@@ -175,7 +175,7 @@
        #52525B is 7.7:1 on white and #737373 is 4.7:1, so both body and
        caption text clear AA. */
     --ink-soft:         #52525B;
-    --ink-muted:        #737373;   /* preset muted-foreground */
+    --ink-muted:        #666666;   /* darkened for AA on the deeper inset */
 
     /* Label ON the accent. This deliberately overrides the previous
        rule that gold "cannot carry a label legibly on white" - the
@@ -183,7 +183,7 @@
        this dark amber-brown carries it at 5.5:1 (AA). White here would
        be 1.6:1, so this token must never go back to #FFFFFF while
        --accent is yellow. */
-    --ink-on-accent:    #733E0A;   /* preset primary-foreground */
+    --ink-on-accent:    #111111;   /* near-black on Wattle Gold, 9.8:1 */
     /* Label on a --danger fill. Split out from --ink-on-accent, which
        the two used to share: on the red fill the label still has to be
        white (4.8:1), where the amber-brown above would be 1.8:1. */
@@ -192,23 +192,23 @@
     /* Primary is the preset yellow. --accent-hover is the preset's own
        one-step-deeper yellow (its dark-mode primary) rather than an
        invented shade. */
-    --accent:           #FDC700;   /* preset primary + accent */
-    --accent-hover:     #F0B100;
-    --accent-soft:      rgba(253,199,0,0.16);
+    --accent:           #E8B23A;   /* Wattle Gold - unified with marketing */
+    --accent-hover:     #D9A52E;
+    --accent-soft:      rgba(232,178,58,0.16);
     /* Accent-coloured TEXT cannot use --accent: yellow on white is
        1.6:1. This is the AA-safe amber that the `text-accent` utility
        resolves to, wired via the textColor override in
        tailwind.config.ts so the existing callsites need no edits. */
-    --accent-text:      #733E0A;
+    --accent-text:      #7A6010;   /* gold TEXT, AA on white and card */
 
     /* Gold highlight reconciled with the new yellow primary: this is
        the preset's sidebar-primary, one notch deeper than --accent, so
        gold accents and CTAs read as one family instead of two
        competing yellows. -ink stays the AA-on-light text variant. */
-    --accent-clay:       #D08700;
-    --accent-clay-hover: #BB7A00;
-    --accent-clay-soft:  rgba(208,135,0,0.14);
-    --accent-clay-ink:   #733E0A;
+    --accent-clay:       #E8B23A;
+    --accent-clay-hover: #D9A52E;
+    --accent-clay-soft:  rgba(232,178,58,0.14);
+    --accent-clay-ink:   #7A6010;
 
     --border:           #E5E5E5;   /* preset border */
     --border-strong:    #A1A1A1;   /* one step stronger */
@@ -222,7 +222,7 @@
        white, short of the 3:1 WCAG wants for a focus indicator, so the
        ring itself uses the preset's primary-foreground instead - still a
        preset colour, at 8.67:1. */
-    --focus-ring:       #733E0A;
+    --focus-ring:       #7A6010;
 
     /* Sidebar chrome, kept a half-step off the page so the nav rail
        reads as chrome rather than content. Nothing consumes these yet
@@ -230,10 +230,10 @@
        bg-bg. See the handover note. */
     --sidebar:              #FAFAFA;   /* agndex sidebar, oklch(0.985)        */
     --sidebar-ink:          #0A0A0A;
-    --sidebar-accent:       #EBEBEB;   /* agndex sidebar-accent, oklch(0.94)  */
+    --sidebar-accent:       #E4E4E4;
     --sidebar-accent-ink:   #171717;
-    --sidebar-primary:      #D08700;
-    --sidebar-primary-ink:  #FEFCE8;
+    --sidebar-primary:      #E8B23A;
+    --sidebar-primary-ink:  #111111;   /* near-black on gold */
 
     /* Chart series - the preset's blue ramp, light to dark. Blue on
        purpose: a yellow series would read as an interactive accent.
@@ -244,15 +244,16 @@
     --chart-4:          #1447E6;
     --chart-5:          #193CB8;
 
-    --danger:           #E7000B;   /* preset destructive */
+    --danger:           #D0000A;   /* deepened for AA on the darker card */
     /* The preset has no warning token - shadcn's only negative-state
-       colour is destructive. The old --warning #B8770F sat 33 RGB units
-       from the new --accent-clay #D08700, close enough to read as the
-       same colour, so warnings were no longer distinguishable from the
-       gold brand accent. Moved to Tailwind amber-700, the same ramp the
-       preset draws its yellow and red from: 62 units off clay, 89 off
-       destructive, and 5.03:1 on white so it carries icon and text. */
-    --warning:          #BB4D00;
+       colour is destructive. Warning has to stay clearly separable from
+       the gold accent, which is the risk here - both are warm. Aug 2026,
+       with the accent unified on Wattle Gold #E8B23A, light warning was
+       deepened again to #A84600: further from gold in lightness as well
+       as hue, 5.4:1 on the card. Dark stays #FF6900 - it already sits
+       between gold and danger, and moving it any redder walks it into
+       --danger #FF6467. */
+    --warning:          #A84600;   /* deepened, further from gold */
     --success:          #3D8A5E;
     --info:             #6A9BCC;
 
@@ -315,26 +316,26 @@
     /* Same amber-brown label as light - 4.5:1 on the dark primary.
        This block used to declare --ink-on-accent twice (#FFFFFF, then
        #0A0A0B further down); it is a single declaration now. */
-    --ink-on-accent:    #733E0A;   /* preset primary-foreground */
+    --ink-on-accent:    #111111;   /* near-black on Wattle Gold, 9.8:1 */
     /* The dark destructive is a light red, so its label inverts to
        near-black (6.9:1). White would be 2.9:1 here. */
     --ink-on-danger:    #0A0A0A;
 
-    --accent:           #F0B100;   /* preset primary + accent */
-    --accent-hover:     #FDC700;
-    --accent-soft:      rgba(240,177,0,0.18);
+    --accent:           #E8B23A;   /* Wattle Gold - unified with marketing */
+    --accent-hover:     #F0C44E;
+    --accent-soft:      rgba(232,178,58,0.18);
     /* Gold TEXT on dark wants the bright end of the ramp, not the
        brown: 10.4:1 on the page background. */
-    --accent-text:      #F0B100;
+    --accent-text:      #E8B23A;
 
-    --accent-clay:       #F0B100;
-    --accent-clay-hover: #FDC700;
-    --accent-clay-soft:  rgba(240,177,0,0.18);
+    --accent-clay:       #E8B23A;
+    --accent-clay-hover: #F0C44E;
+    --accent-clay-soft:  rgba(232,178,58,0.18);
     /* Was #0A0A0B, which made every `bg-clay-soft text-clay-ink` badge
        invisible in dark - near-black text on a dark gold tint. The
        AA-safe gold on a dark surface is the bright end (10.4:1 on the
        page, 9.4:1 on a card). */
-    --accent-clay-ink:   #F0B100;
+    --accent-clay-ink:   #E8B23A;
 
     /* Alpha hairlines, per the preset. They sit correctly on both the
        page (#0A0A0A) and the lifted card (#171717), where the old
@@ -344,7 +345,7 @@
     --input:            rgba(255,255,255,0.15);
     --ring:             #737373;   /* preset ring */
     /* Dark focus indicator: the preset primary, 10.36:1 on the dark bg. */
-    --focus-ring:       #F0B100;
+    --focus-ring:       #E8B23A;
 
     /* agndex recesses the rail: the sidebar is DARKER than the page
        (#101010 against #202020) rather than lifted above it, so the nav
@@ -354,8 +355,8 @@
     --sidebar-ink:          #FAFAFA;
     --sidebar-accent:       #343434;   /* agndex sidebar-accent, oklch(0.325) */
     --sidebar-accent-ink:   #FAFAFA;
-    --sidebar-primary:      #F0B100;
-    --sidebar-primary-ink:  #733E0A;
+    --sidebar-primary:      #E8B23A;
+    --sidebar-primary-ink:  #111111;
 
     --danger:           #FF6467;   /* preset destructive */
     /* Dark warning. The light amber-700 only reaches 3.94:1 on the dark
