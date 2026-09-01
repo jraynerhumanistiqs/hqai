@@ -5,6 +5,7 @@ import { RiAddLine, RiCheckLine, RiCloseLine, RiDeleteBin6Line, RiFileCopyLine, 
 import { parseCitations, type Citation } from '@/lib/parse-citations'
 import TopicPicker from './TopicPicker'
 import TierNotice, { type Tier } from './TierNotice'
+import PeopleContextHint from '@/components/people/PeopleContextHint'
 // Vercel AI Elements - the chat surface is rebuilt on these primitives,
 // re-skinned to the Wattle Gold tokens. The proven /api/chat SSE transport
 // (streaming + status + replaceText + citations + clarify + escalate/triage)
@@ -686,6 +687,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         {/* Composer - AI Elements PromptInput */}
         <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
           <div className="max-w-3xl mx-auto">
+            {/* Reactive hook: when what they are typing touches a dated process,
+                surface the relevant facts from their own team records. Silent
+                when there is nothing to say. People module only - the register
+                is an HQ People concept. */}
+            {module === 'people' && <PeopleContextHint text={input} />}
             <PromptInput onSubmit={onComposerSubmit}>
               <PromptInputTextarea
                 ref={inputRef}
