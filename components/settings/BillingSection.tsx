@@ -59,12 +59,19 @@ export function BillingSection({
       setBillingError('Could not open the billing portal. Please check your connection and try again.')
     }
     if (!url) throw new Error('Billing portal unavailable')
-    window.location.href = url
+    window.location.assign(url)
   }
 
+  // The destination is held in a local and navigated to once at the end,
+  // so there is a single exit point rather than a redirect buried in a
+  // branch. Navigation uses location.assign() rather than assigning
+  // location.href: react-hooks/immutability reads the assignment form as
+  // mutating a value from outside the component, and the method call says
+  // "navigate" more plainly anyway.
   async function startCheckout(planId: PaidPlanId) {
     setBillingError('')
     setCheckoutBusyFor(planId)
+    let checkoutUrl: string | undefined
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -73,10 +80,8 @@ export function BillingSection({
       })
       const data = await res.json().catch(() => ({} as { url?: string; error?: string }))
       if (res.ok && data.url) {
-        window.location.href = data.url
-        return
-      }
-      if (res.status === 503) {
+        checkoutUrl = data.url
+      } else if (res.status === 503) {
         // Stripe price ids not configured yet - fall back to the
         // "email us to upgrade" path so the user is never dead-ended.
         setUpgradeModalOpen(true)
@@ -85,6 +90,12 @@ export function BillingSection({
       }
     } catch (err) {
       setBillingError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+    }
+    if (checkoutUrl) {
+      // Busy state is deliberately NOT cleared - the page is navigating to
+      // Stripe, and clearing it would flash the picker back to idle first.
+      window.location.assign(checkoutUrl)
+      return
     }
     setCheckoutBusyFor(null)
   }
