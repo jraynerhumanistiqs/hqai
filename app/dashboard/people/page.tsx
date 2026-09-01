@@ -27,6 +27,13 @@ const TILES = [
     title: 'AI Advisor',
     blurb: 'Ask any HR or people question - performance, leave, awards, tricky conversations - and get clear, practical steps. It flags the hard cases for your human advisor.',
   },
+  {
+    href: '/dashboard/people/team',
+    emoji: '👥',
+    kicker: 'Records',
+    title: 'Your team',
+    blurb: 'Keep the people you employ in one place, with a record of what has been done for each of them. It is what lets HQ keep track of the dates that matter - and what you show if you are ever asked.',
+  },
 ]
 
 export default async function PeopleLanding({
