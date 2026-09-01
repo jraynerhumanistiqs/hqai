@@ -522,3 +522,40 @@
     --duration-slower:  0.001ms;
   }
 }
+
+/* Hero entrance (marketing).
+   -----------------------------------------------------------------
+   Deliberately CSS, not a JS animation library. The motion-variant
+   version of this reveal made the hero's VISIBILITY depend on the
+   frame loop: the copy started at opacity 0 and was animated up by
+   requestAnimationFrame, which does not fire in a background tab. A
+   homepage opened in an unfocused tab (cmd-click, "open in new tab",
+   session restore) therefore painted a blank hero and never recovered
+   when the tab was brought forward - measured stuck at opacity 0 with
+   document.visibilityState "visible" four seconds after load.
+
+   A CSS animation cannot fail that way. It runs on the document
+   timeline rather than a JS callback, and `both` fill mode means the
+   element resolves to the TO state and stays there, so the worst case
+   is that a viewer misses the movement and sees finished copy. */
+@keyframes hq-hero-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hq-hero-lead {
+  from { opacity: 0; transform: translate(-8px, 40px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hq-hero-backdrop {
+  from { opacity: 0; transform: translateX(30px) scale(1.04); }
+  to   { opacity: 1; transform: none; }
+}
+.hq-hero-rise     { animation: hq-hero-rise .7s cubic-bezier(.22,1,.36,1) both; }
+.hq-hero-lead     { animation: hq-hero-lead .9s cubic-bezier(.22,1,.36,1) both; }
+.hq-hero-backdrop { animation: hq-hero-backdrop 1.5s cubic-bezier(.22,1,.36,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hq-hero-rise,
+  .hq-hero-lead,
+  .hq-hero-backdrop { animation: none; }
+}

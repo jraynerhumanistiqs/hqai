@@ -1,25 +1,34 @@
-'use client'
-
 // Section 1: hero.
 //
-// Aug 2026 - the reveal choreography is now hero-26's
-// (registry.watermelon.sh/r/hero-26.json): one motion variant tree with
-// staggered children, plus an optional full-bleed background image that
-// settles in behind the copy. What was NOT taken from hero-26: its own
-// nav bar (MarketingHeader already owns that, and it is load-bearing -
-// it sets data-app="marketing" on <html>), its App Store / Play buttons,
-// and its "5 stars, over 3k creators" strip. HQ.ai has no mobile apps
-// and no review count to quote, so neither is invented here.
+// Aug 2026 - keeps hero-26's SHAPE (registry.watermelon.sh/r/hero-26.json):
+// a staggered entrance and the closing feature strip, plus an optional
+// full-bleed backdrop. What was NOT taken from hero-26: its own nav bar
+// (MarketingHeader already owns that, and it is load-bearing - it sets
+// data-app="marketing" on <html>), its App Store / Play buttons, and its
+// "5 stars, over 3k creators" strip. HQ.ai has no mobile apps and no review
+// count to quote, so neither is invented here.
+//
+// The entrance is CSS, NOT a JS animation library. hero-26 drives its
+// reveal through motion variants, which made the hero's visibility depend
+// on the frame loop: the copy starts at opacity 0 and is animated up by
+// requestAnimationFrame, and rAF does not fire in a background tab. A
+// homepage opened in an unfocused tab - cmd-click, "open in new tab",
+// session restore - painted a BLANK hero and never recovered when the tab
+// was brought forward (measured: still opacity 0 four seconds after
+// document.visibilityState flipped to "visible"). CSS animations run on
+// the document timeline and `both` fill mode resolves to the end state, so
+// the worst case here is a viewer missing the movement, never missing the
+// copy. Keyframes live in app/globals.css.
+//
+// That also makes this a server component again - there is no client state
+// left to hold.
 //
 // The HQ People chat preview is still the star; the HQ Recruit scorecard
 // stays a quiet secondary tile beneath it.
 //
-// prefers-reduced-motion renders the final state instantly (no reveal).
-//
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
 import Link from 'next/link'
-import { motion, useReducedMotion, type Variants } from 'motion/react'
 import HeroChatPreview from './HeroChatPreview'
 
 interface HeroFeature {
@@ -35,24 +44,15 @@ const FEATURES: HeroFeature[] = [
   { title: 'A real advisor', subtitle: 'A person picks up the hard 20 per cent' },
 ]
 
-const container: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
-}
-
-const rise: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 30, mass: 0.9 } },
-}
-
-const heading: Variants = {
-  hidden: { opacity: 0, y: 40, x: -8 },
-  visible: { opacity: 1, y: 0, x: 0, transition: { type: 'spring', stiffness: 160, damping: 24, mass: 1.2 } },
-}
-
-const backdrop: Variants = {
-  hidden: { opacity: 0, x: 30, scale: 1.04 },
-  visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 1.5, ease: [0.22, 1, 0.36, 1] } },
+// Stagger, expressed as animation-delay rather than motion's
+// staggerChildren. Same cadence: a beat, then ~90ms between elements.
+const D = {
+  eyebrow: '40ms',
+  heading: '130ms',
+  preview: '130ms',
+  subhead: '220ms',
+  cta: '310ms',
+  caption: '400ms',
 }
 
 interface Props {
@@ -67,35 +67,22 @@ interface Props {
 }
 
 export default function HeroSection({ backgroundImage }: Props) {
-  const reduced = useReducedMotion()
-  // With reduced motion we skip straight to the resting state rather
-  // than animating to it, so nothing moves on load.
-  const motionProps = reduced
-    ? { initial: 'visible' as const, animate: 'visible' as const }
-    : { initial: 'hidden' as const, animate: 'visible' as const }
-
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="hero-heading">
       {backgroundImage && (
         <>
-          <motion.img
+          <img
             src={backgroundImage}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center"
-            variants={backdrop}
-            {...motionProps}
+            className="hq-hero-backdrop pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center"
           />
           {/* Scrim - the copy has to keep its contrast over any photo. */}
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-bg/70" />
         </>
       )}
 
-      <motion.div
-        className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16"
-        variants={container}
-        {...motionProps}
-      >
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
         {/* Left: copy block.
             relative z-20 lifts this column's stacking context above the
             right-hand preview column. Both columns get a transform from the
@@ -104,43 +91,52 @@ export default function HeroSection({ backgroundImage }: Props) {
             covers the "busywork off your plate" popover where it opens into
             the gap between the columns. */}
         <div className="relative z-20 max-w-xl">
-          <motion.p
-            variants={rise}
-            className="mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay"
+          <p
+            style={{ animationDelay: D.eyebrow }}
+            className="hq-hero-rise mb-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay"
           >
             <span aria-hidden className="h-px w-5 bg-clay" />
             Built for Australian small business
-          </motion.p>
+          </p>
 
-          <motion.h1
+          <h1
             id="hero-heading"
-            variants={heading}
-            className="font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px]"
+            style={{ animationDelay: D.heading }}
+            className="hq-hero-lead font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px]"
           >
             HR and hiring are complicated. HQ.ai makes it{' '}
             <span className="text-clay">easy, quick and accurate.</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p variants={rise} className="mt-6 text-lg leading-relaxed text-ink-soft md:text-xl">
+          <p
+            style={{ animationDelay: D.subhead }}
+            className="hq-hero-rise mt-6 text-lg leading-relaxed text-ink-soft md:text-xl"
+          >
             HQ.ai handles the everyday HR work and hiring processes that cost you time and money. Ask a question, get a clear answer for your business, and get back to work - so the jobs that used to take hours now take minutes. No HR background needed, and a real advisor is there for the hard calls. From $59/month. Cancel any time.
-          </motion.p>
+          </p>
 
-          <motion.div variants={rise} className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div
+            style={{ animationDelay: D.cta }}
+            className="hq-hero-rise mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4"
+          >
             <Link
               href="/signup"
               className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Get started
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.p variants={rise} className="mt-4 text-sm text-ink-muted">
+          <p
+            style={{ animationDelay: D.caption }}
+            className="hq-hero-rise mt-4 text-sm text-ink-muted"
+          >
             Three minutes to set up. Answers from day one.
-          </motion.p>
+          </p>
         </div>
 
         {/* Right: HQ People is the star; HQ Recruit is a quiet secondary tile. */}
-        <motion.div variants={rise} className="relative w-full">
+        <div style={{ animationDelay: D.preview }} className="hq-hero-rise relative w-full">
           {/* Feature surface (Tier B) - the signature live preview. */}
           <HeroChatPreview />
 
@@ -177,22 +173,22 @@ export default function HeroSection({ backgroundImage }: Props) {
               ))}
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Feature strip - hero-26's closing row, carried over. */}
-      <motion.ul
-        className="mx-auto grid max-w-7xl gap-px overflow-hidden border-t border-border px-6 md:grid-cols-3 md:px-10"
-        variants={container}
-        {...motionProps}
-      >
-        {FEATURES.map((f) => (
-          <motion.li key={f.title} variants={rise} className="py-6 md:px-6 md:first:pl-0 md:last:pr-0">
+      <ul className="mx-auto grid max-w-7xl gap-px overflow-hidden border-t border-border px-6 md:grid-cols-3 md:px-10">
+        {FEATURES.map((f, i) => (
+          <li
+            key={f.title}
+            style={{ animationDelay: `${480 + i * 90}ms` }}
+            className="hq-hero-rise py-6 md:px-6 md:first:pl-0 md:last:pr-0"
+          >
             <p className="font-display text-base font-semibold tracking-tight text-ink">{f.title}</p>
             <p className="mt-1 text-sm leading-relaxed text-ink-soft">{f.subtitle}</p>
-          </motion.li>
+          </li>
         ))}
-      </motion.ul>
+      </ul>
     </section>
   )
 }
