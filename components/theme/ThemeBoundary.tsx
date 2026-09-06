@@ -38,14 +38,25 @@ function DataAppScope({ app }: { app: 'marketing' | 'product' }) {
   useEffect(() => {
     if (typeof document === 'undefined') return
     const html = document.documentElement
-    const prev = html.getAttribute('data-app')
     html.setAttribute('data-app', app)
     return () => {
-      // On unmount, restore the previous attribute so a back-button
-      // navigation between marketing <-> product doesn't leave a stale
-      // scope set on the html element.
-      if (prev) html.setAttribute('data-app', prev)
-      else html.removeAttribute('data-app')
+      // Clear the scope outright on unmount rather than restoring whatever
+      // was there before.
+      //
+      // Restoring was the bug: the pre-paint shim in app/layout.tsx stamps
+      // data-app="product" onto <html> BEFORE React hydrates, so `prev` was
+      // already "product" by the time this effect first ran. Unmounting then
+      // "restored" product - it never cleared. Combined with next-themes,
+      // which does not drop its .dark class when its provider unmounts, a
+      // client-side navigation out of the dashboard (sign out -> /login)
+      // left <html data-app="product" class="dark"> on a page that has no
+      // ThemeBoundary. [data-app="product"].dark then matched, and /login
+      // painted dark ink on its own light surfaces.
+      //
+      // The dark class is dropped here too, for the same reason: nothing
+      // else removes it once the provider that set it has gone.
+      html.removeAttribute('data-app')
+      if (app === 'product') html.classList.remove('dark')
     }
   }, [app])
   return null

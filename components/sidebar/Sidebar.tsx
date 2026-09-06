@@ -129,9 +129,14 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
   const [supportSent, setSupportSent] = useState(false)
   const [supportError, setSupportError] = useState<string | null>(null)
 
+  // Full-document navigation, not router.push. Signing out changes who the
+  // app is for, so every cached RSC payload and every piece of client state
+  // from the session should go with it - a soft push keeps all of that. It
+  // also guarantees a clean <html>: the theme scope and the .dark class are
+  // rebuilt from scratch rather than inherited from the dashboard.
   async function signOut() {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.assign('/login')
   }
 
   function isActive(href: string, exact?: boolean) {

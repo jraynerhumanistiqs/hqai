@@ -157,7 +157,7 @@ function LoginInner() {
   const inputCls = "w-full border-b border-ink/30 focus:border-ink focus:ring-2 focus:ring-accent/30 bg-transparent px-1 py-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors"
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Logo */}
@@ -165,7 +165,7 @@ function LoginInner() {
           <Image src="/logo/png/hqai-lockup-navy.png" alt="HQ.ai" width={791} height={204} className="w-[112px] h-auto mx-auto block" />
         </div>
 
-        <div className="bg-white shadow-modal rounded-2xl p-8">
+        <div className="bg-bg-elevated shadow-modal rounded-2xl p-8">
           <h1 className="font-display text-2xl font-bold text-ink uppercase tracking-wider mb-1">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
@@ -250,13 +250,13 @@ function LoginInner() {
                   <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative text-center">
-                  <span className="bg-white px-3 text-xs text-ink-muted">or</span>
+                  <span className="bg-bg-elevated px-3 text-xs text-ink-muted">or</span>
                 </div>
               </div>
 
               <button
                 type="button" onClick={handleMagicLink} disabled={loading}
-                className="w-full bg-white hover:bg-bg-soft text-ink font-bold py-2.5 rounded-full text-sm transition-colors border border-border focus-visible:ring-2 focus-visible:ring-accent/30 inline-flex items-center justify-center gap-2"
+                className="w-full bg-bg-elevated hover:bg-bg-soft text-ink font-bold py-2.5 rounded-full text-sm transition-colors border border-border focus-visible:ring-2 focus-visible:ring-accent/30 inline-flex items-center justify-center gap-2"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="2" />
