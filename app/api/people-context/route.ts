@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { detectTopic, signalsFor } from '@/lib/people-context'
-import type { Employee } from '@/lib/employees'
+import { evaluateGate, type GateResult } from '@/lib/timing-gate'
+import type { ComplianceEvent, Employee } from '@/lib/employees'
 
 // Reactive hook endpoint.
 //
@@ -39,7 +40,31 @@ export async function POST(req: NextRequest) {
   // Headcount drives the minimum employment period (12 months under 15 staff,
   // otherwise 6), so it is derived from the register itself.
   const headcount = employees.length
-  const signals = signalsFor(topic, employees as Employee[], headcount)
+
+  // Phase 3: timing risk per person, from the trail. Only fetched for the
+  // topics where it matters, and only the event types the gate reads.
+  let timing: Map<string, GateResult> | undefined
+  if (topic === 'termination' || topic === 'performance') {
+    const ids = (employees as Employee[]).map(e => e.id)
+    const { data: evs } = await supabase
+      .from('compliance_events')
+      .select('employee_id, event_type, metadata, occurred_at, title')
+      .eq('business_id', profile.business_id)
+      .in('employee_id', ids)
+      .in('event_type', ['file_note', 'flexible_request', 'casual_conversion'])
+      .order('occurred_at', { ascending: false })
+      .limit(500)
+    const byEmployee = new Map<string, ComplianceEvent[]>()
+    for (const ev of (evs ?? []) as Array<ComplianceEvent & { employee_id: string }>) {
+      const list = byEmployee.get(ev.employee_id) ?? []
+      list.push(ev)
+      byEmployee.set(ev.employee_id, list)
+    }
+    timing = new Map()
+    for (const [id, list] of byEmployee) timing.set(id, evaluateGate(list))
+  }
+
+  const signals = signalsFor(topic, employees as Employee[], headcount, new Date(), 3, timing)
 
   return NextResponse.json({ signals, topic })
 }

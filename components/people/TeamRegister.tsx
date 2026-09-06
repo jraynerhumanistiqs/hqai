@@ -26,6 +26,7 @@ import {
 } from '@/lib/employees'
 import { computeGaps } from '@/lib/record-gaps'
 import FileNoteComposer from './FileNoteComposer'
+import EndEmployment from './EndEmployment'
 
 /** List rows carry a gap summary computed by the API in one query. */
 type EmployeeRow = Employee & { gaps?: { satisfied: number; total: number; missing: number } }
@@ -324,6 +325,15 @@ export default function TeamRegister() {
                   ))}
                 </ul>
               </div>
+            )}
+
+            {/* End employment - the risky action, gated on timing (phase 3) */}
+            {selected.status === 'active' && (
+              <EndEmployment
+                employeeId={selected.id}
+                employeeName={employeeName(selected)}
+                onEnded={() => { setSelected(null); void load() }}
+              />
             )}
 
             {/* Download the record - PDF, DOCX, or both zipped */}

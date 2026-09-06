@@ -18,6 +18,7 @@
 
 import { useState } from 'react'
 import { GUIDED_QUESTIONS, NOTE_TYPES, type FileNoteDraft, type NoteType } from '@/lib/file-note-kb'
+import { PROTECTED_KINDS, type ProtectedKind } from '@/lib/timing-gate'
 
 interface Props {
   employeeId: string
@@ -51,8 +52,13 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Observations do not involve the person, so awareness is not required there.
-  const awarenessRequired = noteType !== 'observation'
+  // Kind of protected matter - only for the "Leave, complaint or disclosure"
+  // type. This is what the timing gate reads.
+  const [protectedKind, setProtectedKind] = useState<ProtectedKind>('complaint')
+
+  // Observations do not involve the person, and a protected-event log is a
+  // fact record rather than a discussion, so awareness is not required there.
+  const awarenessRequired = noteType !== 'observation' && noteType !== 'protected_event'
   const headerComplete =
     Boolean(date) && Boolean(topic.trim()) && (!awarenessRequired || staffAware)
 
@@ -93,6 +99,7 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
           occurred_at: `${date}T12:00:00`,
           metadata: {
             note_type: noteType,
+            ...(noteType === 'protected_event' ? { protected_kind: protectedKind } : {}),
             topic: (draft.topic || topic).trim(),
             conducted_by: conductedBy.trim(),
             staff_aware: staffAware,
@@ -145,6 +152,15 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
         <Field label="Topic">
           <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Punctuality" className={inputCls} />
         </Field>
+        {noteType === 'protected_event' && (
+          <Field label="What kind of matter" hint="Recording the date is what matters - HQ uses it to flag timing risk later.">
+            <select value={protectedKind} onChange={e => setProtectedKind(e.target.value as ProtectedKind)} className={inputCls}>
+              {(Object.keys(PROTECTED_KINDS) as ProtectedKind[]).map(k => (
+                <option key={k} value={k}>{PROTECTED_KINDS[k].label}</option>
+              ))}
+            </select>
+          </Field>
+        )}
       </div>
       {awarenessRequired && (
         <label className="flex items-start gap-2 text-xs text-ink-soft">

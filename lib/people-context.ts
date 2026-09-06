@@ -12,6 +12,7 @@
 // does not advise on employment law.
 
 import { minimumPeriodEndsOn, monthsOfService, type Employee } from './employees'
+import { PROTECTED_KINDS, type GateResult } from './timing-gate'
 
 export type ContextTopic =
   | 'termination'
@@ -78,10 +79,34 @@ export function signalsFor(
   headcount: number,
   now: Date = new Date(),
   limit = 3,
+  /** Timing-gate results per employee id (phase 3) - surfaced as facts on
+   *  termination / performance topics. Optional; omitted = no timing signals. */
+  timing?: Map<string, GateResult>,
 ): EmployeeSignal[] {
   if (!topic) return []
   const active = employees.filter(e => e.status === 'active')
   const out: EmployeeSignal[] = []
+
+  // Timing risk first: a recent protected event on someone's record is the
+  // most important fact to surface when a termination or performance step is
+  // being discussed. Stated as a date and a distance, never a judgement.
+  if (timing && (topic === 'termination' || topic === 'performance')) {
+    for (const e of active) {
+      const g = timing.get(e.id)
+      if (!g || g.tier === 'safe' || !g.event) continue
+      const name = [e.first_name, e.last_name].filter(Boolean).join(' ')
+      out.push({
+        employeeId: e.id,
+        name,
+        fact: `${name}'s record shows ${PROTECTED_KINDS[g.event.kind].label.toLowerCase()} on ${fmt(new Date(g.event.occurred_at))} - ${g.days} days ago.`,
+        because: g.tier === 'escalate'
+          ? 'Acting this soon after that carries real risk - worth your advisor seeing it first.'
+          : 'Recent enough to be worth a professional looking over the timing.',
+        urgency: g.tier === 'escalate' ? 'now' : 'soon',
+        daysRemaining: g.days ?? undefined,
+      })
+    }
+  }
 
   const dayMs = 86_400_000
   const daysBetween = (a: Date, b: Date) =>
