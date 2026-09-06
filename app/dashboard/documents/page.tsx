@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import DocEditor, { type DocEditorHandle } from '@/components/docs/DocEditorLazy'
+import AddToRecord from '@/components/people/AddToRecord'
 import { InlineActionButton } from '@/components/ui/inline-action'
 
 interface Doc {
@@ -213,6 +214,14 @@ export default function DocumentsPage() {
                           <p className="text-[11px] sm:text-xs text-ink-muted mt-0.5 leading-relaxed">
                             {(doc.type ?? '').replace(/[-_]/g, ' ') || 'document'} - {formatDate(doc.created_at)}
                           </p>
+                          {/* Attach this document to a team member's record, with context.
+                              Always offered, never required - a download is never blocked. */}
+                          <AddToRecord
+                            documentId={doc.id}
+                            documentTitle={doc.title}
+                            documentType={doc.type}
+                            documentCreatedAt={doc.created_at}
+                          />
                         </div>
                         {/* Action cluster: Edit + Download DOCX + Delete.
                             Delete is a quiet danger icon that arms a

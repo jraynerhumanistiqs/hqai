@@ -24,6 +24,11 @@ import {
   type ComplianceEvent,
   type Employee,
 } from '@/lib/employees'
+import { computeGaps } from '@/lib/record-gaps'
+import FileNoteComposer from './FileNoteComposer'
+
+/** List rows carry a gap summary computed by the API in one query. */
+type EmployeeRow = Employee & { gaps?: { satisfied: number; total: number; missing: number } }
 
 function fmtDate(d: string | null) {
   if (!d) return '-'
@@ -39,7 +44,7 @@ const EMPTY_FORM = {
 }
 
 export default function TeamRegister() {
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const [employees, setEmployees] = useState<EmployeeRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
@@ -48,6 +53,7 @@ export default function TeamRegister() {
   const [selected, setSelected] = useState<Employee | null>(null)
   const [events, setEvents] = useState<ComplianceEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
+  const [showNote, setShowNote] = useState(false)
 
   useEffect(() => { void load() }, [])
 
@@ -98,6 +104,17 @@ export default function TeamRegister() {
     const needAward = employees.filter(e => !e.award_confirmed).length
     return { total: employees.length, needAward }
   }, [employees])
+
+  // Evidence-gap read for the open person: what is on file vs what a record
+  // for this employment type normally holds. Linked documents count via the
+  // doc_type captured on the trail at the moment of linking.
+  const gaps = useMemo(() => {
+    if (!selected) return null
+    const docTypes = events
+      .filter(ev => ev.event_type === 'document_linked')
+      .map(ev => String((ev.metadata as Record<string, unknown> | null)?.doc_type ?? ''))
+    return computeGaps(selected, events, docTypes, employees.length || 1)
+  }, [selected, events, employees.length])
 
   return (
     <div className="space-y-6">
@@ -221,6 +238,15 @@ export default function TeamRegister() {
                 <p className="mt-3 text-xs text-ink-soft">
                   Started {fmtDate(emp.start_date)} &middot; {monthsOfService(emp.start_date)} months
                 </p>
+                {/* Evidence-gap indicator: what is on file, at a glance */}
+                {emp.gaps && emp.gaps.total > 0 && (
+                  <p className={
+                    'mt-2 font-mono text-[10px] uppercase tracking-wider ' +
+                    (emp.gaps.missing > 0 ? 'text-warning' : 'text-ink-muted')
+                  }>
+                    {emp.gaps.satisfied} of {emp.gaps.total} on file
+                  </p>
+                )}
               </button>
             </li>
           ))}
@@ -253,9 +279,82 @@ export default function TeamRegister() {
               </div>
             )}
 
-            <h3 className="mt-6 font-mono text-[11px] uppercase tracking-wider text-ink-muted">
-              What has been done
-            </h3>
+            {/* What is on file - the evidence-gap indicator. A completeness read
+                on their own record; it never says what to do about a gap. */}
+            {gaps && !eventsLoading && (
+              <div className="mt-5">
+                <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+                  What is on file
+                </h3>
+                <p className="mt-1 text-xs text-ink-soft">
+                  {gaps.satisfied} of {gaps.total} standard items for a{' '}
+                  {EMPLOYMENT_TYPE_LABELS[selected.employment_type].toLowerCase()} role.
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {gaps.items.filter(i => !i.notYetDue).map(i => (
+                    <li key={i.key} className="flex items-start gap-2 text-xs">
+                      <span
+                        aria-hidden="true"
+                        className={
+                          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ' +
+                          (i.satisfied ? 'border-ink text-ink' : 'border-border text-ink-muted')
+                        }
+                      >
+                        {i.satisfied ? '✓' : ''}
+                      </span>
+                      <span className={i.satisfied ? 'text-ink' : 'text-ink-soft'}>
+                        {i.label}
+                        {!i.satisfied && (
+                          <span className="block text-[11px] text-ink-muted">{i.why}</span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Download the record - PDF, DOCX, or both zipped */}
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+                Download record
+              </span>
+              {(['pdf', 'docx', 'both'] as const).map(f => (
+                <a
+                  key={f}
+                  href={`/api/employees/${selected.id}/export?format=${f}`}
+                  className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  {f === 'both' ? 'Both' : f.toUpperCase()}
+                </a>
+              ))}
+            </div>
+
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+                What has been done
+              </h3>
+              {!showNote && (
+                <button
+                  onClick={() => setShowNote(true)}
+                  className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Add a file note
+                </button>
+              )}
+            </div>
+            {showNote && (
+              <FileNoteComposer
+                employeeId={selected.id}
+                employeeName={employeeName(selected)}
+                onCancel={() => setShowNote(false)}
+                onSaved={() => {
+                  setShowNote(false)
+                  void openEmployee(selected)   // refresh the trail
+                  void load()                   // refresh gap badges on the list
+                }}
+              />
+            )}
             {eventsLoading ? (
               <p className="mt-3 text-sm text-ink-muted">Loading...</p>
             ) : events.length === 0 ? (

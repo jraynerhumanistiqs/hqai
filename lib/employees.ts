@@ -82,6 +82,14 @@ export const EVENT_TYPES: Record<string, { label: string; bmp?: string }> = {
   flexible_request:    { label: 'Flexible work request response', bmp: 'BMP-016' },
   pay_review:          { label: 'Pay rate reviewed', bmp: 'BMP-003' },
   termination_notice:  { label: 'Termination notice given', bmp: 'BMP-019' },
+  ftcis_provided:      { label: 'Fixed Term Contract Information Statement provided', bmp: 'BMP-011' },
+  contractor_agreement:{ label: 'Contractor / services agreement in place', bmp: 'BMP-012' },
+  // A generated or uploaded document attached to this person's record, with
+  // the user's own note on why it exists. `document_id` points at the file.
+  document_linked:     { label: 'Document added to record' },
+  // File notes - written in the dashboard at the time. `metadata.note_type`
+  // carries the kind (feedback, conversation, observation, concern, ...).
+  file_note:           { label: 'File note', bmp: 'BMP-005' },
   other:               { label: 'Other' },
 }
 

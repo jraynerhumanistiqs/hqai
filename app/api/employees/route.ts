@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { EMPLOYMENT_TYPES, AU_STATES } from '@/lib/employees'
+import { EMPLOYMENT_TYPES, AU_STATES, type Employee } from '@/lib/employees'
+import { computeGaps } from '@/lib/record-gaps'
 
 // Employee register - list and create.
 // Business-scoped via the caller's profile; RLS enforces the same boundary at
@@ -32,7 +33,38 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data ?? [])
+  const rows = (data ?? []) as Employee[]
+  if (rows.length === 0) return NextResponse.json([])
+
+  // Evidence-gap summary per person - one extra query for the whole business
+  // rather than one per employee. Only event_type + metadata are needed.
+  const { data: evs } = await supabase
+    .from('compliance_events')
+    .select('employee_id, event_type, metadata')
+    .eq('business_id', businessId)
+    .not('employee_id', 'is', null)
+
+  type SlimEvent = { employee_id: string; event_type: string; metadata: Record<string, unknown> | null }
+  const byEmployee = new Map<string, SlimEvent[]>()
+  for (const ev of (evs ?? []) as SlimEvent[]) {
+    const list = byEmployee.get(ev.employee_id) ?? []
+    list.push(ev)
+    byEmployee.set(ev.employee_id, list)
+  }
+
+  // Headcount drives the minimum employment period for the probation gap.
+  const headcount = rows.filter(r => r.status === 'active').length || 1
+
+  const withGaps = rows.map(r => {
+    const list = byEmployee.get(r.id) ?? []
+    const docTypes = list
+      .filter(e => e.event_type === 'document_linked')
+      .map(e => String(e.metadata?.doc_type ?? ''))
+    const g = computeGaps(r, list, docTypes, headcount)
+    return { ...r, gaps: { satisfied: g.satisfied, total: g.total, missing: g.missing.length } }
+  })
+
+  return NextResponse.json(withGaps)
 }
 
 export async function POST(req: NextRequest) {
