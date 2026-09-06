@@ -11,7 +11,7 @@
 // Notifications / Integrations / Consultant are in the rebuild spec but are
 // deliberately NOT stubbed here until they have backing functionality.
 
-export type SettingsSectionKey = 'profile' | 'appearance' | 'general' | 'advisor' | 'billing'
+export type SettingsSectionKey = 'profile' | 'appearance' | 'general' | 'advisor' | 'billing' | 'team'
 
 const GROUPS: Array<{ label: string; items: Array<{ id: SettingsSectionKey; label: string }> }> = [
   {
@@ -27,6 +27,7 @@ const GROUPS: Array<{ label: string; items: Array<{ id: SettingsSectionKey; labe
       { id: 'general', label: 'General' },
       { id: 'advisor', label: 'AI Advisor' },
       { id: 'billing', label: 'Billing & plan' },
+      { id: 'team', label: 'Team access' },
     ],
   },
 ]

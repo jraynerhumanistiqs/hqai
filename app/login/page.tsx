@@ -90,6 +90,13 @@ function LoginInner() {
         }
 
         trackFunnelEvent('signup_completed', { ...planProps(), method: 'password' })
+        // Invited to an existing business? Go back to the invite to accept it,
+        // rather than onboarding (which would create a second business).
+        const inviteAfterSignup = new URLSearchParams(window.location.search).get('invite')
+        if (inviteAfterSignup && /^[a-f0-9]{48}$/.test(inviteAfterSignup)) {
+          window.location.href = `/invite/${inviteAfterSignup}`
+          return
+        }
         window.location.href = `/onboarding${readPlanQuery()}`
         return
 
@@ -114,6 +121,12 @@ function LoginInner() {
           .eq('id', data.user.id)
           .single()
 
+        // Signing in to accept an invite? Send them back to it.
+        const inviteAfterSignin = new URLSearchParams(window.location.search).get('invite')
+        if (inviteAfterSignin && /^[a-f0-9]{48}$/.test(inviteAfterSignin)) {
+          window.location.href = `/invite/${inviteAfterSignin}`
+          return
+        }
         if (profile?.business_id) {
           window.location.href = '/dashboard'
         } else {

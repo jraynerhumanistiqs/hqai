@@ -41,6 +41,7 @@ const EMPTY_FORM = {
   first_name: '', last_name: '', email: '', job_title: '',
   start_date: '', employment_type: 'full_time', state: '',
   award: '', award_confirmed: false, notes: '',
+  reports_to: '', is_me: false,
 }
 
 export default function TeamRegister() {
@@ -178,6 +179,17 @@ export default function TeamRegister() {
             <Field label="Anything else">
               <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className={inputCls} />
             </Field>
+            {/* Reporting line - what lets an admin's "team" be worked out */}
+            <Field label="Reports to" hint="Optional. Used to work out who is in whose team.">
+              <select value={form.reports_to} onChange={e => setForm({ ...form, reports_to: e.target.value })} className={inputCls}>
+                <option value="">No one / not sure</option>
+                {employees.map(e => <option key={e.id} value={e.id}>{employeeName(e)}</option>)}
+              </select>
+            </Field>
+            <label className="flex items-start gap-2 text-xs text-ink-soft sm:pt-6">
+              <input type="checkbox" checked={form.is_me} onChange={e => setForm({ ...form, is_me: e.target.checked })} className="mt-0.5" />
+              <span>This is my own record (links it to my login).</span>
+            </label>
           </div>
           <div className="flex items-center gap-3">
             <button type="submit" disabled={saving} className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink-on-accent transition-colors hover:bg-accent-hover disabled:opacity-40">

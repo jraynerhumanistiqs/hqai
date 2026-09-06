@@ -80,6 +80,13 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   }
   if (body.award_confirmed !== undefined) patch.award_confirmed = Boolean(body.award_confirmed)
   if (body.fixed_term_end !== undefined) patch.fixed_term_end = body.fixed_term_end || null
+  // Reporting line + "this is me" (links this register entry to the caller's login).
+  if (body.reports_to !== undefined) {
+    const rt = body.reports_to ? String(body.reports_to) : null
+    if (rt === id) return NextResponse.json({ error: 'Someone cannot report to themselves' }, { status: 400 })
+    patch.reports_to = rt
+  }
+  if (body.is_me !== undefined) patch.profile_id = body.is_me ? user.id : null
 
   // Ending employment: set status + end date together so the register never
   // holds an "ended" person with no end date (which would break date logic).

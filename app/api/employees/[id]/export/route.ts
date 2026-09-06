@@ -36,15 +36,17 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   const businessId = profile?.business_id as string | undefined
   if (!businessId) return NextResponse.json({ error: 'No business' }, { status: 400 })
 
-  const [{ data: employee }, { data: business }, { data: events }, { count: headcount }] =
+  const [{ data: employee }, { data: business }, { data: events }, { data: headcount }] =
     await Promise.all([
       supabase.from('employees').select('*').eq('id', id).eq('business_id', businessId).single(),
       supabase.from('businesses').select('name').eq('id', businessId).single(),
       supabase.from('compliance_events').select('*')
         .eq('employee_id', id).eq('business_id', businessId)
         .order('occurred_at', { ascending: true }),
-      supabase.from('employees').select('id', { count: 'exact', head: true })
-        .eq('business_id', businessId).eq('status', 'active'),
+      // Whole-business headcount via the security-definer helper - a scoped
+      // admin only sees part of the register, but the legal threshold does
+      // not depend on what they can see.
+      supabase.rpc('business_headcount'),
     ])
 
   if (!employee) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -73,7 +75,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     events: evs,
     documents,
     business: { name: business?.name ?? 'Business' },
-    headcount: headcount ?? 1,
+    headcount: Number(headcount) || 1,
   })
   assertStructuredDocument(doc)
 

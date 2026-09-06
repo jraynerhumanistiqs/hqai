@@ -23,6 +23,7 @@ import { BusinessSection } from '@/components/settings/BusinessSection'
 import { AdvisorSection } from '@/components/settings/AdvisorSection'
 import { BillingSection } from '@/components/settings/BillingSection'
 import { AppearanceSection } from '@/components/settings/AppearanceSection'
+import TeamMembers from '@/components/people/TeamMembers'
 import { SaveBar } from '@/components/settings/SaveBar'
 
 // Sections that own editable form fields tied to the shared save. On these
@@ -67,6 +68,9 @@ export default function SettingsPage() {
                   />
                 )}
                 {active === 'appearance' && <AppearanceSection />}
+                {/* Team access - owner only; the API returns a plain 403
+                    message for anyone else, which the component shows. */}
+                {active === 'team' && <TeamMembers />}
                 {active === 'general' && (
                   <>
                     <LogoSection bizId={s.bizId} logoUrl={s.logoUrl} setLogoUrl={s.setLogoUrl} />

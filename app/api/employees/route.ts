@@ -53,7 +53,10 @@ export async function GET(req: NextRequest) {
   }
 
   // Headcount drives the minimum employment period for the probation gap.
-  const headcount = rows.filter(r => r.status === 'active').length || 1
+  // Use the security-definer helper: a scoped admin only SEES part of the
+  // register, but the legal threshold depends on the whole business.
+  const { data: hc } = await supabase.rpc('business_headcount')
+  const headcount = Number(hc) || rows.filter(r => r.status === 'active').length || 1
 
   const withGaps = rows.map(r => {
     const list = byEmployee.get(r.id) ?? []
@@ -114,6 +117,9 @@ export async function POST(req: NextRequest) {
     award_confirmed: Boolean(body.award_confirmed),
     state,
     notes: body.notes ? String(body.notes) : null,
+    // Reporting line + "this is me": what makes an admin's "team" resolvable.
+    reports_to: body.reports_to ? String(body.reports_to) : null,
+    profile_id: body.is_me ? user.id : null,
   }
 
   const { data, error } = await supabase.from('employees').insert(row).select().single()
