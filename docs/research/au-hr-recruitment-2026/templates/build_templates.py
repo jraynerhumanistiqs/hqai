@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""Build the AU HR/ER + Recruitment document-template register.
+Emits hr_document_templates.csv (ingestable, links to challenge_code) and a grouped
+markdown table. Source = this session's 102-challenge register + AU HR/ER practice.
+status: Statutory-provide | Compliance-critical | Advisable | Best-practice
+sensitivity: Standard (self-serve draft) | Caution (review before use) | Escalate (legal review)."""
+import csv, os
+from collections import defaultdict
+
+# (id, name, area, subdomain, linked_codes, status, sensitivity, trigger, notes)
+T = [
+# ============ HR & EMPLOYEE RELATIONS ============
+# -- Engagement & contracts
+("HR-001","Employment contract - full-time (permanent)","HR & ER","Contracts & engagement","PF1|PF8|PF9","Compliance-critical","Caution","New permanent full-time hire","Must not undercut NES/award; include award, classification, set-off"),
+("HR-002","Employment contract - part-time","HR & ER","Contracts & engagement","PF1|PF8","Compliance-critical","Caution","New part-time hire","Guaranteed hours/pattern clause important"),
+("HR-003","Employment contract - casual","HR & ER","Contracts & engagement","PF1|PF6|PF7","Compliance-critical","Caution","New casual hire","New casual definition (Aug 2024); no firm advance commitment"),
+("HR-004","Employment contract - fixed/maximum-term","HR & ER","Contracts & engagement","PF1|PF2","Compliance-critical","Caution","Fixed-term engagement","2-yr cap / one-renewal limits (Dec 2023); FTCIS required"),
+("HR-005","Independent contractor / services agreement","HR & ER","Classification","PF3|PF4|PF5","Compliance-critical","Escalate","Engaging a contractor","Sham-contracting + whole-of-relationship test; misclassification risk"),
+("HR-006","Letter of offer / engagement","HR & ER","Contracts & engagement","PF1|RS16","Advisable","Standard","Confirming an offer","Distinct from the contract; summarises key terms"),
+("HR-007","Fair Work Information Statement (provide)","HR & ER","Contracts & engagement","PF13|PF1","Statutory-provide","Standard","Every new employee","FWO-issued; must give on commencement (s125)"),
+("HR-008","Casual Employment Information Statement (provide)","HR & ER","Classification","PF6|PF7","Statutory-provide","Standard","Every new casual + at intervals","FWO-issued; give on start and at 6/12 months"),
+("HR-009","Fixed Term Contract Information Statement (provide)","HR & ER","Contracts & engagement","PF2","Statutory-provide","Standard","Each fixed-term contract","FWO-issued; give each time"),
+("HR-010","Confidentiality & IP assignment deed","HR & ER","Contracts & engagement","PF1","Advisable","Caution","Roles with IP/sensitive data","Post-employment obligations"),
+("HR-011","Restraint of trade clause/deed","HR & ER","Contracts & engagement","PF1","Advisable","Escalate","Senior/client-facing roles","Enforceability is fact-specific; legal review"),
+("HR-012","Individual Flexibility Arrangement (IFA)","HR & ER","Pay & entitlements","PF12","Compliance-critical","Caution","Varying award/agreement terms","Must pass BOOT; genuine agreement"),
+# -- Policies & handbooks
+("HR-013","Employee handbook / policy manual (master)","HR & ER","Policies","PM3","Advisable","Standard","Onboarding / policy suite","Umbrella doc; reference not contractual"),
+("HR-014","Code of conduct","HR & ER","Policies","PM3|PM6","Advisable","Standard","All staff","Behavioural baseline for discipline"),
+("HR-015","WHS / work health & safety policy","HR & ER","WHS","PM14|PM15","Compliance-critical","Standard","All workplaces","Primary duty of care"),
+("HR-016","Bullying, discrimination & sexual harassment policy","HR & ER","DEI/harassment","PM20|PM16","Compliance-critical","Caution","All workplaces","Positive duty (Respect@Work); complaint pathway"),
+("HR-017","Equal opportunity / EEO & diversity policy","HR & ER","DEI/harassment","PM20","Advisable","Standard","All workplaces",""),
+("HR-018","Workplace surveillance policy & notice","HR & ER","Policies","PM3","Compliance-critical","Caution","Monitoring staff/devices","State notice rules (NSW/ACT); privacy"),
+("HR-019","Privacy & employee data collection notice","HR & ER","Policies","RS23|PM3","Compliance-critical","Caution","Handling personal info","Privacy Act; ADM transparency from Dec 2026"),
+("HR-020","Social media policy","HR & ER","Policies","PM3","Advisable","Standard","All staff",""),
+("HR-021","IT / acceptable use / BYOD policy","HR & ER","Policies","PM3","Advisable","Standard","All staff",""),
+("HR-022","Leave policy","HR & ER","NES/leave","PF13|PF14","Advisable","Standard","All staff","Reflects NES minimums"),
+("HR-023","Flexible work / hybrid / remote policy","HR & ER","Flexible work","PM12","Advisable","Standard","Hybrid workforces","Ties to FW flexible-work request process"),
+("HR-024","Right to disconnect policy/guidance","HR & ER","Flexible work","PM13","Advisable","Standard","All staff","Live for small biz 26 Aug 2025"),
+("HR-025","Working-from-home WHS self-assessment","HR & ER","WHS","PM14|PM12","Advisable","Standard","Remote workers","Home-office hazard checklist"),
+("HR-026","Grievance / dispute resolution policy","HR & ER","Conflict","PM16","Advisable","Standard","All staff","Internal process before escalation"),
+("HR-027","Performance management policy","HR & ER","Performance","PM4|PM5","Advisable","Standard","All staff","Procedural fairness baseline"),
+("HR-028","Disciplinary policy","HR & ER","Discipline","PM6|PM7","Advisable","Caution","All staff","Progressive discipline framework"),
+("HR-029","Whistleblower policy","HR & ER","Policies","PM3","Compliance-critical","Caution","Larger/regulated employers","Corporations Act thresholds"),
+("HR-030","Drug & alcohol policy","HR & ER","WHS","PM14","Advisable","Standard","Safety-sensitive roles",""),
+("HR-031","Parental leave policy","HR & ER","NES/leave","PF16","Advisable","Standard","All staff","Interacts with govt PPL"),
+("HR-032","Family & domestic violence support policy","HR & ER","NES/leave","PF19","Advisable","Caution","All staff","Paid FDV leave; confidentiality"),
+("HR-033","Wellbeing / mental health / EAP policy","HR & ER","Wellbeing","PM21","Best-practice","Standard","All staff",""),
+("HR-034","Conflict of interest / secondary employment policy","HR & ER","Policies","PM3","Advisable","Standard","All staff",""),
+("HR-035","Expenses & reimbursement policy","HR & ER","Policies","PM3","Best-practice","Standard","All staff",""),
+("HR-036","Motor vehicle / tool of trade policy","HR & ER","Policies","PM3","Best-practice","Standard","Roles with vehicles",""),
+("HR-037","Uniform / dress code policy","HR & ER","Policies","PM3","Best-practice","Standard","Customer-facing roles",""),
+("HR-038","Training & development policy","HR & ER","L&D","PM19","Best-practice","Standard","All staff",""),
+# -- Onboarding admin
+("HR-039","New starter / onboarding checklist","HR & ER","Onboarding","PM2|RS26","Advisable","Standard","Every new hire","IT, payroll, super, TFN, inductions"),
+("HR-040","Superannuation standard choice form + stapled-fund note","HR & ER","Payroll/super","PF24","Compliance-critical","Standard","Every new hire","ATO form; stapled-super check"),
+("HR-041","TFN declaration process note","HR & ER","Payroll/super","PF24","Compliance-critical","Standard","Every new hire","ATO"),
+("HR-042","Personal details & emergency contact form","HR & ER","Onboarding","PM2","Advisable","Standard","Every new hire","Privacy collection notice attached"),
+("HR-043","Bank details / pay setup form","HR & ER","Payroll","PF24","Advisable","Standard","Every new hire",""),
+("HR-044","Induction / WHS induction record","HR & ER","WHS","PM14|PM2","Compliance-critical","Standard","Every new hire","Evidence of induction"),
+# -- Leave & entitlements admin
+("HR-045","Leave application form (annual/personal)","HR & ER","NES/leave","PF14|PF15","Advisable","Standard","Leave requests",""),
+("HR-046","Annual leave cash-out agreement","HR & ER","NES/leave","PF14","Compliance-critical","Caution","Cashing out leave","Award/agreement conditions; written agreement"),
+("HR-047","Excess annual leave direction letter","HR & ER","NES/leave","PF14","Advisable","Caution","Excess accrual","Award-specific rules"),
+("HR-048","Parental leave request & response letters","HR & ER","NES/leave","PF16","Compliance-critical","Standard","Parental leave","Notice/return-to-work rights"),
+("HR-049","Return-to-work / keeping-in-touch agreement","HR & ER","NES/leave","PF16","Advisable","Standard","Return from parental leave",""),
+("HR-050","Long service leave application & calculation record","HR & ER","NES/leave","PF17","Compliance-critical","Caution","LSL requests","State-specific rules"),
+("HR-051","Leave without pay agreement","HR & ER","NES/leave","PF13","Advisable","Standard","Unpaid leave",""),
+("HR-052","Time-in-lieu (TOIL) agreement","HR & ER","Pay & entitlements","PF11","Advisable","Caution","Award-permitted TOIL","Award conditions"),
+# -- Payroll, pay & records
+("HR-053","Compliant pay slip template","HR & ER","Payroll","PF22","Statutory-provide","Standard","Every pay","Within 1 working day; required fields"),
+("HR-054","Timesheet template","HR & ER","Payroll","PF23","Advisable","Standard","Hourly/award staff","Feeds award interpretation"),
+("HR-055","Employee records template (7-yr)","HR & ER","Payroll","PF21","Compliance-critical","Standard","All employees","Record-keeping obligations"),
+("HR-056","Annualised salary arrangement + reconciliation record","HR & ER","Pay & entitlements","PF12","Compliance-critical","Caution","Salaried award staff","Annual reconciliation to avoid underpayment"),
+("HR-057","Wage/rate change letter","HR & ER","Pay & entitlements","PF10","Advisable","Standard","Pay changes / wage review",""),
+("HR-058","Payroll deduction authorisation","HR & ER","Payroll","PF21","Compliance-critical","Caution","Any deduction","Must be authorised & for employee benefit"),
+("HR-059","Overpayment recovery agreement","HR & ER","Payroll","PF27","Compliance-critical","Caution","Recovering an overpayment","Cannot simply deduct; written agreement"),
+("HR-060","Underpayment rectification pack (calc + disclosure + back-pay letter)","HR & ER","Payroll/compliance","PF26|PF27","Compliance-critical","Escalate","Discovered underpayment","Wage-theft criminal since Jan 2025; Voluntary Code"),
+("HR-061","Salary sacrifice agreement","HR & ER","Pay & entitlements","PF24","Advisable","Caution","Salary packaging","Tax/super interactions"),
+# -- Performance & development
+("HR-062","Performance review / appraisal template","HR & ER","Performance","PM4","Advisable","Standard","Review cycle",""),
+("HR-063","KPI / objectives setting template","HR & ER","Performance","PM4","Best-practice","Standard","Goal setting",""),
+("HR-064","Performance improvement plan (PIP)","HR & ER","Performance","PM5","Compliance-critical","Caution","Underperformance","Procedural fairness; adverse-action timing risk"),
+("HR-065","Probation review & outcome letter (pass/extend/end)","HR & ER","Onboarding/probation","PM1","Compliance-critical","Caution","End of probation","Min employment period interacts with UD rights"),
+("HR-066","Individual development plan (IDP)","HR & ER","L&D","PM19","Best-practice","Standard","Development",""),
+("HR-067","Succession plan template","HR & ER","L&D","PM19","Best-practice","Standard","Key-person risk",""),
+("HR-068","Training register / record","HR & ER","L&D","PM19","Advisable","Standard","Compliance training",""),
+# -- Conduct, discipline & termination (ER)
+("HR-069","Informal counselling file note","HR & ER","Discipline","PM4|PM6","Advisable","Standard","Minor issues","Contemporaneous record"),
+("HR-070","First written warning","HR & ER","Discipline","PM6","Compliance-critical","Caution","Misconduct/underperformance","Procedural fairness"),
+("HR-071","Second written warning","HR & ER","Discipline","PM6","Compliance-critical","Caution","Repeat issue",""),
+("HR-072","Final written warning","HR & ER","Discipline","PM6","Compliance-critical","Caution","Serious/repeat issue",""),
+("HR-073","Allegation / show-cause / invite-to-meeting letter","HR & ER","Discipline","PM6|PM7","Compliance-critical","Caution","Before disciplinary meeting","Right to respond, support person"),
+("HR-074","Suspension / stand-down (with pay) letter","HR & ER","Discipline","PM7","Compliance-critical","Escalate","Pending investigation","Grounds must be valid"),
+("HR-075","Investigation plan & terms of reference","HR & ER","Investigations","PM16","Compliance-critical","Caution","Formal complaint","Scope, procedural fairness"),
+("HR-076","Investigation interview / witness statement record","HR & ER","Investigations","PM16","Compliance-critical","Caution","During investigation",""),
+("HR-077","Investigation report","HR & ER","Investigations","PM16","Compliance-critical","Escalate","Serious/contested matters","Findings on balance of probabilities"),
+("HR-078","Outcome of disciplinary meeting letter","HR & ER","Discipline","PM6|PM7","Compliance-critical","Caution","After meeting",""),
+("HR-079","Summary dismissal (serious misconduct) letter","HR & ER","Termination","PM7","Compliance-critical","Escalate","Serious misconduct","High UD risk if wrong; fair process still required"),
+("HR-080","Termination letter - notice (performance/other)","HR & ER","Termination","PM8|PM11","Compliance-critical","Escalate","Ending employment","Valid reason + process; UD/general protections risk"),
+("HR-081","Termination during probation letter","HR & ER","Termination","PM1|PM8","Compliance-critical","Caution","Within probation","General protections still apply"),
+("HR-082","Notice of termination & final pay statement","HR & ER","Termination","PM11","Compliance-critical","Caution","Any termination","Notice, accruals, correct final pay"),
+("HR-083","Abandonment of employment letter","HR & ER","Termination","PM11","Advisable","Caution","Unexplained absence","Award abandonment terms"),
+("HR-084","Deed of release / settlement deed","HR & ER","Termination","PM9|PM8","Compliance-critical","Escalate","Exit settlement","Legal drafting; tax/waiver implications"),
+("HR-085","Statement of service / employment reference","HR & ER","Offboarding","PM8","Advisable","Caution","On exit","Facts only; defamation/negligence care"),
+# -- Redundancy
+("HR-086","Redundancy consultation letter","HR & ER","Termination","PM10","Compliance-critical","Escalate","Restructure","Consultation obligation in award/agreement"),
+("HR-087","Redundancy selection criteria matrix","HR & ER","Termination","PM10","Compliance-critical","Escalate","Selecting between roles","Defensible, non-discriminatory criteria"),
+("HR-088","Notice of redundancy & redundancy pay calculation","HR & ER","Termination","PM10","Compliance-critical","Escalate","Confirmed redundancy","<15 staff pay exemption; genuine redundancy test"),
+("HR-089","Redeployment offer letter","HR & ER","Termination","PM10","Advisable","Caution","Redeployment option","Reasonableness of redeployment"),
+# -- ER / disputes / WHS
+("HR-090","Grievance lodgement form & response","HR & ER","Conflict","PM16","Advisable","Standard","Employee grievance",""),
+("HR-091","Major change consultation record","HR & ER","ER/consultation","PM10|PM12","Compliance-critical","Caution","Roster/structure change","Award consultation clause"),
+("HR-092","Flexible work request response (approve/refuse)","HR & ER","Flexible work","PM12","Compliance-critical","Caution","FW flexible request","Refusal needs reasonable business grounds in writing"),
+("HR-093","Right to disconnect - complaint response guide","HR & ER","Flexible work","PM13","Advisable","Caution","RTD dispute",""),
+("HR-094","Reasonable adjustment request & plan","HR & ER","DEI/harassment","PM20|RS11","Compliance-critical","Caution","Disability adjustment","Inherent requirements; discrimination law"),
+("HR-095","Return-to-work plan / suitable duties","HR & ER","WHS","PM14","Compliance-critical","Caution","Injury / workers comp","Jurisdictional RTW obligations"),
+("HR-096","Psychosocial hazard risk assessment / register","HR & ER","WHS","PM14","Compliance-critical","Caution","WHS duty","Now mandatory duty all jurisdictions"),
+("HR-097","WHS risk assessment / SWMS","HR & ER","WHS","PM15","Compliance-critical","Caution","High-risk work","SWMS for prescribed high-risk work"),
+("HR-098","Incident / hazard report form & register","HR & ER","WHS","PM15","Compliance-critical","Standard","Incident/near-miss","Notifiable-incident triggers"),
+("HR-099","Toolbox talk / safety meeting record","HR & ER","WHS","PM15","Best-practice","Standard","Ongoing WHS",""),
+# -- Offboarding
+("HR-100","Resignation acknowledgement letter","HR & ER","Offboarding","PM11","Advisable","Standard","Employee resigns","Confirm notice/last day"),
+("HR-101","Exit interview template","HR & ER","Offboarding","PM17","Best-practice","Standard","On exit","Retention insight"),
+("HR-102","Return of property & access revocation checklist","HR & ER","Offboarding","PM11","Advisable","Standard","On exit",""),
+# ============ RECRUITMENT ============
+# -- Need & role design
+("RC-001","Hiring requisition / vacancy business case","Recruitment","Workforce need","RA1|RA2","Advisable","Standard","Before advertising","Justify the hire; backfill vs redesign"),
+("RC-002","Position description / job description","Recruitment","Role design","RA3|RA4","Advisable","Standard","Every role","Shared with HR; capability + inherent requirements"),
+("RC-003","Role scorecard / success profile","Recruitment","Role design","RA3|RA4","Best-practice","Standard","Role definition","Outcomes-based"),
+("RC-004","Selection criteria matrix","Recruitment","Role design","RA4|RS3","Advisable","Standard","Screening/shortlisting basis","Essential vs desirable"),
+# -- Attraction
+("RC-005","Job advertisement template","Recruitment","Job ads","RA6|RA7","Compliance-critical","Caution","Advertising a role","Inclusive; no discriminatory criteria; lawful pay"),
+("RC-006","Inclusive-language / discrimination checklist for ads","Recruitment","Job ads","RA7","Compliance-critical","Standard","Before posting","Avoids unlawful criteria"),
+("RC-007","EVP / careers page copy","Recruitment","EVP","RA9","Best-practice","Standard","Employer branding",""),
+("RC-008","Recruitment agency brief","Recruitment","Sourcing","RA8","Advisable","Standard","Using an agency",""),
+("RC-009","Recruitment agency terms / fee agreement","Recruitment","Sourcing","RA8","Advisable","Caution","Engaging an agency","Fees, replacement, ownership of candidates"),
+("RC-010","Internal job posting / expression of interest","Recruitment","Sourcing","RA8","Best-practice","Standard","Internal hiring",""),
+("RC-011","Employee referral program & form","Recruitment","Sourcing","RA8","Best-practice","Standard","Referrals",""),
+# -- Pay & approval
+("RC-012","Salary band / pay range worksheet","Recruitment","Pay banding","RA11|RA14","Advisable","Caution","Setting pay","Benchmark; gender pay equity"),
+("RC-013","Offer approval / sign-off form","Recruitment","Offer","RA15|RS16","Advisable","Standard","Before offer","Budget/authority control"),
+# -- Screening & shortlisting
+("RC-014","Application form (privacy-compliant)","Recruitment","Screening","RS1|RS23","Compliance-critical","Caution","Receiving applications","Collection notice; no unlawful questions"),
+("RC-015","Candidate privacy collection notice / consent","Recruitment","Screening","RS23|RS22","Compliance-critical","Caution","Collecting candidate data","Privacy Act; AI/ADM disclosure from Dec 2026"),
+("RC-016","CV screening rubric / scorecard","Recruitment","Screening","RS3|RS2","Advisable","Standard","Screening CVs","Consistent, defensible, job-relevant"),
+("RC-017","Shortlisting matrix (defensible)","Recruitment","Shortlisting","RS4","Compliance-critical","Caution","Shortlisting","Record reasons; discrimination defensibility"),
+("RC-018","Regret / rejection email - application stage","Recruitment","Candidate experience","RS19","Advisable","Standard","Not shortlisted",""),
+# -- Screening calls & interviews
+("RC-019","Phone / video screen guide","Recruitment","Phone screen","RS5|RS6","Advisable","Standard","Initial screen",""),
+("RC-020","One-way / AI video interview consent & disclosure","Recruitment","Phone screen","RS6|RS22","Compliance-critical","Caution","AI video screening","Consent + AI disclosure; bias risk"),
+("RC-021","Structured interview guide (role-specific)","Recruitment","Interview design","RS8|RS7","Advisable","Standard","Interviews","Consistent, competency-based"),
+("RC-022","Behavioural / competency question bank","Recruitment","Interview design","RS8","Best-practice","Standard","Interview prep",""),
+("RC-023","Unlawful-questions guardrail sheet","Recruitment","Interview design","RS7","Compliance-critical","Standard","Interview prep","What not to ask (protected attributes)"),
+("RC-024","Interview scorecard / rating sheet","Recruitment","Interview design","RS9","Advisable","Standard","Scoring interviews","Panel calibration"),
+("RC-025","Panel interview coordination & score reconciliation","Recruitment","Interview design","RS9","Best-practice","Standard","Panel interviews",""),
+# -- Assessment
+("RC-026","Skills / work-sample test brief & scoring guide","Recruitment","Assessments","RS10","Advisable","Standard","Practical assessment","Proportionate, job-relevant"),
+("RC-027","Psychometric assessment consent & feedback","Recruitment","Assessments","RS10","Compliance-critical","Caution","Psychometrics","Consent; validity; adjustments"),
+("RC-028","Reasonable adjustment (assessment) request/plan","Recruitment","Assessments","RS11","Compliance-critical","Caution","Candidate with disability","Discrimination law"),
+# -- Verification
+("RC-029","Reference check consent form","Recruitment","Checks","RS12","Compliance-critical","Standard","Before referee contact","Consent required"),
+("RC-030","Reference check questionnaire / script","Recruitment","Checks","RS12","Advisable","Standard","Reference checking",""),
+("RC-031","Right-to-work / VEVO check record","Recruitment","Checks","RS14","Compliance-critical","Caution","Every hire","Employer sanctions for unlawful workers"),
+("RC-032","Police / criminal history check consent","Recruitment","Checks","RS13","Compliance-critical","Caution","Role-dependent","Relevance/inherent requirements; discrimination"),
+("RC-033","Working with Children / vulnerable people check record","Recruitment","Checks","RS13","Compliance-critical","Caution","Child/vulnerable-facing roles","State-specific WWCC"),
+("RC-034","Qualification / credential verification record","Recruitment","Checks","RS15","Advisable","Standard","Credential-dependent roles",""),
+("RC-035","Pre-employment medical / functional assessment consent","Recruitment","Checks","RS11","Compliance-critical","Caution","Physically demanding roles","Inherent requirements only"),
+# -- Offer & close
+("RC-036","Verbal offer script","Recruitment","Offer","RS16|RS18","Advisable","Standard","Making an offer",""),
+("RC-037","Letter of offer (+ contract)","Recruitment","Offer","RS16|HR-001","Compliance-critical","Caution","Formal offer","Links to employment contract"),
+("RC-038","Conditional offer letter (subject to checks)","Recruitment","Offer","RS16|RS14","Compliance-critical","Caution","Offer pending checks","Clear conditions"),
+("RC-039","Offer withdrawal letter","Recruitment","Offer","RS16","Compliance-critical","Escalate","Rescinding an offer","Contract-formation / reliance risk"),
+("RC-040","Regret letter - post-interview (with feedback)","Recruitment","Candidate experience","RS19|RS20","Advisable","Standard","Unsuccessful interviewee",""),
+("RC-041","Talent pool / keep-warm consent & email","Recruitment","Candidate experience","RS19","Advisable","Standard","Future pipeline","Privacy consent to retain"),
+# -- Onboarding handoff & metrics
+("RC-042","New starter setup checklist (recruitment->People)","Recruitment","Onboarding handoff","RS26|HR-039","Advisable","Standard","Offer accepted","IT/payroll/super/TFN handoff"),
+("RC-043","Day-one / first-week plan","Recruitment","Onboarding handoff","RS26|PM2","Best-practice","Standard","Start date",""),
+("RC-044","Hiring-manager-to-People handoff form","Recruitment","Onboarding handoff","RS26","Advisable","Standard","Recruitment close",""),
+("RC-045","Onboarding survey (30/60/90)","Recruitment","Onboarding handoff","RS26|PM17","Best-practice","Standard","Early tenure","Early-attrition signal"),
+("RC-046","Recruitment metrics tracker (time/cost/source-to-hire)","Recruitment","Candidate experience","RS20|RS21","Best-practice","Standard","Ongoing","Funnel analytics"),
+]
+
+os.makedirs(".", exist_ok=True)
+cols = ["doc_id","name","area","subdomain","linked_challenge_codes","status","sensitivity","trigger","notes"]
+with open("hr_document_templates.csv","w",newline="",encoding="utf-8") as f:
+    w = csv.writer(f); w.writerow(cols)
+    for r in T: w.writerow(list(r))
+
+# markdown grouped by area -> subdomain
+by = defaultdict(lambda: defaultdict(list))
+for r in T:
+    by[r[2]][r[3]].append(r)
+
+SENS_ICON = {"Standard":"·","Caution":"!","Escalate":"!!"}
+lines = []
+for area in ["HR & ER","Recruitment"]:
+    lines.append(f"\n### {area}\n")
+    for sub, rows in by[area].items():
+        lines.append(f"\n**{sub}**\n")
+        lines.append("| ID | Template | Status | Sens | Linked | Trigger |")
+        lines.append("|----|----------|--------|:----:|--------|---------|")
+        for r in rows:
+            lines.append(f"| {r[0]} | {r[1]} | {r[5]} | {SENS_ICON[r[6]]} | {r[4]} | {r[7]} |")
+with open("_register_tables.md","w",encoding="utf-8") as f:
+    f.write("\n".join(lines))
+
+# counts
+from collections import Counter
+area_ct = Counter(r[2] for r in T)
+stat_ct = Counter(r[5] for r in T)
+sens_ct = Counter(r[6] for r in T)
+print(f"total templates: {len(T)}")
+print("by area:", dict(area_ct))
+print("by status:", dict(stat_ct))
+print("by sensitivity:", dict(sens_ct))
+print(f"escalate-flagged (drafting needs legal): {sens_ct['Escalate']}")
