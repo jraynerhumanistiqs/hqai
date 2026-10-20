@@ -9,19 +9,34 @@ parent brand Humanistiqs (Rayner Consulting Group Pty Ltd). Owner: Jimmy
 Rayner. Two self-serve products (HQ People, HQ Recruit) plus an optional
 done-for-you human-advisor layer (HR365 / Recruit365).
 
-- Live: https://hqai.vercel.app  (auto-deploys from GitHub `main` on push)
+- Live: https://www.humanistiqs.ai  (auto-deploys from GitHub `main` on push).
+  The apex humanistiqs.ai 307s to www, so www is what production actually
+  serves. hqai.vercel.app still resolves but is NOT the canonical host.
+  Anything that must match the serving origin - the Supabase auth redirect
+  allow-list, the Stripe webhook endpoint, NEXT_PUBLIC_BASE_URL - has to use
+  www, or it fails silently rather than erroring.
 - Repo: https://github.com/jraynerhumanistiqs/hqai
 
 ## Tech stack
 - Next.js 16 (App Router) + TypeScript; Tailwind v3 with CSS-variable tokens
-- Supabase (auth + Postgres; RLS disabled for beta)
+- Supabase (auth + Postgres; RLS is ON and enforcing - see ## Supabase)
 - Anthropic Claude API - model IDs centralised in lib/ai-models.ts
   (standard sonnet-4-6, complex opus-4-8, simple haiku-4-5; env-overridable
   via ANTHROPIC_MODEL_*)
 - Cloudflare Stream (candidate video), Resend (email), Stripe (public
   subscription checkout is live; enterprise/HR365 is sales-assisted/invoiced)
-- Vercel hosting. next.config.js has ignoreBuildErrors/ignoreDuringBuilds
-  true (large pre-existing tsc baseline) - a green `npm run build` is the gate.
+- Vercel hosting. next.config.js sets typescript.ignoreBuildErrors false, so
+  a green `npm run build` is the gate. Next 16 no longer lints during build
+  and dropped the `eslint` config key, so lint is its own step: `npm run lint`
+  (ESLint CLI, flat config in eslint.config.mjs). It has a pre-existing
+  baseline of 5 errors / 63 warnings in unrelated files - do not treat those
+  as regressions.
+- Request middleware lives in `proxy.ts` (renamed from middleware.ts for
+  Next 16; the export is `proxy`, not `middleware`). It runs on the nodejs
+  runtime - the edge runtime is NOT supported there. It refreshes the
+  Supabase session on every non-static request, so breaking it silently
+  breaks auth: verify with a probe response header, not by reading
+  .next manifests, which do not list it in dev.
 
 ## Project structure (idiomatic Next.js - do NOT restructure into /src)
 - app/ (routes + API), components/, lib/, public/ at the ROOT; the `@/*`
@@ -181,10 +196,39 @@ variants, so the parent snaps and the children stay hidden.
 
 ## Supabase
 Project rbuxsuuvbeojxcxwxcjf. Keys in env (NEXT_PUBLIC_SUPABASE_URL,
-NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY). RLS disabled -
-re-enable before commercial launch. Public candidate writes use supabaseAdmin
-(service-role). Never commit secrets (scripts/stripe-c10-price-ids.env,
-next-env.d.ts stay untracked).
+NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY).
+
+**RLS is ON and enforcing** (2026-07-14_enable_rls_consolidated.sql). Verified
+by probe: the anon key returns zero rows on businesses, profiles, employees,
+cv_screenings, prescreen_responses, conversations, messages, documents,
+campaigns and funnel_events, while the service-role key sees them all;
+admin_overview returns 42501 permission denied to anon. Do NOT "re-enable"
+it - it is already on, and re-applying policies risks breaking working ones.
+
+Public candidate writes use supabaseAdmin (service-role), which bypasses RLS
+by design - that is why those paths must filter by business_id themselves.
+Never commit secrets (scripts/stripe-c10-price-ids.env, next-env.d.ts stay
+untracked).
+
+### RAG corpus
+knowledge_chunks is the grounding corpus: 4,275 rows, embedding vector(1536)
+via OpenAI text-embedding-3-small, searched by the match_knowledge RPC, which
+is declared query_embedding vector(1536) and is HYBRID (full-text rank plus
+vector cosine) so query_text is required alongside the vector.
+
+The embedding dimension has to agree in four places or retrieval silently
+returns nothing: the column, match_knowledge's signature, scripts/ingest/*,
+and lib/rag.ts:embedQuery. lib/rag.ts prefers Voyage (1024 dims) whenever
+VOYAGE_API_KEY is set and only falls back to OpenAI if the Voyage call
+THROWS - a dimension mismatch does not throw, so setting that key without
+re-embedding the corpus produces fluent answers with zero grounding and no
+error anywhere. Do not set VOYAGE_API_KEY unless you are also re-embedding.
+
+Repairing the corpus: scripts/ingest/backfill-embeddings.ts re-embeds rows in
+place. Never "just re-run" scripts/ingest/ingest-* to fix embeddings - they
+call .insert() with no upsert and will duplicate the corpus. Verify with
+`node scripts/smoke-rag.mjs`, which asserts real questions return real
+passages; a row count proves nothing.
 
 ## Environment variables
 Full set + inline notes live in lib/stripe.ts and .env.local. Categories:
