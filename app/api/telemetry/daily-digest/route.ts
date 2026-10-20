@@ -12,8 +12,20 @@ export const dynamic = 'force-dynamic'
 const RECIPIENTS = ['jrayner@humanistiqs.com.au', 'rprasad@humanistiqs.com.au']
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Check the secret EXISTS before comparing against it. The previous form,
+  // `auth !== \`Bearer ${process.env.CRON_SECRET}\``, interpolates undefined
+  // when the var is unset and so compares against the literal string
+  // "Bearer undefined" - meaning anyone sending exactly that header passed.
+  // CRON_SECRET is currently unset in Vercel, so that bypass was live.
+  const secret = process.env.CRON_SECRET
+  if (!secret) {
+    console.error('[daily-digest] CRON_SECRET is not set - refusing to run')
+    return NextResponse.json(
+      { error: 'Not configured', detail: 'CRON_SECRET is not set' },
+      { status: 503 },
+    )
+  }
+  if (req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
