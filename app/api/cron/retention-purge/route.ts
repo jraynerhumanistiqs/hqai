@@ -25,12 +25,26 @@ const CLOUDFLARE_STREAM_API_TOKEN = process.env.CLOUDFLARE_STREAM_API_TOKEN
 
 export async function GET(req: NextRequest) {
   // Auth check - Vercel cron sets Authorization: Bearer <CRON_SECRET>
+  //
+  // FAIL CLOSED. This previously read `if (secret) { ...check... }`, which
+  // skipped the check entirely whenever CRON_SECRET was unset - and it was
+  // unset in Vercel production, so this endpoint was publicly callable. It
+  // hard-deletes prescreen sessions, their responses, the Cloudflare Stream
+  // videos and old cv_screenings: there is no undo. Without a secret there
+  // is no way to tell Vercel's cron from anyone who knows the path, so the
+  // only safe default is to refuse to run. The sibling daily-digest route
+  // already fails closed; this now matches it.
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization') || ''
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-    }
+  if (!secret) {
+    console.error('[retention-purge] CRON_SECRET is not set - refusing to run')
+    return NextResponse.json(
+      { error: 'Not configured', detail: 'CRON_SECRET is not set' },
+      { status: 503 },
+    )
+  }
+  const auth = req.headers.get('authorization') || ''
+  if (auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
   const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
