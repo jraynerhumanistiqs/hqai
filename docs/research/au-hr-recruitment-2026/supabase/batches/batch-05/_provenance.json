@@ -1,0 +1,87 @@
+{
+  "PM5": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "3da338bf3820"
+  },
+  "PM3": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.965,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "d8310a28680e"
+  },
+  "PM8": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.963,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "15",
+      "15 employees"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "cb8760169579"
+  },
+  "PM14": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.952,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "03a00e0e3b61"
+  },
+  "PM21": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.972,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [
+        "which comes from your state or territory WHS laws"
+      ],
+      "unsupported_numbers": [],
+      "verdict": "partly_supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "506e7703f2ba"
+  }
+}

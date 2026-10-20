@@ -1,0 +1,89 @@
+{
+  "PF21": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "ef6320e9e978"
+  },
+  "PF22": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "low",
+    "escalate_agree": false,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "9d686e8985fc"
+  },
+  "PF24": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.748,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "12"
+    ],
+    "verifier": {
+      "unsupported_claims": [
+        "Late or short payments trigger the Superannuation Guarantee Charge"
+      ],
+      "unsupported_numbers": [],
+      "verdict": "partly_supported"
+    },
+    "risk": 6,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "0223dc719a63"
+  },
+  "PF25": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.903,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "1",
+      "2026"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "9f23a83c3a67"
+  },
+  "PM17": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.833,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "22d01dc206d4"
+  }
+}

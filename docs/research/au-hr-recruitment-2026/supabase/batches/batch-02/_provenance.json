@@ -1,0 +1,88 @@
+{
+  "PF13": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.936,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "b822a66c9b48"
+  },
+  "PF14": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "4 weeks",
+      "5"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "e2475e1c3294"
+  },
+  "PF15": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.94,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 1,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "1c4a17b38222"
+  },
+  "PF10": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.964,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "fff58a30f285"
+  },
+  "PF11": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "38",
+      "38 hours"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "dfc4ef142ecc"
+  }
+}

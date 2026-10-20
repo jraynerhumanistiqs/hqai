@@ -502,6 +502,7 @@ def cmd_pack(args):
     prompt = system_prompt_text()
 
     made = 0
+    skipped = []
     for i in range(0, len(todo), args.n):
         batch_no = i // args.n + 1
         if args.batch and batch_no != args.batch:
@@ -509,6 +510,20 @@ def cmd_pack(args):
         rows = todo[i:i + args.n]
         d = os.path.join(BATCH_DIR, f"batch-{batch_no:02d}")
         os.makedirs(d, exist_ok=True)
+
+        # Never clobber answers. A bare `pack` regenerates every batch, and
+        # an ANSWERS.md that has been filled in - by an agent or by hand - is
+        # work that cannot be recovered by re-running anything. This guard
+        # exists because a careless `pack` destroyed 20 generated answers.
+        ans_path = os.path.join(d, "ANSWERS.md")
+        if os.path.exists(ans_path) and not args.force:
+            try:
+                existing_rows = parse_answers_md(ans_path)
+                if any((r.get("answer_text") or "").strip() for r in existing_rows):
+                    skipped.append(batch_no)
+                    continue
+            except Exception:  # noqa: BLE001
+                pass
 
         out = [f"# Batch {batch_no:02d} - answering brief",
                "",
@@ -536,7 +551,13 @@ def cmd_pack(args):
     print("    PROMPT.md   give this to the agent (prompt + grounding, self-contained)")
     print("    ANSWERS.md  the agent fills this in and returns it\n")
     print("  Then:  python answers_tool.py check batches/batch-01/ANSWERS.md")
-    print("         python answers_tool.py merge batches/batch-01/ANSWERS.md\n")
+    print("         python answers_tool.py merge batches/batch-01/ANSWERS.md")
+    if skipped:
+        print(f"\n  SKIPPED {len(skipped)} batch(es) that already hold answers: "
+              f"{', '.join(f'{b:02d}' for b in skipped)}")
+        print("  Those files were left alone. --force overwrites them, which")
+        print("  throws that work away and cannot be undone.")
+    print()
 
 
 def run_tier_gate(rows):
@@ -673,6 +694,8 @@ if __name__ == "__main__":
     pk = sub.add_parser("pack")
     pk.add_argument("-n", type=int, default=5, help="challenges per batch")
     pk.add_argument("-b", "--batch", type=int, default=None, help="only this batch number")
+    pk.add_argument("--force", action="store_true",
+                    help="overwrite batches that already hold answers (destroys them)")
     pk.set_defaults(fn=cmd_pack)
     c = sub.add_parser("check")
     c.add_argument("file")

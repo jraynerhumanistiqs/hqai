@@ -1,0 +1,87 @@
+{
+  "PM20": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.938,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 1,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "78624f9a1356"
+  },
+  "PM6": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.951,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "24",
+      "48 hours"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "dfa4dc715029"
+  },
+  "PM12": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.938,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "df2534d45b2d"
+  },
+  "PM1": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "6"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 3,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "9cb0c44745b1"
+  },
+  "PM4": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.927,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 1,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "2263ec4e6862"
+  }
+}

@@ -453,6 +453,7 @@ def main():
     client = anthropic.Anthropic()
     sys_prompt = system_prompt()
     t0 = time.time()
+    failed_batches = []
 
     for bno, rows in picked:
         d = os.path.join(at.BATCH_DIR, f"batch-{bno:02d}")
@@ -477,6 +478,21 @@ def main():
                 print(f"    {res['challenge_code']:<5} agree={p['agreement']:<6} "
                       f"verifier={v:<16} risk={p['risk']}{flag}")
 
+        # Refuse to write a partial file. Writing one anyway replaces the
+        # TODO template with blocks that are empty but no longer say TODO -
+        # a file that LOOKS filled. That is how a failed run gets mistaken
+        # for a finished one. (This is exactly what happened when the API
+        # credit balance ran out mid-run: thirteen batches wrote
+        # empty-but-plausible files in one second each.)
+        done = {r["challenge_code"] for r in results}
+        missing = [r["challenge_code"] for r in rows if r["challenge_code"] not in done]
+        if missing:
+            print(f"    REFUSING TO WRITE batch {bno:02d}: {len(missing)} of "
+                  f"{len(rows)} challenges failed ({', '.join(missing)}).")
+            print(f"    {os.path.join(d, 'ANSWERS.md')} left untouched.")
+            failed_batches.append(bno)
+            continue
+
         results.sort(key=lambda r: [x["challenge_code"] for x in rows].index(r["challenge_code"])
                      if r["challenge_code"] in [x["challenge_code"] for x in rows] else 99)
         write_answers_md(os.path.join(d, "ANSWERS.md"), rows, results)
@@ -486,6 +502,11 @@ def main():
         print(f"    wrote {d}/ANSWERS.md and _provenance.json")
 
     print(f"\n  {METER.line()}  |  {time.time()-t0:.0f}s")
+    if failed_batches:
+        print(f"\n  {len(failed_batches)} batch(es) NOT written: "
+              f"{', '.join(f'{b:02d}' for b in failed_batches)}")
+        print(f"  Fix the cause and re-run those batches.\n")
+        sys.exit(1)
     print(f"\n  Next: python answers_tool.py check "
           f"batches/batch-{picked[0][0]:02d}/ANSWERS.md\n")
 
