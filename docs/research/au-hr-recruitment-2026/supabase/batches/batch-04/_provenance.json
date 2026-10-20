@@ -22,8 +22,8 @@
     "agreement": "medium",
     "escalate_agree": true,
     "divergent_numbers": [
-      "24",
-      "48 hours"
+      "15",
+      "15 employees"
     ],
     "verifier": {
       "unsupported_claims": [],
@@ -38,15 +38,17 @@
     "model": "claude-opus-5-5",
     "samples": 3,
     "match_score": 0.938,
-    "agreement": "high",
+    "agreement": "medium",
     "escalate_agree": true,
-    "divergent_numbers": [],
+    "divergent_numbers": [
+      "2023"
+    ],
     "verifier": {
       "unsupported_claims": [],
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 2,
+    "risk": 4,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "df2534d45b2d"
   },
@@ -57,14 +59,15 @@
     "agreement": "medium",
     "escalate_agree": true,
     "divergent_numbers": [
-      "6"
+      "15",
+      "15 employees"
     ],
     "verifier": {
       "unsupported_claims": [],
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 3,
+    "risk": 5,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "9cb0c44745b1"
   },

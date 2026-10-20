@@ -3,15 +3,19 @@
     "model": "claude-opus-5-5",
     "samples": 3,
     "match_score": 1.0,
-    "agreement": "high",
+    "agreement": "medium",
     "escalate_agree": true,
-    "divergent_numbers": [],
+    "divergent_numbers": [
+      "7 years"
+    ],
     "verifier": {
-      "unsupported_claims": [],
+      "unsupported_claims": [
+        "The format matters less than being complete and consistent."
+      ],
       "unsupported_numbers": [],
-      "verdict": "supported"
+      "verdict": "partly_supported"
     },
-    "risk": 2,
+    "risk": 6,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "ef6320e9e978"
   },
@@ -27,7 +31,7 @@
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 4,
+    "risk": 5,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "9d686e8985fc"
   },
@@ -35,19 +39,15 @@
     "model": "claude-opus-5-5",
     "samples": 3,
     "match_score": 0.748,
-    "agreement": "medium",
+    "agreement": "high",
     "escalate_agree": true,
-    "divergent_numbers": [
-      "12"
-    ],
+    "divergent_numbers": [],
     "verifier": {
-      "unsupported_claims": [
-        "Late or short payments trigger the Superannuation Guarantee Charge"
-      ],
+      "unsupported_claims": [],
       "unsupported_numbers": [],
-      "verdict": "partly_supported"
+      "verdict": "supported"
     },
-    "risk": 6,
+    "risk": 2,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "0223dc719a63"
   },
@@ -55,18 +55,15 @@
     "model": "claude-opus-5-5",
     "samples": 3,
     "match_score": 0.903,
-    "agreement": "medium",
+    "agreement": "high",
     "escalate_agree": true,
-    "divergent_numbers": [
-      "1",
-      "2026"
-    ],
+    "divergent_numbers": [],
     "verifier": {
       "unsupported_claims": [],
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 5,
+    "risk": 2,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "9f23a83c3a67"
   },

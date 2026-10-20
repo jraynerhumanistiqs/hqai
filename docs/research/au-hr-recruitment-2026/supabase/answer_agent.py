@@ -84,6 +84,23 @@ If the GROUNDING SOURCE does not let you answer safely, set answer_text to
 "NEEDS_RESEARCH: <what is missing>", leave source_refs empty, set
 is_escalate_default true and confidence low.
 
+## source_refs must never be empty on a real answer
+
+Some challenges are PRACTICE guidance with no statutory basis - how to triage
+a pile of resumes, what a counter-offer costs you, whether an agency fee is
+worth it. There is no Fair Work section to cite for those, and you must not
+invent one. Cite the research subsection you were given instead, in this exact
+form:
+
+  "HQ.ai AU HR research report - <the subsection heading you were given>"
+
+That is honest provenance: it says this is practitioner guidance from our own
+research, not law. Use it alongside statutory sources where both apply, and on
+its own where the answer is pure practice.
+
+An empty source_refs on a real answer is an error. Either you have a source,
+or the row is NEEDS_RESEARCH.
+
 Be honest in `confidence` and `uncertain_about`. They route a human reviewer's
 attention. Marking a shaky answer "high" wastes the one scarce resource here.
 

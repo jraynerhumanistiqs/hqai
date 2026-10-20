@@ -149,6 +149,12 @@ def _best(needle, haystack):
 
 def classify_ref(ref):
     r = ref.strip()
+    # Our own research report. Legitimate provenance for practice guidance
+    # that has no statutory basis (resume triage, agency fees, counter-offers)
+    # - there is nothing in the Fair Work Act to cite for those, and an
+    # invented citation would be worse than an honest internal one.
+    if re.search(r"HQ\.?ai.*research report|AU HR research report", r, re.I):
+        return "internal"
     if re.search(r"fair\s*work\s*act|\bFWA\b", r, re.I):
         return "act"
     if re.search(r"fair\s*work\s*ombudsman|^fwo\b|\bFWO\s*[-–]", r, re.I):
@@ -217,6 +223,11 @@ def verify_row(row, idx):
                                     f"awards (closest '{best}'). Cannot verify here."))
             else:
                 cited_in_corpus.append(("award", best))
+        elif kind == "internal":
+            out.append(("info", f"{code}: cites our own research report. Correct for "
+                                f"practice guidance with no statutory basis; a human "
+                                f"reviewer should still confirm the answer is practice "
+                                f"advice and not a legal claim in disguise."))
         else:
             out.append(("info", f"{code}: '{ref}' is outside the ingested corpus "
                                 f"(state law, ATO, regulator). Not checkable here."))

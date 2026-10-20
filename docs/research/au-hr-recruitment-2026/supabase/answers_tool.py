@@ -53,9 +53,30 @@ ALWAYS_ESCALATE = [
     "general protections", "adverse action", "discriminat", "harass",
     "bully", "underpay", "wage theft", "investigation", "psychosocial",
     "contractor", "sham", "pregnan", "parental leave", "injur", "illness",
-    "union", "lawyer", "abandonment", "restructure",
+    "abandonment", "restructure",
     "performance improvement", "disciplinary", "procedural fairness",
 ]
+
+# "lawyer" and "union" are not topics, they are the OTHER SIDE'S posture, and
+# they only signal escalation when the EMPLOYEE has one. A bare substring
+# match fired on an answer about whether the employer should pay for legal
+# advice, which is the opposite situation. A floor that cries wolf on its own
+# subject matter teaches people to override the floor.
+CONTEXTUAL_ESCALATE = re.compile(
+    r"(engaged?\s+(a|their|an)\s+(lawyer|solicitor|union)"
+    r"|(their|the employee'?s?|his|her)\s+(lawyer|solicitor|union)"
+    r"|lawyer'?s?\s+letter|letter\s+from\s+(a|their)\s+(lawyer|solicitor)"
+    r"|union\s+(delegate|official|representative|involvement)"
+    r"|represented\s+by\s+(a|their)\s+(lawyer|solicitor|union))", re.I)
+
+
+def escalate_hit(hay):
+    """Return the matched escalation term, or None."""
+    for k in ALWAYS_ESCALATE:
+        if k in hay:
+            return k
+    m = CONTEXTUAL_ESCALATE.search(hay)
+    return m.group(0) if m else None
 
 BANNED_WORDS = ["navigate", "leverage", "comprehensive", "robust", "holistic",
                 "synergy", "ensure", "utilise", "utilize", "facilitate",
@@ -359,8 +380,8 @@ def validate(rows):
         # because it needs the embedding model loaded.
         title = next((w["title"] for w in ws if w["challenge_code"] == code), "")
         hay = (title + " " + a).lower()
-        if esc == "FALSE" and any(k in hay for k in ALWAYS_ESCALATE):
-            hit = next(k for k in ALWAYS_ESCALATE if k in hay)
+        hit = escalate_hit(hay) if esc == "FALSE" else None
+        if hit:
             errs.append(f"{tag}: is_escalate_default FALSE but topic matches "
                         f"always-escalate term '{hit}'")
 

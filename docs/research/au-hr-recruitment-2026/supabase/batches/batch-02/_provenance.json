@@ -46,7 +46,7 @@
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 1,
+    "risk": 2,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "1c4a17b38222"
   },
@@ -73,7 +73,6 @@
     "agreement": "medium",
     "escalate_agree": true,
     "divergent_numbers": [
-      "38",
       "38 hours"
     ],
     "verifier": {
@@ -81,7 +80,7 @@
       "unsupported_numbers": [],
       "verdict": "supported"
     },
-    "risk": 5,
+    "risk": 4,
     "generated_at": "2026-10-20",
     "source_subsection_sha": "dfc4ef142ecc"
   }

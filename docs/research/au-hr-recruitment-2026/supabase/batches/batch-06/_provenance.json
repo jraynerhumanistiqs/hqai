@@ -1,0 +1,88 @@
+{
+  "RA6": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.916,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "200"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "ae574582cf50"
+  },
+  "RA7": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.928,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "30"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "70aaafbde0ea"
+  },
+  "RA11": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.938,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "7ebd9420cb68"
+  },
+  "RA12": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.918,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "b4518d1f9041"
+  },
+  "RA13": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.817,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "1"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "3ccc48e34e39"
+  }
+}

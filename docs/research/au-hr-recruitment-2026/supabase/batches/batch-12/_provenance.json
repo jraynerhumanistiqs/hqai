@@ -1,0 +1,87 @@
+{
+  "PM18": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "075061f1ab0f"
+  },
+  "PM13": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.783,
+    "agreement": "low",
+    "escalate_agree": false,
+    "divergent_numbers": [
+      "15",
+      "15 employees",
+      "2025",
+      "26"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 8,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "d85e655b4a29"
+  },
+  "PM2": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.916,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "460fd2cdb870"
+  },
+  "PM11": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.949,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "446e22d0d76b"
+  },
+  "PM15": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.94,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "1e9b46d1abe5"
+  }
+}

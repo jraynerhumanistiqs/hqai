@@ -1,0 +1,88 @@
+{
+  "RS25": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.873,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "d33550663cae"
+  },
+  "RS10": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.967,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [
+        "State discrimination laws may apply too."
+      ],
+      "unsupported_numbers": [],
+      "verdict": "partly_supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "5375ee0b0b45"
+  },
+  "RS11": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.94,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [
+        "state discrimination laws can also apply"
+      ],
+      "unsupported_numbers": [],
+      "verdict": "partly_supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "e4438f99e1db"
+  },
+  "RS15": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.984,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "f35165653b07"
+  },
+  "RS6": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "medium",
+    "escalate_agree": true,
+    "divergent_numbers": [
+      "100"
+    ],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "54f1a7b1f267"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "PF19": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "86c69071c242"
+  },
+  "PF12": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.916,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "f1e83d546de2"
+  },
+  "PF23": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 2,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "502fde8de4f8"
+  },
+  "PF28": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 1.0,
+    "agreement": "low",
+    "escalate_agree": false,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [],
+      "unsupported_numbers": [],
+      "verdict": "supported"
+    },
+    "risk": 5,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "08d7f08c1df6"
+  },
+  "PM16": {
+    "model": "claude-opus-5-5",
+    "samples": 3,
+    "match_score": 0.964,
+    "agreement": "high",
+    "escalate_agree": true,
+    "divergent_numbers": [],
+    "verifier": {
+      "unsupported_claims": [
+        "which vary by state"
+      ],
+      "unsupported_numbers": [],
+      "verdict": "partly_supported"
+    },
+    "risk": 4,
+    "generated_at": "2026-10-20",
+    "source_subsection_sha": "08f8f701de77"
+  }
+}
