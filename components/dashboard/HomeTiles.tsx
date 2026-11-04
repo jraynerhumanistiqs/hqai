@@ -227,20 +227,31 @@ function NavTile({ href, label, blurb, icon: Icon }: Tile) {
   return (
     <Link
       href={href}
-      className="group flex h-full items-center gap-4 rounded-3xl border border-border bg-bg-elevated p-4 shadow-card transition-all hover:border-ink/30 hover:shadow-modal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg sm:flex-col sm:items-stretch sm:gap-0 sm:p-5"
+      className="group grid h-full grid-cols-[auto_1fr_auto] items-center gap-x-3 rounded-3xl border border-border bg-bg-elevated p-4 shadow-card transition-all hover:border-ink/30 hover:shadow-modal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg sm:content-start sm:gap-x-2.5 sm:gap-y-3 sm:p-5"
     >
-      <span className="flex flex-shrink-0 items-start justify-between sm:mb-3 sm:w-full">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-bg-soft text-ink-soft transition-colors group-hover:text-ink">
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
-        </span>
-        {/* Hidden on phones, where the row has no spare width and a tap
-            target this size is obviously tappable without the hint. */}
-        <RiArrowRightUpLine className="hidden h-4 w-4 flex-shrink-0 text-ink-muted transition-colors group-hover:text-ink sm:block" aria-hidden />
+      {/* Icon and label sit on one line, matching the Ask HQ tile's header
+          (ChatComposer: same gap-2.5, same 36px chip, same type), so every
+          heading on the grid reads at the same height. At sm+ the label used
+          to drop BELOW the icon, which left it misaligned against the chat
+          tile beside it.
+
+          A grid rather than nested flex because the two breakpoints want
+          different arrangements of the same four children, and duplicating
+          the icon to get there would be worse:
+            mobile  icon spans both rows, label row 1, blurb indented under it
+            sm+     icon label arrow on row 1, blurb full width on row 2
+          The arrow is display:none on mobile so it occupies no cell at all -
+          that is why blurb pins itself to col-start-2 rather than relying on
+          auto-placement, which would otherwise drop it into the arrow's
+          vacant slot on row 1. */}
+      <span className="row-span-2 flex h-9 w-9 flex-shrink-0 items-center justify-center self-center rounded-2xl bg-bg-soft text-ink-soft transition-colors group-hover:text-ink sm:row-span-1">
+        <Icon className="h-[18px] w-[18px]" aria-hidden />
       </span>
-      <span className="min-w-0 flex-1 sm:flex-none">
-        <span className="block font-display text-base font-bold tracking-tight text-ink">{label}</span>
-        <span className="mt-0.5 block text-sm leading-snug text-ink-muted sm:mt-1">{blurb}</span>
-      </span>
+      <span className="min-w-0 font-display text-base font-bold tracking-tight text-ink">{label}</span>
+      {/* Hidden on phones, where the row has no spare width and a tap target
+          this size is obviously tappable without the hint. */}
+      <RiArrowRightUpLine className="hidden h-4 w-4 flex-shrink-0 text-ink-muted transition-colors group-hover:text-ink sm:block" aria-hidden />
+      <span className="col-start-2 mt-0.5 text-sm leading-snug text-ink-muted sm:col-span-3 sm:col-start-1 sm:mt-0">{blurb}</span>
     </Link>
   )
 }
