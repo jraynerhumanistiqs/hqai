@@ -76,12 +76,20 @@ interface ChatInterfaceProps {
   initialPrompt?: string
 }
 
-// Short prompt chips for empty state (pill-shaped, scenario-framed)
+// Short prompt chips for empty state (pill-shaped, scenario-framed).
+//
+// These must be things the Advisor can actually DO. Three of the previous four
+// could not be: "Draft a termination letter" and "Write a formal warning
+// notice" are both on the always-escalate list in lib/prompts.ts, and
+// "Calculate redundancy pay" asks for a figure the same prompt forbids stating
+// from memory. The most prominent surface in the product was advertising a
+// refusal on first use. Keep this list to questions the corpus can ground -
+// notice, leave, records and award coverage all retrieve cleanly.
 const SUGGESTIONS_PEOPLE = [
-  'Draft a termination letter',
   'Casual to permanent conversion',
-  'Calculate redundancy pay',
-  'Write a formal warning notice',
+  'What notice does someone get',
+  'Which award covers my business',
+  'What records do I have to keep',
 ]
 
 const SUGGESTIONS_RECRUIT = [

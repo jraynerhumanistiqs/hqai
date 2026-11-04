@@ -11,10 +11,21 @@ interface Props {
   includeCategories?: string[]
   /** Category names to exclude from the default full list. Ignored when includeCategories is set. */
   excludeCategories?: string[]
-  /** Route for the "Fill in details" button destination (chat page that accepts ?prompt=…). */
+  /**
+   * Destination for the "Fill in details" button: a surface that actually
+   * accepts `?prompt=` and does something with it.
+   *
+   * Required for the button to render at all, and deliberately so. It used to
+   * default to a module landing page - `/dashboard/recruit` for the only live
+   * caller - which is a tile grid that ignores the query string entirely, so
+   * the button dropped the user somewhere unrelated and silently discarded
+   * what they clicked for. The HR chat it was originally aimed at answers in
+   * prose about what a document should cover and never produces the document
+   * (lib/prompts.ts: "You do not produce documents"). A prominent button that
+   * advertises something the product does not do costs more than no button.
+   * Pass a real destination, or the row offers the blank download only.
+   */
   customiseHref?: string
-  /** Which module's chat to route to. 'people' -> /dashboard/people, 'recruit' -> /dashboard/recruit. */
-  customiseModule?: 'people' | 'recruit'
 }
 
 export function TemplatesList({
@@ -23,12 +34,8 @@ export function TemplatesList({
   includeCategories,
   excludeCategories = [],
   customiseHref,
-  customiseModule = 'people',
 }: Props) {
   const router = useRouter()
-
-  // Derive the chat href from the module when not explicitly provided.
-  const resolvedCustomiseHref = customiseHref ?? (customiseModule === 'recruit' ? '/dashboard/recruit' : '/dashboard/people')
 
   const categoryNames = includeCategories
     ? TEMPLATE_CATEGORIES.filter(c => includeCategories.includes(c))
@@ -87,8 +94,9 @@ export function TemplatesList({
   }
 
   function handleCustomise(tmpl: TemplateDefinition) {
+    if (!customiseHref) return
     const prompt = encodeURIComponent(`I need to generate a ${tmpl.title}`)
-    router.push(`${resolvedCustomiseHref}?prompt=${prompt}`)
+    router.push(`${customiseHref}?prompt=${prompt}`)
   }
 
   return (
@@ -160,12 +168,14 @@ export function TemplatesList({
                             onAction={() => handleDownload(tmpl)}
                             width={140}
                           />
-                          <button
-                            onClick={() => handleCustomise(tmpl)}
-                            className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-colors"
-                          >
-                            Fill in details
-                          </button>
+                          {customiseHref && (
+                            <button
+                              onClick={() => handleCustomise(tmpl)}
+                              className="bg-accent hover:bg-accent-hover text-ink-on-accent text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-touch rounded-full transition-colors"
+                            >
+                              Fill in details
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -9,9 +9,12 @@ export default function RecruitmentTemplatesPage() {
       title="Recruitment Templates"
       subtitle={`${count} best-practice recruitment templates - job ads, screening questions, reference checks, scorecards and candidate emails. Download a blank template or fill in your role details first.`}
       includeCategories={['Recruitment']}
-      // Fix #7 (M7): pass recruit module so Fill in details routes to the recruit chat,
-      // not the HR People chat.
-      customiseModule="recruit"
+      // No customiseHref: there is no surface today that takes a template and
+      // a ?prompt= and produces the filled document. This used to point at
+      // /dashboard/recruit, which is a tile grid that ignores the query
+      // string, so the button navigated away and threw the request out. Blank
+      // downloads work and are honest; wire customiseHref back up the day a
+      // real destination exists.
     />
   )
 }
