@@ -59,8 +59,11 @@ export default async function DashboardHome() {
     <div className="flex-1 overflow-y-auto bg-bg text-ink">
       <div className="min-h-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 sm:pt-6 pb-8 sm:pb-10 flex flex-col gap-6 sm:gap-7">
         <LocalGreeting firstName={firstName} bizName={business?.name || 'HQ.ai'} />
-        <HomeNextActions escalations={escalations} />
+        {/* Tiles first: navigation is what this page is for. Next actions sits
+            underneath, folded by default, so an escalation is discoverable
+            without pushing the grid below the fold. */}
         <HomeTiles firstName={firstName} />
+        <HomeNextActions escalations={escalations} />
       </div>
     </div>
   )

@@ -18,6 +18,7 @@
 
 import Link from 'next/link'
 import {
+  RiArrowDownSLine,
   RiArrowRightUpLine,
   RiChat3Line,
   RiErrorWarningLine,
@@ -124,14 +125,45 @@ function formatDate(iso: string) {
  * Next actions - open escalations. Sits above the tiles so a waiting action
  * is never pushed below a grid; renders nothing at all when nothing waits.
  */
+/**
+ * Open escalations, folded by default and sitting BELOW the tiles.
+ *
+ * Native <details> rather than a client component with useState: it starts
+ * closed with no `open` attribute, needs no JavaScript, is keyboard and
+ * screen-reader accessible out of the box, and keeps this file a server
+ * component. It also cannot get stuck half-open the way an animated
+ * accordion can, which is the motion rule in CLAUDE.md.
+ *
+ * Deliberately NOT remembered across loads. The owner asked for it to always
+ * start folded, so there is no localStorage and no `open` persistence.
+ *
+ * The count renders in the summary because a collapsed row reading only
+ * "Next actions" tells you nothing - the whole point of folding it is that
+ * you can see whether it is worth opening without opening it.
+ */
 export function HomeNextActions({ escalations }: { escalations: HomeEscalation[] }) {
   if (escalations.length === 0) return null
+  const n = escalations.length
   return (
-    <section aria-labelledby="next-actions-heading">
-      <h2 id="next-actions-heading" className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink mb-3">
-        Next actions
-      </h2>
-      <div className="bg-bg-elevated border border-border rounded-3xl divide-y divide-border transition-colors">
+    <details className="group">
+      <summary
+        className="flex cursor-pointer list-none items-center gap-2.5 rounded-2xl px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg [&::-webkit-details-marker]:hidden"
+      >
+        <RiArrowDownSLine
+          className="h-5 w-5 flex-shrink-0 text-ink-muted transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none"
+          aria-hidden
+        />
+        <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink">
+          Next actions
+        </h2>
+        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-bold text-warning">
+          {n}
+        </span>
+        <span className="sr-only">
+          {n === 1 ? '1 item needs attention' : `${n} items need attention`}
+        </span>
+      </summary>
+      <div className="mt-3 bg-bg-elevated border border-border rounded-3xl divide-y divide-border transition-colors">
         {escalations.map(e => (
           <div key={e.id} className="flex items-start gap-3 px-5 py-4">
             <span className="mt-0.5 w-8 h-8 rounded-lg bg-warning/10 text-warning flex items-center justify-center flex-shrink-0">
@@ -154,7 +186,7 @@ export function HomeNextActions({ escalations }: { escalations: HomeEscalation[]
           </div>
         ))}
       </div>
-    </section>
+    </details>
   )
 }
 
