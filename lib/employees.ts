@@ -90,6 +90,14 @@ export const EVENT_TYPES: Record<string, { label: string; bmp?: string }> = {
   // File notes - written in the dashboard at the time. `metadata.note_type`
   // carries the kind (feedback, conversation, observation, concern, ...).
   file_note:           { label: 'File note', bmp: 'BMP-005' },
+  // AI Assistant worklist state. The worklist items themselves are DERIVED
+  // (lib/worklist.ts) and never stored; clearing one is an append-only trail
+  // event rather than a mutable task row, which is why no migration was
+  // needed. `metadata.item_key` identifies the item and
+  // `metadata.snooze_until` holds a remind-me date - it cannot go on
+  // occurred_at, which the POST route caps at 24h ahead.
+  worklist_done:       { label: 'Worklist item marked done' },
+  worklist_dismissed:  { label: 'Worklist item dismissed' },
   other:               { label: 'Other' },
 }
 

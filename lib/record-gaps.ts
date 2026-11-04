@@ -24,6 +24,15 @@ export interface Requirement {
   docTypes: string[]
   /** Short plain reason it matters - shown when it is missing. */
   why: string
+  /**
+   * The same requirement as a noun phrase, article included, for use inside
+   * a sentence. `label` is phrased as a completed state ("Fair Work
+   * Information Statement given"), which reads as a double negative the
+   * moment it is dropped into "... is not on their record". The Assistant
+   * worklist needs the noun; the tick-list in the team register keeps using
+   * `label`.
+   */
+  noun: string
 }
 
 const CONTRACT: Requirement = {
@@ -33,6 +42,7 @@ const CONTRACT: Requirement = {
   events: ['contract_issued'],
   docTypes: ['employment-contract', 'contract', 'letter-of-offer', 'confirmation-of-employment-letter'],
   why: 'Without one, the terms fall back to the bare minimums and you have nothing to point to.',
+  noun: 'a written contract',
 }
 const FWIS: Requirement = {
   key: 'fwis',
@@ -41,6 +51,7 @@ const FWIS: Requirement = {
   events: ['fwis_provided'],
   docTypes: [],
   why: 'Has to be given to every new employee on commencement.',
+  noun: 'the Fair Work Information Statement',
 }
 const CEIS: Requirement = {
   key: 'ceis',
@@ -49,6 +60,7 @@ const CEIS: Requirement = {
   events: ['ceis_provided'],
   docTypes: [],
   why: 'Casuals get this one as well, on commencement and again at intervals.',
+  noun: 'the Casual Employment Information Statement',
 }
 const FTCIS: Requirement = {
   key: 'ftcis',
@@ -57,6 +69,7 @@ const FTCIS: Requirement = {
   events: ['ftcis_provided'],
   docTypes: [],
   why: 'Required each time a fixed-term contract is entered into.',
+  noun: 'the Fixed Term Contract Information Statement',
 }
 const RIGHT_TO_WORK: Requirement = {
   key: 'right_to_work',
@@ -65,6 +78,7 @@ const RIGHT_TO_WORK: Requirement = {
   events: ['right_to_work_check'],
   docTypes: [],
   why: 'A dated check is your record that you looked before they started.',
+  noun: 'a right-to-work check',
 }
 const SUPER_CHOICE: Requirement = {
   key: 'super_choice',
@@ -73,6 +87,7 @@ const SUPER_CHOICE: Requirement = {
   events: ['super_choice'],
   docTypes: [],
   why: 'Paying a default fund without the stapled-fund check creates a shortfall.',
+  noun: 'a super choice or stapled-fund check',
 }
 const CONTRACTOR_AGREEMENT: Requirement = {
   key: 'contractor_agreement',
@@ -81,6 +96,7 @@ const CONTRACTOR_AGREEMENT: Requirement = {
   events: ['contractor_agreement'],
   docTypes: ['contractor-agreement', 'services-agreement'],
   why: 'The written terms are the starting point if the arrangement is ever questioned.',
+  noun: 'a contractor or services agreement',
 }
 const PROBATION_REVIEW: Requirement = {
   key: 'probation_review',
@@ -89,6 +105,7 @@ const PROBATION_REVIEW: Requirement = {
   events: ['probation_review', 'probation_decision'],
   docTypes: ['probationary-period-review-form'],
   why: 'A documented review inside the minimum employment period is what keeps the decision simple.',
+  noun: 'a probation review',
 }
 
 /** Requirements by employment type. Order = display order. */

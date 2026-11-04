@@ -30,6 +30,7 @@ Append-only record of strategic and architectural decisions. Reversals add a new
 2026-05-08 | Nathan engagement on hold indefinitely | D12; Nathan's own feedback was that paid engagement likely unnecessary | James
 2026-05-08 | Anthropic budget cap $100/month with alert at $80/month (not the $80/day previously suggested) | D13; reflects actual usage profile of an internal alpha | James
 2026-05-08 | Separate Anthropic API keys for production vs staging | D14; cleanest accounting and no commingling of dev with real-client traffic | James
+2026-10-30 | AI Assistant ships as a WORKLIST over existing people data, not a chat and not a document gallery | Spec docs/specs/ai-assistant-v1-spec.md. The HR half of the template engine stays closed: /api/documents/contract is LIVE and serves all 33 templates in lib/template-ip.ts, but only the 5 Recruitment ones are exposed. Re-exposing the 7 Performance Management and 5 Termination and Separation categories would be the withdrawn AI Administrator under a new tab name, and those are the two highest-risk categories against the no-legal-positioning rule. The engine being live and unlinked is deliberate, not an oversight - do not wire it up without reversing this line | James
 ```
 
 ---
