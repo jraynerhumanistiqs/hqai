@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import MobileShell from '@/components/layout/MobileShell'
+import NavProgressProvider from '@/components/nav/NavProgress'
 import ThemeBoundary from '@/components/theme/ThemeBoundary'
 import UnpaidPlanBanner from '@/components/billing/UnpaidPlanBanner'
 import { flagMap } from '@/lib/auth/feature-flags'
@@ -73,10 +74,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     // to dark (brand consistency with the public site) with a user toggle
     // to light; next-themes inside the boundary handles the switch.
     <ThemeBoundary app="product" themeMode="dashboard">
-      <MobileShell sidebarProps={sidebarProps}>
-        {unpaid && <UnpaidPlanBanner planId={bannerPlanId} />}
-        {children}
-      </MobileShell>
+      {/* Route-transition indicator. Wraps the shell rather than sitting
+          inside it so the sidebar's <NavLinkBeacon /> instances can reach its
+          context, and so its overlay is not nested in MobileShell's
+          overflow-hidden scroll container. See components/nav/NavProgress.tsx
+          for why its teardown is timer-driven and never animation-driven. */}
+      <NavProgressProvider>
+        <MobileShell sidebarProps={sidebarProps}>
+          {unpaid && <UnpaidPlanBanner planId={bannerPlanId} />}
+          {children}
+        </MobileShell>
+      </NavProgressProvider>
     </ThemeBoundary>
   )
 }

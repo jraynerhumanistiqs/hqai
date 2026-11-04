@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/ui/Modal'
+import { NavLinkBeacon } from '@/components/nav/NavProgress'
 import ThemeToggle from '@/components/theme/ThemeToggle'
 import {
   RiChat3Line,
@@ -291,6 +292,9 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
               : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
           <HomeIcon active={isActive('/dashboard', true)} />
           <span className="flex-1">Home</span>
+          {/* Renders nothing - reports this link's pending state to the
+              route-transition indicator. Has to sit INSIDE the Link. */}
+          <NavLinkBeacon />
         </Link>
 
         {/* Aug 2026 - flat service nav. The HQ People / HQ Recruit
@@ -358,6 +362,7 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
                 : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}>
             <SettingsIcon active={isActive('/dashboard/settings')} />
             <span>Settings</span>
+            <NavLinkBeacon />
           </Link>
           {/* Appearance toggle - flips the dashboard between the dark
               (brand-default) and light product themes. Collapses to its
@@ -593,6 +598,10 @@ function NavTab({
       {icon}
       <span className="flex-1">{label}</span>
       {tooltip && <InfoTooltip text={tooltip} />}
+      {/* Reports this tab's pending state to the route-transition
+          indicator (components/nav/NavProgress.tsx). Renders nothing, and
+          only works as a child of the Link. */}
+      <NavLinkBeacon />
     </Link>
   )
 }
