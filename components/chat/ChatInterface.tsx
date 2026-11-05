@@ -892,7 +892,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           role="dialog"
           aria-modal="true"
           aria-labelledby={advisorModalHeadingId}
-          className="fixed inset-0 bg-[color-mix(in_srgb,var(--ink)_55%,transparent)] flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[color-mix(in_srgb,rgb(var(--ink))_55%,transparent)] flex items-center justify-center z-50 p-4"
           onClick={() => setShowAdvisorModal(false)}
           onKeyDown={e => { if (e.key === 'Escape') setShowAdvisorModal(false) }}
         >

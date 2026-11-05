@@ -230,14 +230,14 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
         .doc-editor-page .ProseMirror h3 { font-size: 16px; font-weight: 700; margin: 14px 0 6px; }
         .doc-editor-page .ProseMirror h4 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; }
         .doc-editor-page .ProseMirror blockquote {
-          border-left: 3px solid var(--border);
+          border-left: 3px solid rgb(var(--border) / var(--border-a, 1));
           padding-left: 12px;
-          color: var(--ink-muted);
+          color: rgb(var(--ink-muted));
           margin: 0 0 12px;
         }
         .doc-editor-page .ProseMirror hr {
           border: 0;
-          border-top: 1px solid var(--border);
+          border-top: 1px solid rgb(var(--border) / var(--border-a, 1));
           margin: 16px 0;
         }
         .doc-editor-page .ProseMirror table {
@@ -247,11 +247,11 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
         }
         .doc-editor-page .ProseMirror table td,
         .doc-editor-page .ProseMirror table th {
-          border: 1px solid var(--border);
+          border: 1px solid rgb(var(--border) / var(--border-a, 1));
           padding: 6px 10px;
           vertical-align: top;
         }
-        .doc-editor-page .ProseMirror table th { background: var(--bg-soft); font-weight: 700; }
+        .doc-editor-page .ProseMirror table th { background: rgb(var(--bg-soft)); font-weight: 700; }
         .doc-editor-page .ProseMirror img {
           max-width: 100%;
           height: auto;
@@ -259,7 +259,7 @@ const DocEditor = forwardRef<DocEditorHandle, DocEditorProps>(function DocEditor
           margin: 8px 0;
         }
         .doc-editor-page .ProseMirror .is-empty::before {
-          color: var(--ink-muted);
+          color: rgb(var(--ink-muted));
           content: attr(data-placeholder);
           float: left;
           height: 0;

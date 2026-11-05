@@ -26,37 +26,62 @@ const config: Config = {
     extend: {
       colors: {
         // ── Semantic tokens (resolved from CSS vars at runtime) ─────
+        //
+        // TWO FORMS, AND THE DIFFERENCE MATTERS (Nov 2026)
+        // ------------------------------------------------------------
+        // Every token in app/globals.css is a CHANNEL TRIPLET
+        // (`--warning: 168 70 0`), fed through `rgb()` with Tailwind's
+        // `<alpha-value>` placeholder. That is the only form Tailwind v3
+        // can apply an opacity modifier to, so this is what makes BOTH
+        // `bg-warning` and `bg-warning/10` compile. While these were bare
+        // `var()` hexes the ~380 `token/NN` callsites in the app emitted no
+        // rule at all and rendered transparent.
+        //
+        //   plain  rgb(var(--x) / <alpha-value>)
+        //   alpha  rgb(var(--x) / calc(var(--x-a, 1) * <alpha-value>))
+        //
+        // The ALPHA form is for the five tokens that carry their own
+        // baked-in opacity in at least one theme (the values that used to be
+        // written `rgba(...)`): accent-soft, clay-soft, border, border-strong
+        // and input. `--x-a` is absent on opaque tokens and falls back to 1,
+        // so the two forms behave identically there - but a token that gains
+        // an `--x-a` and keeps the plain form would silently paint at full
+        // opacity. Give a token an `--x-a`, switch its entry here too.
+        //
         // Surface
-        bg:               'var(--bg)',
-        'bg-soft':        'var(--bg-soft)',
-        'bg-elevated':    'var(--bg-elevated)',
-        'surface-inverse': 'var(--surface-inverse, #000000)',
+        bg:               'rgb(var(--bg) / <alpha-value>)',
+        'bg-soft':        'rgb(var(--bg-soft) / <alpha-value>)',
+        'bg-elevated':    'rgb(var(--bg-elevated) / <alpha-value>)',
+        'surface-inverse': 'rgb(var(--surface-inverse, 0 0 0) / <alpha-value>)',
         // Text
-        ink:              'var(--ink)',
-        'ink-soft':       'var(--ink-soft)',
-        'ink-muted':      'var(--ink-muted)',
-        'ink-on-accent':  'var(--ink-on-accent)',
+        ink:              'rgb(var(--ink) / <alpha-value>)',
+        'ink-soft':       'rgb(var(--ink-soft) / <alpha-value>)',
+        'ink-muted':      'rgb(var(--ink-muted) / <alpha-value>)',
+        'ink-on-accent':  'rgb(var(--ink-on-accent) / <alpha-value>)',
         // Label on a --danger fill. Separate from ink-on-accent because
         // the product preset makes the accent yellow (so its label is a
         // dark amber-brown) while danger stays a saturated red that
         // still needs a white label in light / near-black in dark.
         // Falls back to ink-on-accent so marketing is unchanged.
-        'ink-on-danger':  'var(--ink-on-danger, var(--ink-on-accent))',
+        'ink-on-danger':  'rgb(var(--ink-on-danger, var(--ink-on-accent)) / <alpha-value>)',
         // Brand accent (public = ink; product = Clay, via data-app scope)
-        accent:           'var(--accent)',
-        'accent-hover':   'var(--accent-hover)',
-        'accent-soft':    'var(--accent-soft)',
+        accent:           'rgb(var(--accent) / <alpha-value>)',
+        'accent-hover':   'rgb(var(--accent-hover) / <alpha-value>)',
+        // alpha form - product light/dark bake a 16% / 18% gold tint in.
+        'accent-soft':    'rgb(var(--accent-soft) / calc(var(--accent-soft-a, 1) * <alpha-value>))',
         // Brand accent (Wattle Gold). Token name "clay" kept for the
         // existing callsites; value repointed in globals.css. Rationed:
         // CTAs, links, focus, citation signature. `clay-ink` = AA gold
         // text on light surfaces; `clay-hover` = pill hover.
-        clay:             'var(--accent-clay, #E8B23A)',
-        'clay-hover':     'var(--accent-clay-hover, #D9A52E)',
-        'clay-soft':      'var(--accent-clay-soft, #F7EBCB)',
-        'clay-ink':       'var(--accent-clay-ink, #8A6D12)',
-        // Border + decoration
-        border:           'var(--border)',
-        'border-strong':  'var(--border-strong)',
+        clay:             'rgb(var(--accent-clay, 232 178 58) / <alpha-value>)',
+        'clay-hover':     'rgb(var(--accent-clay-hover, 217 165 46) / <alpha-value>)',
+        // alpha form - marketing and product bake a 14-18% gold tint in.
+        'clay-soft':      'rgb(var(--accent-clay-soft, 247 235 203) / calc(var(--accent-clay-soft-a, 1) * <alpha-value>))',
+        'clay-ink':       'rgb(var(--accent-clay-ink, 138 109 18) / <alpha-value>)',
+        // Border + decoration. alpha form - product dark makes these white
+        // hairlines at 10% / 20% so they sit correctly on page AND card.
+        border:           'rgb(var(--border) / calc(var(--border-a, 1) * <alpha-value>))',
+        'border-strong':  'rgb(var(--border-strong) / calc(var(--border-strong-a, 1) * <alpha-value>))',
 
         // ── Product chrome + data viz (shadcn preset b1YmvCmim) ────
         // Defined only under [data-app="product"] in globals.css; the
@@ -64,22 +89,22 @@ const config: Config = {
         // use them. `sidebar*` is the nav-rail surface; `chart-1..5` is
         // the preset's blue series ramp, deliberately not the brand
         // yellow so a data series never reads as an interactive accent.
-        sidebar:                 'var(--sidebar, var(--bg))',
-        'sidebar-ink':           'var(--sidebar-ink, var(--ink))',
-        'sidebar-accent':        'var(--sidebar-accent, var(--bg-soft))',
-        'sidebar-accent-ink':    'var(--sidebar-accent-ink, var(--ink))',
-        'sidebar-primary':       'var(--sidebar-primary, var(--accent-clay))',
-        'sidebar-primary-ink':   'var(--sidebar-primary-ink, var(--ink-on-accent))',
-        'chart-1':               'var(--chart-1, #8EC5FF)',
-        'chart-2':               'var(--chart-2, #2B7FFF)',
-        'chart-3':               'var(--chart-3, #155DFC)',
-        'chart-4':               'var(--chart-4, #1447E6)',
-        'chart-5':               'var(--chart-5, #193CB8)',
+        sidebar:                 'rgb(var(--sidebar, var(--bg)) / <alpha-value>)',
+        'sidebar-ink':           'rgb(var(--sidebar-ink, var(--ink)) / <alpha-value>)',
+        'sidebar-accent':        'rgb(var(--sidebar-accent, var(--bg-soft)) / <alpha-value>)',
+        'sidebar-accent-ink':    'rgb(var(--sidebar-accent-ink, var(--ink)) / <alpha-value>)',
+        'sidebar-primary':       'rgb(var(--sidebar-primary, var(--accent-clay)) / <alpha-value>)',
+        'sidebar-primary-ink':   'rgb(var(--sidebar-primary-ink, var(--ink-on-accent)) / <alpha-value>)',
+        'chart-1':               'rgb(var(--chart-1, 142 197 255) / <alpha-value>)',
+        'chart-2':               'rgb(var(--chart-2, 43 127 255) / <alpha-value>)',
+        'chart-3':               'rgb(var(--chart-3, 21 93 252) / <alpha-value>)',
+        'chart-4':               'rgb(var(--chart-4, 20 71 230) / <alpha-value>)',
+        'chart-5':               'rgb(var(--chart-5, 25 60 184) / <alpha-value>)',
         // Semantic (resolved per theme)
-        danger:           'var(--danger)',
-        warning:          'var(--warning)',
-        success:          'var(--success)',
-        info:             'var(--info)',
+        danger:           'rgb(var(--danger) / <alpha-value>)',
+        warning:          'rgb(var(--warning) / <alpha-value>)',
+        success:          'rgb(var(--success) / <alpha-value>)',
+        info:             'rgb(var(--info) / <alpha-value>)',
 
         // ── shadcn / Vercel AI Elements token bridge ──────────────
         // AI Elements (components/ai-elements/*) is authored against
@@ -92,42 +117,45 @@ const config: Config = {
         // NB: `accent`/`accent-hover`/`accent-soft` are already defined
         // above as the brand CTA colour; we only add the missing
         // `accent-foreground` companion here.
-        background:              'var(--bg)',
-        foreground:              'var(--ink)',
-        card:                    'var(--bg-elevated)',
-        'card-foreground':       'var(--ink)',
-        popover:                 'var(--bg-elevated)',
-        'popover-foreground':    'var(--ink)',
-        primary:                 'var(--accent)',
-        'primary-foreground':    'var(--ink-on-accent)',
-        secondary:               'var(--bg-soft)',
-        'secondary-foreground':  'var(--ink)',
-        'muted-foreground':      'var(--ink-muted)',
-        'accent-foreground':     'var(--ink)',
-        destructive:             'var(--danger)',
-        'destructive-foreground':'var(--ink-on-danger, var(--ink-on-accent))',
-        input:                   'var(--input, var(--border))',
-        ring:                    'var(--ring, var(--accent))',
+        background:              'rgb(var(--bg) / <alpha-value>)',
+        foreground:              'rgb(var(--ink) / <alpha-value>)',
+        card:                    'rgb(var(--bg-elevated) / <alpha-value>)',
+        'card-foreground':       'rgb(var(--ink) / <alpha-value>)',
+        popover:                 'rgb(var(--bg-elevated) / <alpha-value>)',
+        'popover-foreground':    'rgb(var(--ink) / <alpha-value>)',
+        primary:                 'rgb(var(--accent) / <alpha-value>)',
+        'primary-foreground':    'rgb(var(--ink-on-accent) / <alpha-value>)',
+        secondary:               'rgb(var(--bg-soft) / <alpha-value>)',
+        'secondary-foreground':  'rgb(var(--ink) / <alpha-value>)',
+        'muted-foreground':      'rgb(var(--ink-muted) / <alpha-value>)',
+        'accent-foreground':     'rgb(var(--ink) / <alpha-value>)',
+        destructive:             'rgb(var(--danger) / <alpha-value>)',
+        'destructive-foreground':'rgb(var(--ink-on-danger, var(--ink-on-accent)) / <alpha-value>)',
+        // alpha form - --input is a 15% white hairline in product dark, and
+        // its --border fallback is a 10% one, so BOTH alphas are in the chain.
+        input:                   'rgb(var(--input, var(--border)) / calc(var(--input-a, var(--border-a, 1)) * <alpha-value>))',
+        ring:                    'rgb(var(--ring, var(--accent)) / <alpha-value>)',
 
         // ── Legacy aliases kept so the ~hundreds of existing
         //    `text-charcoal` / `text-mid` / `text-muted` / `bg-light`
         //    callsites keep rendering. Each maps to a token via CSS
         //    var so the dual-theme swap still flows through. The old
         //    hex literals stay as fallbacks for build-time safety. ──
+        // Literal hex, not tokens - Tailwind handles their opacity natively.
         black:    '#000000',
         white:    '#FFFFFF',
-        charcoal: 'var(--ink, #1F1F1F)',
-        mid:      'var(--ink-soft, #4b4b4b)',
+        charcoal: 'rgb(var(--ink, 31 31 31) / <alpha-value>)',
+        mid:      'rgb(var(--ink-soft, 75 75 75) / <alpha-value>)',
         // A0.1 fix - was #afafaf (2.6:1, AA fail). Resolves to
         // ink-muted in either Option 2 or Option 3 at >= 4.6:1.
-        muted:    'var(--ink-muted, #5e5d59)',
+        muted:    'rgb(var(--ink-muted, 94 93 89) / <alpha-value>)',
         'muted-decor': '#afafaf',
-        light:    'var(--bg-soft, #efefef)',
+        light:    'rgb(var(--bg-soft, 239 239 239) / <alpha-value>)',
 
         // Pre-existing alias tokens that the codebase uses verbatim.
         // Now sourced from the active theme.
-        accent2:  'var(--accent-hover, #1a1a1a)',
-        accent3:  'var(--bg-soft, #efefef)',
+        accent2:  'rgb(var(--accent-hover, 26 26 26) / <alpha-value>)',
+        accent3:  'rgb(var(--bg-soft, 239 239 239) / <alpha-value>)',
       },
 
       // ── Per-utility overrides of `accent` (Aug 2026) ──────────────
@@ -143,25 +171,25 @@ const config: Config = {
       // the product value is the AA-safe amber (#733E0A light,
       // #F0B100 dark). ~39 callsites, ~25 of them in product.
       textColor: {
-        accent: 'var(--accent-text, var(--accent))',
+        accent: 'rgb(var(--accent-text, var(--accent)) / <alpha-value>)',
       },
       // ring-accent -> --ring, the preset's neutral grey. A yellow
       // focus ring on white is ~1.6:1, i.e. no visible focus state.
-      // Caveat: this only reaches the plain `ring-accent` form. Tailwind
-      // v3 cannot apply an opacity modifier to a bare var() colour, so
-      // the ~120 `ring-accent/30` callsites emit no rule at all and have
-      // never rendered a ring. Pre-existing and NOT fixed here - the fix
-      // is to move the whole token system to channel triplets
-      // (`--accent: 253 199 0` + `rgb(var(--accent) / <alpha-value>)`),
-      // which would also touch :root and marketing.
+      // Nov 2026: the modifier form works now. While the tokens were bare
+      // var() hexes the ~105 `ring-accent/30` callsites emitted no rule, so
+      // `ring-2` fell back to Tailwind's own default ring colour and those
+      // focus rings painted BLUE (rgba(59,130,246,0.5)) rather than nothing.
+      // They are the brand ring at 30% from here on. The separate
+      // `html[data-app="product"] :focus-visible` outline in globals.css is
+      // still the indicator those controls actually rely on - leave it.
       ringColor: {
-        accent: 'var(--ring, var(--accent))',
+        accent: 'rgb(var(--ring, var(--accent)) / <alpha-value>)',
       },
       // outline-accent -> --ring, same reasoning. Notably the paid-plan
       // banner CTA, which is a yellow pill that would otherwise draw a
       // yellow focus outline on itself.
       outlineColor: {
-        accent: 'var(--ring, var(--accent))',
+        accent: 'rgb(var(--ring, var(--accent)) / <alpha-value>)',
       },
 
       fontFamily: {

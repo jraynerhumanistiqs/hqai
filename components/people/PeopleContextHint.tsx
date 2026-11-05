@@ -54,7 +54,7 @@ export default function PeopleContextHint({ text }: { text: string }) {
           className={
             'rounded-2xl border p-3 ' +
             (s.urgency === 'now'
-              ? 'border-[color-mix(in_srgb,var(--warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--warning)_8%,transparent)]'
+              ? 'border-[color-mix(in_srgb,rgb(var(--warning))_32%,transparent)] bg-[color-mix(in_srgb,rgb(var(--warning))_8%,transparent)]'
               : 'border-border bg-bg-elevated')
           }
         >

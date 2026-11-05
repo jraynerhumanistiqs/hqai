@@ -250,7 +250,7 @@ function NavProgressOverlay() {
           color-mix simply drops the declaration and the card still reads. */}
       <div
         className="absolute inset-0 backdrop-blur-[2px]"
-        style={{ backgroundColor: 'color-mix(in srgb, var(--bg) 72%, transparent)' }}
+        style={{ backgroundColor: 'color-mix(in srgb, rgb(var(--bg)) 72%, transparent)' }}
       />
       <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-border bg-bg-elevated px-9 py-8 shadow-modal">
         <NavProgressArt />

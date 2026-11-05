@@ -6,7 +6,34 @@
    the root via data-app="marketing" (Option 2 Ivory & Clay) or
    data-app="product" (Option 3 Ink & Amber). next-themes adds a `.dark`
    class on the html element for the in-app light/dark toggle (product
-   only - marketing stays light per the brief). */
+   only - marketing stays light per the brief).
+
+   COLOUR TOKENS ARE CHANNEL TRIPLETS, NOT COLOURS (Nov 2026)
+   -----------------------------------------------------------------
+   `--warning: 168 70 0`, never `--warning: #a84600`. tailwind.config.ts
+   maps each one through `rgb(var(--token) / <alpha-value>)`, which is the
+   only form Tailwind v3 can apply an opacity modifier to. While these were
+   bare `var()` hexes, `bg-warning/10` and the other ~380 `token/NN`
+   callsites in the app compiled to NO RULE AT ALL and rendered
+   transparent - StatusPill's tints, every danger/warning/success surface
+   and the ~105 `ring-accent/30` focus rings among them.
+
+   Two consequences, both load-bearing:
+
+   1. A triplet is not a colour. Anything reading one of these tokens
+      DIRECTLY - a `style={{ background: var(--bg) }}`, an SVG `fill`, a
+      `color-mix()` - has to wrap it: `rgb(var(--bg))`. Unwrapped, it is
+      an invalid value and the element renders no colour.
+
+   2. A token that needs its own baked-in opacity (the values that used to
+      be written `rgba(...)`) carries it in a companion `--token-a`, and
+      its tailwind.config.ts entry multiplies that by the modifier:
+      `rgb(var(--border) / calc(var(--border-a, 1) * <alpha-value>))`.
+      So `border-border` still paints the exact 10% dark-mode hairline
+      while `border-border/50` halves it. `--token-a` is absent on opaque
+      tokens and falls back to 1. If you give a token an `--token-a`, you
+      MUST switch its config entry to the calc form or the bare utility
+      silently paints it at full opacity. */
 
 @tailwind base;
 @tailwind components;
@@ -25,16 +52,16 @@
        migration switches every surface to white-first per the
        Sketch UI kit. Token names stay identical so existing
        Tailwind callsites (bg, bg-soft, ink, etc.) keep working. */
-    --bg:                #FFFFFF;
-    --bg-soft:           #F7F7F2;
-    --bg-elevated:       #FFFFFF;
-    --surface-inverse:   #111111;
+    --bg:                255 255 255;
+    --bg-soft:           247 247 242;
+    --bg-elevated:       255 255 255;
+    --surface-inverse:   17 17 17;
 
     /* ── Text ──────────────────────────────────────────────── */
-    --ink:               #111111;
-    --ink-soft:          #4D4D4D;
-    --ink-muted:         #9A9A99;
-    --ink-on-accent:     #FFFFFF;
+    --ink:               17 17 17;
+    --ink-soft:          77 77 77;
+    --ink-muted:         154 154 153;
+    --ink-on-accent:     255 255 255;
 
     /* ── Accent (PUBLIC / marketing surface) ───────────────────
        June 2026: the public site (landing, enterprise, login,
@@ -44,9 +71,9 @@
        is unaffected: it overrides these in [data-app="product"] below
        and keeps Clay. Clay survives on the public site only as a rare
        signature highlight via the --accent-clay token. */
-    --accent:            #111111;
-    --accent-hover:      #2A2A2A;
-    --accent-soft:       #EDEDE8;
+    --accent:            17 17 17;
+    --accent-hover:      42 42 42;
+    --accent-soft:       237 237 232;
 
     /* ── Brand accent: Wattle Gold (June 2026 frontend-design pass) ──
        Replaces the Clay terracotta (which read as the default Claude/
@@ -55,20 +82,20 @@
        Tailwind `clay`) so the existing callsites repaint for free.
        Rationed hard: CTAs, links, focus, and the citation signature
        only. `-ink` is the AA-on-light variant for gold TEXT on white. */
-    --accent-clay:       #E8B23A;
-    --accent-clay-hover: #D9A52E;
-    --accent-clay-soft:  #F7EBCB;
-    --accent-clay-ink:   #8A6D12;
+    --accent-clay:       232 178 58;
+    --accent-clay-hover: 217 165 46;
+    --accent-clay-soft:  247 235 203;
+    --accent-clay-ink:   138 109 18;
 
     /* ── Border (hairlines) ────────────────────────────────── */
-    --border:            #E6E5E0;
-    --border-strong:     #C9C8C0;
+    --border:            230 229 224;
+    --border-strong:     201 200 192;
 
     /* ── Semantic ──────────────────────────────────────────── */
-    --danger:            #C5483A;
-    --warning:           #B8770F;
-    --success:           #3D8A5E;
-    --info:              #6A9BCC;
+    --danger:            197 72 58;
+    --warning:           184 119 15;
+    --success:           61 138 94;
+    --info:              106 155 204;
 
     /* ── Radii ─────────────────────────────────────────────── */
     --radius-sm:    4px;
@@ -107,31 +134,32 @@
      unchanged brand highlight and still carries the primary CTAs.
      Login, onboarding and the dashboard are untouched. */
   [data-app="marketing"] {
-    --bg:               #0A0A0B;
-    --bg-soft:          #131417;
-    --bg-elevated:      #1B1D21;
-    --surface-inverse:  #FFFFFF;
+    --bg:               10 10 11;
+    --bg-soft:          19 20 23;
+    --bg-elevated:      27 29 33;
+    --surface-inverse:  255 255 255;
 
-    --ink:              #F5F5F4;
-    --ink-soft:         #A8A8A3;
-    --ink-muted:        #7C7C77;
-    --ink-on-accent:    #111111;
+    --ink:              245 245 244;
+    --ink-soft:         168 168 163;
+    --ink-muted:        124 124 119;
+    --ink-on-accent:    17 17 17;
 
     /* Secondary "black" accent inverts to light on dark. */
-    --accent:           #F5F5F4;
-    --accent-hover:     #E5E5E3;
-    --accent-soft:      #23262B;
+    --accent:           245 245 244;
+    --accent-hover:     229 229 227;
+    --accent-soft:      35 38 43;
 
     /* Wattle Gold is the brand highlight + primary CTA colour on dark.
        ~10.8:1 on the near-black bg; pills carry near-black labels
        (--ink-on-accent above is #111111). */
-    --accent-clay:      #E8B23A;
-    --accent-clay-hover: #F0C44E;
-    --accent-clay-soft: rgba(232,178,58,0.16);
-    --accent-clay-ink:  #0A0A0B;
+    --accent-clay:      232 178 58;
+    --accent-clay-hover: 240 196 78;
+    --accent-clay-soft: 232 178 58;
+    --accent-clay-soft-a: 0.16;  /* was rgba(232,178,58,0.16) */
+    --accent-clay-ink:  10 10 11;
 
-    --border:           #2A2D32;
-    --border-strong:    #3D4148;
+    --border:           42 45 50;
+    --border-strong:    61 65 72;
 
     --shadow-hairline:  0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:      0 0 0 1px rgba(255,255,255,0.06);
@@ -165,17 +193,17 @@
        Only the SURFACE ramp is taken from agndex. Its magenta primary
        is not: brand gold stays on buttons and the interactive
        components, which is the whole point of the reskin. */
-    --bg:               #FFFFFF;   /* agndex background, oklch(1)     */
-    --bg-soft:          #E4E4E4;   /* inset - widened ramp, Aug 2026 */
-    --bg-elevated:      #F2F2F2;   /* card  - widened ramp, Aug 2026 */
-    --surface-inverse:  #0A0A0A;
+    --bg:               255 255 255;   /* agndex background, oklch(1)     */
+    --bg-soft:          228 228 228;   /* inset - widened ramp, Aug 2026 */
+    --bg-elevated:      242 242 242;   /* card  - widened ramp, Aug 2026 */
+    --surface-inverse:  10 10 10;
 
-    --ink:              #0A0A0A;   /* preset foreground */
+    --ink:              10 10 10;   /* preset foreground */
     /* Two-step muted ramp landing on the preset's muted-foreground.
        #52525B is 7.7:1 on white and #737373 is 4.7:1, so both body and
        caption text clear AA. */
-    --ink-soft:         #52525B;
-    --ink-muted:        #666666;   /* darkened for AA on the deeper inset */
+    --ink-soft:         82 82 91;
+    --ink-muted:        102 102 102;   /* darkened for AA on the deeper inset */
 
     /* Label ON the accent. This deliberately overrides the previous
        rule that gold "cannot carry a label legibly on white" - the
@@ -183,68 +211,70 @@
        this dark amber-brown carries it at 5.5:1 (AA). White here would
        be 1.6:1, so this token must never go back to #FFFFFF while
        --accent is yellow. */
-    --ink-on-accent:    #111111;   /* near-black on Wattle Gold, 9.8:1 */
+    --ink-on-accent:    17 17 17;   /* near-black on Wattle Gold, 9.8:1 */
     /* Label on a --danger fill. Split out from --ink-on-accent, which
        the two used to share: on the red fill the label still has to be
        white (4.8:1), where the amber-brown above would be 1.8:1. */
-    --ink-on-danger:    #FFFFFF;
+    --ink-on-danger:    255 255 255;
 
     /* Primary is the preset yellow. --accent-hover is the preset's own
        one-step-deeper yellow (its dark-mode primary) rather than an
        invented shade. */
-    --accent:           #E8B23A;   /* Wattle Gold - unified with marketing */
-    --accent-hover:     #D9A52E;
-    --accent-soft:      rgba(232,178,58,0.16);
+    --accent:           232 178 58;   /* Wattle Gold - unified with marketing */
+    --accent-hover:     217 165 46;
+    --accent-soft:      232 178 58;
+    --accent-soft-a: 0.16;  /* was rgba(232,178,58,0.16) */
     /* Accent-coloured TEXT cannot use --accent: yellow on white is
        1.6:1. This is the AA-safe amber that the `text-accent` utility
        resolves to, wired via the textColor override in
        tailwind.config.ts so the existing callsites need no edits. */
-    --accent-text:      #7A6010;   /* gold TEXT, AA on white and card */
+    --accent-text:      122 96 16;   /* gold TEXT, AA on white and card */
 
     /* Gold highlight reconciled with the new yellow primary: this is
        the preset's sidebar-primary, one notch deeper than --accent, so
        gold accents and CTAs read as one family instead of two
        competing yellows. -ink stays the AA-on-light text variant. */
-    --accent-clay:       #E8B23A;
-    --accent-clay-hover: #D9A52E;
-    --accent-clay-soft:  rgba(232,178,58,0.14);
-    --accent-clay-ink:   #7A6010;
+    --accent-clay:       232 178 58;
+    --accent-clay-hover: 217 165 46;
+    --accent-clay-soft:  232 178 58;
+    --accent-clay-soft-a: 0.14;  /* was rgba(232,178,58,0.14) */
+    --accent-clay-ink:   122 96 16;
 
-    --border:           #E5E5E5;   /* preset border */
-    --border-strong:    #A1A1A1;   /* one step stronger */
-    --input:            #E5E5E5;   /* preset input */
+    --border:           229 229 229;   /* preset border */
+    --border-strong:    161 161 161;   /* one step stronger */
+    --input:            229 229 229;   /* preset input */
     /* Focus rings are neutral grey, not the primary: a yellow ring on
        white is ~1.5:1 and effectively invisible. Consumed by the
        ringColor / outlineColor overrides in tailwind.config.ts so the
        ~120 existing `ring-accent` callsites repaint without edits. */
-    --ring:             #A1A1A1;   /* preset ring */
+    --ring:             161 161 161;   /* preset ring */
     /* Focus indicator. The preset's --ring #A1A1A1 only reaches 2.3:1 on
        white, short of the 3:1 WCAG wants for a focus indicator, so the
        ring itself uses the preset's primary-foreground instead - still a
        preset colour, at 8.67:1. */
-    --focus-ring:       #7A6010;
+    --focus-ring:       122 96 16;
 
     /* Sidebar chrome, kept a half-step off the page so the nav rail
        reads as chrome rather than content. Nothing consumes these yet
        - components/sidebar/Sidebar.tsx still paints the rail with
        bg-bg. See the handover note. */
-    --sidebar:              #FAFAFA;   /* agndex sidebar, oklch(0.985)        */
-    --sidebar-ink:          #0A0A0A;
-    --sidebar-accent:       #E4E4E4;
-    --sidebar-accent-ink:   #171717;
-    --sidebar-primary:      #E8B23A;
-    --sidebar-primary-ink:  #111111;   /* near-black on gold */
+    --sidebar:              250 250 250;   /* agndex sidebar, oklch(0.985)        */
+    --sidebar-ink:          10 10 10;
+    --sidebar-accent:       228 228 228;
+    --sidebar-accent-ink:   23 23 23;
+    --sidebar-primary:      232 178 58;
+    --sidebar-primary-ink:  17 17 17;      /* near-black on gold */
 
     /* Chart series - the preset's blue ramp, light to dark. Blue on
        purpose: a yellow series would read as an interactive accent.
        Identical in both modes, so it is declared once here. */
-    --chart-1:          #8EC5FF;
-    --chart-2:          #2B7FFF;
-    --chart-3:          #155DFC;
-    --chart-4:          #1447E6;
-    --chart-5:          #193CB8;
+    --chart-1:          142 197 255;
+    --chart-2:          43 127 255;
+    --chart-3:          21 93 252;
+    --chart-4:          20 71 230;
+    --chart-5:          25 60 184;
 
-    --danger:           #D0000A;   /* deepened for AA on the darker card */
+    --danger:           208 0 10;   /* deepened for AA on the darker card */
     /* The preset has no warning token - shadcn's only negative-state
        colour is destructive. Warning has to stay clearly separable from
        the gold accent, which is the risk here - both are warm. Aug 2026,
@@ -253,9 +283,9 @@
        as hue, 5.4:1 on the card. Dark stays #FF6900 - it already sits
        between gold and danger, and moving it any redder walks it into
        --danger #FF6467. */
-    --warning:          #A84600;   /* deepened, further from gold */
-    --success:          #3D8A5E;
-    --info:             #6A9BCC;
+    --warning:          168 70 0;      /* deepened, further from gold */
+    --success:          61 138 94;
+    --info:             106 155 204;
 
     /* Preset radius scale, written as ratios off the base so the
        relationship stays legible: 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2.
@@ -263,13 +293,13 @@
        ladder. Radii, fonts and the chart ramp are declared once here:
        the .dark rule below also matches [data-app="product"], so it
        inherits all three. */
-    --radius:       0.625rem;                  /* 10px */
-    --radius-sm:    calc(var(--radius) * 0.6); /* 6px  */
-    --radius-md:    calc(var(--radius) * 0.8); /* 8px  */
-    --radius-lg:    var(--radius);             /* 10px */
-    --radius-xl:    calc(var(--radius) * 1.4); /* 14px */
-    --radius-panel: calc(var(--radius) * 1.8); /* 18px, preset 2xl */
-    --radius-3xl:   calc(var(--radius) * 2.2); /* 22px */
+    --radius:       0.625rem;                    /* 10px */
+    --radius-sm:    calc(var(--radius) * 0.6);   /* 6px  */
+    --radius-md:    calc(var(--radius) * 0.8);   /* 8px  */
+    --radius-lg:    var(--radius);               /* 10px */
+    --radius-xl:    calc(var(--radius) * 1.4);   /* 14px */
+    --radius-panel: calc(var(--radius) * 1.8);   /* 18px, preset 2xl */
+    --radius-3xl:   calc(var(--radius) * 2.2);   /* 22px */
 
     /* Figtree is the product face. Marketing is untouched: the
        Tailwind font stacks fall back to var(--font-geist-sans) and
@@ -301,70 +331,75 @@
        and still clears AA: on the page, ink 15.6:1, ink-muted 6.3:1,
        gold 8.5:1, danger and warning 5.6:1; on a card the worst pair is
        5.0:1. Brand and semantic colours below are untouched. */
-    --bg:               #202020;   /* agndex background, oklch(0.244) */
-    --bg-soft:          #262626;   /* agndex muted, oklch(0.269)      */
-    --bg-elevated:      #292929;   /* agndex card, oklch(0.281)       */
-    --surface-inverse:  #FAFAFA;
+    --bg:               32 32 32;      /* agndex background, oklch(0.244) */
+    --bg-soft:          38 38 38;      /* agndex muted, oklch(0.269)      */
+    --bg-elevated:      41 41 41;      /* agndex card, oklch(0.281)       */
+    --surface-inverse:  250 250 250;
 
-    --ink:              #FAFAFA;   /* preset foreground */
+    --ink:              250 250 250;   /* preset foreground */
     /* Mirrors the light ramp: #D4D4D4 is 13.4:1 on the page and
        #A1A1A1 is 7.7:1. The old --ink-soft (#A8A8A3) sat at the same
        weight as --ink-muted, which flattened the hierarchy. */
-    --ink-soft:         #D4D4D4;
-    --ink-muted:        #A1A1A1;   /* preset muted-foreground */
+    --ink-soft:         212 212 212;
+    --ink-muted:        161 161 161;   /* preset muted-foreground */
 
     /* Same amber-brown label as light - 4.5:1 on the dark primary.
        This block used to declare --ink-on-accent twice (#FFFFFF, then
        #0A0A0B further down); it is a single declaration now. */
-    --ink-on-accent:    #111111;   /* near-black on Wattle Gold, 9.8:1 */
+    --ink-on-accent:    17 17 17;   /* near-black on Wattle Gold, 9.8:1 */
     /* The dark destructive is a light red, so its label inverts to
        near-black (6.9:1). White would be 2.9:1 here. */
-    --ink-on-danger:    #0A0A0A;
+    --ink-on-danger:    10 10 10;
 
-    --accent:           #E8B23A;   /* Wattle Gold - unified with marketing */
-    --accent-hover:     #F0C44E;
-    --accent-soft:      rgba(232,178,58,0.18);
+    --accent:           232 178 58;   /* Wattle Gold - unified with marketing */
+    --accent-hover:     240 196 78;
+    --accent-soft:      232 178 58;
+    --accent-soft-a: 0.18;  /* was rgba(232,178,58,0.18) */
     /* Gold TEXT on dark wants the bright end of the ramp, not the
        brown: 10.4:1 on the page background. */
-    --accent-text:      #E8B23A;
+    --accent-text:      232 178 58;
 
-    --accent-clay:       #E8B23A;
-    --accent-clay-hover: #F0C44E;
-    --accent-clay-soft:  rgba(232,178,58,0.18);
+    --accent-clay:       232 178 58;
+    --accent-clay-hover: 240 196 78;
+    --accent-clay-soft:  232 178 58;
+    --accent-clay-soft-a: 0.18;  /* was rgba(232,178,58,0.18) */
     /* Was #0A0A0B, which made every `bg-clay-soft text-clay-ink` badge
        invisible in dark - near-black text on a dark gold tint. The
        AA-safe gold on a dark surface is the bright end (10.4:1 on the
        page, 9.4:1 on a card). */
-    --accent-clay-ink:   #E8B23A;
+    --accent-clay-ink:   232 178 58;
 
     /* Alpha hairlines, per the preset. They sit correctly on both the
        page (#0A0A0A) and the lifted card (#171717), where the old
        fixed #2A2D32 only worked on one of them. */
-    --border:           rgba(255,255,255,0.10);
-    --border-strong:    rgba(255,255,255,0.20);
-    --input:            rgba(255,255,255,0.15);
-    --ring:             #737373;   /* preset ring */
+    --border:           255 255 255;
+    --border-a: 0.10;  /* was rgba(255,255,255,0.10) */
+    --border-strong:    255 255 255;
+    --border-strong-a: 0.20;  /* was rgba(255,255,255,0.20) */
+    --input:            255 255 255;
+    --input-a: 0.15;  /* was rgba(255,255,255,0.15) */
+    --ring:             115 115 115;   /* preset ring */
     /* Dark focus indicator: the preset primary, 10.36:1 on the dark bg. */
-    --focus-ring:       #E8B23A;
+    --focus-ring:       232 178 58;
 
     /* agndex recesses the rail: the sidebar is DARKER than the page
        (#101010 against #202020) rather than lifted above it, so the nav
        reads as chrome the content floats on. Ink is 18.2:1 there and
        gold 10.0:1. */
-    --sidebar:              #101010;   /* agndex sidebar, oklch(0.173)       */
-    --sidebar-ink:          #FAFAFA;
-    --sidebar-accent:       #343434;   /* agndex sidebar-accent, oklch(0.325) */
-    --sidebar-accent-ink:   #FAFAFA;
-    --sidebar-primary:      #E8B23A;
-    --sidebar-primary-ink:  #111111;
+    --sidebar:              16 16 16;      /* agndex sidebar, oklch(0.173)       */
+    --sidebar-ink:          250 250 250;
+    --sidebar-accent:       52 52 52;      /* agndex sidebar-accent, oklch(0.325) */
+    --sidebar-accent-ink:   250 250 250;
+    --sidebar-primary:      232 178 58;
+    --sidebar-primary-ink:  17 17 17;
 
-    --danger:           #FF6467;   /* preset destructive */
+    --danger:           255 100 103;   /* preset destructive */
     /* Dark warning. The light amber-700 only reaches 3.94:1 on the dark
        background, so dark steps up the same ramp to orange-500: 74 units
        off the gold accent, 103 off danger, 6.86:1 on the dark surface.
        Previously the dark block never declared --warning at all and
        silently inherited the light value. */
-    --warning:          #FF6900;
+    --warning:          255 105 0;
 
     --shadow-hairline: 0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:     0 0 0 1px rgba(255,255,255,0.06);
@@ -377,8 +412,9 @@
   html { height: 100%; }
   body {
     height: 100%;
-    background: var(--bg);
-    color: var(--ink);
+    /* rgb(...) wrapped: these tokens are channel triplets, see the header. */
+    background: rgb(var(--bg));
+    color: rgb(var(--ink));
     /* --font-app-sans is only defined under [data-app="product"], so
        product surfaces get Figtree and everything else falls through to
        Geist. One rule, no marketing override needed. */
@@ -406,7 +442,7 @@
      transparent outline `outline-none` sets can no longer swallow the
      focus indicator. */
   html[data-app="product"] :focus-visible {
-    outline: 2px solid var(--focus-ring);
+    outline: 2px solid rgb(var(--focus-ring));
     outline-offset: 2px;
   }
 
@@ -448,7 +484,9 @@
 
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  /* rgb(...) / --border-a wrapped: --border is a channel triplet that carries
+     its own opacity in dark mode. See the header comment. */
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: rgb(var(--border) / var(--border-a, 1)); border-radius: 4px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 }
 

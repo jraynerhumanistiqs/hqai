@@ -85,6 +85,19 @@ neutral ramp with a light/dark toggle.
   forced-light. next-themes supplies `.dark`; storageKey "hqai-theme".
 
 ### Tokens (never hardcode colours - these flip per theme AND per surface)
+Every colour token in globals.css is a CHANNEL TRIPLET (`--warning: 168 70
+0`), mapped in tailwind.config.ts as `rgb(var(--x) / <alpha-value>)`. That
+is the only form Tailwind v3 can apply an opacity modifier to, so it is what
+makes both `bg-warning` and `bg-warning/10` compile. Keep new tokens in that
+form: a bare hex silently kills every `token/NN` callsite (Nov 2026 - ~990
+of them were painting nothing, or Tailwind's DEFAULT BLUE ring, before this
+was fixed). Five tokens bake their own alpha into a companion `--x-a`
+(accent-soft, clay-soft, border, border-strong, input) and use the
+`calc(var(--x-a, 1) * <alpha-value>)` form - add an `--x-a` and you must
+switch that token's config entry too, or it paints fully opaque.
+A triplet is NOT a colour, so anything consuming a token OUTSIDE Tailwind -
+`style={{...}}`, an SVG `fill`/`stroke`, `color-mix()`, a raw CSS rule - has
+to wrap it: `rgb(var(--bg))`.
 - Surfaces: `bg`, `bg-soft`, `bg-elevated`, `surface-inverse`
   - product LIGHT ramp is page #FFFFFF -> card #F2F2F2 -> inset #E4E4E4.
     Widened Aug 2026; at the old 10/10 steps the three read as one grey.
@@ -128,10 +141,11 @@ neutral ramp with a light/dark toggle.
 
 ### Focus indicator (do not remove)
 `html[data-app="product"] :focus-visible` in globals.css paints the only
-keyboard focus indicator the product has. The ~120 `focus-visible:ring-*/NN`
-utilities across the app emit NO CSS: every colour token is a bare `var()`
-and Tailwind v3 alpha modifiers need channel triplets. Those controls also
-set `outline-none`, so without this rule there is no focus ring at all. The
+keyboard focus indicator the product RELIES on. The ~120
+`focus-visible:ring-*/NN` utilities do now emit CSS (Nov 2026 triplet fix -
+until then they emitted nothing and `ring-2` fell back to Tailwind's default
+BLUE), but those controls also set `outline-none`, and a ring is not an
+outline, so this rule is still what guarantees an indicator. The
 `html` prefix is load-bearing - it outranks Tailwind's
 `focus-visible:outline-none`, which would otherwise tie and win on source
 order.

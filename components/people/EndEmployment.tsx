@@ -121,9 +121,9 @@ export default function EndEmployment({ employeeId, employeeName, onEnded }: Pro
     <div className="mt-5 space-y-3">
       {/* Caution */}
       {gate?.tier === 'caution' && (
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] p-3.5">
+        <div className="rounded-2xl border border-[color-mix(in_srgb,rgb(var(--warning))_32%,transparent)] bg-[color-mix(in_srgb,rgb(var(--warning))_8%,transparent)] p-3.5">
           <div className="flex gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,rgb(var(--warning))_16%,transparent)] text-warning">
               <RiAlertLine className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="flex-1 text-xs">
@@ -141,9 +141,9 @@ export default function EndEmployment({ employeeId, employeeName, onEnded }: Pro
 
       {/* Escalate */}
       {gate?.tier === 'escalate' && (
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--danger)_32%,transparent)] bg-[color-mix(in_srgb,var(--danger)_7%,transparent)] p-3.5">
+        <div className="rounded-2xl border border-[color-mix(in_srgb,rgb(var(--danger))_32%,transparent)] bg-[color-mix(in_srgb,rgb(var(--danger))_7%,transparent)] p-3.5">
           <div className="flex gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--danger)_13%,transparent)] text-danger">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,rgb(var(--danger))_13%,transparent)] text-danger">
               <RiLifebuoyLine className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="flex-1 text-xs">

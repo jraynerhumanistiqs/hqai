@@ -269,7 +269,7 @@ export default function TeamRegister() {
       {/* Detail drawer - the evidence trail */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6" role="dialog" aria-modal="true" aria-label={`${employeeName(selected)} record`}>
-          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--ink)_45%,transparent)]" onClick={() => setSelected(null)} />
+          <div className="absolute inset-0 bg-[color-mix(in_srgb,rgb(var(--ink))_45%,transparent)]" onClick={() => setSelected(null)} />
           <div className="relative w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
             <div className="flex items-start justify-between gap-4">
               <div>
