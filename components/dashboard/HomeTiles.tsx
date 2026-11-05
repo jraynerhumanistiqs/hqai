@@ -156,7 +156,16 @@ export function HomeNextActions({ escalations }: { escalations: HomeEscalation[]
         <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-ink">
           Next actions
         </h2>
-        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-bold text-warning">
+        {/* bg-bg-soft, NOT bg-warning/10. Every colour token in this repo is
+            a bare var() hex, and Tailwind v3 alpha modifiers need channel
+            triplets - so `bg-warning/10` compiles to nothing at all and the
+            pill renders with a transparent background. Measured in the
+            browser: computed backgroundColor rgba(0, 0, 0, 0). The same is
+            true of StatusPill's warning tone and the escalation icon chip
+            below, which is a pre-existing repo-wide issue, not specific to
+            this component. The warning meaning is carried by text-warning
+            (#a84600, 5.9:1 here), which does work. */}
+        <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs font-bold text-warning">
           {n}
         </span>
         <span className="sr-only">
