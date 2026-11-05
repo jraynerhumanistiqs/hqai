@@ -125,6 +125,11 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameDraft, setRenameDraft] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  // Which history row is mid-load, and whether the last open failed. Opening
+  // a conversation is a round trip, so the row has to say it is working or
+  // the click reads as ignored all over again.
+  const [openingId, setOpeningId] = useState<string | null>(null)
+  const [openError, setOpenError] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const advisorModalHeadingId = useId()
@@ -168,6 +173,44 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
         body: JSON.stringify({ title }),
       })
     } catch {}
+  }
+
+  // Open a conversation from the history sidebar.
+  //
+  // This used to be two setState calls - set the id, close the panel - and
+  // nothing fetched the transcript, so the pane kept showing whatever was
+  // already on screen. The click looked ignored, and the next message you
+  // sent was appended to a conversation whose history you could not see.
+  // GET /api/conversations/[id] was added for this; it did not exist.
+  async function openConversation(id: string) {
+    if (id === conversationId) { setHistoryOpen(false); return }
+    stopGeneration()
+    setOpeningId(id)
+    try {
+      const res = await fetch(`/api/conversations/${id}`)
+      if (!res.ok) {
+        setOpenError('That conversation could not be opened. Try again.')
+        return
+      }
+      const data = await res.json()
+      const loaded: Message[] = (data.messages ?? []).map((m: { role: string; content: string; escalate?: boolean }) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content ?? '',
+        escalate: m.escalate,
+        // Same derivation the live stream uses, so a reopened transcript
+        // surfaces the same Safe / Caution / Escalate treatment it did
+        // when it was first answered.
+        tier: deriveTier({ escalate: m.escalate }),
+      }))
+      setMessages(loaded)
+      setConversationId(id)
+      setOpenError(null)
+      setHistoryOpen(false)
+    } catch {
+      setOpenError('That conversation could not be opened. Try again.')
+    } finally {
+      setOpeningId(null)
+    }
   }
 
   async function deleteConversation(id: string) {
@@ -499,7 +542,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <span className="hidden sm:inline">Chat History</span>
             </button>
             <button
-              onClick={() => { stopGeneration(); setMessages([]); setConversationId(null) }}
+              onClick={() => { stopGeneration(); setMessages([]); setConversationId(null); setOpenError(null) }}
               className="bg-bg-soft rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-ink-soft hover:bg-border transition-colors whitespace-nowrap flex items-center gap-1"
             >
               <RiAddLine className="w-3.5 h-3.5" aria-hidden="true" />
@@ -740,6 +783,14 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
               <RiCloseLine className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
+          {/* A failed open has to say so here: the panel stays put on failure,
+              so without this the click looks ignored - the exact symptom this
+              fix exists to remove. */}
+          {openError && (
+            <p role="alert" className="border-b border-border px-4 py-2 text-xs text-danger">
+              {openError}
+            </p>
+          )}
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             {historyLoading ? (
               <div className="flex items-center justify-center py-10">
@@ -771,13 +822,13 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           />
                         ) : (
                           <button
-                            className="w-full text-left text-sm font-medium text-ink truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
-                            onClick={() => {
-                              setConversationId(c.id)
-                              setHistoryOpen(false)
-                            }}
+                            className="flex w-full items-center gap-1.5 text-left text-sm font-medium text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded disabled:opacity-70"
+                            onClick={() => openConversation(c.id)}
+                            disabled={openingId !== null}
+                            aria-current={c.id === conversationId ? 'true' : undefined}
                           >
-                            {(c.title || 'Untitled').replace(/[—–]/g, '-')}
+                            <span className="truncate">{(c.title || 'Untitled').replace(/[—–]/g, '-')}</span>
+                            {openingId === c.id && <Loader size={12} />}
                           </button>
                         )}
                         <p className="text-xs text-ink-muted mt-0.5">
