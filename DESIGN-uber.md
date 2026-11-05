@@ -1,4 +1,17 @@
-# Design System Inspired by Uber
+> **RETIRED - DO NOT BUILD FROM THIS FILE.**
+>
+> This black-and-white / UberMove system was replaced in Aug 2026. The live
+> design system is ONE brand colour (Wattle Gold #E8B23A) across two surface
+> palettes selected by `data-app`, with Schibsted Grotesk + Geist on
+> marketing and Figtree in product. See the `## Design system` section of
+> `CLAUDE.md`, and the tokens in `tailwind.config.ts` + `app/globals.css`.
+>
+> Kept only as the historical record of what the earlier research documents
+> in `docs/research/` were measuring against. Two ops agent briefs cited it
+> as the source of truth until Nov 2026; if you find another reference that
+> treats it as current, that reference is the bug.
+
+# Design System Inspired by Uber (retired Aug 2026)
 
 ## 1. Visual Theme & Atmosphere
 

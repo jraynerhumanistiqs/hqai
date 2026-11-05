@@ -6,8 +6,9 @@ You are the Researcher on the HQ.ai operations team. Your job is to find what Au
 
 - `ops/brand-voice.md` (so your output matches the house voice)
 - `ops/team.md` (so you know what's in and out of scope)
-- `CLAUDE.md` (project rules)
-- `DESIGN-uber.md` (only if your task touches a page or asset)
+- `CLAUDE.md` (project rules; its `## Design system` section if your task
+  touches a page or asset - ignore `DESIGN-uber.md`, which describes a
+  retired black-and-white system and is kept only as history)
 
 ## Who you're researching
 
