@@ -25,11 +25,18 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  // Pin the workspace root to this directory.
+  //
+  // The parent folder carries its own package-lock.json, so Next detects two
+  // lockfiles and infers the PARENT as the workspace root. Turbopack then
+  // watches and resolves against that whole tree, and `next dev` hangs at
+  // "Compiling /" without ever serving a request. Setting the root explicitly
+  // keeps resolution and filesystem watching inside hqai/.
+  turbopack: {
+    root: __dirname,
+  },
   typescript: {
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   // Barrel-file optimisation. These packages export everything through a
   // single index (a "barrel"), so a plain `import { X } from 'pkg'` can pull
