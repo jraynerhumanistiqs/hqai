@@ -29,7 +29,7 @@ const STATS = [
 const VALUES = [
   {
     t: 'AI plus real people',
-    d: 'AI does the quick stuff fast. Our people handle the calls that matter. You always get a human when you need one.',
+    d: 'AI does the quick stuff fast, and our people handle the calls that matter. You always get a human when you need one.',
     icon: PeopleIcon,
   },
   {
@@ -37,20 +37,20 @@ const VALUES = [
     d: (
       <>
         Every answer comes in{' '}
-        <Cited note="Plain-English answers with the working shown, so you can act straight away.">plain English with the working shown</Cited>, so you can act
-        straight away. No guessing, no fine print.
+        <Cited note="Plain-English answers with the working shown, so you can act straight away.">plain English with the working shown</Cited>, so you can
+        see how we got there and act straight away.
       </>
     ),
     icon: SourceIcon,
   },
   {
     t: 'Australian only',
-    d: 'We know Australian workplace law inside out. Built for businesses under 250 staff. Nothing borrowed from overseas.',
+    d: 'We work with Australian workplaces every day. Built for businesses under 250 staff, and not adapted from an overseas product.',
     icon: FlagIcon,
   },
   {
     t: 'No lock-in',
-    d: 'Cancel any time. We earn your next month by being useful. No long contract to trap you.',
+    d: 'Cancel any time. There is no long contract, so we have to earn your next month by being useful.',
     icon: NoLockIcon,
   },
 ]
@@ -119,8 +119,7 @@ export default function AboutPage() {
               Smart AI for the everyday, real people for the hard calls.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-              Four things we will not budge on. They are why small businesses trust us with the calls
-              that matter.
+              Four things we will not budge on.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">

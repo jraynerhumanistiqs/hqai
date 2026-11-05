@@ -23,7 +23,7 @@ const FEATURES = [
   },
   {
     t: 'Scores every CV with proof',
-    d: 'Each CV is scored against what you asked for, with the reason quoted straight from the CV. Nothing hidden.',
+    d: 'Each CV is scored against what you asked for, with the reason quoted straight from the CV, so you can see how every score was reached.',
     icon: ScoreIcon,
   },
   {

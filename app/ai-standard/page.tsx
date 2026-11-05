@@ -57,7 +57,7 @@ export default function AiStandardPage() {
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
               Plenty of AI tools will give you a confident answer about managing people. Confidence
               is easy. Being right, staying current, and knowing when to hand you to a human - that
-              is the hard part. This page explains how we do it.
+              is the hard part.
             </p>
           </div>
         </section>
@@ -75,10 +75,9 @@ export default function AiStandardPage() {
                 know-how our Humanistiqs owners have built up over 80+ years of combined experience.
               </p>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-                That grounding is the boundary, not just the starting point. The AI works inside
-                Australian workplace rules and our own IP, and nothing else. No irrelevant US
-                templates, no UK employment-law assumptions, no generic advice adjusted for an
-                Australian audience.
+                The grounding is a hard boundary. The AI works inside Australian workplace rules
+                and our own IP and nothing else, so you do not get US templates, UK employment-law
+                assumptions, or generic advice retrofitted for an Australian audience.
               </p>
             </article>
 
@@ -129,14 +128,14 @@ export default function AiStandardPage() {
                 all over again.
               </p>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-                That honesty is the standard we hold the AI to: a tool that knows its limits beats a
-                tool that pretends it has none.
+                That is the standard we hold the AI to. We would rather it stop and hand you over
+                than answer a question it cannot answer well.
               </p>
             </article>
 
             <article>
               <h2 className="font-display text-2xl font-bold tracking-tight text-ink">
-                Let us be straight about the limits.
+                What HQ.ai will not do.
               </h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {LIMITS.map((l) => (
@@ -153,9 +152,9 @@ export default function AiStandardPage() {
                 We are building the scorecard, and we will show you.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-                A standard you cannot measure is just marketing. We are building an accuracy audit
-                process - regularly testing the AI's answers against what our human HR advisors would
-                say, and using what we find to make it better.
+                We are building an accuracy audit process: regularly testing the AI's answers
+                against what our human HR advisors would say, and using what we find to make it
+                better.
               </p>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
                 Our intent is to publish what we can from that process, so you are not just taking

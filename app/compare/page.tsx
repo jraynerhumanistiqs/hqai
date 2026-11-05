@@ -78,8 +78,7 @@ export default function ComparePage() {
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
               Traditional outsourced-HR providers built their model in a different era: multi-year
               agreements, phone-based advice, pricing you only learn on a sales call. HQ.ai was built
-              to be the opposite - self-serve, month-to-month, priced in the open. Here is the honest
-              comparison.
+              to be the opposite: self-serve, month-to-month, priced in the open.
             </p>
           </div>
         </section>
@@ -147,19 +146,19 @@ export default function ComparePage() {
 
             <article>
               <h2 className="font-display text-2xl font-bold tracking-tight text-ink">
-                Our prices are on the website. That is the whole trick.
+                Our prices are on the website.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
                 HQ People from ${peopleFrom}/mo. HQ Recruit from ${recruitFrom}/mo. HQ Business from
                 ${bundleFrom}/mo. HR365 with a dedicated advisor from ${hr365From.toLocaleString('en-AU')}/mo.
-                It is all on the pricing page, and the price you see is the price you pay - unlimited
-                logins, no per-seat charges, no surprise extras.
+                The price you see is the price you pay, with unlimited logins, no per-seat charges
+                and no surprise extras.
               </p>
             </article>
 
             <article>
               <h2 className="font-display text-2xl font-bold tracking-tight text-ink">
-                To be fair.
+                Where a full-service provider still wins.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
                 An honest comparison cuts both ways. If you want someone else to handle everything end
@@ -183,8 +182,8 @@ export default function ComparePage() {
                 Try the other model.
               </h2>
               <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft">
-                No sales call, no contract, no risk. Sign up, use it for a month, and judge us on
-                whether we made your week lighter.
+                No sales call and no contract. Sign up, use it for a month, and judge us on whether
+                we made your week lighter.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

@@ -82,7 +82,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'How do extra hours work?',
-    a: 'It is simple, and we never reopen the deal. Extra advisor time is $250 an hour, billed in 15-minute blocks. You see any extra charge on your monthly statement before we bill it. If you find you need a lot more time every month, we will move you to a tailored plan rather than nickel-and-dime you.',
+    a: 'Extra advisor time is $250 an hour, billed in 15-minute blocks, and we never reopen the deal. You see any extra charge on your monthly statement before we bill it. If you find you need a lot more time every month, we will move you to a tailored plan rather than nickel-and-dime you.',
   },
   {
     q: 'Annual or month-to-month?',
@@ -90,7 +90,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: 'When can we start?',
-    a: 'Fast. A first call within 48 hours. A written scope within 5 business days. A signed agreement that same week. From first call to your first advisory session in under three weeks is normal.',
+    a: 'Quickly. We book a first call within 48 hours, send a written scope within 5 business days, and usually have a signed agreement that same week. From first call to your first advisory session in under three weeks is normal.',
   },
 ]
 
@@ -132,7 +132,7 @@ export default function EnterprisePage() {
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
               A dedicated Humanistiqs advisor on call for the hard 20% of HR or your hiring. The AI does
-              the admin behind them, so the human time goes where it matters. AI plus human judgement.
+              the admin behind them, so the human time goes where it matters.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <a

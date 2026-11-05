@@ -66,12 +66,12 @@ export default function FounderNote() {
             development, recruitment, business performance and strategy.
           </p>
           <p>
-            For years we've been asked and answered the same questions for small to medium Australian
-            businesses, that their locked-in retainer advisor couldn't (or made them read through a
-            600-page Award with little or no support without the premium cost).
+            For years we answered the questions that small and medium Australian businesses could not
+            get answered by their locked-in retainer advisor. They were handed a 600-page award and
+            left to work it out for themselves, unless they paid a premium for real support.
           </p>
           <p>
-            So, we built a tool that we wished they had: an AI Agent that handles the everyday HR and
+            So we built the tool we wished they had: an AI Agent that handles the everyday HR and
             recruitment work in minutes, with a real advisor on-hand only when the stakes are high.
           </p>
           <p className="text-ink">

@@ -35,12 +35,12 @@ const FEATURES = [
   },
   {
     t: 'A real human when it counts',
-    d: 'When a question is too tricky or too risky, the same Humanistiqs advisor steps in. No repeating yourself.',
+    d: 'When a question is too tricky or too risky, the same Humanistiqs advisor steps in, so you never have to explain your business again.',
     icon: PersonIcon,
   },
   {
     t: 'Australian law only',
-    d: 'No US or UK clutter. Built on Australian workplace law, nothing else.',
+    d: 'Built on Australian workplace rules and nothing else, with no US or UK material mixed in.',
     icon: ShieldIcon,
   },
 ]
@@ -110,7 +110,8 @@ export default function ProductPeoplePage() {
               Everything HQ People does for you.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
-              The everyday HR work, taken off your plate - the questions answered, the guesswork gone.
+              The everyday HR work, taken off your plate, with the questions answered and the
+              guesswork gone.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">

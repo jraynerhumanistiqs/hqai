@@ -43,7 +43,7 @@ const TABS: Tab[] = [
   {
     id: 'people',
     tag: 'HQ People',
-    title: 'Answers to any HR question, in plain English. Based on Australian legislation only.',
+    title: 'Answers to your everyday HR questions, in plain English. Built for Australian workplaces only.',
     desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute, in plain English.',
     bullets: [
       'Clear answers to your everyday HR questions',
@@ -59,7 +59,7 @@ const TABS: Tab[] = [
   {
     id: 'recruit',
     tag: 'HQ Recruit',
-    title: 'Hire the right person, without your own time cost or extra spend on agency fees.',
+    title: 'Hire the right person, without the hours or the agency fees.',
     desc: 'HQ Recruit runs the grunt work of hiring from start to finish - the job ad, sorting applicants, the first interviews and a clean shortlist - so you fill the role faster and back yourself with the right choice, even if hiring is not your day job.',
     bullets: [
       'Score every CV against what the job needs',

@@ -16,7 +16,7 @@ export default function RecruitDeepDive() {
             id="recruit-deepdive-heading"
             className="font-display text-[28px] font-bold leading-tight tracking-tight text-ink md:text-[36px]"
           >
-            Three fewer hours per CV. Zero gut-feel hires.
+            Hours off every shortlist. No more gut-feel hires.
           </h2>
 
           <div className="mt-6 space-y-4 text-base leading-relaxed text-ink-soft">
