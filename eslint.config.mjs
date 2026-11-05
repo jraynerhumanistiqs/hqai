@@ -13,11 +13,11 @@ export default [
       'supabase/migrations/**',
       'scripts/**',
       '.claude/**',
-      // Stray root-level duplicate files (real versions live under components/ and app/)
-      'ChatInterface.tsx',
-      'CommandBar.tsx',
-      'Sidebar.tsx',
-      'dashboard_layout.tsx',
+      // The four stray root-level duplicates this used to ignore
+      // (ChatInterface.tsx, CommandBar.tsx, Sidebar.tsx,
+      // dashboard_layout.tsx) are gone - deleted Nov 2026, the real
+      // versions live under components/ and app/. Do not re-add an ignore
+      // for a root-level copy of a component: delete the copy instead.
       '*.config.js',
       '*.config.mjs',
       '*.config.ts',

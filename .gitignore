@@ -12,6 +12,12 @@ tsconfig.tsbuildinfo
 # Eval judge cache (per-run, regenerated automatically)
 tests/eval/.cache/
 
+# Eval run output. tests/eval/run-eval.ts defaults --out to the repo root, so
+# these land here on every run and were getting committed. eval.json is NOT
+# ignored - that one is the suite INPUT that scripts/eval-selfserve.mjs reads.
+eval-report.json
+eval-report.md
+
 # Claude Flow internal scratch
 .claude-flow/agents/
 scripts/*.env
