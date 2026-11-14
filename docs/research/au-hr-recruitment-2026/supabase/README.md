@@ -31,6 +31,10 @@ Generated from the master register (Section 7 of the research report). Two table
 
 **Validation:** the full stack (`01`-`07`) was executed against a real `pgvector/pgvector:pg16` Postgres with the Supabase roles: 102 + 16 register rows, 842 question items, 52 gold, 7 canonical answers; FK integrity enforced (orphan codes rejected), idempotent re-seeds add zero, hybrid search + coverage views work, and both a synthetic and a **real lexical-baseline** eval run computed through `hr_eval_metrics()`. Two fixes landed during validation: the `dedup_hash` index is a plain (non-partial) unique index so `on conflict` can target it; and array-literal single quotes are escaped in the answer builder.
 
+## Answer coverage
+
+- 2026-11-14: 102/102 challenges have a row in `hr_challenge_answers.csv` - review 102, approved 0, draft 0, rejected 0. 1 is NEEDS_RESEARCH (X4: it was grounded on 6.3 because `best_match` ties 6.3 and 6.4; re-answer it from 6.4). 86 rows are is_escalate_default TRUE. All 19 batches passed `check` with the tier gate and live citation verification running (0 errors; citation warnings flag FWO pages or awards not in the ingested corpus, for a human to open). `06_challenge_answers.sql` is regenerated from the CSV by `build_answers.py`, which now reads the CSV instead of overwriting it. Next step: an Australian employment-law reviewer reads each row and moves it from review to approved (or rejected); after that, recalibrate the tier gate and re-run 07-14 in Supabase for new groundedness and gate numbers.
+
 ## Retrieval + escalation baseline (07) - real numbers
 
 `select public.run_lexical_baseline('lexical-baseline-v1');` then `select * from hr_eval_metrics(<id>)` on the 52 gold questions gives a genuine pre-embeddings baseline:

@@ -24,7 +24,7 @@ Return this entire file, filled in. Return nothing else.
 - status: review
 
 ### answer_text
-NEEDS_RESEARCH: The grounding source is report section 6.3, which covers the escalation boundary for the People track (terminations, discrimination, bullying, restructure), not the Recruitment track. It does not say which recruitment matters are safe to self-serve and which need a human. Examples it does not cover include job ads and interview questions that touch protected attributes, withdrawing an offer, pre-employment checks, contractor-versus-employee classification at hire, and visa or work-rights checks.
+NEEDS_RESEARCH: This batch was grounded on report section 6.3 (escalation boundary, People track) because answers_tool.py best_match ties 6.3 and 6.4 at 0.97 and keeps the first. The governing text is section 6.4 (The Escalation Boundary - Recruitment Track: visa sponsorship, discriminatory hiring, enterprise agreements) in 06-crosscutting.md. Re-answer X4 from 6.4; it was not available to the answering agent.
 
 ### source_refs
 
