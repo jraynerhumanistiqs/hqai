@@ -18,15 +18,18 @@ import {
   AU_STATES,
   EMPLOYMENT_TYPES,
   EMPLOYMENT_TYPE_LABELS,
-  EVENT_TYPES,
   employeeName,
   monthsOfService,
   type ComplianceEvent,
   type Employee,
 } from '@/lib/employees'
-import { computeGaps } from '@/lib/record-gaps'
-import FileNoteComposer from './FileNoteComposer'
+import { computeGaps, requirementsFor } from '@/lib/record-gaps'
+import { applySupersessions } from '@/lib/trail'
+import FileNoteComposer, { initialFromEvent } from './FileNoteComposer'
 import EndEmployment from './EndEmployment'
+import OnFileChecklist from './OnFileChecklist'
+import RecordTrail from './RecordTrail'
+import UploadDocument from './UploadDocument'
 
 /** List rows carry a gap summary computed by the API in one query. */
 type EmployeeRow = Employee & { gaps?: { satisfied: number; total: number; missing: number } }
@@ -56,6 +59,18 @@ export default function TeamRegister() {
   const [events, setEvents] = useState<ComplianceEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
   const [showNote, setShowNote] = useState(false)
+  // The note being corrected (a new note that supersedes it), if any.
+  const [correcting, setCorrecting] = useState<ComplianceEvent | null>(null)
+  // Uploader: null = closed, '' = general, otherwise the preset requirement key.
+  const [upload, setUpload] = useState<string | null>(null)
+
+  // Only one composer at a time, so a section never shows two filled CTAs.
+  function openPanel(panel: 'note' | 'upload' | 'correct', arg?: string | ComplianceEvent) {
+    setShowNote(panel === 'note')
+    setUpload(panel === 'upload' ? (typeof arg === 'string' ? arg : '') : null)
+    setCorrecting(panel === 'correct' && arg && typeof arg !== 'string' ? arg : null)
+  }
+  function closePanels() { setShowNote(false); setUpload(null); setCorrecting(null) }
 
   useEffect(() => { void load() }, [])
 
@@ -74,6 +89,7 @@ export default function TeamRegister() {
   }
 
   async function openEmployee(emp: Employee) {
+    if (selected?.id !== emp.id) closePanels()
     setSelected(emp)
     setEventsLoading(true)
     try {
@@ -81,6 +97,12 @@ export default function TeamRegister() {
       const data = await res.json()
       setEvents(res.ok ? (data.events ?? []) : [])
     } catch { setEvents([]) } finally { setEventsLoading(false) }
+  }
+
+  function refreshRecord(emp: Employee) {
+    closePanels()
+    void openEmployee(emp)   // refresh the trail
+    void load()              // refresh gap badges on the list
   }
 
   async function addEmployee(e: React.FormEvent) {
@@ -109,13 +131,15 @@ export default function TeamRegister() {
 
   // Evidence-gap read for the open person: what is on file vs what a record
   // for this employment type normally holds. Linked documents count via the
-  // doc_type captured on the trail at the moment of linking.
+  // doc_type captured on the trail at the moment of linking. Superseded
+  // entries are dropped first: a correction replaces, it never adds.
   const gaps = useMemo(() => {
     if (!selected) return null
-    const docTypes = events
+    const live = applySupersessions(events)
+    const docTypes = live
       .filter(ev => ev.event_type === 'document_linked')
       .map(ev => String((ev.metadata as Record<string, unknown> | null)?.doc_type ?? ''))
-    return computeGaps(selected, events, docTypes, employees.length || 1)
+    return computeGaps(selected, live, docTypes, employees.length || 1)
   }, [selected, events, employees.length])
 
   return (
@@ -269,7 +293,7 @@ export default function TeamRegister() {
       {/* Detail drawer - the evidence trail */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6" role="dialog" aria-modal="true" aria-label={`${employeeName(selected)} record`}>
-          <div className="absolute inset-0 bg-[color-mix(in_srgb,rgb(var(--ink))_45%,transparent)]" onClick={() => setSelected(null)} />
+          <div className="absolute inset-0 bg-ink/45" onClick={() => setSelected(null)} />
           <div className="relative w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-border bg-bg-elevated p-6 shadow-card">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -292,39 +316,13 @@ export default function TeamRegister() {
               </div>
             )}
 
-            {/* What is on file - the evidence-gap indicator. A completeness read
-                on their own record; it never says what to do about a gap. */}
+            {/* What is on file - the evidence-gap indicator */}
             {gaps && !eventsLoading && (
-              <div className="mt-5">
-                <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
-                  What is on file
-                </h3>
-                <p className="mt-1 text-xs text-ink-soft">
-                  {gaps.satisfied} of {gaps.total} standard items for a{' '}
-                  {EMPLOYMENT_TYPE_LABELS[selected.employment_type].toLowerCase()} role.
-                </p>
-                <ul className="mt-2 space-y-1.5">
-                  {gaps.items.filter(i => !i.notYetDue).map(i => (
-                    <li key={i.key} className="flex items-start gap-2 text-xs">
-                      <span
-                        aria-hidden="true"
-                        className={
-                          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ' +
-                          (i.satisfied ? 'border-ink text-ink' : 'border-border text-ink-muted')
-                        }
-                      >
-                        {i.satisfied ? '✓' : ''}
-                      </span>
-                      <span className={i.satisfied ? 'text-ink' : 'text-ink-soft'}>
-                        {i.label}
-                        {!i.satisfied && (
-                          <span className="block text-[11px] text-ink-muted">{i.why}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <OnFileChecklist
+                gaps={gaps}
+                employmentLabel={EMPLOYMENT_TYPE_LABELS[selected.employment_type]}
+                onUpload={key => openPanel('upload', key)}
+              />
             )}
 
             {/* End employment - the risky action, gated on timing (phase 3) */}
@@ -352,29 +350,39 @@ export default function TeamRegister() {
               ))}
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
                 What has been done
               </h3>
-              {!showNote && (
-                <button
-                  onClick={() => setShowNote(true)}
-                  className="rounded-full border border-border px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                >
-                  Add a file note
-                </button>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {upload === null && (
+                  <button onClick={() => openPanel('upload')} className={ghostBtn}>
+                    Upload a document
+                  </button>
+                )}
+                {!showNote && (
+                  <button onClick={() => openPanel('note')} className={ghostBtn}>
+                    Add a file note
+                  </button>
+                )}
+              </div>
             </div>
+            {upload !== null && (
+              <UploadDocument
+                key={upload || 'general'}
+                employeeId={selected.id}
+                requirements={requirementsFor(selected.employment_type)}
+                presetKey={upload || null}
+                onCancel={() => setUpload(null)}
+                onUploaded={() => refreshRecord(selected)}
+              />
+            )}
             {showNote && (
               <FileNoteComposer
                 employeeId={selected.id}
                 employeeName={employeeName(selected)}
                 onCancel={() => setShowNote(false)}
-                onSaved={() => {
-                  setShowNote(false)
-                  void openEmployee(selected)   // refresh the trail
-                  void load()                   // refresh gap badges on the list
-                }}
+                onSaved={() => refreshRecord(selected)}
               />
             )}
             {eventsLoading ? (
@@ -385,18 +393,23 @@ export default function TeamRegister() {
                 the date they happened.
               </p>
             ) : (
-              <ol className="mt-3 space-y-3">
-                {events.map(ev => (
-                  <li key={ev.id} className="border-l-2 border-border pl-3">
-                    <p className="text-sm text-ink">{ev.title}</p>
-                    <p className="text-xs text-ink-muted mt-0.5">
-                      {fmtDate(ev.occurred_at)}
-                      {ev.bmp_code ? ` · ${EVENT_TYPES[ev.event_type]?.label ?? ev.event_type}` : ''}
-                    </p>
-                    {ev.detail && <p className="text-xs text-ink-soft mt-1">{ev.detail}</p>}
-                  </li>
-                ))}
-              </ol>
+              <RecordTrail
+                employeeId={selected.id}
+                events={events}
+                correctingId={correcting?.id ?? null}
+                onCorrect={ev => openPanel('correct', ev)}
+                correctionSlot={correcting && (
+                  <FileNoteComposer
+                    key={correcting.id}
+                    employeeId={selected.id}
+                    employeeName={employeeName(selected)}
+                    initial={initialFromEvent(correcting)}
+                    supersedes={correcting.id}
+                    onCancel={() => setCorrecting(null)}
+                    onSaved={() => refreshRecord(selected)}
+                  />
+                )}
+              />
             )}
           </div>
         </div>
@@ -404,6 +417,9 @@ export default function TeamRegister() {
     </div>
   )
 }
+
+const ghostBtn =
+  'rounded-full border border-border px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 const inputCls =
   'w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-ink'

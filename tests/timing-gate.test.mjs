@@ -91,3 +91,40 @@ test('an unknown protected kind still counts, as other', () => {
   const g = evaluateGate([{ event_type: 'file_note', occurred_at: daysAgo(2), metadata: { note_type: 'protected_event', protected_kind: 'weird' } }], NOW)
   assert.equal(g.tier, 'escalate'); assert.equal(g.event.kind, 'other')
 })
+
+// --- corrections (lib/trail.ts) --------------------------------------------
+// The owner's production case: a "complaint" note logged as 12 days ago is
+// corrected to 45 days ago. The correction is a NEW event that supersedes the
+// original; the gate must read the correction's date, so End employment moves
+// from escalate to caution. This uses the REAL lib modules (Node 24 strips
+// types natively; timing-gate.ts only has a type-only import).
+
+test('correcting a 12-day complaint note to 45 days flips escalate -> caution', async () => {
+  const { applySupersessions } = await import('../lib/trail.ts')
+  const real = await import('../lib/timing-gate.ts')
+
+  const original = { id: 'orig', ...note('complaint', daysAgo(12)), title: 'File note - complaint' }
+  const correction = { id: 'fix', supersedes: 'orig', ...note('complaint', daysAgo(45)), title: 'File note - complaint' }
+
+  // Before the correction: escalate (12 days).
+  const before = real.evaluateGate(applySupersessions([original]), NOW)
+  assert.equal(before.tier, 'escalate')
+  assert.equal(before.days, 12)
+
+  // Both rows stay on the trail; reading the RAW trail would still escalate,
+  // which is exactly why every caller applies supersessions first.
+  assert.equal(real.evaluateGate([original, correction], NOW).tier, 'escalate')
+
+  // After: only the correction is live, and its date is what the gate reads.
+  const after = real.evaluateGate(applySupersessions([original, correction]), NOW)
+  assert.equal(after.tier, 'caution')
+  assert.equal(after.days, 45)
+})
+
+test('correcting a protected note into an ordinary note clears the gate', async () => {
+  const { applySupersessions } = await import('../lib/trail.ts')
+  const real = await import('../lib/timing-gate.ts')
+  const original = { id: 'o', ...note('complaint', daysAgo(5)), title: 'x' }
+  const correction = { id: 'c', supersedes: 'o', event_type: 'file_note', occurred_at: daysAgo(5), title: 'x', metadata: { note_type: 'conversation' } }
+  assert.equal(real.evaluateGate(applySupersessions([original, correction]), NOW).tier, 'safe')
+})

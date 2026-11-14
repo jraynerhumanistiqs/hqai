@@ -15,17 +15,44 @@
 // in `detail`; the template's other sections go in `metadata`. The date of
 // discussion becomes `occurred_at` (it can be backdated - the record also
 // keeps when it was entered, so the gap is visible, not hidden).
+//
+// Corrections: given `supersedes` + `initial`, the composer opens prefilled
+// from an existing note and saves a NEW note that supersedes it. Nothing is
+// edited or deleted; the original stays on file, marked as superseded, and
+// the correction's own date is what the timing gate reads (lib/trail.ts).
+//
+// Help mode is plan-gated server-side. A 403 { code: 'plan_required' } from
+// /api/file-notes/assist shows the server's own message as a quiet notice in
+// the help panel; "Write it myself" always stays available.
 
 import { useState } from 'react'
 import { GUIDED_QUESTIONS, NOTE_TYPES, type FileNoteDraft, type NoteType } from '@/lib/file-note-kb'
 import { PROTECTED_KINDS, type ProtectedKind } from '@/lib/timing-gate'
+import type { ComplianceEvent } from '@/lib/employees'
+
+/** Prefill for a correction - built from the original note by initialFromEvent. */
+export interface FileNoteInitial {
+  noteType: NoteType
+  date: string
+  conductedBy: string
+  topic: string
+  staffAware: boolean
+  protectedKind: ProtectedKind
+  draft: FileNoteDraft
+}
 
 interface Props {
   employeeId: string
   employeeName: string
   onSaved: () => void
   onCancel: () => void
+  /** Prefill (corrections). */
+  initial?: FileNoteInitial
+  /** Id of the note this one corrects. Saved as `supersedes`. */
+  supersedes?: string
 }
+
+const BILLING_HREF = '/dashboard/settings?tab=billing'
 
 type Path = 'choose' | 'freeform' | 'help' | 'guided' | 'cleanup' | 'review'
 
@@ -36,25 +63,58 @@ const EMPTY_DRAFT: FileNoteDraft = {
   policies_referenced: '', agreed_outcome: '', follow_up_date: '',
 }
 
-export default function FileNoteComposer({ employeeId, employeeName, onSaved, onCancel }: Props) {
-  const [noteType, setNoteType] = useState<NoteType>('conversation')
-  const [date, setDate] = useState(today())
-  const [conductedBy, setConductedBy] = useState('')
-  const [topic, setTopic] = useState('')
-  const [staffAware, setStaffAware] = useState(false)
+/** Build a correction prefill from an existing file_note event. */
+export function initialFromEvent(ev: Pick<ComplianceEvent, 'title' | 'detail' | 'occurred_at' | 'metadata'>): FileNoteInitial {
+  const m = (ev.metadata ?? {}) as Record<string, unknown>
+  const str = (k: string) => (typeof m[k] === 'string' ? (m[k] as string) : '')
+  const noteType = (str('note_type') in NOTE_TYPES ? str('note_type') : 'conversation') as NoteType
+  const kind = (str('protected_kind') in PROTECTED_KINDS ? str('protected_kind') : 'complaint') as ProtectedKind
+  const topic = str('topic') || ev.title.replace(/^File note - /, '')
+  const parsed = new Date(ev.occurred_at)
+  const date = Number.isNaN(parsed.getTime()) ? today() : localDate(parsed)
+  return {
+    noteType, date, topic, protectedKind: kind,
+    conductedBy: str('conducted_by'),
+    staffAware: m.staff_aware === true,
+    draft: {
+      topic,
+      key_points: ev.detail ?? '',
+      employee_response: str('employee_response'),
+      previous_discussions: str('previous_discussions'),
+      policies_referenced: str('policies_referenced'),
+      agreed_outcome: str('agreed_outcome'),
+      follow_up_date: str('follow_up_date'),
+    },
+  }
+}
 
-  const [path, setPath] = useState<Path>('choose')
+function localDate(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+export default function FileNoteComposer({ employeeId, employeeName, onSaved, onCancel, initial, supersedes }: Props) {
+  const [noteType, setNoteType] = useState<NoteType>(initial?.noteType ?? 'conversation')
+  const [date, setDate] = useState(initial?.date ?? today())
+  const [conductedBy, setConductedBy] = useState(initial?.conductedBy ?? '')
+  const [topic, setTopic] = useState(initial?.topic ?? '')
+  const [staffAware, setStaffAware] = useState(initial?.staffAware ?? false)
+
+  // A correction opens straight on the review form with the original's text.
+  const [path, setPath] = useState<Path>(initial ? 'review' : 'choose')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [rawText, setRawText] = useState('')
-  const [draft, setDraft] = useState<FileNoteDraft>(EMPTY_DRAFT)
+  const [draft, setDraft] = useState<FileNoteDraft>(initial?.draft ?? EMPTY_DRAFT)
   const [source, setSource] = useState<'freeform' | 'guided' | 'cleanup'>('freeform')
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Server-supplied message when help mode is not on this plan.
+  const [planNotice, setPlanNotice] = useState<string | null>(null)
 
   // Kind of protected matter - only for the "Leave, complaint or disclosure"
   // type. This is what the timing gate reads.
-  const [protectedKind, setProtectedKind] = useState<ProtectedKind>('complaint')
+  const [protectedKind, setProtectedKind] = useState<ProtectedKind>(initial?.protectedKind ?? 'complaint')
 
   // Observations do not involve the person, and a protected-event log is a
   // fact record rather than a discussion, so awareness is not required there.
@@ -74,7 +134,11 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
           answers, raw_text: rawText,
         }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 403 && data?.code === 'plan_required') {
+        setPlanNotice(typeof data.error === 'string' && data.error ? data.error : 'Help writing notes is not on your current plan.')
+        return
+      }
       if (!res.ok) throw new Error(data.error ?? 'Could not draft the note')
       setDraft({ ...data.draft, topic: data.draft.topic || topic })
       setSource(mode)
@@ -82,6 +146,18 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not draft the note')
     } finally { setBusy(false) }
+  }
+
+  // Freeform path. Anything already typed into the help panel is carried over
+  // so a plan notice never costs the user their words.
+  function writeItMyself() {
+    const carried = rawText.trim() || GUIDED_QUESTIONS
+      .map(q => answers[q.key]?.trim())
+      .filter(Boolean)
+      .join('\n\n')
+    setSource('freeform')
+    setDraft({ ...EMPTY_DRAFT, topic, key_points: carried })
+    setPath('review')
   }
 
   async function save() {
@@ -110,6 +186,7 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
             follow_up_date: draft.follow_up_date || null,
             source,
           },
+          ...(supersedes ? { supersedes } : {}),
         }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Could not save the note')
@@ -123,9 +200,13 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
     <div className="mt-4 rounded-2xl border border-border bg-bg p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink-muted">Add a file note</p>
+          <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+            {supersedes ? 'Correct this entry' : 'Add a file note'}
+          </p>
           <p className="mt-1 text-xs text-ink-soft">
-            A dated record of what happened and what was agreed. Write it as facts - the team member can ask to see their file.
+            {supersedes
+              ? 'This records a correction. The original stays on file, marked as superseded.'
+              : 'A dated record of what happened and what was agreed. Write it as facts - the team member can ask to see their file.'}
           </p>
         </div>
         <button onClick={onCancel} className="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold text-ink-soft hover:bg-bg-soft hover:text-ink">
@@ -174,7 +255,7 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
         <div className="flex flex-wrap gap-2">
           <button
             disabled={!headerComplete}
-            onClick={() => { setSource('freeform'); setDraft({ ...EMPTY_DRAFT, topic }); setPath('review') }}
+            onClick={writeItMyself}
             className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink-on-accent hover:bg-accent-hover disabled:opacity-40"
           >
             Write it myself
@@ -191,6 +272,21 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
               Fill in the date and topic{awarenessRequired ? ', and confirm they know about the note,' : ''} to continue.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Help mode not on this plan - the server's words, plus the way out */}
+      {planNotice && (path === 'help' || path === 'guided' || path === 'cleanup') && (
+        <div className="rounded-2xl border border-border p-3 text-xs text-ink-soft" role="status">
+          <p>{planNotice}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <button onClick={writeItMyself} className="font-bold text-ink underline underline-offset-2 hover:text-ink-soft">
+              Write it myself
+            </button>
+            <a href={BILLING_HREF} className="font-bold text-ink-soft underline underline-offset-2 hover:text-ink">
+              See plans
+            </a>
+          </div>
         </div>
       )}
 
@@ -259,7 +355,7 @@ export default function FileNoteComposer({ employeeId, employeeName, onSaved, on
               <input type="date" value={draft.follow_up_date} onChange={e => setDraft({ ...draft, follow_up_date: e.target.value })} className={inputCls} />
             </Field>
           </div>
-          <ActionRow busy={busy} primary="Save to record" onPrimary={() => void save()} onBack={() => setPath('choose')} />
+          <ActionRow busy={busy} primary={supersedes ? 'Save correction' : 'Save to record'} onPrimary={() => void save()} onBack={() => setPath('choose')} />
         </div>
       )}
 

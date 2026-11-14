@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { detectTopic, signalsFor } from '@/lib/people-context'
 import { evaluateGate, type GateResult } from '@/lib/timing-gate'
 import type { ComplianceEvent, Employee } from '@/lib/employees'
+import { applySupersessions, selectWithSupersedes } from '@/lib/trail'
 
 // Reactive hook endpoint.
 //
@@ -46,16 +47,22 @@ export async function POST(req: NextRequest) {
   let timing: Map<string, GateResult> | undefined
   if (topic === 'termination' || topic === 'performance') {
     const ids = (employees as Employee[]).map(e => e.id)
-    const { data: evs } = await supabase
-      .from('compliance_events')
-      .select('employee_id, event_type, metadata, occurred_at, title')
-      .eq('business_id', profile.business_id)
-      .in('employee_id', ids)
-      .in('event_type', ['file_note', 'flexible_request', 'casual_conversion'])
-      .order('occurred_at', { ascending: false })
-      .limit(500)
+    // A correction is itself a file note, so the event_type filter keeps both
+    // the original and its replacement; superseded rows are then dropped.
+    const { data: evs } = await selectWithSupersedes<ComplianceEvent & { employee_id: string }>(
+      'id, employee_id, event_type, metadata, occurred_at, title',
+      cols => supabase
+        .from('compliance_events')
+        .select(cols)
+        .eq('business_id', profile.business_id)
+        .in('employee_id', ids)
+        .in('event_type', ['file_note', 'flexible_request', 'casual_conversion'])
+        .order('occurred_at', { ascending: false })
+        .limit(500)
+        .returns<Array<ComplianceEvent & { employee_id: string }>>(),
+    )
     const byEmployee = new Map<string, ComplianceEvent[]>()
-    for (const ev of (evs ?? []) as Array<ComplianceEvent & { employee_id: string }>) {
+    for (const ev of applySupersessions(evs ?? [])) {
       const list = byEmployee.get(ev.employee_id) ?? []
       list.push(ev)
       byEmployee.set(ev.employee_id, list)

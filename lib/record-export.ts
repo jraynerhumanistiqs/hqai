@@ -18,6 +18,7 @@ import {
   type Employee,
 } from './employees'
 import { computeGaps } from './record-gaps'
+import { applySupersessions, correctionsById } from './trail'
 
 export interface LinkedDocument {
   id: string
@@ -27,6 +28,8 @@ export interface LinkedDocument {
   /** The user's own note on why this document exists / its history. */
   context: string | null
   linked_at: string
+  /** Who added it, when known (uploaded files carry this). */
+  added_by?: string | null
 }
 
 export interface RecordExportInput {
@@ -63,9 +66,19 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
   const generatedAt = input.generatedAt ?? new Date()
   const name = employeeName(e)
 
+  // Corrections never overwrite: the record prints every entry, but what is
+  // on file is worked out from the live ones only (lib/trail.ts).
+  const live = applySupersessions(events)
+  const correctedBy = correctionsById(events)
+  const supersededLabel = (id: string): string | null => {
+    const c = correctedBy.get(id)
+    return c ? `Superseded on ${fmtDate(c.created_at)}` : null
+  }
+  const originalOf = new Map(events.map(ev => [ev.id, ev]))
+
   const gaps = computeGaps(
     e,
-    events,
+    live,
     documents.map(d => d.type ?? ''),
     headcount,
     generatedAt,
@@ -116,7 +129,9 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
         .map(i => [
           i.label,
           i.satisfied ? 'Yes' : 'No',
-          i.satisfied ? (i.via === 'document' ? 'Linked document' : 'Recorded event') : '-',
+          i.satisfied
+            ? i.via === 'document' ? 'Linked document' : i.via === 'upload' ? 'Uploaded file' : 'Recorded event'
+            : '-',
         ]),
     },
   ]
@@ -139,7 +154,13 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
         const s = (k: string) => (typeof m[k] === 'string' ? clean(m[k] as string) : '')
         const kind = s('note_type') ? s('note_type').replace(/_/g, ' ') : 'note'
         const topic = s('topic') || clean(n.title).replace(/^File note - /, '')
+        const superseded = supersededLabel(n.id)
+        const corrects = n.supersedes ? originalOf.get(n.supersedes) : undefined
         const kv: Array<{ label: string; value: string }> = [
+          ...(superseded ? [{ label: 'Status', value: `${superseded} - kept for the record, not current` }] : []),
+          ...(n.supersedes
+            ? [{ label: 'Correction of', value: corrects ? `entry entered ${fmtDateTime(corrects.created_at)}` : 'an earlier entry' }]
+            : []),
           { label: 'Date of discussion', value: fmtDate(n.occurred_at) },
           { label: 'Type', value: kind },
           ...(topic ? [{ label: 'Topic', value: topic }] : []),
@@ -148,7 +169,7 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
           { label: 'Entered', value: fmtDateTime(n.created_at) },
         ]
         const blocks: DocumentBlock[] = [
-          { type: 'heading', level: 3, text: topic || kind },
+          { type: 'heading', level: 3, text: `${topic || kind}${superseded ? ' (superseded)' : ''}` },
           { type: 'kv', items: kv },
           { type: 'paragraph', text: clean(n.detail) || '-' },
         ]
@@ -174,11 +195,17 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
         headers: ['When', 'What', 'Detail'],
         rows: timeline
           .filter(ev => ev.event_type !== 'file_note') // notes have their own section
-          .map(ev => [
-            fmtDateTime(ev.occurred_at),
-            EVENT_TYPES[ev.event_type]?.label ?? clean(ev.title),
-            clean(ev.detail) || '-',
-          ]),
+          .map(ev => {
+            const what = ev.event_type === 'document_uploaded'
+              ? `${EVENT_TYPES.document_uploaded.label}: ${clean(ev.title)}`
+              : EVENT_TYPES[ev.event_type]?.label ?? clean(ev.title)
+            const superseded = supersededLabel(ev.id)
+            return [
+              fmtDateTime(ev.occurred_at),
+              superseded ? `${what} [${superseded}]` : what,
+              clean(ev.detail) || '-',
+            ]
+          }),
       }]
 
   // ---- Section: documents --------------------------------------------------
@@ -186,11 +213,12 @@ export function buildRecordDocument(input: RecordExportInput): StructuredDocumen
     ? [{ type: 'paragraph', text: 'No documents linked to this record.' }]
     : [{
         type: 'table',
-        headers: ['Document', 'Created', 'Added to record', 'Context'],
+        headers: ['Document', 'Created', 'Added to record', 'Added by', 'Context'],
         rows: documents.map(d => [
           clean(d.title),
           fmtDate(d.created_at),
           fmtDate(d.linked_at),
+          clean(d.added_by) || '-',
           clean(d.context) || '-',
         ]),
       }]

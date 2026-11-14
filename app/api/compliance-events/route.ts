@@ -1,12 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { EVENT_TYPES } from '@/lib/employees'
+import { isMissingSupersedes } from '@/lib/trail'
 
 // The evidence trail.
 //
 // Append-only by design (the table has no UPDATE policy). The value of this
 // record is that it was written at the time rather than reconstructed later -
 // which is exactly what the reverse onus of proof turns on in a wage dispute.
+//
+// Corrections: a POST may carry `supersedes` (the id of an earlier event for
+// the same person). The original is never changed; derived reads drop it via
+// lib/trail.ts. GET selects '*', so `supersedes` comes back once migrated.
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 async function businessIdFor(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
   const { data } = await supabase
@@ -78,6 +85,26 @@ export async function POST(req: NextRequest) {
     if (!emp) return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
   }
 
+  // A correction must point at an event in the same business AND for the same
+  // person - otherwise one record could silently cancel an entry on another.
+  let supersedes: string | null = null
+  if (body.supersedes !== undefined && body.supersedes !== null && body.supersedes !== '') {
+    const ref = String(body.supersedes)
+    if (!UUID_RE.test(ref)) {
+      return NextResponse.json({ error: 'That entry could not be found' }, { status: 400 })
+    }
+    if (!body.employee_id) {
+      return NextResponse.json({ error: 'A correction must be for a person on the register' }, { status: 400 })
+    }
+    const { data: original } = await supabase
+      .from('compliance_events').select('id, business_id, employee_id')
+      .eq('id', ref).maybeSingle()
+    if (!original || original.business_id !== businessId || original.employee_id !== body.employee_id) {
+      return NextResponse.json({ error: "That entry is not on this person's record" }, { status: 400 })
+    }
+    supersedes = ref
+  }
+
   const { data, error } = await supabase.from('compliance_events').insert({
     business_id: businessId,
     employee_id: body.employee_id || null,
@@ -89,8 +116,15 @@ export async function POST(req: NextRequest) {
     document_id: body.document_id || null,
     bmp_code: body.bmp_code || EVENT_TYPES[eventType]?.bmp || null,
     metadata: body.metadata ?? {},
+    ...(supersedes ? { supersedes } : {}),
   }).select().single()
 
+  if (error && supersedes && isMissingSupersedes(error)) {
+    return NextResponse.json(
+      { error: 'Corrections are not switched on yet - the database update for them has not been applied.' },
+      { status: 503 },
+    )
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data, { status: 201 })
 }

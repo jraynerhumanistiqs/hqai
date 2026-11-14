@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { Employee } from '@/lib/employees'
 import { buildWorklist, type WorklistEvent } from '@/lib/worklist'
+import { selectWithSupersedes } from '@/lib/trail'
 
 // GET /api/assistant/worklist - the AI Assistant's derived worklist.
 //
@@ -38,14 +39,18 @@ export async function GET() {
         .eq('business_id', businessId)
         .eq('status', 'active')
         .order('start_date', { ascending: false }),
-      // One query for the whole trail. Only the four columns the derivation
-      // reads, so no file-note detail text travels with it.
-      supabase
-        .from('compliance_events')
-        .select('id, employee_id, event_type, occurred_at, metadata')
-        .eq('business_id', businessId)
-        .order('occurred_at', { ascending: false })
-        .limit(EVENT_LIMIT),
+      // One query for the whole trail. Only the columns the derivation reads,
+      // so no file-note detail text travels with it. `supersedes` lets
+      // buildWorklist drop corrected entries (dropped again if unmigrated).
+      selectWithSupersedes<WorklistEvent>('id, employee_id, event_type, occurred_at, metadata', cols =>
+        supabase
+          .from('compliance_events')
+          .select(cols)
+          .eq('business_id', businessId)
+          .order('occurred_at', { ascending: false })
+          .limit(EVENT_LIMIT)
+          .returns<WorklistEvent[]>(),
+      ),
       // Date maths only - see the header note.
       supabase.rpc('business_headcount'),
       // The free-text band from onboarding ("1-14"), for the first-run copy.

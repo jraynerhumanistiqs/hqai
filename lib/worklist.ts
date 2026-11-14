@@ -29,6 +29,7 @@ import {
   type Employee,
 } from './employees'
 import { computeGaps } from './record-gaps'
+import { applySupersessions } from './trail'
 
 // --- contract ---------------------------------------------------------------
 
@@ -89,7 +90,7 @@ export interface Worklist {
 /** The slice of a trail row the worklist reads. */
 export type WorklistEvent = Pick<
   ComplianceEvent,
-  'id' | 'employee_id' | 'event_type' | 'occurred_at' | 'metadata'
+  'id' | 'employee_id' | 'event_type' | 'occurred_at' | 'metadata' | 'supersedes'
 >
 
 export interface WorklistInput {
@@ -269,7 +270,7 @@ const KIND_ORDER: Record<WorkItemKind, number> = {
 
 export function buildWorklist(input: WorklistInput): Worklist {
   const now = input.now ?? new Date()
-  const events = input.events ?? []
+  const events = applySupersessions(input.events ?? []) // live only, see lib/trail.ts
   const active = (input.employees ?? []).filter(e => e.status === 'active')
 
   // --- the first-run item (spec s6.1) --------------------------------------

@@ -36,11 +36,16 @@ function requirementsFor(type) {
 function computeGaps(employee, events, docTypes, headcount, now = new Date()) {
   const ev = new Set(events.map(e => e.event_type))
   const docs = new Set(docTypes.map(d => d.toLowerCase()))
+  const uploadedFor = new Set(events
+    .filter(e => e.event_type === 'document_uploaded')
+    .map(e => e.metadata?.satisfies)
+    .filter(k => typeof k === 'string' && k.length > 0))
   const items = requirementsFor(employee.employment_type).map(key => {
     const r = REQ[key]
     let via
     if (r.events.some(t => ev.has(t))) via = 'event'
     else if (r.docTypes.some(t => docs.has(t))) via = 'document'
+    else if (uploadedFor.has(key)) via = 'upload'
     const item = { key, satisfied: Boolean(via), via }
     if (key === 'probation_review' && !item.satisfied) {
       const months = monthsOfService(employee.start_date, now)
@@ -125,4 +130,31 @@ test('the 15-employee boundary changes when probation drops off', () => {
   assert.equal(computeGaps(emp, [], [], 14, NOW).total, 5)
   // 15 staff -> 6-month period -> past -> not counted
   assert.equal(computeGaps(emp, [], [], 15, NOW).total, 4)
+})
+
+// --- uploaded files (document_uploaded + metadata.satisfies) ---------------
+
+test('an uploaded file marked as evidence of the contract ticks it', () => {
+  const g = computeGaps({ employment_type: 'full_time', start_date: '2026-09-01' },
+    [{ event_type: 'document_uploaded', metadata: { satisfies: 'contract', file_name: 'contract.pdf' } }], [], 8, NOW)
+  const c = g.items.find(i => i.key === 'contract')
+  assert.equal(c.satisfied, true)
+  assert.equal(c.via, 'upload')
+  assert.equal(g.satisfied, 1)
+})
+
+test('an uploaded file with no satisfies key ticks nothing', () => {
+  const g = computeGaps({ employment_type: 'full_time', start_date: '2026-09-01' },
+    [{ event_type: 'document_uploaded', metadata: { satisfies: null } }, { event_type: 'document_uploaded' }], [], 8, NOW)
+  assert.equal(g.satisfied, 0)
+})
+
+test('satisfies only counts on a document_uploaded event, and only for a requirement this type has', () => {
+  const g = computeGaps({ employment_type: 'contractor', start_date: '2026-03-01' },
+    [
+      { event_type: 'file_note', metadata: { satisfies: 'right_to_work' } },
+      { event_type: 'document_uploaded', metadata: { satisfies: 'fwis' } },
+    ], [], 8, NOW)
+  assert.equal(g.satisfied, 0)
+  assert.ok(!g.items.some(i => i.key === 'fwis'))
 })

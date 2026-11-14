@@ -31,9 +31,20 @@ import { SaveBar } from '@/components/settings/SaveBar'
 // edits (so a change made on one pane is never stranded when you navigate).
 const FORM_SECTIONS = new Set<SettingsSectionKey>(['profile', 'general', 'advisor'])
 
+const SECTION_KEYS: SettingsSectionKey[] = ['profile', 'appearance', 'general', 'advisor', 'billing', 'team']
+
+function initialSection(): SettingsSectionKey {
+  if (typeof window === 'undefined') return 'profile'
+  const tab = new URLSearchParams(window.location.search).get('tab')
+  return tab && SECTION_KEYS.includes(tab as SettingsSectionKey) ? (tab as SettingsSectionKey) : 'profile'
+}
+
 export default function SettingsPage() {
   const s = useSettingsForm()
-  const [active, setActive] = useState<SettingsSectionKey>('profile')
+  // Deep link: /dashboard/settings?tab=billing opens that section. Read in the
+  // initialiser (not an effect) - the section UI only renders after the
+  // settings load, so there is nothing to hydrate against on first paint.
+  const [active, setActive] = useState<SettingsSectionKey>(initialSection)
 
   const showSaveBar = FORM_SECTIONS.has(active) || s.dirty
 

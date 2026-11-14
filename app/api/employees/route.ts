@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { EMPLOYMENT_TYPES, AU_STATES, type Employee } from '@/lib/employees'
 import { computeGaps } from '@/lib/record-gaps'
+import { applySupersessions, selectWithSupersedes } from '@/lib/trail'
 
 // Employee register - list and create.
 // Business-scoped via the caller's profile; RLS enforces the same boundary at
@@ -37,16 +38,23 @@ export async function GET(req: NextRequest) {
   if (rows.length === 0) return NextResponse.json([])
 
   // Evidence-gap summary per person - one extra query for the whole business
-  // rather than one per employee. Only event_type + metadata are needed.
-  const { data: evs } = await supabase
-    .from('compliance_events')
-    .select('employee_id, event_type, metadata')
-    .eq('business_id', businessId)
-    .not('employee_id', 'is', null)
+  // rather than one per employee. Only event_type + metadata are needed, plus
+  // id + supersedes so corrected entries are dropped (lib/trail.ts).
+  type SlimEvent = {
+    id: string; employee_id: string; event_type: string
+    metadata: Record<string, unknown> | null; supersedes?: string | null
+  }
+  const { data: evs } = await selectWithSupersedes<SlimEvent>('id, employee_id, event_type, metadata', cols =>
+    supabase
+      .from('compliance_events')
+      .select(cols)
+      .eq('business_id', businessId)
+      .not('employee_id', 'is', null)
+      .returns<SlimEvent[]>(),
+  )
 
-  type SlimEvent = { employee_id: string; event_type: string; metadata: Record<string, unknown> | null }
   const byEmployee = new Map<string, SlimEvent[]>()
-  for (const ev of (evs ?? []) as SlimEvent[]) {
+  for (const ev of applySupersessions(evs ?? [])) {
     const list = byEmployee.get(ev.employee_id) ?? []
     list.push(ev)
     byEmployee.set(ev.employee_id, list)

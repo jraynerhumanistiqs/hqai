@@ -59,6 +59,12 @@ export interface ComplianceEvent {
   bmp_code: string | null
   metadata: Record<string, unknown>
   created_at: string
+  /**
+   * Correction pattern (lib/trail.ts): this event supersedes the referenced
+   * one. The original is never edited; derived reads skip it. Optional
+   * because rows read before the migration is applied do not carry it.
+   */
+  supersedes?: string | null
 }
 
 /**
@@ -87,6 +93,11 @@ export const EVENT_TYPES: Record<string, { label: string; bmp?: string }> = {
   // A generated or uploaded document attached to this person's record, with
   // the user's own note on why it exists. `document_id` points at the file.
   document_linked:     { label: 'Document added to record' },
+  // A file uploaded straight onto this person's record (private
+  // employee-documents bucket, never the documents library).
+  // `metadata.storage_path` locates it; `metadata.satisfies` optionally names
+  // the "What is on file" requirement key it is evidence of.
+  document_uploaded:   { label: 'Document uploaded to record' },
   // File notes - written in the dashboard at the time. `metadata.note_type`
   // carries the kind (feedback, conversation, observation, concern, ...).
   file_note:           { label: 'File note', bmp: 'BMP-005' },

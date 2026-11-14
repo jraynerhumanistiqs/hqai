@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { evaluateGate } from '@/lib/timing-gate'
 import { employeeName, type ComplianceEvent } from '@/lib/employees'
+import { applySupersessions, selectWithSupersedes } from '@/lib/trail'
 
 // Timing check for a risky action on one person: how recently did a
 // protected event happen? Called when the action is opened and again when it
@@ -21,14 +22,19 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   const [{ data: employee }, { data: events }] = await Promise.all([
     supabase.from('employees').select('id, first_name, last_name, status')
       .eq('id', id).eq('business_id', businessId).single(),
-    supabase.from('compliance_events').select('event_type, metadata, occurred_at, title')
-      .eq('employee_id', id).eq('business_id', businessId)
-      .order('occurred_at', { ascending: false })
-      .limit(200),
+    // `supersedes` is added (and dropped again if the migration is not yet
+    // applied) so a corrected note's date is the one the gate reads.
+    selectWithSupersedes<ComplianceEvent>('id, event_type, metadata, occurred_at, title', cols =>
+      supabase.from('compliance_events').select(cols)
+        .eq('employee_id', id).eq('business_id', businessId)
+        .order('occurred_at', { ascending: false })
+        .limit(200)
+        .returns<ComplianceEvent[]>(),
+    ),
   ])
   if (!employee) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const gate = evaluateGate((events ?? []) as ComplianceEvent[])
+  const gate = evaluateGate(applySupersessions(events ?? []))
   return NextResponse.json({
     ...gate,
     employee: { id: employee.id, name: employeeName(employee), status: employee.status },

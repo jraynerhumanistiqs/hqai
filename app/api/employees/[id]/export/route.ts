@@ -5,6 +5,7 @@ import { renderDocx } from '@/lib/render/docx'
 import { assertStructuredDocument } from '@/lib/doc-model'
 import { buildRecordDocument, type LinkedDocument } from '@/lib/record-export'
 import type { ComplianceEvent, Employee } from '@/lib/employees'
+import { requirementsFor } from '@/lib/record-gaps'
 
 // Download one person's record as PDF, DOCX, or both (zipped).
 //
@@ -51,7 +52,24 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
 
   if (!employee) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  // Every event, superseded ones included: the record shows the history and
+  // buildRecordDocument labels anything a correction replaced.
   const evs = (events ?? []) as ComplianceEvent[]
+
+  // Names for whoever uploaded a file. Profiles are business-scoped by RLS.
+  const uploaderIds = [...new Set(
+    evs.filter(ev => ev.event_type === 'document_uploaded' && ev.recorded_by).map(ev => ev.recorded_by as string),
+  )]
+  const names = new Map<string, string>()
+  if (uploaderIds.length > 0) {
+    const { data: people } = await supabase.from('profiles').select('id, full_name, email').in('id', uploaderIds)
+    for (const p of (people ?? []) as Array<{ id: string; full_name: string | null; email: string | null }>) {
+      names.set(p.id, p.full_name || p.email || '')
+    }
+  }
+  const requirementLabel = new Map(
+    requirementsFor((employee as Employee).employment_type).map(r => [r.key, r.label]),
+  )
 
   // Linked documents are recorded on the trail at the moment of linking, with
   // the document's title/type captured in metadata - so the record reflects
@@ -69,6 +87,27 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
         linked_at: ev.occurred_at,
       }
     })
+    .concat(
+      evs
+        .filter(ev => ev.event_type === 'document_uploaded')
+        .map(ev => {
+          const m = (ev.metadata ?? {}) as Record<string, unknown>
+          const satisfies = typeof m.satisfies === 'string' ? requirementLabel.get(m.satisfies) : undefined
+          const context = [satisfies ? `Evidence of: ${satisfies}` : '', ev.detail ?? '']
+            .filter(Boolean).join('. ')
+          return {
+            id: ev.id,
+            title: String(m.file_name ?? ev.title ?? 'File'),
+            // Uploaded files are not typed, so they never count via docTypes;
+            // they count through metadata.satisfies instead.
+            type: null,
+            created_at: ev.occurred_at,
+            context: context || null,
+            linked_at: ev.created_at,
+            added_by: ev.recorded_by ? names.get(ev.recorded_by) || null : null,
+          }
+        }),
+    )
 
   const doc = buildRecordDocument({
     employee: employee as Employee,

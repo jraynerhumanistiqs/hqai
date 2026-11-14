@@ -123,7 +123,7 @@ export function requirementsFor(type: EmploymentType): Requirement[] {
 export interface GapItem extends Requirement {
   satisfied: boolean
   /** How it was satisfied, when it was. */
-  via?: 'event' | 'document'
+  via?: 'event' | 'document' | 'upload'
   /** For probation: not yet due, so not a gap. */
   notYetDue?: boolean
 }
@@ -141,20 +141,30 @@ export interface GapSummary {
  */
 export function computeGaps(
   employee: Employee,
-  // Only event_type is read, so callers can pass slim rows (the list endpoint
-  // fetches just employee_id + event_type + metadata for the whole business).
-  events: Array<Pick<ComplianceEvent, 'event_type'>>,
+  // Only event_type and metadata are read, so callers can pass slim rows (the
+  // list endpoint fetches just employee_id + event_type + metadata for the
+  // whole business). Callers pass LIVE events only - superseded ones are
+  // dropped with applySupersessions (lib/trail.ts) where the rows are fetched.
+  events: Array<Pick<ComplianceEvent, 'event_type'> & { metadata?: Record<string, unknown> | null }>,
   documentTypes: string[],
   headcount: number,
   now: Date = new Date(),
 ): GapSummary {
   const eventTypes = new Set(events.map(e => e.event_type))
   const docs = new Set(documentTypes.map(d => d.toLowerCase()))
+  // An uploaded file can be marked as evidence of one requirement.
+  const uploadedFor = new Set(
+    events
+      .filter(e => e.event_type === 'document_uploaded')
+      .map(e => e.metadata?.satisfies)
+      .filter((k): k is string => typeof k === 'string' && k.length > 0),
+  )
 
   const items: GapItem[] = requirementsFor(employee.employment_type).map(r => {
     let via: GapItem['via']
     if (r.events.some(t => eventTypes.has(t))) via = 'event'
     else if (r.docTypes.some(t => docs.has(t))) via = 'document'
+    else if (uploadedFor.has(r.key)) via = 'upload'
 
     const item: GapItem = { ...r, satisfied: Boolean(via), via }
 
