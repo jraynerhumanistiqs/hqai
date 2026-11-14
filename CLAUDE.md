@@ -263,6 +263,14 @@ logins on every plan; no per-seat charge; no lock-in.
   role for $40/mo (exclusive perk, shown via the card info icon).
 - HQ Business (bundle, HR + hiring): $89/mo Solo (up to 25) / $269/mo up to
   150. Reuses the solo/business Stripe ids.
+- People register, evidence trail, document uploads and the timing gate are
+  INCLUDED on every HQ People / HQ Business plan (the 25 / 150 bands are the
+  register caps). Only file-note "help writing this" (/api/file-notes/assist)
+  is gated: business, people-business and all enterprise-* plans; 403
+  `plan_required` otherwise. Standalone Recruit has no People, so no help.
+- lib/plan-access.ts decides it and FAILS OPEN: unknown or legacy
+  businesses.plan values ('growth', 'free', null) get help-mode, so a data
+  quirk never locks out a customer.
 - Human layer (sales-assisted, /enterprise inquiry, invoiced): HR365 $799/mo,
   Recruit365 $899/mo, HR365+Recruit365 $1,599/mo (annual equivalents).
 - One-off documents: WITHDRAWN Aug 2026. The /offer funnel is removed, the

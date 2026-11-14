@@ -52,6 +52,7 @@ const TABS: Tab[] = [
     ],
     tools: [
       { name: 'AI Assistant chat', desc: 'Plain-English answers to your everyday people questions.' },
+      { name: 'Team register', desc: "A dated record for each person, and a timing check before you end someone's employment." },
       { name: 'A real advisor on call', desc: 'HR365 steps in for the hard calls, with the same person every time.' },
     ],
     cta: { label: 'See HQ People', href: '/product/people' },

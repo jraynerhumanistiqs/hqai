@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { CLAUDE_MODEL } from '@/lib/ai-models'
+import { HELP_MODE_PLAN_MESSAGE, helpModeRequiredPlan, planIncludesHelpMode } from '@/lib/plan-access'
 import {
   FILE_NOTE_TOOL,
   NOTE_TYPES,
@@ -22,10 +23,30 @@ export const maxDuration = 30
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Help-mode is the one register feature gated by plan (up-to-150 and
+// enterprise plans only - see lib/plan-access.ts). Resolves the caller's
+// businesses.plan; a missing row or read error yields null, which fails open.
+async function planFor(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data: profile } = await supabase
+    .from('profiles').select('business_id').eq('id', userId).single()
+  const businessId = profile?.business_id as string | undefined
+  if (!businessId) return null
+  const { data: business } = await supabase
+    .from('businesses').select('plan').eq('id', businessId).single()
+  return (business?.plan as string | null | undefined) ?? null
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  if (!planIncludesHelpMode(await planFor(supabase, user.id))) {
+    return NextResponse.json(
+      { error: HELP_MODE_PLAN_MESSAGE, code: 'plan_required', plan: helpModeRequiredPlan },
+      { status: 403 },
+    )
+  }
 
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })

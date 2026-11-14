@@ -111,7 +111,8 @@ export default function ProductPeoplePage() {
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
               The everyday HR work, taken off your plate, with the questions answered and the
-              guesswork gone.
+              guesswork gone. It also keeps a dated record for each person and checks the timing
+              before you end someone&apos;s employment.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:gap-6">
