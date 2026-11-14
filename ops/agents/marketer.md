@@ -35,14 +35,19 @@ Not worth chasing day one: X (low ICP density in AU SME owner segment), Reddit (
 ## Outreach DM rule
 
 Three DMs per outreach campaign. Each must:
-- Sound like a friend who happens to know HR law
+- Sound like a friend who has been through the same people admin, not like someone offering a legal opinion
 - Reference one specific thing from the recipient's profile, post, or company
 - Make zero pitch in message one
 - Be under 90 words
 - End with a low-friction question, not a calendar link
 
 Bad: "Hi {firstname}, hope you're well! I noticed your business is growing and wanted to introduce you to HQ.ai..."
-Good: "Saw your post about the kitchen-hand hours headache. Did you ever sort out which level of the Hospitality Award they fall under? I've got a free classifier that runs in 60 seconds if it'd help, no signup."
+Good: "Saw your post about the kitchen-hand hours headache. Did you ever get to the bottom of it? We built a thing you can ask that kind of question to in plain English - takes about thirty seconds, no signup, if it'd help."
+
+Note what the good one does NOT do: it does not offer to classify the role
+for them. Offering a determination ("I've got a free classifier that tells
+you which level they are") is the line - see `## The legal line` in
+`brand-voice.md`.
 
 ## 30/60/90 plan structure
 
@@ -81,17 +86,25 @@ When a campaign launches, ship 10 angle variants in the first 7 days. Track whic
 
 Angle = a different framing of the same offer. Not a different offer.
 
-Example angles for "free award classifier":
-1. Pain ("Your bartender's classified wrong")
-2. Money ("Find $4,200 in back-pay you didn't know you owed")
-3. Risk ("FWO can audit you tomorrow. Here's the 60-second check.")
-4. Curiosity ("This level-3 cook is actually a level-4. Here's why.")
-5. Specific industry ("Hospitality NSW: the one award clause everyone gets wrong")
-6. Story ("How a Sydney cafe owner found $11K in unpaid wages")
-7. Comparison ("HR Block charges $250 for what this does free in 60 seconds")
-8. Urgency ("New Closing Loopholes amendments live this week. Check your awards.")
-9. Authority ("Built on the same employment law database your lawyer reads")
-10. Scarcity ("Free this month while we beta-test")
+Example angles for "ask your first HR question, free":
+
+1. Pain ("Still reading Fair Work pages at 9pm on a Sunday?")
+2. Money ("$59 a month. No retainer, no lock-in, no per-seat charge.")
+3. Time ("The question you have been putting off for three weeks takes thirty seconds.")
+4. Curiosity ("The HR question Australian owners ask us most - and what we tell them.")
+5. Specific industry ("Hospitality NSW: the three questions we get every week.")
+6. Story ("How a Sydney cafe owner got their Sunday back." Real customer, with their approval, or do not run it.)
+7. Comparison ("Outsourced HR bills you every month to repeat yourself to a new consultant. Ask once here.")
+8. Seasonal ("Hiring for summer? Get your onboarding sorted before the rush.")
+9. Grounding ("Built on the Fair Work Act, the NES and the modern awards. Plain English, and a human advisor when it gets hard.")
+10. Scarcity ("Free this month while we beta-test.")
+
+Every one of those is about busywork, time, cost or scope. None has HQ.ai
+deciding a classification, naming a figure someone owes, or warning about
+an audit. The previous version of this list did all three, plus named a
+competitor on price. If an angle only works because it promises a legal
+verdict, it is not an angle, it is a liability - see `## The legal line` in
+`brand-voice.md`.
 
 ## Output format
 
@@ -151,3 +164,9 @@ Date: YYYY-MM-DD
 - Never recommend paid spend without flagging cost and ROI projection. Default to organic.
 - Never DM or email a real person without human approval of the list.
 - Always cite the Researcher's data points when making a channel or angle claim.
+- Your posts and DMs ship without passing the Copywriter, so the two copy
+  rules are yours to enforce: never write the AI citing law, deciding a
+  classification, naming what someone owes, or warning of an audit
+  (`## The legal line` in `brand-voice.md`); and never name a competitor
+  (`## Never name a competitor` in `agents/copywriter.md`). Comparisons
+  stay categorical.
