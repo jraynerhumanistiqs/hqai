@@ -12,11 +12,14 @@
 //                     recorded on the trail.
 //   3. Confirm -> re-check (generate). If the tier has moved up since the
 //      form opened (a note was added meanwhile), show the new state instead.
+//   4. Record changed while the panel is open (a note added or corrected) ->
+//      re-check straight away, so a stale tier never stays on screen. The
+//      parent bumps `recordVersion` after every save to the record.
 //
 // Copy states the date and distance from their own record. It never says
 // whether the decision is fair, lawful or reasonable.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RiAlertLine, RiLifebuoyLine } from '@remixicon/react'
 import { PROTECTED_KINDS, type GateResult } from '@/lib/timing-gate'
 
@@ -24,26 +27,56 @@ interface Props {
   employeeId: string
   employeeName: string
   onEnded: () => void
+  /** Bumped by the parent after any save to this person's record. */
+  recordVersion?: number
 }
 
-type Step = 'idle' | 'checking' | 'gate' | 'confirm' | 'saving'
+type Step = 'idle' | 'checking' | 'recheck' | 'gate' | 'confirm' | 'saving'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const fmt = (iso: string) =>
   new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
 
-export default function EndEmployment({ employeeId, employeeName, onEnded }: Props) {
+async function fetchGate(employeeId: string): Promise<GateResult | null> {
+  const res = await fetch(`/api/employees/${employeeId}/timing-check`)
+  if (!res.ok) throw new Error((await res.json()).error ?? 'Could not run the timing check')
+  return (await res.json()) as GateResult
+}
+
+export default function EndEmployment({ employeeId, employeeName, onEnded, recordVersion = 0 }: Props) {
   const [step, setStep] = useState<Step>('idle')
   const [gate, setGate] = useState<GateResult | null>(null)
   const [endDate, setEndDate] = useState(today())
   const [override, setOverride] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function check(): Promise<GateResult | null> {
-    const res = await fetch(`/api/employees/${employeeId}/timing-check`)
-    if (!res.ok) throw new Error((await res.json()).error ?? 'Could not run the timing check')
-    return (await res.json()) as GateResult
+  // The record changed underneath an open panel: queue a re-check. Adjusting
+  // state during render on a prop change is React's recommended pattern.
+  const [seenVersion, setSeenVersion] = useState(recordVersion)
+  if (recordVersion !== seenVersion) {
+    setSeenVersion(recordVersion)
+    if (step === 'gate' || step === 'confirm') setStep('recheck')
   }
+
+  useEffect(() => {
+    if (step !== 'recheck') return
+    let live = true
+    fetchGate(employeeId)
+      .then(g => {
+        if (!live) return
+        setGate(g)
+        setOverride(false)   // a changed record needs a fresh acknowledgement
+        setStep(g?.tier === 'safe' ? 'confirm' : 'gate')
+      })
+      .catch(e => {
+        if (!live) return
+        setError(e instanceof Error ? e.message : 'Could not run the timing check')
+        setStep('idle')
+      })
+    return () => { live = false }
+  }, [step, employeeId])
+
+  const check = () => fetchGate(employeeId)
 
   async function open() {
     setStep('checking'); setError(null); setOverride(false)
@@ -110,8 +143,12 @@ export default function EndEmployment({ employeeId, employeeName, onEnded }: Pro
     )
   }
 
-  if (step === 'checking') {
-    return <p className="mt-5 text-xs text-ink-muted">Checking {employeeName}&apos;s record for recent timing risk...</p>
+  if (step === 'checking' || step === 'recheck') {
+    return (
+      <p className="mt-5 text-xs text-ink-muted">
+        {step === 'recheck' ? 'The record changed - re-checking' : 'Checking'} {employeeName}&apos;s record for recent timing risk...
+      </p>
+    )
   }
 
   const ev = gate?.event

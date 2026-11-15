@@ -63,6 +63,9 @@ export default function TeamRegister() {
   const [correcting, setCorrecting] = useState<ComplianceEvent | null>(null)
   // Uploader: null = closed, '' = general, otherwise the preset requirement key.
   const [upload, setUpload] = useState<string | null>(null)
+  // Bumped after every save to the open record, so an open End employment
+  // panel re-runs its timing check instead of showing a stale tier.
+  const [recordVersion, setRecordVersion] = useState(0)
 
   // Only one composer at a time, so a section never shows two filled CTAs.
   function openPanel(panel: 'note' | 'upload' | 'correct', arg?: string | ComplianceEvent) {
@@ -101,6 +104,7 @@ export default function TeamRegister() {
 
   function refreshRecord(emp: Employee) {
     closePanels()
+    setRecordVersion(v => v + 1)
     void openEmployee(emp)   // refresh the trail
     void load()              // refresh gap badges on the list
   }
@@ -326,10 +330,14 @@ export default function TeamRegister() {
             )}
 
             {/* End employment - the risky action, gated on timing (phase 3) */}
+            {/* Keyed by person: switching people must never carry one
+                person's timing result onto another's record. */}
             {selected.status === 'active' && (
               <EndEmployment
+                key={selected.id}
                 employeeId={selected.id}
                 employeeName={employeeName(selected)}
+                recordVersion={recordVersion}
                 onEnded={() => { setSelected(null); void load() }}
               />
             )}
