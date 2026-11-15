@@ -105,7 +105,10 @@ create trigger trg_hr_ca_source before insert or update on public.hr_challenge_a
     for each row execute function public.hr_ca_require_source();
 
 -- Answer-coverage view: which challenges still need a canonical answer (write these first).
-create or replace view public.hr_answer_coverage as
+-- NOTE on the views in this file: they are created `with (security_invoker = true)`.
+-- Without it a view runs with its owner's rights and bypasses RLS on the tables
+-- underneath, which on Supabase exposes every row to the anon API key.
+create or replace view public.hr_answer_coverage with (security_invoker = true) as
 select c.code, c.title, c.stream, c.stage, c.prevalence, c.prevalence_rank, c.trending,
        count(a.id) filter (where a.status = 'approved') as approved_answers,
        count(a.id)                                      as total_answers
@@ -115,7 +118,7 @@ group by c.code, c.title, c.stream, c.stage, c.prevalence, c.prevalence_rank, c.
 order by c.prevalence_rank desc, approved_answers asc;   -- high-value, unanswered first
 
 -- Item + canonical answer, resolved by challenge_code and jurisdiction (federal fallback).
-create or replace view public.hr_item_with_answer as
+create or replace view public.hr_item_with_answer with (security_invoker = true) as
 select q.id as item_id, q.challenge_code, q.question_text, q.jurisdiction,
        coalesce(a_j.answer_text, a_fed.answer_text)         as answer_text,
        coalesce(a_j.source_refs, a_fed.source_refs)         as source_refs,

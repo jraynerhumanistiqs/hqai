@@ -71,17 +71,16 @@ create trigger trg_hr_reg_updated before update on public.hr_regulatory_watchlis
     for each row execute function public.set_updated_at();
 
 -- ============================================================
--- Row Level Security: read-only to authenticated; writes via service_role only
--- (matches the project's RLS-on posture). Adjust roles to taste.
+-- Row Level Security: SERVICE ROLE ONLY. RLS is on and there is deliberately NO
+-- policy, so neither the anon nor the authenticated API key can read or write
+-- these two tables. This is the research register - it is not customer data and
+-- no signed-in user needs it. Do not add a read policy without a decision.
 -- ============================================================
 alter table public.hr_challenges           enable row level security;
 alter table public.hr_regulatory_watchlist enable row level security;
 
+-- Earlier versions of this file granted `authenticated` a read policy on both.
+-- The drops stay so re-running this file on such a database removes them.
 drop policy if exists hr_challenges_read on public.hr_challenges;
-create policy hr_challenges_read on public.hr_challenges
-    for select to authenticated using (true);
-
 drop policy if exists hr_reg_read on public.hr_regulatory_watchlist;
-create policy hr_reg_read on public.hr_regulatory_watchlist
-    for select to authenticated using (true);
 -- service_role bypasses RLS, so the seed below (or your ETL) can write freely.

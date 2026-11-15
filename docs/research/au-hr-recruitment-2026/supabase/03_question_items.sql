@@ -93,7 +93,10 @@ create policy hr_qi_read on public.hr_question_items
 -- ============================================================
 -- Helper view: question items joined to challenge metadata
 -- ============================================================
-create or replace view public.hr_question_items_enriched as
+-- NOTE on the views in this file: they are created `with (security_invoker = true)`.
+-- Without it a view runs with its owner's rights and bypasses RLS on the tables
+-- underneath, which on Supabase exposes every row to the anon API key.
+create or replace view public.hr_question_items_enriched with (security_invoker = true) as
 select q.id, q.challenge_code, c.title as challenge_title,
        c.stream, c.stage, c.sub_domain, c.prevalence, c.prevalence_rank, c.trending,
        q.question_text, q.answer_text, q.intent, q.persona, q.difficulty,
@@ -105,7 +108,7 @@ join public.hr_challenges c on c.code = q.challenge_code;
 -- ============================================================
 -- Coverage view: how many approved items per challenge (find the gaps)
 -- ============================================================
-create or replace view public.hr_question_coverage as
+create or replace view public.hr_question_coverage with (security_invoker = true) as
 select c.code, c.title, c.stream, c.stage, c.prevalence, c.prevalence_rank, c.trending,
        count(q.id) filter (where q.status = 'approved') as approved_items,
        count(q.id)                                      as total_items
