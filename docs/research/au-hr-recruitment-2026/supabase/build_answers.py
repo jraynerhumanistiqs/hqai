@@ -84,10 +84,14 @@ drop trigger if exists trg_hr_ca_updated on public.hr_challenge_answers;
 create trigger trg_hr_ca_updated before update on public.hr_challenge_answers
     for each row execute function public.set_updated_at();
 
+-- RLS: SERVICE ROLE ONLY. RLS is on and there is deliberately NO policy, so
+-- neither the anon nor the authenticated API key can read or write this table.
+-- The product reads it server-side with the service-role client; no browser
+-- session needs it. Do not add a read policy without a decision.
 alter table public.hr_challenge_answers enable row level security;
+-- Earlier versions of this file let `authenticated` read approved rows. The
+-- drop stays so re-running this file on such a database removes that policy.
 drop policy if exists hr_ca_read on public.hr_challenge_answers;
-create policy hr_ca_read on public.hr_challenge_answers
-    for select to authenticated using (status = 'approved');
 
 -- Guard: an approved answer on a compliance-sensitive challenge must cite a source.
 -- (Advisory trigger - blocks approve without source_refs.)

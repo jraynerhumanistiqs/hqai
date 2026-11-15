@@ -194,7 +194,7 @@ One row per generated Q/A item, FK `challenge_code -> hr_challenges(code)`.
 
 - **Retrieval:** `embedding vector(384)` (ONNX all-MiniLM-L6-v2) with an **HNSW cosine** index, plus a generated **`question_tsv`** for keyword search - i.e. hybrid retrieval out of the box. `match_hr_questions(query_embedding, k, filter_stream)` returns top-k approved items by cosine similarity.
 - **Safety:** `requires_escalation` + `escalation_reason`, and `compliance_sensitive` (answers asserting a compliance fact should not be `approved` without `source_refs`).
-- **QA workflow:** `status` in `draft|review|approved|rejected`; RLS shows `authenticated` only `approved` rows, while `service_role` (ingest/QA) sees everything.
+- **QA workflow:** `status` in `draft|review|approved|rejected`. The table is service-role only (RLS on, no policy), so the server filters on `status = 'approved'` itself when it reads.
 - **Gap-finding:** `hr_question_coverage` view lists challenges by prevalence with approved/total item counts, high-value-low-coverage first.
 - **Dedupe:** partial unique index on `dedup_hash` (app-computed hash of the normalised question).
 
@@ -213,7 +213,7 @@ Run `01_schema.sql` first (creates the tables + constraints), then in **Table Ed
 - **`trending`** is `established | trending_up | trending_sharp | new` (mapped from the report's E / T / T! / N).
 - **`stage`** is the sub-stream (`Foundations`, `Management`, `Plan-Attract`, `Screen-Onboard`, `Cross-cutting`).
 - **`tags text[]`** is empty on load - a free slot for question-generation tagging (GIN-indexed).
-- **RLS is enabled** with a read policy for `authenticated`; writes go through `service_role` (bypasses RLS), matching the project's RLS-on posture. Adjust the policy roles if you want public/anon read.
+- **RLS is enabled with no policies on every `hr_*` table**, so the whole scaffold is service-role only: the anon and authenticated API keys read nothing, directly or through the views (which are `security_invoker`). Reads and writes go through `service_role`, which bypasses RLS. Adding a read policy is an owner decision.
 
 ## Useful queries
 

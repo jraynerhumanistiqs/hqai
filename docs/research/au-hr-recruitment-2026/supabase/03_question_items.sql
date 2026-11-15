@@ -83,12 +83,14 @@ drop trigger if exists trg_hr_qi_updated on public.hr_question_items;
 create trigger trg_hr_qi_updated before update on public.hr_question_items
     for each row execute function public.set_updated_at();
 
--- RLS: read for authenticated, writes via service_role (ingest pipeline)
+-- RLS: SERVICE ROLE ONLY. RLS is on and there is deliberately NO policy, so
+-- neither the anon nor the authenticated API key can read or write this table.
+-- The product reads it server-side with the service-role client; no browser
+-- session needs it. Do not add a read policy without a decision.
 alter table public.hr_question_items enable row level security;
+-- Earlier versions of this file let `authenticated` read approved rows. The
+-- drop stays so re-running this file on such a database removes that policy.
 drop policy if exists hr_qi_read on public.hr_question_items;
-create policy hr_qi_read on public.hr_question_items
-    for select to authenticated using (status = 'approved');
--- authenticated users see only approved items; service_role (ingest/QA) sees all.
 
 -- ============================================================
 -- Helper view: question items joined to challenge metadata
