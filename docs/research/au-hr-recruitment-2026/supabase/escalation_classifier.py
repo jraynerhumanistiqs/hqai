@@ -91,6 +91,8 @@ with open("13_escalation_classifier.sql","w",encoding="utf-8") as f:
     f.write("create extension if not exists vector;\n")
     f.write("drop table if exists public.hr_escalation_anchor cascade;\n"
             "create table public.hr_escalation_anchor(id serial primary key, kind text check(kind in ('escalate','safe')), txt text, embedding vector(384));\n")
+    f.write("-- RLS on, no policies: service_role and the table owner only (not the anon API key).\n"
+            "alter table public.hr_escalation_anchor enable row level security;\n")
     f.write("insert into public.hr_escalation_anchor(kind,txt,embedding) values\n")
     rows=[]
     for t,v in zip(ESCALATE,esc_e): rows.append(f"  ('escalate',{s(t)},{vlit(v)})")

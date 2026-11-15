@@ -186,6 +186,8 @@ with open("11_enriched.sql", "w", encoding="utf-8") as f:
             "create table public.hr_challenge_enriched (\n"
             "  code text primary key references public.hr_challenges(code) on update cascade,\n"
             "  doc text not null, embedding vector(384) not null);\n\n")
+    f.write("-- RLS on, no policies: service_role and the table owner only (not the anon API key).\n"
+            "alter table public.hr_challenge_enriched enable row level security;\n\n")
     f.write("insert into public.hr_challenge_enriched (code,doc,embedding) values\n")
     f.write(",\n".join("  ('{}',{},{})".format(c, sql_str(enriched[c]), vlit(v))
                        for c, v in zip(codes, vecs)))

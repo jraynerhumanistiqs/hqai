@@ -283,6 +283,13 @@ create table if not exists public.hr_eval_results (
 );
 create index if not exists hr_eval_results_run_idx on public.hr_eval_results (run_id);
 
+-- Row Level Security: internal measurement tables. RLS on with NO policies means
+-- only service_role and the table owner (the SQL editor) can read or write them.
+-- Without this, Supabase exposes any public-schema table to the anon API key.
+alter table public.hr_eval_gold    enable row level security;
+alter table public.hr_eval_runs    enable row level security;
+alter table public.hr_eval_results enable row level security;
+
 -- ------------------------------------------------------------
 -- Metrics: everything a run needs, in one call
 --   select * from hr_eval_metrics('<run_id>');

@@ -41,6 +41,9 @@ with open("08_vector_baseline.sql", "w", encoding="utf-8") as f:
             "create table public.hr_gold_embedding (\n"
             "  ext_id text primary key,\n"
             "  embedding vector(384) not null);\n\n")
+    f.write("-- RLS on, no policies: service_role and the table owner only (not the anon API key).\n"
+            "alter table public.hr_challenge_embedding enable row level security;\n"
+            "alter table public.hr_gold_embedding enable row level security;\n\n")
 
     f.write("insert into public.hr_challenge_embedding (code,embedding) values\n")
     f.write(",\n".join("  ('{}',{})".format(r["code"], vlit(v))

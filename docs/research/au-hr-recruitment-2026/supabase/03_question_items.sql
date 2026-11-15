@@ -143,23 +143,24 @@ $$;
 -- ============================================================
 insert into public.hr_question_items
     (challenge_code, question_text, intent, persona, difficulty, jurisdiction,
-     requires_escalation, escalation_reason, compliance_sensitive, source_refs, status, tags)
+     requires_escalation, escalation_reason, compliance_sensitive, source_refs, status, tags, dedup_hash)
 values
  ('PF11','Do I have to pay penalty rates if my casual works a public holiday?',
     'check','owner',3,'federal',false,null,true,
-    array['Fair Work Ombudsman - Penalty rates'],'approved',array['award','penalty-rates']),
+    array['Fair Work Ombudsman - Penalty rates'],'approved',array['award','penalty-rates'],'sample:PF11'),
  ('PM8','How do I let someone go without getting done for unfair dismissal?',
     'decision','accidental_hr',4,'federal',false,null,true,
-    array['Fair Work - Small Business Fair Dismissal Code'],'approved',array['termination','sbfdc']),
+    array['Fair Work - Small Business Fair Dismissal Code'],'approved',array['termination','sbfdc'],'sample:PM8'),
  ('PM9','I want to performance-manage someone who just took stress leave - is that a problem?',
     'escalate','manager',5,'federal',true,'Adverse action risk: action close in time to a workplace right (leave). Reverse onus applies.',
-    true,array['Fair Work Act s340-361 general protections'],'approved',array['adverse-action','high-risk']),
+    true,array['Fair Work Act s340-361 general protections'],'approved',array['adverse-action','high-risk'],'sample:PM9'),
  ('RA12','Should I put the salary in the job ad or not?',
-    'decision','owner',2,'federal',false,null,false,'{}','approved',array['pay-transparency','job-ads']),
+    'decision','owner',2,'federal',false,null,false,'{}','approved',array['pay-transparency','job-ads'],'sample:RA12'),
  ('RS14','How do I check someone''s legally allowed to work here before I hire them?',
     'explain','office_manager',2,'federal',false,null,true,
-    array['Home Affairs VEVO'],'approved',array['right-to-work','vevo']),
+    array['Home Affairs VEVO'],'approved',array['right-to-work','vevo'],'sample:RS14'),
  ('PF26','I think I''ve been underpaying a staff member for a year - what do I do now?',
     'escalate','owner',5,'federal',true,'Potential systemic/lengthy underpayment; wage-theft criminal exposure since 1 Jan 2025. Route to advice + voluntary Code.',
-    true,array['Fair Work - Voluntary Small Business Wage Compliance Code'],'approved',array['underpayment','wage-theft','high-risk'])
-on conflict do nothing;
+    true,array['Fair Work - Voluntary Small Business Wage Compliance Code'],'approved',array['underpayment','wage-theft','high-risk'],'sample:PF26')
+-- dedup_hash gives these six a conflict target, so re-running this file adds nothing.
+on conflict (dedup_hash) do nothing;
