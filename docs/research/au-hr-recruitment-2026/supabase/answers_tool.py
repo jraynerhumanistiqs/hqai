@@ -175,15 +175,26 @@ def sections_for(ref):
     return _SECTION_CACHE[fn]
 
 
+# Two headings whose scores differ by less than this are a tie, not a win.
+TIE_EPS = 1e-6
+
+
 def best_match(challenge):
     secs = sections_for(challenge.get("section_ref"))
-    best, best_s = None, 0.0
+    best, best_s, best_full = None, 0.0, 0.0
     for s in secs:
         if s["level"] < 3 and not re.match(r"^\d+\.\d+", s["raw_title"]):
             continue  # skip sub-domain group headers in 04x/05x
         sc = score(challenge["title"], s["title"])
-        if sc > best_s:
-            best, best_s = s, sc
+        # Tie-break on the whole-to-whole score. score() takes the max of
+        # whole and head, and the head throws away the qualifier after the
+        # dash - which is exactly what tells sibling headings apart. "X4
+        # Escalation boundary - Recruitment track" head-matched 6.3 and 6.4
+        # identically ("the escalation boundary"), and the first one won.
+        # The full title still carries "recruitment track", so it decides.
+        full = _pair_score(norm(challenge["title"]), norm(s["title"]))
+        if sc > best_s + TIE_EPS or (abs(sc - best_s) <= TIE_EPS and full > best_full):
+            best, best_s, best_full = s, sc, full
     return best, best_s
 
 

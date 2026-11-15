@@ -153,10 +153,26 @@ with open(os.path.join(OUT, "06_challenge_answers.sql"), "w", encoding="utf-8", 
             s(a["code"]), s(a["jur"]), s(a["ans"]), arr(a["refs"]), s(a["esc"]),
             s(a["esc_default"]), s(a["status"]), s(reviewed)))
     f.write(",\n".join(rows))
+    # Re-run safety. Approvals happen in the database, not in the CSV, so a
+    # re-run keeps the stored status - EXCEPT when the content changed. An
+    # approved (or rejected) answer whose text, sources or escalation fields
+    # change goes back to review with the reviewer cleared: sign-off covered
+    # the old wording, not the new one. Unchanged rows are not touched at all.
     f.write("\non conflict (challenge_code,jurisdiction) do update set\n"
             "  answer_text=excluded.answer_text, source_refs=excluded.source_refs,\n"
             "  escalation_guidance=excluded.escalation_guidance,\n"
-            "  is_escalate_default=excluded.is_escalate_default, updated_at=now();\n")
+            "  is_escalate_default=excluded.is_escalate_default,\n"
+            "  status = case when hr_challenge_answers.status in ('approved','rejected')\n"
+            "                then 'review' else hr_challenge_answers.status end,\n"
+            "  reviewed_by = case when hr_challenge_answers.status in ('approved','rejected')\n"
+            "                then null else hr_challenge_answers.reviewed_by end,\n"
+            "  version = hr_challenge_answers.version + 1,\n"
+            "  updated_at=now()\n"
+            "where (hr_challenge_answers.answer_text, hr_challenge_answers.source_refs,\n"
+            "       hr_challenge_answers.escalation_guidance, hr_challenge_answers.is_escalate_default)\n"
+            "  is distinct from\n"
+            "      (excluded.answer_text, excluded.source_refs,\n"
+            "       excluded.escalation_guidance, excluded.is_escalate_default);\n")
 
 by_status = {}
 for a in ANSWERS:
