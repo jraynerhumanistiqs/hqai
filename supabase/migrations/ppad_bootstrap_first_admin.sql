@@ -20,6 +20,24 @@ declare
   v_biz   uuid;
   v_name  text;
 begin
+  -- Preconditions, checked before anything is written.
+  --
+  -- Without these the first failure is a raw 42703 "column ppad_enabled does
+  -- not exist" from twenty lines down, which says nothing about what to do.
+  -- Run order matters and this is the file people reach for first.
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'businesses' and column_name = 'ppad_enabled'
+  ) then
+    raise exception
+      'businesses.ppad_enabled is missing. Run ppad_businesses_entitlement.sql first, then this file.';
+  end if;
+
+  if to_regclass('public.ppad_members') is null then
+    raise exception
+      'The ppad_* tables are missing. Run ppad_01_schema.sql, ppad_02_rls.sql and ppad_03_rpcs.sql first, then this file.';
+  end if;
+
   select id into v_user from auth.users where lower(email) = lower(v_email);
   if v_user is null then
     raise exception 'No auth user with email %. They must sign in once first.', v_email;
