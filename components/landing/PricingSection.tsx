@@ -311,7 +311,7 @@ function PlanCard({
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{kicker}</p>
         <div className="flex items-center gap-2">
           {badge && (
-            <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-accent">
+            <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-clay">
               {badge}
             </span>
           )}
@@ -345,7 +345,7 @@ function PlanCard({
           className={[
             'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
             ctaStyle === 'solid'
-              ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
+              ? 'bg-clay text-ink-on-clay hover:bg-clay-hover focus-visible:outline-clay'
               : 'border border-ink text-ink hover:bg-bg-soft focus-visible:outline-accent',
           ].join(' ')}
         >

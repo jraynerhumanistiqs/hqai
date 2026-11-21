@@ -661,7 +661,7 @@ export default function OnboardingPage() {
                       <div className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors
                         ${on ? 'border-clay bg-clay' : 'border-border'}`}>
                         {on && (
-                          <svg className="w-2.5 h-2.5 text-clay-ink" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                          <svg className="w-2.5 h-2.5 text-ink-on-clay" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         )}
@@ -835,7 +835,7 @@ export default function OnboardingPage() {
                 onClick={startCheckout}
                 disabled={checkoutLoading}
                 aria-busy={checkoutLoading}
-                className="mt-6 w-full bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="mt-6 w-full bg-clay hover:bg-clay-hover text-ink-on-clay font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 {checkoutLoading ? 'Taking you to secure checkout...' : 'Continue to secure checkout'}
               </button>
@@ -878,20 +878,20 @@ export default function OnboardingPage() {
                     trackFunnelEvent('onboarding_step_completed', { plan: form.plan, cycle, step: 1 })
                     setStep(2)
                   }}
-                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-clay rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
                   Continue →
                 </button>
               )}
               {step === 2 && (
                 <button type="button" onClick={submitOnboardingThenPay}
                   disabled={saving || (!needs.people && !needs.recruit)}
-                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-clay rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
                   {saving ? 'Setting up…' : 'Continue →'}
                 </button>
               )}
               {step === 3 && (
                 <button type="button" onClick={submitSupportThenPay} disabled={saving}
-                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-accent rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
+                  className="px-6 py-2.5 bg-clay hover:bg-clay-hover text-ink-on-clay rounded-full text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:opacity-60">
                   {saving ? 'One moment…' : 'Continue →'}
                 </button>
               )}

@@ -52,7 +52,7 @@ export default function StickyMobileCta() {
         <div className="mx-auto flex max-w-md items-center gap-2">
           <Link
             href="/signup"
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover"
+            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-clay transition-colors hover:bg-clay-hover"
           >
             Get started
           </Link>
