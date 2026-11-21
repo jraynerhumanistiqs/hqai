@@ -9,12 +9,13 @@ Pages swept: `/`, `/about`, `/ai-standard`, `/compare`, `/outsourcing`,
 `/product/people`, `/product/recruit`, `/pricing`, `/roadmap`, `/changelog`,
 `/contact`, `/marketplace`, `/careers`, `/privacy`, `/terms`
 
-Screenshots: `docs/audits/screenshots/` (56 files, `<page>-<viewport>.png` plus
+Screenshots: `docs/audits/screenshots/` (59 files, `<page>-<viewport>.png` plus
 named evidence shots).
 
-**Nothing in this audit was fixed.** No defect found fell into the
-"missing `alt` / trivial console error" class the brief authorised fixing, so
-every finding below is listed with a recommended fix rather than applied.
+**Finding 2 has since been fixed and re-verified in the browser** (see the
+status note on that finding). Everything else is listed with a recommended
+fix rather than applied - no other defect fell into the "missing `alt` /
+trivial console error" class the audit itself authorised fixing.
 
 ---
 
@@ -31,7 +32,7 @@ The bugs are all in behaviour, and all seven were invisible to static review:
 | # | Severity | Finding | Page |
 |---|----------|---------|------|
 | 1 | High | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
-| 2 | High | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
+| 2 | High - **FIXED** | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
 | 3 | Medium-high | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
 | 4 | Medium-high | ToolExplorer discards the tab the user picked after 6.5s | `/` |
 | 5 | Medium | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
@@ -101,7 +102,11 @@ so it is listed, not fixed.
 
 ---
 
-## 2. Enterprise inquiry form POSTs an empty payload to the live endpoint (High)
+## 2. Enterprise inquiry form POSTs an empty payload to the live endpoint (High - FIXED)
+
+> **Status: fixed and re-verified in the browser.** See
+> [Fix and verification](#fix-and-verification) at the end of this section.
+> The description below is the defect as found.
 
 **Page:** `/outsourcing`
 **Viewport:** 1440x900 (not viewport-dependent)
@@ -155,12 +160,51 @@ three required fields, and moves focus to `#c-name`. That one is correct.
 `noValidate` that cancels all of them is one token on the `<form>` 160 lines
 away, and the absence of validation in `handleSubmit` reads as unremarkable.
 
-**Recommended fix:** validate in `handleSubmit` before the `fetch` (mirroring
-the server's own checks), set `aria-invalid` + `aria-describedby` on each
-failing field, render per-field messages, and move focus to the first invalid
-control. Alternatively drop `noValidate` and let the browser enforce
-`required`. Either is a real change to a lead-capture form, so it is listed,
-not fixed.
+### Fix and verification
+
+`components/enterprise/EnterpriseInquiryForm.tsx` now validates in
+`handleSubmit` before the `fetch`. `noValidate` is kept deliberately, so the
+messages are ours and carry the site's styling rather than browser bubbles -
+with a comment on it saying so, since that attribute is what disarms the
+`required` attributes.
+
+The rules are a direct mirror of `app/api/enterprise-inquiry/route.ts` - the
+same `EMAIL_RE`, the same `STAFF_BUCKETS` / `VARIANT_VALUES` /
+`URGENCY_VALUES`, checked in the same order - so the client cannot accept
+something the server will reject, and the first error the user is sent to is
+the same one the server would have complained about. A comment on each
+constant says to change them together.
+
+On a failed submit the form now: blocks the `fetch` entirely, sets
+`aria-invalid` and `aria-describedby` on every failing control, renders a
+per-field message in the `danger` token, swaps that field's border to
+`border-danger`, shows a `role="alert"` count, and moves focus to the first
+field that needs work. Editing a field clears that field's error immediately.
+
+Re-driven in Chromium, with `/api/enterprise-inquiry` intercepted throughout
+so nothing could reach the endpoint:
+
+| Step | POSTs fired | Result |
+|------|-------------|--------|
+| Submit a blank form | **0** | 7 `aria-invalid`, 7 `aria-describedby` (all resolving to real text), 7 danger borders, 7 messages, `role="alert"` reads "7 fields need your attention", focus lands on "Your name" |
+| Type a name | 0 | drops to 6 errors - only that field clears |
+| Submit with `not-an-email` | **0** | "Enter a valid work email, like you@yourbusiness.com.au.", focus moves to the email field |
+| Fill everything but consent | **0** | 1 error, focus on the checkbox |
+| Tick consent and submit | 1 | full payload, correctly populated |
+
+Also checked: tab order unchanged across all 11 controls (the consent row was
+rewrapped in a `div` so its message could sit below the flex row, which could
+have disturbed it); no horizontal overflow at 390px (`scrollWidth` 390 ==
+`clientWidth` 390); exactly 7 error nodes with 7 unique ids and no duplicated
+text; error colour resolves to `rgb(197, 72, 58)`, the `danger` token on the
+marketing surface, not a hardcoded hex. `tsc --noEmit` and `eslint` on the
+file both pass clean.
+
+Screenshots: `enterprise-validation-fixed-1440.png`,
+`enterprise-validation-consent-1440.png`,
+`enterprise-validation-fixed-390.png`.
+
+The server-side validation is untouched and still the real gate.
 
 ---
 
