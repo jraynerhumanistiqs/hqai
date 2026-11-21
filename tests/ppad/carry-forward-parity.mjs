@@ -26,13 +26,19 @@ let PGlite
 try { ({ PGlite } = await import('@electric-sql/pglite')) }
 catch { console.log('SKIP: npm i -D @electric-sql/pglite'); process.exit(0) }
 
-// ── the client's own implementation, lifted out of the shipped document ────
+// ── the client's own implementation, lifted out of the shipped source ─────
 //
-// Read from public/tools/ppad/app.html rather than copied here. A copy would
+// Read from public/tools/ppad/app.js rather than copied here. A copy would
 // drift, and a parity test against a stale copy of one side is worse than no
 // test at all: it would keep passing while the real pair diverged.
+//
+// It read app.html until the Phase 3 CSP work moved the script into its own
+// file, at which point this suite reported "0 pass, 0 fail" - it stopped
+// testing anything and said so only in a line that is easy to miss. Hence
+// the explicit "the client source was found" test below: a parity suite
+// that quietly tests nothing is the worst of the three outcomes.
 function loadClientFns() {
-  const html = readFileSync(join(ROOT, 'public', 'tools', 'ppad', 'app.html'), 'utf8')
+  const html = readFileSync(join(ROOT, 'public', 'tools', 'ppad', 'app.js'), 'utf8')
   const grab = (name, kind = 'function') => {
     const re = kind === 'function'
       ? new RegExp(`\\nfunction ${name}\\s*\\([\\s\\S]*?\\n\\}`, 'm')
@@ -165,6 +171,16 @@ const ALL = { kpis: true, comps: true, edp: true }
 
 describe('ppad_carry_forward matches the client carryForward()', () => {
   const person = { id: 'p1', first: 'A', last: 'B', pdId: 'd_fin', profileId: 'r_mgr' }
+
+  test('the client source was found and is runnable', () => {
+    // Guards against this whole suite silently becoming a no-op if the
+    // client source moves again. Without it, a failed extraction shows up
+    // as "0 pass, 0 fail" and reads like the suite was skipped.
+    assert.equal(typeof client.carryForward, 'function', 'carryForward not extracted')
+    assert.equal(typeof client.newRecord, 'function', 'newRecord not extracted')
+    const probe = js({ id: 'px', pdId: '', profileId: 'r_mgr' }, null, ALL)
+    assert.ok(probe && Array.isArray(probe.kpis), 'extracted functions do not run')
+  })
 
   test('a full carry-forward from a previous cycle', async () => {
     const a = normalise(js(person, PREV, ALL))
