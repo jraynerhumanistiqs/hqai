@@ -1,10 +1,22 @@
 'use client'
 
 // "Explore the tools" - the homepage centerpiece (qase-modelled tabbed
-// switcher). Two tabs (HQ People / HQ Recruit); clicking
-// a tab swaps the copy AND an animated in-browser preview. Auto-advances
-// slowly to invite exploration, pauses on hover/focus, and honours
-// prefers-reduced-motion (no auto-advance, previews render in final state).
+// switcher). Two tabs (HQ People / HQ Recruit); picking a tab swaps the
+// copy AND an animated in-browser preview.
+//
+// The tabs are VISITOR-DRIVEN ONLY - do not reintroduce auto-advance.
+// It rotated every 6.5s, which WCAG 2.2.2 treats as moving content that
+// needs a pause, stop or hide mechanism once it runs past five seconds.
+// Pausing on hover and focus covered pointer and keyboard users but not
+// touch, where the panel swapped under a reader mid-sentence - including
+// out from under the CTA they were reaching for. With only two tabs, both
+// visible and labelled, the rotation was competing with the reader rather
+// than inviting exploration, so it is gone rather than wrapped in a pause
+// control. Nov 2026, after the Web Interface Guidelines audit - see
+// docs/audits/web-interface-guidelines.md.
+//
+// The previews still honour prefers-reduced-motion by rendering in their
+// final state (the `reduced` prop below).
 //
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
@@ -77,36 +89,10 @@ const TABS: Tab[] = [
   },
 ]
 
-const DWELL_MS = 6500
-
 export default function ToolExplorer() {
   const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
-  // Once the visitor picks a tab themselves, the rotation stops for good.
-  // WCAG 2.2.2 wants a way to stop motion that runs longer than five
-  // seconds; hover and focus pausing covers pointer and keyboard users but
-  // leaves touch users with the panel swapping under them mid-read. This
-  // at least makes one tap final. A visible pause control is still open -
-  // see docs/audits/web-interface-guidelines.md.
-  const [userPicked, setUserPicked] = useState(false)
   const reduced = usePrefersReducedMotion()
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
-
-  useEffect(() => {
-    if (reduced || paused || userPicked) return
-    timer.current = setInterval(() => {
-      setActive((i) => (i + 1) % TABS.length)
-    }, DWELL_MS)
-    return () => {
-      if (timer.current) clearInterval(timer.current)
-    }
-  }, [reduced, paused, userPicked])
-
-  const select = (i: number) => {
-    setActive(i)
-    setUserPicked(true)
-  }
 
   // Tabs pattern keyboard support (WAI-ARIA): Left/Right wrap through the
   // tabs, Home/End jump to the ends, and focus follows selection. Without
@@ -121,7 +107,7 @@ export default function ToolExplorer() {
     else if (e.key === 'End') next = TABS.length - 1
     if (next === null) return
     e.preventDefault()
-    select(next)
+    setActive(next)
     tabRefs.current[next]?.focus()
   }
 
@@ -164,7 +150,7 @@ export default function ToolExplorer() {
                 // Roving tabindex: the tablist is one Tab stop, and the
                 // arrow keys move within it.
                 tabIndex={selected ? 0 : -1}
-                onClick={() => select(i)}
+                onClick={() => setActive(i)}
                 onKeyDown={(e) => onTabKeyDown(e, i)}
                 className={[
                   'inline-flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors',
@@ -185,10 +171,6 @@ export default function ToolExplorer() {
           role="tabpanel"
           aria-labelledby={`tool-tab-${tab.id}`}
           className="mt-8 grid items-center gap-10 rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocusCapture={() => setPaused(true)}
-          onBlurCapture={() => setPaused(false)}
         >
           {/* LEFT: copy (re-keys per tab so it fades on switch) */}
           <div key={tab.id} className="tool-fade">

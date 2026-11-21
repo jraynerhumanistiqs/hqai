@@ -176,18 +176,23 @@ expanded to >=24 px via padding (dots) and an invisible pseudo-element
 
 ### 8. Auto-advancing carousel with no pause control
 
-`components/landing/ToolExplorer.tsx:88` (6.5 s dwell, infinite loop)
+`components/landing/ToolExplorer.tsx` (was a 6.5 s dwell, infinite loop)
 
 Rule: *Autoplay motion >5 seconds alongside other content needs pause,
 stop, or hide controls*. WCAG 2.2.2.
 
-It pauses on hover and focus and honours reduced motion, which covers
-pointer and keyboard users. Touch users get neither - the panel swaps
+It paused on hover and focus and honoured reduced motion, which covered
+pointer and keyboard users. Touch users got neither - the panel swapped
 under them while they read, including the CTA they were reaching for.
 
-**Partly fixed** - auto-advance now stops permanently once the user
-picks a tab. A visible pause control is a design addition: see
-"Not fixed" #1.
+**Fixed** - the auto-advance is gone entirely (founder call, Nov 2026).
+With only two tabs, both visible and labelled, the rotation competed with
+the reader rather than inviting exploration, so removing it was the
+better answer than wrapping it in a pause control. The `paused`,
+`userPicked`, `DWELL_MS` and interval machinery and the hover/focus pause
+handlers all went with it; the tabs are visitor-driven only. The 420 ms
+`.tool-fade` on tab switch stays - it answers a deliberate interaction
+and is already reduced-motion guarded.
 
 `components/landing/HeroChatPreview.tsx:65` has the same auto-advance at
 4.8 s but does expose manual dot controls, so it is acceptable.
@@ -517,16 +522,14 @@ Tailwind preflight already stripped the default `dl` margins.
 
 ## Not fixed - needs a decision
 
-1. **A visible pause control on the ToolExplorer carousel** (finding 8).
-   Auto-advance now stops as soon as the user picks a tab, which gives
-   touch users a way out, but WCAG 2.2.2 wants a mechanism available
-   *before* any interaction. The remedies are all visual: a pause/play
-   button in the tab bar, or dropping auto-advance entirely. Adding
-   chrome to the homepage centrepiece is a design call, and CLAUDE.md's
-   "one filled accent CTA per section" rule means the button's styling
-   needs thought. My recommendation: drop the auto-advance. There are
-   only two tabs, both are visible and labelled, and the rotation mainly
-   competes with the reader.
+1. **The HeroChatPreview still auto-advances** (`components/landing/HeroChatPreview.tsx:65`,
+   4.8 s dwell, infinite loop). Left alone deliberately: unlike
+   ToolExplorer it exposes manual dot controls, pauses on hover and focus,
+   and honours reduced motion, so there is a mechanism to stop it. It also
+   *is* the hero's "live product" moment rather than a container for copy
+   the visitor is trying to read. Worth revisiting only if the same
+   objection that retired ToolExplorer's rotation applies here too - the
+   dots are the pause affordance, which is subtle.
 
 2. **A chevron on the enterprise selects** (finding 15). `appearance-none`
    removed the native arrow and `pr-10` reserves space for a replacement
@@ -647,5 +650,6 @@ Tailwind preflight already stripped the default `dl` margins.
 | Low | 19 | 9 |
 | **Total** | **36** | **24** |
 
-Medium partly fixed: finding 8 (auto-advance stops on interaction; a
-visible pause control is still open).
+All eight fixed Medium findings are now fully fixed - finding 8 was
+closed by dropping ToolExplorer's auto-advance outright rather than
+adding a pause control.
