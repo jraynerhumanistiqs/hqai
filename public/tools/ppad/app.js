@@ -705,7 +705,8 @@ function vSettings(){
       <label class="f"><span>Levels (one per line; "Title: description")</span><textarea class="in" rows="${c.levels.length+1}" data-f="org.framework.comps.${i}.levels" data-type="lines">${esc(c.levels.join('\n'))}</textarea></label>
       <div><button class="btn sm danger" data-act="del-comp" data-i="${i}">Delete competency</button></div></div></details>`).join('')}
   </div>
-  <div class="card"><div class="card-h"><div><h2>Data</h2><p>Saved to your organisation's HQ.ai workspace. Nothing is kept on this device, so signing out leaves no data behind.</p></div></div>
+  <div class="card"><div class="card-h"><div><h2>Data</h2><p>Saved to your organisation's HQ.ai workspace. Nothing is kept on this device, so signing out leaves no data behind.</p>
+    <p class="small muted" style="margin-top:6px"><b>Export is scoped to you.</b> It contains the people and assessments you can see, not the whole organisation - an admin with no allocations gets the directory and no assessments. Ask HQ.ai for a full backup.</p></div></div>
     <div class="row"><button class="btn" data-act="backup">Export backup (JSON)</button><label class="btn">Import backup<input type="file" accept=".json,application/json" data-act-change="import" hidden></label><button class="btn ghost" data-act="sample">Load sample data</button><span class="spacer"></span><button class="btn danger" data-act="erase">Erase all data</button></div>
   </div>`;
 }
@@ -827,7 +828,14 @@ const ACT = {
   'new-cycle': () => newCycleDialog(),
   'set-cycle': el => { S.org.activeCycle = el.dataset.v; saveOrg(); rerender(); },
   'del-cycle': el => { const c = S.org.cycles.find(x=>x.id===el.dataset.v);
-    confirmBox('Delete '+c.label+'?', 'All records in this cycle will be removed for everyone. Export a backup first if unsure.', 'Delete cycle', () => {
+    /* The old copy promised "all records in this cycle will be removed for
+       everyone". That stopped being true when records moved to their own
+       table: dropping the key from p.records simply means the adapter does
+       not save it, and the row stays. The cycle disappears from the list and
+       its records become unreachable through the UI, which is what actually
+       happens, so that is what the dialog now says. Nothing hard-deletes
+       them - deliberately, with no point-in-time recovery on this project. */
+    confirmBox('Remove '+c.label+' from the cycle list?', 'The cycle is removed from the selector and its assessments are no longer shown. The records themselves are retained in the database and are not deleted.', 'Remove cycle', () => {
       S.org.cycles = S.org.cycles.filter(x=>x!==c); if (S.org.activeCycle===c.id) S.org.activeCycle = S.org.cycles[S.org.cycles.length-1].id;
       Object.values(S.people).forEach(p => { if (p.records && p.records[c.id]){ delete p.records[c.id]; savePerson(p); } }); saveOrg(); rerender(); }, true); },
   'add-profile': () => { const p = {id:'r'+uid(), name:'New profile', targets:{}}; S.org.framework.comps.forEach(c => p.targets[c.id] = 0); S.org.profiles.push(p); S.ui.profileId = p.id; saveOrg(); rerender(); },
@@ -840,7 +848,33 @@ const ACT = {
     setTimeout(()=>{ const d = document.querySelectorAll('details.acc'); const l = d[d.length-1]; if (l){ l.open = true; l.scrollIntoView({block:'center'}); } }); },
   'del-comp': el => { const c = S.org.framework.comps[Number(el.dataset.i)]; confirmBox('Delete '+c.name+'?', 'It will no longer appear in plans or assessments. Ratings already recorded are kept in the data.', 'Delete', () => { S.org.framework.comps.splice(Number(el.dataset.i),1); saveOrg(); rerender(); }, true); },
   'reset-fw': () => confirmBox('Reset the competency framework?', 'Restores the default 17 competencies and level descriptors. Custom competencies will be removed.', 'Reset', () => { S.org.framework = {clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)}; saveOrg(); rerender(); }, true),
-  backup: () => download(`${slug()}-backup-${today()}.json`, JSON.stringify({app:'performance-manager', exported:new Date().toISOString(), org:S.org, people:S.people, pds:S.pds}, null, 1), 'application/json'),
+  /* A SCOPED export, and it has to say so.
+     It writes what the caller can read, which since the access model landed
+     is not the whole organisation: an admin sees the directory but no
+     records unless they are allocated, so an admin's "backup" can contain
+     every person and zero assessments. Believing that file is a backup is
+     worse than having no file. A complete export cannot be produced from
+     inside the tool without breaking the access rules it exists to enforce -
+     that is a database-level job. */
+  backup: () => {
+    const people = Object.values(S.people);
+    const withRecords = people.filter(p => p.records && Object.keys(p.records).length).length;
+    const records = people.reduce((n, p) => n + Object.keys(p.records || {}).length, 0);
+    download(`${slug()}-export-${today()}.json`, JSON.stringify({
+      app: 'hq-performance',
+      exported: new Date().toISOString(),
+      scope: {
+        note: 'Scoped to what the signed-in user could read. NOT a full-organisation backup.',
+        exportedBy: (S.me && S.me.email) || '',
+        people: people.length, peopleWithRecords: withRecords, records: records,
+      },
+      org: S.org, people: S.people, pds: S.pds,
+    }, null, 1), 'application/json');
+    const pn = `${people.length} ${people.length === 1 ? 'person' : 'people'}`;
+    toast(records
+      ? `Exported ${pn} and ${records} record${records === 1 ? '' : 's'} - only what you can see`
+      : `Exported ${pn} and NO records - you are not allocated to anyone`);
+  },
   erase: () => confirmBox('Erase all data?', 'Every person, record, profile and setting will be deleted. Export a backup first.', 'Erase everything', () => { Object.keys(S.people).forEach(id => store.mark('p_'+id)); Object.keys(S.pds).forEach(id => store.mark('d_'+id)); S.people = {}; S.pds = {}; S.org = newOrg(); if (PRESET) applyPreset(); saveOrg(); applyBrand(); go('dashboard'); }, true),
   sample: () => { loadSample(); toast('Sample data loaded'); go('dashboard'); },
   'export-appraisal': () => exportAppraisal(curP(), curR()),
