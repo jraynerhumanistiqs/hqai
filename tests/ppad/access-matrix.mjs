@@ -565,7 +565,7 @@ describe('one caller holding all three relationships', () => {
   // allocated as their own manager AND reviewer. No other test covers it,
   // and the merge takes a different path for each role, so this is where a
   // clamp could silently eat a rating.
-  let pid = 'p_E3'
+  const pid = 'p_E3'
   before(async () => {
     await as('admin', `select ppad_link_person($1,$2)`, [U.M2, pid])      // self
     await as('admin', `select ppad_set_allocation($1,$2,'reviewer')`, [pid, U.M2])
