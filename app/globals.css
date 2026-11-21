@@ -2,11 +2,21 @@
    Source: docs/research/2026-05-16_brand-kit-benchmark.md section 5.4-5.5
    + the option-2-ivory-clay / option-3-ink-amber token JSON files.
 
-   The shadcn-style pattern: one stylesheet, two contexts, switched at
-   the root via data-app="marketing" (Option 2 Ivory & Clay) or
-   data-app="product" (Option 3 Ink & Amber). next-themes adds a `.dark`
-   class on the html element for the in-app light/dark toggle (product
-   only - marketing stays light per the brief).
+   The shadcn-style pattern: one stylesheet, three contexts, switched at
+   the root by data-app on <html>. The Option 2 "Ivory & Clay" / Option 3
+   "Ink & Amber" kits this file was built from are both retired; what
+   ships now is:
+
+     [data-app="marketing"]  dark warm slab, Wattle Gold accent
+     [data-app="product"]    neutral shadcn-preset ramp, same gold,
+                             light/dark via next-themes' `.dark`
+     :root (no data-app)     the white fallback ramp - see the note on
+                             that block, it is NOT the marketing palette
+
+   next-themes adds `.dark` for the in-app toggle, and that class is only
+   ever matched under [data-app="product"], so it cannot reach the other
+   two. Marketing does NOT "stay light per the brief" as this header used
+   to claim - it has been the dark slab since the June 2026 refresh.
 
    COLOUR TOKENS ARE CHANNEL TRIPLETS, NOT COLOURS (Nov 2026)
    -----------------------------------------------------------------
@@ -41,11 +51,33 @@
 
 @layer base {
   :root {
-    /* Default = Option 2 (Ivory & Clay, marketing) so any route without
-       an explicit data-app scope still reads as the warm marketing
-       palette. Product surfaces opt-in via data-app="product" on the
-       html element (set by ThemeBoundary in app/dashboard/layout.tsx,
-       app/prescreen/layout.tsx, app/review/layout.tsx). */
+    /* :root IS THE WHITE RAMP. It is NOT the marketing palette (Nov 2026).
+
+       This block used to read "any route without an explicit data-app
+       scope still reads as the warm marketing palette", which stopped
+       being true at the May 2026 white-first migration below: the
+       surfaces here are #FFFFFF, and the dark marketing slab lives in
+       [data-app="marketing"] further down. The stale comment cost real
+       bugs - /privacy, /terms and /careers rendered white against 12
+       dark sibling pages, and reading the source made them look correct,
+       because the pages use the right token NAMES and only the root they
+       resolve against is wrong.
+
+       So treat this as the fallback for a page that has declared no
+       scope, not as a surface anyone should aim at:
+
+         - data-app="marketing" -> the dark slab. Set by
+           components/landing/MarketingHeader in a useEffect. Mounting
+           that header IS how a public page opts into the brand palette;
+           there is no other switch. A public page that does not mount it
+           lands here, white.
+         - data-app="product"   -> the shadcn-preset ramp. Set by
+           ThemeBoundary (app/dashboard/layout.tsx,
+           app/prescreen/layout.tsx, app/review/layout.tsx) and by the
+           pre-paint shim in app/layout.tsx.
+         - no scope at all      -> this block. Deliberate only for the
+           whitelabel /careers tree, which says so in its own comments.
+           Anywhere else it is an accident. */
 
     /* ── Surface (premium-minimal default, May 2026) ──────── */
     /* Was 'Ivory & Clay' (warm cream bg). The May 2026 kit
