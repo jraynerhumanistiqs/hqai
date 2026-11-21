@@ -19,11 +19,15 @@ console error" class the audit itself authorised fixing.
 
 > **Status update, 2026-11-21 (post-merge).** This audit was run against base
 > `8917902`, which was ~52 commits behind `main`. `origin/main` was then merged
-> into this branch (`096760c`), and **findings 3, 4, 5 and 6 had already been
-> fixed independently on `main`** - by the web-design-guidelines and taste-skill
-> work, not by this audit. Each is marked below. **Finding 7 is the only one
-> still open.** Read the per-finding status notes before acting on anything
-> here.
+> into this branch (`096760c`), and **findings 4 and 6 had been fixed
+> independently on `main`** - by the web-design-guidelines and taste-skill
+> work, not by this audit. Findings 3 and 5 were partly fixed there.
+>
+> **Four are still open in some form: finding 3 strands keyboard focus,
+> finding 5 leaves one control below the WCAG floor (now split out as finding
+> 8), finding 7 is untouched, and finding 8 is the only outright WCAG
+> conformance failure found.** Every status here is measured in a
+> browser, not read from source - see the table below.
 >
 > **The live re-run has now been done** (2026-11-21, against production after
 > PR #9 merged as `f095567` - production *is* the merged tree, so no dev server
@@ -64,7 +68,7 @@ zero images missing `alt`, zero broken images, zero em/en dashes or curly
 apostrophes**, and a visible keyboard focus indicator at every one of 70 tab
 stops on the home page.
 
-The bugs are all in behaviour, and all seven were invisible to static review:
+The bugs are all in behaviour, and all of them were invisible to static review:
 
 | # | Severity | Finding | Page |
 |---|----------|---------|------|
@@ -73,8 +77,14 @@ The bugs are all in behaviour, and all seven were invisible to static review:
 | 3 | Medium-high - **MOSTLY FIXED ON MAIN** (measured) | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
 | 4 | Medium-high - **FIXED ON MAIN** (measured) | ToolExplorer discards the tab the user picked after 6.5s | `/` |
 | 5 | Medium - **PARTLY FIXED ON MAIN** (measured) | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
+| 8 | Medium - **STILL OPEN** (measured 20x20) | "HQ People subscriber add-on" info button is 20x20 px - below WCAG 2.5.8's 24px floor, and the only outright conformance failure on either page | `/`, `/pricing` |
 | 6 | Low-medium - **FIXED ON MAIN** (measured) | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
 | 7 | Low - **STILL OPEN** (measured 40x40) | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
+
+Rows are ordered by severity; the NUMBERS are the order findings were
+discovered, so finding 8 appears above 6 and 7. It was split out of finding 5
+during the post-merge browser re-run and kept at the end of the document so the
+original 1-7 references in commits and sibling notes stay valid.
 
 Two things the brief expected to be broken are **not** broken - see
 [Expected findings that did not reproduce](#expected-findings-that-did-not-reproduce).
@@ -482,11 +492,13 @@ pause permanently once the user has expressed a choice.
 > | Mobile menu button | 40x40 | pass | **fail** |
 > | **"HQ People subscriber add-on" info button** | **20x20** | **FAIL** | **fail** |
 >
-> **That last row is a new finding and the only WCAG failure left on the home
-> page.** Every other control clears 24px; this one does not, so it is the one
-> with an actual conformance problem rather than a house-style problem. Across
-> the whole page at 390px: 1 control under the WCAG floor, 19 under the
-> documented 44px.
+> **That last row became its own finding - see
+> [finding 8](#8-hq-people-subscriber-add-on-info-button-is-20x20-px-medium---still-open).**
+> Every other non-exempt control clears 24px; this one does not, so it is the
+> one with an actual conformance problem rather than a house-style problem. It
+> was split out because grouping it here hid the only real WCAG failure among
+> a set of house-rule gaps. Across the home page at 390px: 1 control under the
+> WCAG floor, 19 under the documented 44px.
 > - **`HeroChatPreview` dots: resolved by removal, not resizing.** On
 >   `origin/main` that component has no `<button>` and no `onClick` at all -
 >   the clickable example dots were taken out. At this audit's base they were
@@ -604,8 +616,9 @@ particular key handling.
 > 44px the project documents. This is the one finding of 3-7 that nobody has
 > picked up. **Re-measured live on the merged tree: 40x40.** It clears WCAG
 > 2.5.8's 24px floor, so this remains a house-rule gap rather than a
-> conformance failure - unlike the 20x20 info button now recorded under
-> finding 5, which fails both.
+> conformance failure - unlike the 20x20 info button in
+> [finding 8](#8-hq-people-subscriber-add-on-info-button-is-20x20-px-medium---still-open),
+> which fails both. If only one of the two gets fixed, fix that one first.
 
 **Pages:** every marketing page
 **Viewport:** 390x844
@@ -627,8 +640,55 @@ One related observation: the page behind the open menu still scrolls
 matters depends on whether the panel is meant to be a modal overlay or an
 inline dropdown - not filed as a defect.
 
-Also under 44px in the header/footer: the LinkedIn link (36x36) and the
-"HQ People subscriber add-on" info button on `/pricing` (20x20).
+Also under 44px in the header/footer: the LinkedIn link (36x36). The
+"HQ People subscriber add-on" info button (20x20) was recorded here as a
+`/pricing` aside; the post-merge re-run found it on `/` as well, and it is now
+[finding 8](#8-hq-people-subscriber-add-on-info-button-is-20x20-px-medium---still-open).
+
+---
+
+## 8. "HQ People subscriber add-on" info button is 20x20 px (Medium - STILL OPEN)
+
+> **Found in the post-merge browser re-run, not in the original sweep**, and
+> split out of finding 5 because it is a different kind of problem. Numbered 8
+> to keep the original 1-7 references valid; by severity it belongs beside
+> finding 5, which is where the summary table puts it.
+
+**Pages:** `/` and `/pricing` - the same control, measured 20x20 on both
+**Viewport:** 390x844
+**Measured:** against production after PR #9 merged (`f095567`)
+
+Every other non-exempt interactive control on either page clears WCAG 2.5.8's
+24x24 minimum. This one does not:
+
+| Control | Size | WCAG 2.5.8 (24px) | House rule (44px) |
+|---------|------|-------------------|-------------------|
+| **"HQ People subscriber add-on" info button** | **20 x 20** | **FAIL** | fail |
+| Industries dots 2-5 | 24 x 24 | pass | fail |
+| Industries dot 1 (active pill) | 42 x 24 | pass | fail |
+| Previous / Next industries | 36 x 36 | pass | fail |
+| Mobile menu button (finding 7) | 40 x 40 | pass | fail |
+
+Across the home page at 390px: **1 control below the WCAG floor, 19 below the
+documented 44px.** The footer and nav text links measure 18px tall, but those
+are inline links inside list items and are exempt under WCAG 2.5.8's inline
+exception, so they are not counted here.
+
+**Why this is separated from finding 7.** The two look like the same complaint
+and are not. Finding 7's 40x40 button clears the accessibility floor and misses
+only the project's own stricter 44px rule - a house-style gap, fixable at
+leisure. This one fails WCAG 2.5.8 outright, which is a Level AA success
+criterion in WCAG 2.2. It is the only such failure left on the home page, and
+grouping it with the house-rule items hides that.
+
+**Recommended fix:** the visual glyph can stay 20px; the hit area is what has
+to grow. Pad the button to at least 24x24, and preferably to the documented
+`min-h-touch` 44px, in the same way `PersonaBand`'s dots were fixed on `main`
+(`px-[9px] py-[9px]` around a 6px dot). Nothing visual needs to change.
+
+**Why static review misses it.** The class list on this button looks
+unremarkable - the failure only exists as a computed box at a particular
+viewport, and only matters below the breakpoint where the icon shrinks.
 
 ---
 
