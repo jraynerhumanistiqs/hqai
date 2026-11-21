@@ -38,6 +38,8 @@
   "exclude": [
     "node_modules",
     "supabase/functions",
-    "_archive"
+    "_archive",
+    "playwright.config.ts",
+    "tests/ppad/e2e"
   ]
 }
