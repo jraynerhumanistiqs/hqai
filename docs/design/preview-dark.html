@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HQ.ai design tokens - dark surfaces</title>
+<!--
+  Static swatch and component sheet for DESIGN.md. Dark surfaces:
+  [data-app="marketing"] (always dark, no toggle) and
+  [data-app="product"].dark (the dashboard default).
+  The light surfaces are in preview.html.
+
+  Values are transcribed from app/globals.css. If this sheet and
+  globals.css disagree, globals.css is right and this file is stale.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── [data-app="marketing"] - the non-member site, always dark ── */
+  .surface-marketing {
+    --bg:#0A0A0B; --bg-soft:#131417; --bg-elevated:#1B1D21; --surface-inverse:#FFFFFF;
+    --ink:#F5F5F4; --ink-soft:#A8A8A3; --ink-muted:#7C7C77; --ink-on-accent:#111111;
+    --accent:#F5F5F4; --accent-hover:#E5E5E3; --accent-soft:#23262B;
+    --accent-text:#F5F5F4;
+    --clay:#E8B23A; --clay-hover:#F0C44E; --clay-soft:rgba(232,178,58,.16); --clay-ink:#E8B23A;
+    --ink-on-clay:#111111;
+    --border:#2A2D32; --border-strong:#3D4148;
+    /* Not redeclared on marketing - these INHERIT the :root light values. */
+    --danger:#C5483A; --warning:#B8770F; --success:#3D8A5E; --info:#6A9BCC;
+    --radius-2xl:20px; --radius-3xl:24px;
+    --shadow-card:0 0 0 1px rgba(255,255,255,.06);
+    --shadow-float:0 8px 24px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
+    --font-head:'Schibsted Grotesk'; --font-body:'Geist';
+  }
+  /* ── [data-app="product"].dark - the dashboard default ── */
+  .surface-product-dark {
+    --bg:#202020; --bg-soft:#262626; --bg-elevated:#292929; --surface-inverse:#FAFAFA;
+    --ink:#FAFAFA; --ink-soft:#D4D4D4; --ink-muted:#A1A1A1; --ink-on-accent:#111111;
+    --ink-on-danger:#0A0A0A;
+    --accent:#E8B23A; --accent-hover:#F0C44E; --accent-soft:rgba(232,178,58,.18);
+    --accent-text:#E8B23A;
+    --clay:#E8B23A; --clay-hover:#F0C44E; --clay-soft:rgba(232,178,58,.18); --clay-ink:#E8B23A;
+    --ink-on-clay:#111111;
+    --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.20);
+    --input:rgba(255,255,255,.15); --ring:#737373; --focus-ring:#E8B23A;
+    --danger:#FF6467; --warning:#FF6900;
+    /* Not redeclared in the dark block - these INHERIT the light values. */
+    --success:#3D8A5E; --info:#6A9BCC;
+    --radius-2xl:18px; --radius-3xl:22px;
+    --shadow-card:0 0 0 1px rgba(255,255,255,.06);
+    --shadow-float:0 8px 24px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
+    --font-head:'Figtree'; --font-body:'Figtree';
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:#07070A; color:#F5F5F4;
+    font-family:'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size:16px; line-height:1.55;
+  }
+  .page { max-width:1152px; margin:0 auto; padding:40px 24px 96px; }
+  @media (min-width:768px) { .page { padding:56px 40px 120px; } }
+
+  .doc-title { font-family:'Schibsted Grotesk', system-ui, sans-serif; font-size:32px; font-weight:700; letter-spacing:-.012em; margin:0 0 8px; }
+  .doc-sub { color:#A8A8A3; margin:0 0 8px; max-width:68ch; }
+  .doc-note { color:#7C7C77; font-size:13px; margin:0 0 40px; max-width:72ch; }
+  .doc-note code, .doc-sub code { font-family:'Geist Mono', ui-monospace, monospace; font-size:12px; background:#1B1D21; padding:1px 5px; border-radius:4px; }
+  .doc-links { margin:0 0 40px; font-size:14px; }
+  .doc-links a, .doc-sub a { color:#E8B23A; }
+
+  .surface {
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body), system-ui, sans-serif;
+    border:1px solid var(--border); border-radius:var(--radius-3xl);
+    padding:28px; margin:0 0 40px;
+  }
+  @media (min-width:768px) { .surface { padding:36px; } }
+  .surface h2 {
+    font-family:var(--font-head), system-ui, sans-serif;
+    font-size:26px; font-weight:700; letter-spacing:-.012em; line-height:1.15;
+    margin:0 0 4px; color:var(--ink);
+  }
+  .surface .scope { font-family:'Geist Mono', ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-muted); margin:0 0 28px; }
+  .surface h3 {
+    font-family:var(--font-head), system-ui, sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:-.006em;
+    margin:36px 0 12px; color:var(--ink);
+  }
+  .surface h3:first-of-type { margin-top:8px; }
+  .surface p { color:var(--ink-soft); }
+  .surface code { font-family:'Geist Mono', ui-monospace, monospace; font-size:12px; background:var(--bg-soft); padding:1px 5px; border-radius:4px; color:var(--ink); }
+
+  .eyebrow { display:flex; align-items:center; gap:8px; font-family:'Geist Mono', ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--clay); margin:0 0 16px; }
+  .eyebrow::before { content:''; display:block; height:1px; width:20px; background:var(--clay); }
+
+  .swatches { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px,1fr)); gap:10px; }
+  .sw { border:1px solid var(--border); border-radius:var(--radius-2xl); overflow:hidden; background:var(--bg-elevated); }
+  .sw-chip { height:56px; border-bottom:1px solid var(--border); }
+  .sw-meta { padding:8px 10px 10px; }
+  .sw-name { font-size:12px; font-weight:600; color:var(--ink); }
+  .sw-val { font-family:'Geist Mono', ui-monospace, monospace; font-size:10.5px; color:var(--ink-muted); }
+  .sw-role { font-size:11px; color:var(--ink-muted); margin-top:3px; line-height:1.35; }
+
+  .type-row { border-top:1px solid var(--border); padding:14px 0; }
+  .type-row:first-child { border-top:0; }
+  .type-label { font-family:'Geist Mono', ui-monospace, monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-muted); margin-bottom:6px; }
+  .t-hero { font-family:var(--font-head), sans-serif; font-size:52px; font-weight:600; line-height:1.06; letter-spacing:-.02em; color:var(--ink); }
+  .t-h2 { font-family:var(--font-head), sans-serif; font-size:40px; font-weight:700; line-height:1.1; letter-spacing:-.012em; color:var(--ink); }
+  .t-card { font-family:var(--font-head), sans-serif; font-size:20px; font-weight:700; letter-spacing:-.006em; color:var(--ink); }
+  .t-sub { font-size:20px; line-height:1.55; color:var(--ink-soft); }
+  .t-body { font-size:16px; line-height:1.55; color:var(--ink); }
+  .t-sm { font-size:14px; line-height:1.5; color:var(--ink-soft); }
+  .t-cap { font-size:12px; line-height:1.45; color:var(--ink-muted); }
+  .t-mono { font-family:'Geist Mono', ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--clay); }
+  @media (max-width:640px) { .t-hero { font-size:34px; } .t-h2 { font-size:28px; } }
+
+  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:9999px; font-family:var(--font-body), sans-serif; font-weight:600; font-size:14px; border:0; cursor:pointer; height:40px; padding:0 20px; text-decoration:none; transition:background-color 150ms cubic-bezier(.4,0,.2,1); }
+  .btn-lg { height:48px; padding:0 28px; }
+  .btn-sm { height:36px; padding:0 14px; font-size:12px; }
+  .btn-gold { background:var(--clay); color:var(--ink-on-clay); box-shadow:var(--shadow-card); }
+  .btn-gold:hover { background:var(--clay-hover); }
+  .btn-primary { background:var(--accent); color:var(--ink-on-accent); }
+  .btn-primary:hover { background:var(--accent-hover); }
+  .btn-secondary { background:var(--bg-soft); color:var(--ink); border:1px solid var(--border); }
+  .btn-ghost { background:transparent; color:var(--ink); }
+  .btn-outline { background:transparent; color:var(--ink-soft); border:1px solid var(--border); }
+  .btn-danger { background:var(--danger); color:var(--ink-on-danger, #FFFFFF); }
+  .btn-link { background:transparent; color:var(--accent-text); padding:0; text-decoration:underline; text-underline-offset:4px; }
+  .btn-icon { width:44px; height:44px; padding:0; background:transparent; border:1px solid var(--border); color:var(--ink-muted); }
+
+  .card { border:1px solid var(--border); border-radius:var(--radius-3xl); background:var(--bg-elevated); padding:24px; box-shadow:var(--shadow-card); }
+  .card-float { box-shadow:var(--shadow-float); }
+  .card-selected { border-color:var(--clay); background:var(--clay-soft); }
+  .card-inset { background:var(--bg-soft); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
+  .card h4 { font-family:var(--font-head), sans-serif; font-size:20px; font-weight:700; letter-spacing:-.006em; margin:0 0 6px; color:var(--ink); }
+  .card p { margin:0; font-size:14px; color:var(--ink-soft); }
+
+  .pill { display:inline-flex; align-items:center; gap:6px; border-radius:9999px; border:1px solid; padding:2px 10px; font-size:12px; font-weight:500; }
+  .p-neutral { background:var(--bg-soft); color:var(--ink-soft); border-color:var(--border); }
+  .p-info { background:color-mix(in srgb, var(--info) 14%, transparent); color:var(--info); border-color:color-mix(in srgb, var(--info) 24%, transparent); }
+  .p-warning { background:color-mix(in srgb, var(--warning) 14%, transparent); color:var(--warning); border-color:color-mix(in srgb, var(--warning) 24%, transparent); }
+  .p-success { background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); border-color:color-mix(in srgb, var(--success) 24%, transparent); }
+  .p-danger { background:color-mix(in srgb, var(--danger) 14%, transparent); color:var(--danger); border-color:color-mix(in srgb, var(--danger) 24%, transparent); }
+  .p-gold { background:var(--clay-soft); color:var(--clay-ink); border-color:color-mix(in srgb, var(--clay) 30%, transparent); }
+
+  .field { display:block; max-width:360px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  .field input { width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--input, var(--border)); border-radius:8px; padding:8px 12px; font-family:var(--font-body), sans-serif; font-size:14px; }
+  .field input::placeholder { color:var(--ink-muted); }
+
+  .radii { display:flex; flex-wrap:wrap; gap:12px; }
+  .radius-box { width:84px; height:64px; background:var(--bg-soft); border:1px solid var(--border); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; font-family:'Geist Mono', ui-monospace, monospace; font-size:10px; color:var(--ink-muted); }
+
+  .warn { border-left:3px solid var(--clay); background:var(--clay-soft); padding:12px 14px; border-radius:0 8px 8px 0; font-size:13px; color:var(--ink); margin-top:14px; }
+  .warn strong { color:var(--clay); }
+  .warn code { background:rgba(0,0,0,.25); }
+  .bad { font-family:'Geist Mono', ui-monospace, monospace; font-size:11px; }
+
+  /* Hero entrance - the real keyframes from app/globals.css. */
+  @keyframes hq-hero-rise { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+  @keyframes hq-hero-lead { from { opacity:0; transform:translate(-8px,40px); } to { opacity:1; transform:none; } }
+  .hq-hero-rise { animation:hq-hero-rise .7s cubic-bezier(.22,1,.36,1) both; }
+  .hq-hero-lead { animation:hq-hero-lead .9s cubic-bezier(.22,1,.36,1) both; }
+  @media (prefers-reduced-motion:reduce) { .hq-hero-rise, .hq-hero-lead { animation:none; } }
+
+  .rail-demo { display:flex; gap:0; border:1px solid var(--border); border-radius:var(--radius-2xl); overflow:hidden; }
+  .rail { width:68px; padding:16px 0; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .rail span { width:22px; height:22px; border-radius:6px; background:var(--ink-muted); opacity:.5; }
+  .rail span.on { background:var(--clay); opacity:1; }
+  .rail-body { flex:1; padding:20px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="doc-title">HQ.ai design tokens</p>
+  <p class="doc-sub">Dark surfaces: <code>[data-app="marketing"]</code> and <code>[data-app="product"].dark</code>. The light surfaces - the <code>:root</code> fallback and product light - are in <a href="preview.html">preview.html</a>.</p>
+  <p class="doc-note">HQ.ai has no single light/dark pair. It has <strong>two surface palettes</strong> selected by <code>data-app</code> on <code>&lt;html&gt;</code>, and only the product one has a light/dark toggle. Marketing is always dark. This sheet is therefore split by lightness, not by theme. Values transcribed from <code>app/globals.css</code>; if they disagree, globals.css is right and this file is stale.</p>
+  <p class="doc-links">See <a href="../../DESIGN.md">DESIGN.md</a> for roles, traps and component recipes.</p>
+
+  <!-- ══════════════ MARKETING ══════════════ -->
+  <section class="surface surface-marketing">
+    <h2>Marketing surface</h2>
+    <p class="scope">[data-app="marketing"] &middot; every page that mounts MarketingHeader, plus /onboarding and /welcome &middot; Schibsted Grotesk + Geist &middot; no light mode</p>
+
+    <h3>Palette</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-chip" style="background:#0A0A0B"></div><div class="sw-meta"><div class="sw-name">bg</div><div class="sw-val">#0A0A0B</div><div class="sw-role">Page - neutral, not warm</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#131417"></div><div class="sw-meta"><div class="sw-name">bg-soft</div><div class="sw-val">#131417</div><div class="sw-role">Inset, secondary buttons</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#1B1D21"></div><div class="sw-meta"><div class="sw-name">bg-elevated</div><div class="sw-val">#1B1D21</div><div class="sw-role">Card</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F5F5F4"></div><div class="sw-meta"><div class="sw-name">ink</div><div class="sw-val">#F5F5F4</div><div class="sw-role">Primary text, 18.14:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#A8A8A3"></div><div class="sw-meta"><div class="sw-name">ink-soft</div><div class="sw-val">#A8A8A3</div><div class="sw-role">Secondary, 8.29:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#7C7C77"></div><div class="sw-meta"><div class="sw-name">ink-muted</div><div class="sw-val">#7C7C77</div><div class="sw-role">Tertiary, 4.72:1 - no margin</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">clay</div><div class="sw-val">#E8B23A</div><div class="sw-role">Wattle Gold - the primary CTA</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F0C44E"></div><div class="sw-meta"><div class="sw-name">clay-hover</div><div class="sw-val">#F0C44E</div><div class="sw-role">BRIGHTER on dark, not deeper</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#111111"></div><div class="sw-meta"><div class="sw-name">ink-on-accent</div><div class="sw-val">#111111</div><div class="sw-role">Label on gold, 9.77:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F5F5F4"></div><div class="sw-meta"><div class="sw-name">accent</div><div class="sw-val">#F5F5F4</div><div class="sw-role">The SECONDARY near-white, not gold</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#23262B"></div><div class="sw-meta"><div class="sw-name">accent-soft</div><div class="sw-val">#23262B</div><div class="sw-role">Quiet fill</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:rgba(232,178,58,.16)"></div><div class="sw-meta"><div class="sw-name">clay-soft</div><div class="sw-val">#E8B23A @ 16%</div><div class="sw-role">Badge tint</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#E8B23A</div><div class="sw-role">Gold AS text, 10.23:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#2A2D32"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#2A2D32</div><div class="sw-role">Hairline</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#3D4148"></div><div class="sw-meta"><div class="sw-name">border-strong</div><div class="sw-val">#3D4148</div><div class="sw-role">Stronger line</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#C5483A"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#C5483A</div><div class="sw-role">INHERITED from :root - 4.11:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#B8770F"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#B8770F</div><div class="sw-role">INHERITED - very close to gold</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#3D8A5E"></div><div class="sw-meta"><div class="sw-name">success</div><div class="sw-val">#3D8A5E</div><div class="sw-role">INHERITED - 4.71:1</div></div></div>
+    </div>
+    <div class="warn"><strong>Not warm greys.</strong> <code>CLAUDE.md</code> calls this surface "dark, warm", but #0A0A0B / #131417 / #1B1D21 are neutral-to-slightly-cool. The warmth is the gold alone. Do not add warm greys to "match".</div>
+
+    <h3>The section skeleton and the eyebrow</h3>
+    <div style="border:1px solid var(--border); border-radius:var(--radius-3xl); padding:28px;">
+      <p class="eyebrow hq-hero-rise" style="animation-delay:40ms">The retainer trap</p>
+      <h4 class="t-h2 hq-hero-lead" style="animation-delay:130ms; margin:0 0 16px;">HR and hiring are complicated. HQ.ai makes it <span style="color:var(--clay)">easy, quick and accurate.</span></h4>
+      <p class="t-sub hq-hero-rise" style="animation-delay:220ms; margin:0 0 24px; max-width:52ch;">HQ.ai handles the everyday HR work and hiring processes that cost you time and money. From $59/month. Cancel any time.</p>
+      <div class="row hq-hero-rise" style="animation-delay:310ms">
+        <a class="btn btn-gold btn-lg" href="#">Get started</a>
+        <a class="btn btn-outline" href="#">See how it works</a>
+      </div>
+      <p class="t-cap hq-hero-rise" style="animation-delay:400ms; margin:16px 0 0;">The entrance above is the real <code>.hq-hero-rise</code> / <code>.hq-hero-lead</code> keyframes. Reload to replay.</p>
+    </div>
+    <div class="warn"><strong>One filled accent CTA per section.</strong> The gold pill is the section's primary action. Everything else is outline, ghost or a text link.</div>
+
+    <h3>Buttons</h3>
+    <div class="row">
+      <a class="btn btn-gold btn-lg" href="#">Gold CTA, lg</a>
+      <a class="btn btn-gold" href="#">Gold CTA, md</a>
+      <button class="btn btn-primary">variant="primary"</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-outline">Outline</button>
+      <button class="btn btn-danger">Danger</button>
+      <a class="btn btn-link" href="#">Link</a>
+      <button class="btn btn-icon" aria-label="More">&#8943;</button>
+    </div>
+    <div class="warn"><strong>Trap: <code>bg-accent</code> is not gold here.</strong> On marketing <code>--accent</code> is the inverted near-white #F5F5F4, so <code>variant="primary"</code> renders the near-white pill above. The gold CTA on marketing is <code>bg-clay text-ink-on-clay hover:bg-clay-hover</code> - <code>ink-on-clay</code>, never <code>ink-on-accent</code>, which is white wherever no data-app scope is set.</div>
+
+    <h3>Cards - hairline and lift, no blur</h3>
+    <div class="cards">
+      <div class="card"><h4>shadow-card</h4><p>On dark surfaces this is <strong>only</strong> a 1px white hairline at 6% - no blur at all. A blurred shadow just muddies a near-black page.</p></div>
+      <div class="card card-float"><h4>shadow-float</h4><p>Dropdowns and genuinely lifted tiles. 24px blur at 40% black plus the hairline.</p></div>
+      <div class="card card-selected"><h4>Selected</h4><p><code>border-clay bg-clay-soft</code>. The 16% gold tint - never a solid fill, never a gradient.</p></div>
+    </div>
+
+    <h3>Status pills</h3>
+    <div class="row">
+      <span class="pill p-neutral">Draft</span>
+      <span class="pill p-info">Invited</span>
+      <span class="pill p-warning">Pending</span>
+      <span class="pill p-success">Sent</span>
+      <span class="pill p-danger">Expired</span>
+      <span class="pill p-gold">Popular</span>
+    </div>
+    <div class="warn"><strong>Fixed Nov 2026.</strong> That gold pill is <code>bg-clay-soft text-clay-ink</code> - the <code>StatusPill</code> <code>gold</code> tone. It used to be near-black #0A0A0B on a dark gold tint here, about <span class="bad">1.3:1</span>, because <code>clay-ink</code> meant "gold as text" on product but "label on a gold fill" on marketing. Marketing now carries the gold like every other surface: <span class="bad">7.81:1</span>. A label ON a gold fill is <code>ink-on-clay</code>.</div>
+
+    <h3>Type scale - Schibsted Grotesk + Geist</h3>
+    <div class="type-row"><div class="type-label">hero &middot; 52px / 600 / -0.02em &middot; 34px base, 42px sm</div><div class="t-hero">Built for Australian small business</div></div>
+    <div class="type-row"><div class="type-label">section &middot; 40px / 700</div><div class="t-h2">What this looks like for real</div></div>
+    <div class="type-row"><div class="type-label">card title &middot; 20px / 700</div><div class="t-card">Answers, not templates</div></div>
+    <div class="type-row"><div class="type-label">subhead &middot; Geist 20px / 400 / relaxed</div><div class="t-sub">A person picks up the hard 20 per cent.</div></div>
+    <div class="type-row"><div class="type-label">body &middot; Geist 16px / 1.55</div><div class="t-body">Ask in plain English, get advice for your business.</div></div>
+    <div class="type-row"><div class="type-label">small &middot; Geist 14px</div><div class="t-sm">Score CVs, pre-screen and shortlist in one place.</div></div>
+    <div class="type-row"><div class="type-label">caption &middot; Geist 12px</div><div class="t-cap">Unlimited logins on every plan. No lock-in.</div></div>
+    <div class="type-row"><div class="type-label">eyebrow &middot; Geist Mono 11px / uppercase / 0.06em</div><div class="t-mono">Why we built this</div></div>
+
+    <h3>Radii</h3>
+    <div class="radii">
+      <div class="radius-box" style="border-radius:4px">sm 4</div>
+      <div class="radius-box" style="border-radius:8px">md 8</div>
+      <div class="radius-box" style="border-radius:12px">lg 12</div>
+      <div class="radius-box" style="border-radius:16px">xl 16</div>
+      <div class="radius-box" style="border-radius:20px">2xl 20</div>
+      <div class="radius-box" style="border-radius:24px">3xl 24</div>
+      <div class="radius-box" style="border-radius:9999px">full</div>
+    </div>
+  </section>
+
+  <!-- ══════════════ PRODUCT DARK ══════════════ -->
+  <section class="surface surface-product-dark">
+    <h2>Product surface - dark</h2>
+    <p class="scope">[data-app="product"].dark &middot; /dashboard, the default &middot; Figtree &middot; next-themes, storageKey "hqai-theme"</p>
+
+    <h3>Palette</h3>
+    <div class="swatches">
+      <div class="sw"><div class="sw-chip" style="background:#202020"></div><div class="sw-meta"><div class="sw-name">bg</div><div class="sw-val">#202020</div><div class="sw-role">Page - lifted off true black</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#262626"></div><div class="sw-meta"><div class="sw-name">bg-soft</div><div class="sw-val">#262626</div><div class="sw-role">Inset</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#292929"></div><div class="sw-meta"><div class="sw-name">bg-elevated</div><div class="sw-val">#292929</div><div class="sw-role">Card - the TOP of the ramp</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#101010"></div><div class="sw-meta"><div class="sw-name">sidebar</div><div class="sw-val">#101010</div><div class="sw-role">RECESSED below the page</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FAFAFA"></div><div class="sw-meta"><div class="sw-name">ink</div><div class="sw-val">#FAFAFA</div><div class="sw-role">Primary text, 15.61:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#D4D4D4"></div><div class="sw-meta"><div class="sw-name">ink-soft</div><div class="sw-val">#D4D4D4</div><div class="sw-role">Secondary</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#A1A1A1"></div><div class="sw-meta"><div class="sw-name">ink-muted</div><div class="sw-val">#A1A1A1</div><div class="sw-role">Tertiary, 6.31:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">accent / clay</div><div class="sw-val">#E8B23A</div><div class="sw-role">Wattle Gold, 8.43:1 as text</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#F0C44E"></div><div class="sw-meta"><div class="sw-name">accent-hover</div><div class="sw-val">#F0C44E</div><div class="sw-role">Brighter on dark</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#111111"></div><div class="sw-meta"><div class="sw-name">ink-on-accent</div><div class="sw-val">#111111</div><div class="sw-role">Label on gold, 9.77:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">accent-text / clay-ink</div><div class="sw-val">#E8B23A</div><div class="sw-role">Gold as text - the bright end</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:rgba(255,255,255,.10)"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#FFFFFF @ 10%</div><div class="sw-role">Alpha - works on page AND card</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:rgba(255,255,255,.20)"></div><div class="sw-meta"><div class="sw-name">border-strong</div><div class="sw-val">#FFFFFF @ 20%</div><div class="sw-role">Alpha hairline</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">focus-ring</div><div class="sw-val">#E8B23A</div><div class="sw-role">2px outline, 2px offset</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FF6467"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#FF6467</div><div class="sw-role">Label inverts to #0A0A0A</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FF6900"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#FF6900</div><div class="sw-role">Sits between gold and danger</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#3D8A5E"></div><div class="sw-meta"><div class="sw-name">success</div><div class="sw-val">#3D8A5E</div><div class="sw-role">INHERITED - 3.88:1, see below</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#6A9BCC"></div><div class="sw-meta"><div class="sw-name">info</div><div class="sw-val">#6A9BCC</div><div class="sw-role">INHERITED - 5.57:1</div></div></div>
+    </div>
+    <div class="warn"><strong>Trap 4.</strong> The dark block never declares <code>--success</code> or <code>--info</code>, so both inherit the light values. <code>success</code> #3D8A5E is <span class="bad">3.88:1 on the page and 3.46:1 on a card</span> - below AA for text. Use it as a dot or an icon on dark, not as body copy.</div>
+
+    <h3>The surface ramp - page &lt; inset &lt; card</h3>
+    <div class="cards">
+      <div class="card"><h4>Card #292929</h4><p>Top of the ramp.</p><div class="card card-inset" style="margin-top:14px; padding:14px; border-radius:12px;"><p style="font-size:13px;">Inset #262626 - darker than the card holding it, which is the correct direction.</p></div></div>
+      <div class="card card-selected"><h4>Selected</h4><p><code>border-clay bg-clay-soft</code> at 18% on dark.</p></div>
+    </div>
+    <div class="warn"><strong>Never invert this.</strong> The pre-Aug 2026 ramp folded back on itself - <code>--bg-soft</code> sat <em>lighter</em> than <code>--bg-elevated</code>, so an inset panel was brighter than its own card.</div>
+
+    <h3>Nav rail - recessed, 68px</h3>
+    <div class="rail-demo">
+      <div class="rail" style="background:#101010">
+        <span class="on"></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="rail-body">
+        <p style="margin:0 0 8px; font-size:14px;">The rail is <strong>darker</strong> than the page (#101010 against #202020), so the nav reads as chrome the content floats on - not as a lifted panel.</p>
+        <p style="margin:0; font-size:13px; color:var(--ink-muted);">Auto-collapsing icon hover-rail with a pin toggle persisted to <code>hqai:sidebar-locked</code>. Note: the <code>sidebar*</code> tokens are specified but not yet consumed - <code>Sidebar.tsx</code> still paints the rail with <code>bg-bg</code>.</p>
+      </div>
+    </div>
+
+    <h3>Buttons</h3>
+    <div class="row">
+      <button class="btn btn-primary btn-lg">Primary, lg</button>
+      <button class="btn btn-primary">Primary, md</button>
+      <button class="btn btn-primary btn-sm">Primary, sm</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-outline">Outline</button>
+      <button class="btn btn-danger">Danger</button>
+      <a class="btn btn-link" href="#">Link</a>
+      <button class="btn btn-icon" aria-label="More">&#8943;</button>
+    </div>
+    <div class="warn">The danger pill's label is <code>#0A0A0A</code>, not white - the dark destructive is a <em>light</em> red, so white on it would be 2.9:1. That is why <code>ink-on-danger</code> exists separately from <code>ink-on-accent</code>.</div>
+
+    <h3>Status pills</h3>
+    <div class="row">
+      <span class="pill p-neutral">Draft</span>
+      <span class="pill p-info">Scoring</span>
+      <span class="pill p-warning">Prescreen</span>
+      <span class="pill p-success">Shortlisted</span>
+      <span class="pill p-danger">Declined</span>
+      <span class="pill p-gold">Popular</span>
+    </div>
+
+    <h3>Text input - no focus outline by design</h3>
+    <div class="field">
+      <label for="q2">Role title</label>
+      <input id="q2" type="text" placeholder="Warehouse supervisor">
+    </div>
+
+    <h3>Type scale - Figtree</h3>
+    <div class="type-row"><div class="type-label">hero &middot; 52px / 600</div><div class="t-hero">Shortlist agent</div></div>
+    <div class="type-row"><div class="type-label">section &middot; 40px / 700</div><div class="t-h2">Candidates in review</div></div>
+    <div class="type-row"><div class="type-label">body &middot; 16px / 1.55</div><div class="t-body">Twelve candidates scored. Four cleared every hard gate.</div></div>
+    <div class="type-row"><div class="type-label">eyebrow &middot; Geist Mono 11px</div><div class="t-mono">Step 3 of 4</div></div>
+
+    <h3>Radii - re-based off <code>--radius: 10px</code></h3>
+    <div class="radii">
+      <div class="radius-box" style="border-radius:6px">sm 6</div>
+      <div class="radius-box" style="border-radius:8px">md 8</div>
+      <div class="radius-box" style="border-radius:10px">lg 10</div>
+      <div class="radius-box" style="border-radius:14px">xl 14</div>
+      <div class="radius-box" style="border-radius:18px">2xl 18</div>
+      <div class="radius-box" style="border-radius:22px">3xl 22</div>
+      <div class="radius-box" style="border-radius:9999px">full</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
