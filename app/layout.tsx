@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Schibsted_Grotesk, Geist, Geist_Mono, Figtree } from 'next/font/google'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { Analytics } from '@vercel/analytics/next'
+// Analytics is wrapped so HQ Performance can be excluded - see the component.
+// A function prop (beforeSend) cannot be passed from this server layout, so
+// the wrapper is a client component.
+import SiteAnalytics from '@/components/analytics/SiteAnalytics'
 import './globals.css'
 
 // Typography (June 2026 repositioning pass). The display face moved off
@@ -95,8 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        <SpeedInsights />
-        <Analytics />
+        <SiteAnalytics />
       </body>
     </html>
   )

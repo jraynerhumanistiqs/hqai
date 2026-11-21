@@ -1,0 +1,1342 @@
+/* HQ Performance core. Lifted out of app.html so the route's CSP can be
+   script-src 'self' with NO unsafe-inline and no hash to keep in step with
+   every edit. Loads before ppad-store.js, which closes over the top-level
+   declarations here. */
+/* ===== Performance Manager — core ===== */
+const DEFAULT_COMPS = [{"id": "A", "cluster": "Understanding Business Needs", "name": "Direction Setting", "def": "The ability to understand the business' long-term strategic direction and align business activities with that direction — converting strategy into specific business plans and setting the activities of others.", "levels": ["Understands Business Plans in the context of Business Operating Strategies: promotes a clear plan and direction for own department and business projects.", "Aligns Current Activities with Business Operating Strategies: allocates responsibilities in accordance with established strategies and communicates clear goals, standards and expectations.", "Aligns Activities with the Longer-Term Perspective: identifies essential priorities in terms of long-term strategy, communicates a vision, and implements short-term objectives that meet long-term goals.", "Aligns the Operating Business's Strategy with Broader Organisational Goals: develops a strategy that aligns the business unit with the objectives of the wider organisation."]}, {"id": "B", "cluster": "Understanding Business Needs", "name": "Learning Orientation", "def": "The desire to know more about people, business issues and the organisation, with the commitment to apply that knowledge to improve individual and organisational performance and effectiveness.", "levels": ["Seeks to Maintain Up-to-Date Working Knowledge: reads policies, procedures and planning material; looks for information from internal and external customers; focuses on immediate day-to-day processes.", "Takes Initiative to Learn Beyond the Scope of the Current Role: keeps abreast of developments affecting personal and broader work; welcomes coaching and further training.", "Develops a Breadth of Knowledge: adds value beyond the scope of own job by actively gathering information from within and outside the department.", "Implements Plans to Ensure Longer-Term Knowledge and Capability: takes responsibility for analysing future business requirements and building personal knowledge to support them, keeping up to date with wider organisational and industry developments."]}, {"id": "C", "cluster": "Understanding Business Needs", "name": "Application of Knowledge", "def": "Having relevant functional, administrative or professional knowledge and applying it in day-to-day activities, including the ability to communicate business principles and procedures to others in appropriate terms.", "levels": ["Is aware of the procedures required to perform daily tasks effectively or respond to customer needs, and uses this to answer basic questions.", "Can explain business issues to others in appropriate terms, acting as a practical resource on administrative issues.", "Uses knowledge and expertise to provide advice and recommendations to internal or external customers on complex issues, influencing the thinking of others.", "Uses specialised or professional knowledge to develop innovative solutions, provide consulting advice to senior management on industry issues, and adapt organisational processes to legal or market changes."]}, {"id": "D", "cluster": "Thinking Through Solutions", "name": "Planning and Co-ordinating", "def": "Effectively organising and utilising information and resources, scheduling actions into project plans, and devising strategies to realise business plans with due regard to company values and direction.", "levels": ["Organises, Plans and Schedules Work: demonstrates good time management within well-understood guidelines to meet short- and medium-term goals.", "Monitors and Facilitates Others' Activities: co-ordinates medium-term objectives, produces a broad plan and schedule, facilitates meetings and monitors contributions.", "Manages Competing Organisational Priorities: provides a management overview of wide-ranging activities and manages broad resources to meet competing objectives."]}, {"id": "E", "cluster": "Thinking Through Solutions", "name": "Critical Thinking", "def": "Understanding a business situation or administrative issue by breaking it down and working through it in a logical, systematic manner, including analysing implications and alternative solutions.", "levels": ["Understands All of the Parts of a Problem: breaks a work problem into separate parts and focuses on each to achieve a solution.", "Sees Basic Links Within Problems: analyses specific systems problems or customer issues and identifies dependencies between parts.", "Sees Multiple Links Across Broad Issues: analyses a problem, considers several potential outcomes, and weighs costs, impacts and alternatives.", "Undertakes Broader, Complex Analyses: assesses risk through structured decision-making, integrates large amounts of variable information, and determines the best course of action across several factors."]}, {"id": "F", "cluster": "Thinking Through Solutions", "name": "Out of Box Thinking", "def": "Thinking creatively; considering novel approaches to improve work or business processes; developing lateral solutions that lead to improved productivity, people management and a better work environment.", "levels": ["Uses Common Sense to Improve Current Results: uses practical experience to identify straightforward ideas to improve productivity or process.", "Sees Opportunities in Patterns: identifies patterns and trends, and works on cause-and-effect options to find broader solutions.", "Thinks Creatively to Pursue Unique Solutions: stands back from the “big picture” and applies advanced problem-solving to skills development, team management, reward, safety and IR issues.", "Clarifies Complex Information Relating to Broad Opportunities: challenges assumptions to develop innovative solutions and leads process improvement that supports organisational performance."]}, {"id": "G", "cluster": "Dealing With Others", "name": "Developing Others", "def": "Fully utilising and adding to the capabilities of people in the organisation, and fostering their long-term learning and development.", "levels": ["Expresses Positive Expectations of People While on the Job: encourages others to develop their ideas and extend their skills.", "Provides On-the-Job Coaching and Support for Short-Term Goals: gives detailed instructions and demonstrations to build adequate knowledge.", "Provides Additional Support for Medium-Term Goals: gives guidance and rationale, verifies understanding, and lets people learn from mistakes in a safe environment.", "Encourages Longer-Term Career Development: gives specific, behavioural feedback, identifies career options, and acts as a long-term mentor supporting succession planning."]}, {"id": "H", "cluster": "Dealing With Others", "name": "Building Ownership and Commitment", "def": "Getting people in the organisation to sign up for the challenges that lie ahead, whether short-to-medium-term or longer-term.", "levels": ["Manages Work Team / Business Requirements: identifies information and resources a team needs and ensures practical needs are met.", "Builds the Trust and Respect of a Workgroup: models required behaviours consistently and explains the reasons behind difficult decisions.", "Empowers Direct Reports to Manage Their Own Work Environments: delegates authority, encourages independence, and recognises and protects the team."]}, {"id": "I", "cluster": "Dealing With Others", "name": "Influencing", "def": "An intention to persuade, convince or influence others to go along with an idea or course of action they might not otherwise have adopted.", "levels": ["Participates in Team Decisions: discusses options within a group and goes along with joint decisions.", "Persuades Others With Facts: presents data, concrete examples and specific benefits.", "Focuses on Areas of Interest and Adapts Approach: adjusts style and content to the audience's knowledge and interest.", "Uses a Range of Influencing Strategies: manages complex stakeholder dynamics, builds networks, and sells concepts through informal channels."]}, {"id": "J", "cluster": "Dealing With Others", "name": "Teamwork", "def": "Working co-operatively with others to achieve specific tasks and overall business objectives, in permanent or project teams.", "levels": ["Co-operates: participates willingly, supports team decisions and helps others in the team.", "Shares Information: voluntarily passes on relevant information and communicates work status to the team.", "Values Others' Input: actively seeks and acknowledges the ideas and opinions of others, including those not usually consulted."]}, {"id": "K", "cluster": "Dealing With Others", "name": "Communication", "def": "Providing information so others can understand a situation and act in a timely, efficient manner — comprehending and translating information for people at different levels within and outside the business.", "levels": ["Passes On Information: describes facts, keeps people informed, and confirms understanding.", "Adapts or Tailors Message: reworks sensitive information for different audiences and follows up as needed.", "Integrates Information With Other Communication: combines information to improve delivery and broaden context.", "Determines Wider Impact of Communication: ensures all affected areas, internal and external, understand implications.", "Monitors Overall Communication Processes: proactively improves the efficiency and timeliness of information across the business."]}, {"id": "L", "cluster": "Dealing With Others", "name": "Customer Focus", "def": "Keeping customer needs and requirements paramount when making decisions and taking action — customers may be internal or external.", "levels": ["Knows Who the Customers Are and Pursues Their Requirements: follows through personally on enquiries, requests or complaints.", "Maintains Clear Communication With Employees & Customers: ensures mutual understanding of expectations and monitors satisfaction.", "Takes Personal Responsibility for Employees & Customers: owns the resolution of needs, adapts to changing requirements and meets agreed deadlines.", "Acts to Make Things Better for Employees & Customers: anticipates needs proactively and resolves conflicts across teams."]}, {"id": "M", "cluster": "Dealing With Others", "name": "Relationship Building", "def": "Identifying, building and maintaining short- and long-term networks useful for achieving outcomes, within the organisation and the external community.", "levels": ["Maintains Network: has regular discussions with internal and external contacts to achieve day-to-day results.", "Initiates Contact: identifies individuals who can add value and builds informal networking relationships.", "Builds Rapport: invests time understanding customers' and colleagues' businesses and areas.", "Builds and Maintains a Network of Contacts: maintains regular contact with key stakeholders to ensure opportunities are realised.", "Builds Networks for the Future: reads the external environment and schedules activities that foster long-term relationships for the organisation."]}, {"id": "N", "cluster": "Accountability for Results", "name": "Results Focus", "def": "Working to achieve high levels of individual and organisational performance, including driving to achieve goals without compromising company values.", "levels": ["Is Motivated to Do the Job Well: works hard to complete tasks as well as possible.", "Meets Realistic Goals Established by Others: works effectively to meet standards, deadlines and budgets set by the organisation.", "Works to Achieve a Challenging Standard of Results: tries to complete work ahead of time and under budget, and participates beyond expected responsibilities.", "Links Business Plan to Overall Department Performance: focuses on the activities most critical to department performance.", "Drives Broader Business Results: sets challenging goals and develops longer-term strategies that improve performance across business units."]}, {"id": "O", "cluster": "Accountability for Results", "name": "Holding People Accountable", "def": "The intent to ensure others accept responsibility for delegated tasks and are held accountable for outcomes, aligned to the business's vision, values and policies.", "levels": ["Sets Clear, Consistent Expectations and Goals for Individuals: specifies goals, roles and responsibilities.", "Develops Performance Standards for Workgroups: clarifies group and individual responsibilities and sets performance priorities.", "Effectively Monitors Workgroup Performance: monitors against clear standards and takes action to improve performance.", "Responds to Longer-Term, Broader Performance Issues: addresses problems in a timely way, determines ongoing development needs, and intervenes on broader issues between work groups."]}, {"id": "P", "cluster": "Accountability for Results", "name": "Initiative", "def": "Taking action when the job or situation requires, without waiting to be told — being persistent and proactive in addressing opportunities and achieving objectives.", "levels": ["Shows Persistence: takes unprompted steps to overcome problems.", "Persists Against Barriers or Obstacles: takes continuous action in difficult or adverse circumstances.", "Proactively Addresses Current Opportunities or Problems: independently generates solutions and prevents recurrence.", "Acts Decisively and Takes Accountability in Situations That Call for Prompt Direction: accepts independent responsibility in IR, safety or conflict situations.", "Takes Action to Realise Future Opportunities: anticipates and prepares for future needs before they become a reality."]}, {"id": "Q", "cluster": "Accountability for Results", "name": "Judgement", "def": "Understanding the way the business operates, and then being able to make appropriate, sound, timely and realistic decisions which add value.", "levels": ["Makes Effective Decisions Involving Established Processes: makes timely, sensible decisions using information from standard administrative processes, understanding how personal decisions affect the customer or business.", "Seeks Out Additional Information to Make Decisions: draws on additional information and knowledge to make sound organisational, resourcing, health and safety or business judgements.", "Makes Quality Decisions Without Complete Information: does not procrastinate once all channels have been explored, and decides under uncertainty based on a mature understanding of the profession, the organisation and the industry.", "Makes Sound Strategic Decisions: uses mature understanding, experience and advanced knowledge to evaluate short- and long-term costs and benefits for customers and the business, considering the strategic value of an activity."]}];
+const PRESET = null; /* Client branding is set per org in Settings. */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CLUSTERS = ['Understanding Business Needs','Thinking Through Solutions','Dealing With Others','Accountability for Results'];
+const ACCENTS = ['#111827','#1d4ed8','#0f766e','#15803d','#7c3aed','#be123c','#c2410c','#0369a1'];
+const KPI_SCALE = [
+  [1,2,'Not yet performing to the required level','Not performing to the required level, or still learning the role. Expect intensive training and/or coaching.'],
+  [3,4,'Just meeting expectations','Only just meeting the expectations of the position — roughly 40–50% of the time.'],
+  [5,6,'Meeting requirements','Meeting all requirements of the position; results achieved and desired behaviours demonstrated.'],
+  [7,8,'Very good','Not only meeting agreed targets but frequently exceeding expectations.'],
+  [9,10,'Exceeding all expectations','Exceeding all expectations of the role — ideally suited to it, or ready for a new challenge.']
+];
+const EDP_APPROACHES = {1:'Coaching / on-the-job',2:'Work assignment / project',3:'Training / development program'};
+const PROFILE_SEED = [
+  ['Senior leader',      {A:4,B:4,C:4,D:3,E:4,F:4,G:4,H:3,I:4,J:3,K:4,L:4,M:4,N:5,O:4,P:4,Q:4}],
+  ['Manager',            {A:3,B:3,C:3,D:3,E:3,F:3,G:3,H:3,I:3,J:3,K:3,L:3,M:3,N:4,O:3,P:3,Q:3}],
+  ['Team leader / supervisor',{A:2,B:2,C:2,D:2,E:2,F:2,G:2,H:2,I:2,J:3,K:2,L:3,M:2,N:3,O:2,P:3,Q:2}],
+  ['Specialist / professional',{A:1,B:3,C:3,D:1,E:3,F:2,G:1,H:0,I:2,J:2,K:2,L:3,M:2,N:3,O:0,P:3,Q:3}],
+  ['Team member',        {A:0,B:1,C:1,D:1,E:1,F:1,G:0,H:0,I:1,J:1,K:1,L:1,M:1,N:2,O:0,P:2,Q:1}]
+];
+
+const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const today = () => new Date().toISOString().slice(0,10);
+const fmtDate = d => { if(!d) return ''; const x = new Date(d+'T00:00:00'); return isNaN(x) ? d : x.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}); };
+const initials = p => ((p.first||'?')[0] + (p.last||'')[0]||'').toUpperCase();
+const fullName = p => [p.first,p.last].filter(Boolean).join(' ') || 'Unnamed';
+
+function cycleLabel(startYM){
+  const [y,m] = startYM.split('-').map(Number);
+  return m===1 ? String(y) : 'FY' + (y+1);
+}
+function cycleRange(c){
+  const [y,m] = c.start.split('-').map(Number);
+  const s = new Date(y, m-1, 1), e = new Date(y+1, m-1, 0);
+  const f = d => d.toLocaleDateString('en-AU',{month:'short',year:'numeric'});
+  return f(s) + ' – ' + f(e);
+}
+function cycleMonthIndex(c){ // 0..11 = month of cycle we are in now, -1 before, 12 after
+  const [y,m] = c.start.split('-').map(Number);
+  const n = new Date(); const diff = (n.getFullYear()-y)*12 + (n.getMonth()+1-m);
+  return diff < 0 ? -1 : diff > 11 ? 12 : diff;
+}
+function defaultCycleStart(startMonth){
+  const n = new Date(); let y = n.getFullYear();
+  if (n.getMonth()+1 < startMonth) y -= 1;
+  return y + '-' + String(startMonth).padStart(2,'0');
+}
+
+function newOrg(){
+  const start = defaultCycleStart(7);
+  const c = {id:'c'+uid(), start, label:cycleLabel(start)};
+  return {
+    v:1,
+    brand:{orgName:'', appName:'HQ Performance', tagline:'Plan ~ Perform ~ Assess ~ Develop', accent:'#111827', logo:null, poweredBy:true},
+    yearStart:7,
+    bands:{low:'Under Review', mid:'Positive Contributor', high:'Exceptional Contributor'},
+    cycles:[c], activeCycle:c.id,
+    framework:{clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)},
+    profiles:PROFILE_SEED.map(([name,t]) => ({id:'r'+uid(), name, targets:{...t}})),
+    setup:false
+  };
+}
+function newRecord(person){
+  const prof = S.org.profiles.find(p => p.id === person.profileId);
+  const pd = person.pdId && S.pds[person.pdId];
+  const src = pd ? pd.targets : prof ? prof.targets : {};
+  const comps = {};
+  S.org.framework.comps.forEach(c => { comps[c.id] = {target: src[c.id] ?? 0, self:null, mgr:null}; });
+  return {pdId: pd ? pd.id : null, kpis: pd ? pd.kpis.filter(k=>k.name).map(k => ({id:uid(), name:k.name, target:k.target, weight:k.weight??null, area:k.area||'', self:null, mgr:null, result:''})) : [], comps, useComps:true, stretch:[], planAgreed:null, checkins:[], achievements:'', achieveComment:'',
+    overall:null, overallComment:'', notAssessed:false, edp:{career:'', items:[]},
+    signoff:{employee:{name:'',date:''}, manager:{name:'',date:''}, mgrMgr:{name:'',date:''}}};
+}
+
+/* ===== state ===== */
+const S = {org:null, people:{}, pds:{}, ui:{view:'dashboard', personId:null, tab:'plan', q:'', showInactive:false}, ready:false, mode:'memory'};
+const activeCycle = () => S.org.cycles.find(c => c.id === S.org.activeCycle) || S.org.cycles[S.org.cycles.length-1];
+const peopleList = (all) => Object.values(S.people).filter(p => all || p.active !== false).sort((a,b)=> fullName(a).localeCompare(fullName(b)));
+const recOf = (p, cid) => p.records && p.records[cid || activeCycle().id];
+/* Role helpers. S.me is populated by the Supabase adapter from the caller's
+   live allocations; these are for USABILITY only - every one of them is
+   enforced again in the database, which is the real boundary. */
+const canManage = pid => !!(S.me && S.me.manages && S.me.manages.indexOf(pid) >= 0);
+const canReview = pid => !!(S.me && S.me.reviews && S.me.reviews.indexOf(pid) >= 0);
+const isSelf    = pid => !!(S.me && S.me.personId === pid);
+/* Someone with their own record and no responsibility for anyone else's.
+   They get their record and nothing else: no dashboard of other people's
+   progress, no people list, no framework, no cycle management, no exports.
+   RLS already means those screens would be nearly empty for them - this is
+   so they are not offered at all. */
+const employeeOnly = () => !!(S.me && S.me.personId
+  && !S.me.isAdmin && !S.me.isHrReporting
+  && !(S.me.manages || []).length && !(S.me.reviews || []).length);
+const compById = id => S.org.framework.comps.find(c => c.id === id);
+
+/* ===== store =====
+   The adapter lives in /tools/ppad/ppad-store.js, loaded after this script,
+   and installs itself as window.store. It keeps the same method names the
+   rest of this file calls (mark, markAll, schedule, flush, setStatus) but
+   persists to Supabase under RLS instead of to this device.
+
+   It must load AFTER this script: it closes over S, finishLoad, toast, esc,
+   fullName and rerender, which are declared here. Top-level const and
+   function declarations are shared between classic scripts, so the later
+   script sees them; the reverse would not hold. */
+const LS_KEY = 'pm-tool-v1';
+function finishLoad(){
+  if (!S.org){ S.org = newOrg(); if (PRESET) applyPreset(); }
+  // migrations / guards
+  /* EMPTY counts as missing here, not just absent. An org created by SQL
+     arrives with framework {clusters:[],comps:[]} and profiles [] - both
+     truthy, so a plain `||` guard leaves the org with zero competencies and
+     the entire "How" half of the tool dead. The defaults live in this file
+     (DEFAULT_COMPS, 17 competencies with their level descriptors, and
+     PROFILE_SEED), which is why the shell is created empty in SQL and
+     filled here rather than duplicating 15KB of competency text into a
+     migration. */
+  if (!S.org.framework || !Array.isArray(S.org.framework.comps) || !S.org.framework.comps.length){
+    S.org.framework = {clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)};
+    store.mark('org');
+  }
+  if (!Array.isArray(S.org.profiles) || !S.org.profiles.length){
+    S.org.profiles = PROFILE_SEED.map(([name,t]) => ({id:'r'+uid(), name, targets:{...t}}));
+    store.mark('org');
+  }
+  if (['Performance Manager','PPA','PPAD','PPA – Plan · Perform · Assess','PPA – Plan – Perform – Assess'].includes(S.org.brand.appName)) { S.org.brand.appName = 'HQ Performance'; S.org.brand.tagline = 'Plan ~ Perform ~ Assess ~ Develop'; store.mark('org'); }
+  if (S.org.brand.tagline == null) { S.org.brand.tagline = ''; }
+  if (PRESET && PRESET.brand){ let fixed = false; const sb = S.org.brand;
+    ['orgName','logo','accent'].forEach(k => { const v = sb[k]; if (PRESET.brand[k] && (!v || (k==='accent' && v==='#111827'))){ sb[k] = PRESET.brand[k]; fixed = true; } });
+    if (fixed) store.mark('org'); }
+  S.org.bands = S.org.bands || {low:'Under Review', mid:'Positive Contributor', high:'Exceptional Contributor'};
+  /* An org with no cycles blanks the entire tool. render() calls
+     activeCycle() on its first line and reads c.label in the footer, so an
+     empty cycles array throws before anything is written to the DOM - a
+     white screen with no message. newOrg() always made one, so the app had
+     never seen this; an org created by SQL can. Same guard style as the
+     lines above. */
+  if (!Array.isArray(S.org.cycles) || !S.org.cycles.length){
+    const st = defaultCycleStart(S.org.yearStart || 7);
+    S.org.cycles = [{id:'c'+uid(), start:st, label:cycleLabel(st)}];
+    S.org.activeCycle = S.org.cycles[0].id;
+    store.mark('org');
+  }
+  if (!S.org.cycles.some(c => c.id === S.org.activeCycle)){
+    S.org.activeCycle = S.org.cycles[S.org.cycles.length-1].id; store.mark('org');
+  }
+  S.ready = true; applyBrand(); route();
+}
+const savePerson = p => store.mark('p_' + p.id);
+const savePd = d => store.mark('d_' + d.id);
+const pdList = () => Object.values(S.pds).sort((a,b) => (a.title||'').localeCompare(b.title||''));
+const saveOrg = () => store.mark('org');
+
+/* ===== calculations ===== */
+function kpiScore(rec, who='mgr'){
+  const ks = (rec.kpis||[]).filter(k => k[who] != null);
+  if (!ks.length) return null;
+  const tw = ks.reduce((a,k) => a + (Number(k.weight)||1), 0);
+  return ks.reduce((a,k) => a + k[who] * (Number(k.weight)||1), 0) / tw;
+}
+function compStats(rec, who='mgr'){
+  if (!rec.useComps) return null;
+  const req = Object.entries(rec.comps||{}).filter(([id,c]) => c.target > 0 && compById(id));
+  const rated = req.filter(([,c]) => c[who] != null);
+  if (!req.length) return {req:0, rated:0, met:0, above:0, below:0, pct:null, gap:0};
+  let met=0, above=0, below=0, gap=0;
+  rated.forEach(([,c]) => { const d = c[who] - c.target; gap += d; if (d>=0) met++; if (d>0) above++; if (d<0) below++; });
+  return {req:req.length, rated:rated.length, met, above, below, pct: rated.length ? met/rated.length : null, gap: rated.length ? gap/rated.length : 0};
+}
+function bandOf(n){ if (n == null) return null; return n >= 7 ? 'high' : n >= 4 ? 'mid' : 'low'; }
+function bandName(n){ const b = bandOf(n); return b ? S.org.bands[b] : ''; }
+function bandPill(n){ if (n == null) return '<span class="muted">—</span>'; const b = bandOf(n);
+  return `<span class="pill ${b==='high'?'good':b==='mid'?'acc':'bad'}">${n} · ${esc(S.org.bands[b])}</span>`; }
+function suggestOverall(rec){
+  const k = kpiScore(rec); if (k == null) return null;
+  let s = Math.round(1 + (k-1) * 8/9);
+  const cs = compStats(rec);
+  if (cs && cs.rated){ if (cs.pct < .7) s -= 1; else if (cs.pct === 1 && cs.above/cs.rated >= .3) s += 1; }
+  return Math.max(1, Math.min(9, s));
+}
+function stageOf(rec){
+  if (!rec) return {i:0, label:'Not started', cls:''};
+  const so = rec.signoff || {};
+  if (so.employee?.date && so.manager?.date) return {i:5, label:'Signed off', cls:'good'};
+  if (rec.overall != null || rec.notAssessed) return {i:4, label:'Assessed', cls:'acc'};
+  const anyRating = (rec.kpis||[]).some(k => k.self != null || k.mgr != null) || Object.values(rec.comps||{}).some(c => c.self != null || c.mgr != null);
+  if (anyRating) return {i:3, label:'In assessment', cls:'warn'};
+  if (rec.planAgreed) return {i:2, label:'Plan agreed', cls:'acc'};
+  if ((rec.kpis||[]).length) return {i:1, label:'Planning', cls:'warn'};
+  return {i:0, label:'Not started', cls:''};
+}
+function lastCheckin(rec){ const c = (rec?.checkins||[]).slice().sort((a,b)=> (b.date||'').localeCompare(a.date||'')); return c[0]; }
+function riskCount(rec){ const c = lastCheckin(rec); if (!c) return 0; return Object.values(c.kpi||{}).filter(v => v==='risk' || v==='off').length; }
+
+/* ===== brand ===== */
+function hexLum(h){ const m = h.replace('#',''); const n = parseInt(m.length===3 ? m.split('').map(x=>x+x).join('') : m, 16);
+  const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
+function applyBrand(){
+  const b = S.org.brand; const r = document.documentElement.style;
+  r.setProperty('--accent', b.accent || '#111827');
+  r.setProperty('--accent-ink', hexLum(b.accent||'#111827') > .62 ? '#111827' : '#ffffff');
+  document.title = (b.appName || 'HQ Performance') + (b.tagline ? ' · ' + b.tagline : '') + (b.orgName ? ' · ' + b.orgName : '');
+}
+
+/* ===== ui helpers ===== */
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2600); }
+function modal(html, onMount){
+  const s = document.createElement('div'); s.className = 'scrim';
+  s.innerHTML = `<div class="modal" role="dialog">${html}</div>`;
+  s.addEventListener('click', e => { if (e.target === s || e.target.closest('[data-close]')) s.remove(); });
+  document.body.appendChild(s); onMount && onMount(s.querySelector('.modal'), () => s.remove());
+  const f = s.querySelector('input,textarea,select'); f && f.focus();
+  return s;
+}
+function confirmBox(title, body, okLabel, fn, danger){
+  modal(`<h2>${esc(title)}</h2><p class="sub">${body}</p><div class="acts"><button class="btn" data-close>Cancel</button><button class="btn ${danger?'pri danger':'pri'}" id="ok">${esc(okLabel)}</button></div>`,
+    (m, close) => m.querySelector('#ok').onclick = () => { close(); fn(); });
+}
+function seg(path, val, max, opts={}){
+  const vals = []; if (opts.n) vals.push(0); for (let i=1;i<=max;i++) vals.push(i);
+  return `<div class="seg ${opts.ro?'ro':''}">${vals.map(v => `<button type="button" class="${val===v?'on':''} ${opts.target===v?'tg':''}" ${opts.ro?'disabled':''} data-act="seg" data-f="${path}" data-v="${v}" title="${opts.titles?esc(opts.titles[v]||''):''}">${v===0?'N':v}</button>`).join('')}</div>`;
+}
+
+function applyPreset(){
+  Object.assign(S.org.brand, PRESET.brand); S.org.setup = true;
+  if (PRESET.yearStart){ S.org.yearStart = PRESET.yearStart; const c = S.org.cycles[0]; c.start = defaultCycleStart(PRESET.yearStart); c.label = cycleLabel(c.start); }
+  (PRESET.pds||[]).forEach(p => { const d = Object.assign(newPd(''), clone(p)); d.id = 'd'+uid(); d.kpis.forEach(k => k.id = uid());
+    S.org.framework.comps.forEach(cp => { if (d.targets[cp.id] == null) d.targets[cp.id] = 0; }); S.pds[d.id] = d; });
+  store.markAll();
+}
+
+/* ===== Performance Manager — views ===== */
+const $app = () => document.getElementById('app');
+const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access'];
+
+function route(){
+  if (!S.ready) return;
+  const h = (location.hash || '').slice(1);
+  if (h.startsWith('person-')){ const id = h.slice(7); if (S.people[id]){ if (S.ui.personId !== id) S.ui.tab = 'plan'; S.ui.view = 'person'; S.ui.personId = id; } else S.ui.view = 'people'; }
+  else if (h.startsWith('pd-') && S.pds[h.slice(3)]){ S.ui.view = 'pd'; S.ui.pdId = h.slice(3); }
+  else S.ui.view = VIEWS.includes(h) ? h : 'dashboard';
+  /* The screen is admin-only. The RPCs behind it refuse a non-admin anyway,
+     so this is to avoid showing a screen that could only ever error. */
+  if (S.ui.view === 'access' && !(S.me && S.me.isAdmin)) S.ui.view = 'dashboard';
+  /* An employee-only user lands on their own record whatever the hash says.
+     Every other screen is either empty for them or about other people. */
+  if (employeeOnly() && !(S.ui.view === 'person' && S.ui.personId === S.me.personId)){
+    S.ui.view = 'person'; S.ui.personId = S.me.personId;
+    if (!['plan','monitor','assess','develop'].includes(S.ui.tab)) S.ui.tab = 'plan';
+  }
+  if (S.ui.view === 'access' && !S.ui.access) loadAccess();
+  if (!S.org.setup && S.ui.view !== 'settings') S.ui.view = 'welcome';
+  render();
+}
+window.addEventListener('hashchange', route);
+const go = h => { if (location.hash === '#'+h) route(); else location.hash = h; };
+
+function render(){
+  const b = S.org.brand, c = activeCycle(), v = S.ui.view;
+  const nav = [['dashboard','Overview'],['people','People'],['pds','PDs'],['profiles','Role profiles'],['reports','Reports'],['settings','Settings']];
+  if (S.me && S.me.isAdmin) nav.push(['access','Users and access']);
+  const showNav = S.org.setup && !employeeOnly();
+  const logo = b.logo ? `<img src="${b.logo}" alt="">` : `<div class="mark">${esc((b.orgName||b.appName||'P').trim().slice(0,1).toUpperCase())}</div>`;
+  const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
+  const sy = window.scrollY;
+  $app().innerHTML = `
+  <header class="top"><div class="top-in">
+    <div class="brand" data-act="nav" data-h="dashboard">${logo}<div class="nm"><b>${esc(b.appName||'HQ Performance')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
+    ${showNav ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
+    <div class="spacer"></div>
+    ${showNav ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
+    <span class="sync" id="sync">${esc(store.status || '')}</span>
+    <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
+  </div></header>
+  <main>${body}</main>
+  <footer><span>${esc(b.orgName||'')} ${b.orgName?'·':''} ${esc(c.label)} · ${esc(cycleRange(c))}</span>${b.poweredBy ? '<span>Powered by Humanistiqs</span>' : ''}</footer>`;
+  if (S.ui.keepScroll) window.scrollTo(0, sy); else window.scrollTo(0,0);
+  S.ui.keepScroll = false;
+}
+const rerender = () => { S.ui.keepScroll = true; render(); };
+
+/* ---------- welcome / setup ---------- */
+function vWelcome(){
+  const b = S.org.brand;
+  return `<div style="max-width:620px;margin:20px auto">
+  <div class="tag">Set up</div><h1 style="margin-top:4px">Set up your performance cycle</h1>
+  <p class="sub">A simple annual system: agree <b>what</b> each person will deliver (KPIs) and <b>how</b> (competencies), check in during the year, then assess both and plan development. Takes about two minutes.</p>
+  <div class="card" style="margin-top:22px"><div class="grid" style="gap:14px">
+    <label class="f"><span>Organisation name</span><input class="in" data-f="org.brand.orgName" value="${esc(b.orgName)}" placeholder="e.g. Acme Services Pty Ltd"></label>
+    <label class="f"><span>Tool name (shown in the header)</span><input class="in" data-f="org.brand.appName" value="${esc(b.appName)}"></label>
+    <label class="f"><span>Tagline (under the tool name)</span><input class="in" data-f="org.brand.tagline" data-rr value="${esc(b.tagline||'')}"></label>
+    <div class="grid g2">
+      <label class="f"><span>Performance year starts in</span><select class="in" data-f="org.yearStart" data-type="num">${MONTHS.map((m,i)=>`<option value="${i+1}" ${S.org.yearStart===i+1?'selected':''}>${m}</option>`).join('')}</select></label>
+      <label class="f"><span>Brand colour</span><div class="swatches">${ACCENTS.map(a => `<span class="sw ${b.accent===a?'on':''}" style="background:${a}" data-act="accent" data-v="${a}"></span>`).join('')}<input type="color" value="${esc(b.accent)}" data-f="org.brand.accent" style="width:32px;height:30px;border:0;background:none;padding:0"></div></label>
+    </div>
+    <div class="f"><span>Logo (optional)</span><div class="row"><div class="logo-box">${b.logo?`<img src="${b.logo}">`:'<span class="muted small">No logo</span>'}</div><label class="btn sm">Upload<input type="file" accept="image/*" data-act-change="logo" hidden></label>${b.logo?'<button class="btn sm ghost" data-act="logo-clear">Remove</button>':''}</div></div>
+  </div>
+  <div class="row" style="justify-content:space-between;margin-top:20px">
+    <button class="btn ghost" data-act="sample">Load sample data to explore</button>
+    <button class="btn pri" data-act="finish-setup">Start →</button>
+  </div></div>
+  <p class="muted small" style="text-align:center;margin-top:14px">You can change everything later in Settings.</p></div>`;
+}
+
+/* ---------- dashboard ---------- */
+function vDashboard(){
+  const c = activeCycle(), ppl = peopleList(), mi = cycleMonthIndex(c);
+  const recs = ppl.map(p => ({p, r:recOf(p), st:stageOf(recOf(p))}));
+  const count = f => recs.filter(f).length;
+  const [sy,sm] = c.start.split('-').map(Number);
+  const mlabel = i => MONTHS[(sm-1+i)%12];
+  const phases = [
+    ['Months 1–2','Plan','Agree KPIs, competency targets and stretch objectives.',[0,1]],
+    ['Months 3–10','Perform','Deliver the plan, with regular check-ins and a formal half-year review.',[2,9]],
+    ['Months 11–12','Assess','Self-appraisal, manager review, overall rating.',[10,11]],
+    ['Month 12','Develop & close','Development plan, sign-off, roll into next year.',[11,11]]];
+  const curPhase = mi < 0 ? -1 : mi > 11 ? 3 : phases.findIndex(ph => mi >= ph[3][0] && mi <= ph[3][1]);
+  const todo = [];
+  recs.forEach(({p,r,st}) => {
+    if (!r) todo.push([p,'Start a plan']);
+    else if (!r.planAgreed && mi >= 1) todo.push([p,'Plan not yet agreed']);
+    else if (r.planAgreed && mi >= 5 && !(r.checkins||[]).some(x => x.type==='Half-year review')) todo.push([p,'Half-year review due']);
+    else if (riskCount(r)) todo.push([p, riskCount(r) + ' KPI' + (riskCount(r)>1?'s':'') + ' at risk']);
+    else if (mi >= 10 && st.i < 4) todo.push([p,'Appraisal due']);
+  });
+  const total = ppl.length || 1;
+  return `<div class="head"><div><div class="tag">${esc(c.label)} · ${esc(cycleRange(c))}</div><h1>Overview</h1></div>
+    <div class="row"><button class="btn" data-act="add-person">Add person</button><button class="btn pri" data-act="new-cycle">Start next cycle</button></div></div>
+  <div class="card"><div class="card-h"><div><h2>Where we are in the year</h2><p>${mi<0?'This cycle has not started yet.':mi>11?'This cycle has ended — start the next cycle when appraisals are signed off.':'Month '+(mi+1)+' of 12'}</p></div></div>
+    <div class="phase">${phases.map((ph,i) => `<div class="p ${i===curPhase?'cur':''}"><div class="t">${ph[0]}</div><h3>${ph[1]}</h3><p>${ph[2]}</p></div>`).join('')}</div>
+    <div class="timeline">${Array.from({length:12},(_,i)=>`<div class="${i<=mi?'on':''} ${i===mi?'now':''}"></div>`).join('')}</div>
+    <div class="months">${Array.from({length:12},(_,i)=>`<span>${mlabel(i)}</span>`).join('')}</div>
+  </div>
+  <div class="grid g4" style="margin-top:16px">
+    ${[['People',ppl.length,'in this cycle'],['Plans agreed',count(x=>x.st.i>=2),Math.round(count(x=>x.st.i>=2)/total*100)+'%'],['Assessed',count(x=>x.st.i>=4),Math.round(count(x=>x.st.i>=4)/total*100)+'%'],['Signed off',count(x=>x.st.i>=5),Math.round(count(x=>x.st.i>=5)/total*100)+'%']]
+      .map(([k,v,d]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('')}
+  </div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+    <div class="card"><div class="card-h"><h2>Needs attention</h2></div>
+      ${todo.length ? `<table class="tbl">${todo.slice(0,10).map(([p,t]) => `<tr class="click" data-act="nav" data-h="person-${p.id}"><td><div class="row"><span class="av sm">${esc(initials(p))}</span>${esc(fullName(p))}</div></td><td style="text-align:right"><span class="pill warn">${esc(t)}</span></td></tr>`).join('')}</table>` : `<p class="muted">Nothing outstanding. ${ppl.length?'':'Add your first person to begin.'}</p>`}
+    </div>
+    <div class="card"><div class="card-h"><h2>Progress by person</h2><a class="btn sm ghost" href="#people">All people</a></div>
+      ${ppl.length ? `<table class="tbl">${recs.slice(0,10).map(({p,st}) => `<tr class="click" data-act="nav" data-h="person-${p.id}"><td>${esc(fullName(p))}<div class="small muted">${esc(p.position||'')}</div></td><td style="width:40%"><div class="bar"><i style="width:${st.i/5*100}%"></i></div></td><td style="text-align:right"><span class="pill ${st.cls}">${st.label}</span></td></tr>`).join('')}</table>` : `<div class="empty" style="padding:24px"><p>No one added yet.</p><button class="btn pri" data-act="add-person">Add person</button></div>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- people ---------- */
+function vPeople(){
+  const q = S.ui.q.toLowerCase();
+  const ppl = peopleList(S.ui.showInactive).filter(p => !q || (fullName(p)+' '+(p.position||'')+' '+(p.dept||'')+' '+(p.manager||'')).toLowerCase().includes(q));
+  return `<div class="head"><div><h1>People</h1><p class="sub">${peopleList().length} active in ${esc(activeCycle().label)}</p></div>
+    <div class="row"><input class="in search" placeholder="Search" value="${esc(S.ui.q)}" data-act-input="search"><button class="btn pri" data-act="add-person">Add person</button></div></div>
+  <div class="card" style="padding:8px 12px">${ppl.length ? `<div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Name</th><th>PD / role profile</th><th>Manager</th><th class="num">What</th><th class="num">How</th><th>Overall</th><th>Stage</th></tr></thead><tbody>
+    ${ppl.map(p => { const r = recOf(p), st = stageOf(r), k = r ? kpiScore(r) : null, cs = r ? compStats(r) : null, prof = S.org.profiles.find(x=>x.id===p.profileId);
+      return `<tr class="click" data-act="nav" data-h="person-${p.id}"><td><div class="row" style="flex-wrap:nowrap"><span class="av sm">${esc(initials(p))}</span><div>${esc(fullName(p))}${p.active===false?' <span class="pill">Inactive</span>':''}<div class="small muted">${esc(p.position||'')}</div></div></div></td>
+      <td>${S.pds[p.pdId]?esc(S.pds[p.pdId].title):esc(prof?prof.name:'—')}</td><td>${esc(p.manager||'—')}</td>
+      <td class="num">${k!=null?k.toFixed(1):'<span class="muted">—</span>'}</td>
+      <td class="num">${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'<span class="muted">—</span>'}</td>
+      <td>${r?bandPill(r.notAssessed?null:r.overall):'<span class="muted">—</span>'}</td><td><span class="pill ${st.cls}">${st.label}</span></td></tr>`; }).join('')}
+    </tbody></table></div>` : `<div class="empty"><h2>No people yet</h2><p>Add the people you manage, then set their plan for ${esc(activeCycle().label)}.</p><button class="btn pri" data-act="add-person">Add person</button></div>`}</div>
+  <div class="row" style="margin-top:12px"><label class="chk small muted"><input type="checkbox" data-act-change="show-inactive" ${S.ui.showInactive?'checked':''}> Show inactive people</label></div>`;
+}
+
+function personForm(p){
+  return `<div class="grid g2" style="gap:12px">
+    <label class="f"><span>First name</span><input class="in" name="first" value="${esc(p.first)}"></label>
+    <label class="f"><span>Surname</span><input class="in" name="last" value="${esc(p.last)}"></label>
+    <label class="f"><span>Position</span><input class="in" name="position" value="${esc(p.position)}"></label>
+    <label class="f" style="grid-column:1/-1"><span>Position description (sets the role's KPIs and competency targets)</span><select class="in" name="pdId" data-act-change="person-pd"><option value="">None — no PD linked</option>${pdList().map(d=>`<option value="${d.id}" ${p.pdId===d.id?'selected':''}>${esc(d.title)}${d.department?' · '+esc(d.department):''}</option>`).join('')}</select></label>
+    <label class="f"><span>Role profile (used if no PD is linked)</span><select class="in" name="profileId"><option value="">None</option>${S.org.profiles.map(r=>`<option value="${r.id}" ${p.profileId===r.id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></label>
+    <label class="f"><span>Team / department</span><input class="in" name="dept" value="${esc(p.dept)}"></label>
+    <label class="f"><span>Location</span><input class="in" name="location" value="${esc(p.location)}"></label>
+    <label class="f"><span>Manager</span><input class="in" name="manager" value="${esc(p.manager)}"></label>
+    <label class="f"><span>Manager's position</span><input class="in" name="managerPos" value="${esc(p.managerPos)}"></label>
+    <label class="f"><span>Employee no.</span><input class="in" name="empNo" value="${esc(p.empNo)}"></label>
+    <label class="f"><span>Start date</span><input class="in" type="date" name="startDate" value="${esc(p.startDate)}"></label>
+  </div>`;
+}
+function addPerson(){
+  const p = {id:uid(), first:'', last:'', position:'', dept:'', location:'', manager:'', managerPos:'', empNo:'', startDate:'', pdId:'', profileId:S.org.profiles[1]?.id||'', active:true, records:{}};
+  modal(`<h2>Add person</h2><p class="sub">They'll be added to ${esc(activeCycle().label)}.</p><form id="pf" style="margin-top:14px">${personForm(p)}<div class="acts"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Add</button></div></form>`,
+  (m, close) => m.querySelector('#pf').onsubmit = e => { e.preventDefault();
+    new FormData(e.target).forEach((v,k) => p[k] = String(v).trim());
+    if (!p.first && !p.last){ toast('Enter a name'); return; }
+    /* Adding a person no longer creates their record.
+       Only someone with a live MANAGER allocation to that person may create
+       one - ppad_save_record enforces it - and the admin doing the adding
+       usually has no allocation at all, so this used to fail with an error
+       toast the moment you added anyone. The person lands on the "No record
+       for <cycle>" empty state instead, which already exists and is the
+       right place for the plan to be started from. */
+    S.people[p.id] = p; savePerson(p); close(); go('person-'+p.id); });
+}
+
+/* ---------- person ---------- */
+function vPerson(){
+  const p = S.people[S.ui.personId], c = activeCycle(); let r = recOf(p);
+  const prof = S.org.profiles.find(x => x.id === p.profileId);
+  const head = `${employeeOnly() ? '' : '<a class="back" href="#people">← People</a>'}
+  <div class="head" style="margin-bottom:0"><div class="ph"><span class="av">${esc(initials(p))}</span><div><h1>${esc(fullName(p))}</h1><p class="sub" style="margin:2px 0 0">${esc([p.position, p.dept].filter(Boolean).join(' · ') || 'No position set')}${S.pds[p.pdId] ? ` · <a href="#pd-${p.pdId}">PD: ${esc(S.pds[p.pdId].title)}</a>` : prof ? ' · '+esc(prof.name) : ''}</p></div></div>
+  <div class="row">${canManage(p.id) || (S.me && S.me.isAdmin) ? '<button class="btn" data-act="edit-person">Details</button>' : ''}${r?`<button class="btn" data-act="export-appraisal">Export</button>`:''}</div></div>`;
+  /* Only an allocated manager can create a record - the database refuses
+     anyone else, so offering the button to anyone else is offering an error.
+     An admin who has not allocated themselves gets told what is missing
+     rather than a toast reading "no access to this record". */
+  if (!r) return head + `<div class="card" style="margin-top:22px"><div class="empty"><h2>No record for ${esc(c.label)}</h2>${
+    canManage(p.id)
+      ? `<p>Start this person's plan for the cycle.</p><button class="btn pri" data-act="start-record">Start ${esc(c.label)} plan</button>`
+      : `<p>Their manager starts the plan. You are not allocated as ${esc(fullName(p))}'s manager for this cycle, so you cannot create it.${S.me && S.me.isAdmin ? ' As an admin you can allocate a manager in Users and access - allocating yourself is recorded in the audit log.' : ''}</p>`
+  }</div></div>`;
+  const st = stageOf(r);
+  const tabs = [['plan','Plan',st.i>=2],['monitor','Perform',(r.checkins||[]).length>0],['assess','Assess',st.i>=4],['develop','Develop & sign off',st.i>=5]];
+  const body = S.ui.tab==='monitor' ? tMonitor(p,r) : S.ui.tab==='assess' ? tAssess(p,r) : S.ui.tab==='develop' ? tDevelop(p,r) : tPlan(p,r);
+  return head + `<div class="steps">${tabs.map(([k,l,d],i) => `<button class="${S.ui.tab===k?'on':''} ${d?'done':''}" data-act="tab" data-v="${k}"><span class="n">${d?'✓':i+1}</span>${l}</button>`).join('')}<span class="spacer"></span><span style="align-self:center" class="pill ${st.cls}">${st.label}</span></div>` + body;
+}
+
+function levelText(comp, lvl){ if (!lvl) return 'Not required for this role.'; const t = comp.levels[lvl-1]||''; const i = t.indexOf(':'); return i>0 ? `<b>${esc(t.slice(0,i))}</b>${esc(t.slice(i))}` : esc(t); }
+function levelTitles(comp){ const o = {0:'N — not required'}; comp.levels.forEach((t,i)=> o[i+1] = (i+1)+'. '+t.split(':')[0]); return o; }
+
+function tPlan(p, r){
+  const locked = !!r.planAgreed;
+  /* The plan - KPIs, competency targets, stretch objectives - belongs to the
+     manager. ppad_save_record refuses an employee writing any of it, so the
+     fields render read-only rather than inviting an edit that cannot land. */
+  const ro = !canManage(p.id);
+  const pd = S.pds[p.pdId]; const areas = pd ? pd.accountabilities.map(a=>a.area).filter(Boolean) : [];
+  const gcols = areas.length ? 'style="grid-template-columns:minmax(0,2fr) minmax(0,1.8fr) minmax(0,1.2fr) 80px 34px"' : '';
+  const kpis = r.kpis.map((k,i) => `<div class="kpi-grid r" ${gcols}>
+      <input class="in" placeholder="KPI — e.g. Monthly reporting" data-f="rec.kpis.${i}.name" value="${esc(k.name)}" ${ro?'readonly':''}>
+      <input class="in" placeholder="Target / measure" data-f="rec.kpis.${i}.target" value="${esc(k.target)}" ${ro?'readonly':''}>
+      ${areas.length ? `<select class="in" data-f="rec.kpis.${i}.area"><option value="">Accountability…</option>${areas.map(a=>`<option ${k.area===a?'selected':''}>${esc(a)}</option>`).join('')}</select>` : ''}
+      <input class="in" type="number" min="0" max="100" placeholder="—" data-f="rec.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}" ${ro?'readonly':''}>
+      ${ro?'<span></span>':`<button class="btn icon" title="Remove" data-act="del" data-f="rec.kpis" data-i="${i}">✕</button>`}</div>`).join('');
+  const wsum = r.kpis.reduce((a,k)=>a+(Number(k.weight)||0),0);
+  const comps = r.useComps ? S.org.framework.clusters.map(cl => {
+    const list = S.org.framework.comps.filter(c => c.cluster === cl); if (!list.length) return '';
+    return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = r.comps[c.id]?.target ?? 0;
+      return `<div class="comp ${t?'':'off'}"><div><span class="nm">${esc(c.name)}</span></div>${seg('rec.comps.'+c.id+'.target', t, c.levels.length, {n:true, titles:levelTitles(c), ro:ro})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('') : `<p class="muted">Competencies are switched off for this person this cycle.</p>`;
+  const nReq = Object.values(r.comps).filter(c=>c.target>0).length;
+  const pdBox = pd ? `<div class="card" style="margin-bottom:16px"><div class="card-h" style="margin-bottom:${S.ui.pdOpen?'14px':'0'}"><div><div class="tag">Linked position description</div><h2 style="margin-top:2px"><a href="#pd-${pd.id}" style="text-decoration:none">${esc(pd.title)}</a></h2><p>${pd.kpis.filter(k=>k.name).length} standard KPIs · ${Object.values(pd.targets).filter(v=>v>0).length} competencies · <span class="pill ${pdReviewState(pd).cls}">${pdReviewState(pd).label}</span> Review the PD with the employee during Planning.</p></div>
+      <div class="row"><button class="btn sm ghost" data-act="pd-toggle">${S.ui.pdOpen?'Hide':'Show'} accountabilities</button><button class="btn sm" data-act="pd-apply">Re-apply PD</button></div></div>
+      ${S.ui.pdOpen ? `<table class="tbl"><thead><tr><th style="width:26%">Accountability</th><th>Responsibilities</th><th class="num">KPIs</th></tr></thead><tbody>${pd.accountabilities.map(a=>{ const n = r.kpis.filter(k=>k.area===a.area).length; return `<tr><td><b>${esc(a.area)}</b></td><td class="small" style="white-space:pre-line">${esc(a.responsibilities)}</td><td class="num">${n?n:'<span class="pill warn">0</span>'}</td></tr>`; }).join('') || '<tr><td colspan="3" class="muted">No accountabilities recorded in the PD.</td></tr>'}</tbody></table>${pd.purpose?`<p class="small muted" style="margin:12px 0 0"><b>Purpose:</b> ${esc(pd.purpose)}</p>`:''}` : ''}</div>`
+    : `<div class="note row" style="justify-content:space-between;margin-bottom:16px"><span>No position description linked. Link one to start this plan from the role's KPIs and competency profile.</span><select class="in" style="width:auto" data-act-change="plan-pd"><option value="">Link a PD…</option>${pdList().map(d=>`<option value="${d.id}">${esc(d.title)}</option>`).join('')}</select></div>`;
+  return `${pdBox}
+  ${locked ? `<div class="callout row" style="justify-content:space-between;margin-bottom:16px"><span>Plan agreed on <b>${fmtDate(r.planAgreed)}</b>. Changes are still allowed — they'll be kept with the record.</span><button class="btn sm" data-act="unagree">Reopen plan</button></div>` : ''}
+  <div class="card"><div class="card-h"><div><h2>What — Key Performance Indicators</h2><p>What the person will deliver this year. Keep each one SMART: specific, measurable, attainable, relevant, timely.</p></div><button class="btn sm" data-act="smart-help">SMART guide</button></div>
+    ${r.kpis.length ? `<div class="kpi-grid h" ${gcols}><span>KPI</span><span>Target / measure</span>${areas.length?'<span>Accountability</span>':''}<span>Weight %</span><span></span></div>${kpis}` : '<p class="muted">No KPIs yet.</p>'}
+    <div class="row" style="justify-content:space-between;margin-top:12px">${ro?'<span></span>':'<button class="btn sm" data-act="add-kpi">+ Add KPI</button>'}${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
+  </div>
+  <div class="card"><div class="card-h"><div><h2>How — Competency profile</h2><p>The behaviours expected in the role. Set the target level for each; N means not required. ${nReq} of ${S.org.framework.comps.length} required.</p></div>
+    <div class="row"><select class="in" style="width:auto" data-act-change="apply-profile"><option value="">Apply role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
+    <label class="chk small"><input type="checkbox" data-f="rec.useComps" data-rr ${r.useComps?'checked':''}> Use competencies</label></div></div>
+    ${comps}
+  </div>
+  <div class="card"><div class="card-h"><div><h2>Stretch objectives <span class="muted small">(optional)</span></h2><p>Projects beyond the position description — for strong performers and succession.</p></div><button class="btn sm" data-act="add-stretch">+ Add</button></div>
+    ${r.stretch.length ? r.stretch.map((s,i) => `<div class="kpi-grid r" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) 34px"><input class="in" placeholder="Objective" data-f="rec.stretch.${i}.objective" value="${esc(s.objective)}"><input class="in" placeholder="Measure / due" data-f="rec.stretch.${i}.measure" value="${esc(s.measure)}"><button class="btn icon" data-act="del" data-f="rec.stretch" data-i="${i}">✕</button></div>`).join('') : '<p class="muted small" style="margin:0">None set.</p>'}
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:18px">${locked || ro ? `<button class="btn pri" data-act="tab" data-v="monitor">Go to Perform →</button>` : `<button class="btn pri" data-act="agree" ${r.kpis.length?'':'disabled'}>Mark plan as agreed</button>`}</div>`;
+}
+
+function tMonitor(p, r){
+  const cis = (r.checkins||[]).map((c,i)=>({c,i})).sort((a,b)=> (b.c.date||'').localeCompare(a.c.date||''));
+  const st = v => `<span class="pill ${v==='on'?'good':v==='risk'?'warn':v==='off'?'bad':''}">${v==='on'?'On track':v==='risk'?'At risk':v==='off'?'Off track':'—'}</span>`;
+  const last = lastCheckin(r);
+  return `<div class="grid" style="grid-template-columns:minmax(0,1fr) 300px;align-items:start;gap:16px">
+  <div>
+    <div class="card"><div class="card-h"><div><h2>Check-ins</h2><p>Short, regular conversations so there are no surprises at year end. Record a formal half-year review around month 6.</p></div>
+      <div class="row"><button class="btn sm" data-act="add-checkin" data-v="Check-in">+ Check-in</button><button class="btn sm pri" data-act="add-checkin" data-v="Half-year review">+ Half-year review</button></div></div>
+      ${cis.length ? '' : '<p class="muted">No check-ins yet.</p>'}
+      ${cis.map(({c,i}) => `<div class="ci">
+        <div class="row" style="justify-content:space-between"><div class="row"><select class="in" style="width:auto" data-f="rec.checkins.${i}.type">${['Check-in','Half-year review','Corrective action plan'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select><input class="in" type="date" style="width:auto" data-f="rec.checkins.${i}.date" data-rr value="${esc(c.date)}"></div><button class="btn icon" data-act="del" data-f="rec.checkins" data-i="${i}">✕</button></div>
+        ${r.kpis.length ? `<div style="margin-top:12px">${r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:6px 0;border-top:1px solid var(--line2)"><span>${esc(k.name||'Untitled KPI')}</span><span class="status3">${[['on','On track',1],['risk','At risk',2],['off','Off track',3]].map(([v,l,n])=>`<button class="${(c.kpi||{})[k.id]===v?'on on'+n:''}" data-act="ci-status" data-i="${i}" data-k="${k.id}" data-v="${v}">${l}</button>`).join('')}</span></div>`).join('')}</div>` : ''}
+        <div class="grid g2" style="margin-top:10px;gap:10px"><label class="f"><span>Discussion notes (What)</span><textarea class="in" data-f="rec.checkins.${i}.notes">${esc(c.notes)}</textarea></label><label class="f"><span>Behaviours observed (How)</span><textarea class="in" data-f="rec.checkins.${i}.how">${esc(c.how)}</textarea></label></div>
+        <label class="f" style="margin-top:10px"><span>Agreed actions</span><input class="in" data-f="rec.checkins.${i}.actions" value="${esc(c.actions)}"></label>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div>
+    <div class="card"><h3>Latest status</h3><p class="small muted" style="margin:2px 0 10px">${last?esc(last.type)+' · '+fmtDate(last.date):'No check-ins yet'}</p>
+      ${r.kpis.length ? r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:5px 0"><span class="small">${esc(k.name||'Untitled KPI')}</span>${st(last&&(last.kpi||{})[k.id])}</div>`).join('') : '<p class="muted small">Add KPIs in the Plan.</p>'}
+    </div>
+    <div class="card"><h3>Feedback tools</h3>
+      <p class="small" style="margin:8px 0 4px"><b>TACT</b> — Treat others with respect · Actively listen · Care for others · Together find a way.</p>
+      <p class="small" style="margin:8px 0 0"><b>FOCUS</b> — Focus on purpose · Openly discuss the facts · Consider all options · Use ideas to build an action plan · Sincerely thank and agree to follow up.</p>
+    </div>
+  </div></div>`;
+}
+
+function tAssess(p, r){
+  const k = kpiScore(r), ks = kpiScore(r,'self'), cs = compStats(r), sug = suggestOverall(r);
+  /* Who may write which half. The database enforces all of this again -
+     these only stop the UI offering a control whose save would be refused.
+     mgrRo also covers the employee's view BEFORE release: the values are
+     redacted server-side, so an editable-looking control would be offering
+     to overwrite something they cannot see. */
+  const mgrRo  = !canManage(p.id);
+  const selfRo = !isSelf(p.id);
+  const released = !!(r.signoff && r.signoff.manager && r.signoff.manager.date);
+  const awaiting = isSelf(p.id) && !canManage(p.id) && !canReview(p.id) && !released;
+  const banner = awaiting ? `<div class="note" style="margin-bottom:16px"><b>Your manager's assessment has not been released yet.</b> You will see their ratings and comments once they sign off. Record your own self-assessment below in the meantime.</div>` : '';
+  const kTitles = {}; for (let i=1;i<=10;i++){ const b = KPI_SCALE.find(x=>i>=x[0]&&i<=x[1]); kTitles[i] = i+' — '+b[2]; }
+  const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPI')}</b><div class="small muted">Target: ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
+    <div class="rates"><div class="f"><span>Self-rating</span>${seg('rec.kpis.'+i+'.self', x.self, 10, {titles:kTitles, ro:selfRo})}</div><div class="f"><span>Manager rating${awaiting?' <span class="muted small">(not released)</span>':''}</span>${seg('rec.kpis.'+i+'.mgr', x.mgr, 10, {titles:kTitles, ro:mgrRo})}</div>
+    <label class="f"><span>Result achieved</span><input class="in" data-f="rec.kpis.${i}.result" value="${esc(x.result)}" placeholder="Actual result" ${mgrRo?'readonly':''}></label></div>
+    ${x.self!=null && x.mgr!=null && Math.abs(x.self-x.mgr)>=3 ? `<p class="small" style="margin:8px 0 0"><span class="pill warn">Ratings differ by ${Math.abs(x.self-x.mgr)} — discuss in the interview</span></p>`:''}</div>`).join('');
+  const comps = !r.useComps ? '<p class="muted">Competencies are switched off for this person this cycle.</p>' : S.org.framework.clusters.map(cl => {
+    const list = S.org.framework.comps.filter(c => c.cluster===cl && (r.comps[c.id]?.target||0) > 0); if (!list.length) return '';
+    return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const v = r.comps[c.id]; const d = v.mgr!=null ? v.mgr - v.target : null;
+      return `<div class="comp-a"><div><div style="font-weight:600">${esc(c.name)}</div><div class="small muted">${levelText(c, v.mgr!=null?v.mgr:v.target)}</div></div>
+      <div style="text-align:center"><div class="lbl">Target</div><div class="tgt">${v.target}</div></div>
+      <div><div class="lbl">Self</div>${seg('rec.comps.'+c.id+'.self', v.self, c.levels.length, {target:v.target, titles:levelTitles(c), ro:selfRo})}</div>
+      <div><div class="lbl">Manager</div>${seg('rec.comps.'+c.id+'.mgr', v.mgr, c.levels.length, {target:v.target, titles:levelTitles(c), ro:mgrRo})}</div>
+      <div style="text-align:right">${d==null?'<span class="muted small">—</span>':d>0?`<span class="pill good">+${d} above</span>`:d===0?'<span class="pill acc">Met</span>':`<span class="pill bad">${d} gap</span>`}</div></div>`; }).join('')}</div>`; }).join('') || '<p class="muted">No competencies have a target. Set targets in the Plan.</p>';
+  return banner + `<div class="grid g3">
+    <div class="card stat"><div class="k">What · KPI score</div><div class="v">${k!=null?k.toFixed(1):'—'}<span class="muted" style="font-size:14px"> /10</span></div><div class="d">Self ${ks!=null?ks.toFixed(1):'—'} · ${r.kpis.filter(x=>x.mgr!=null).length}/${r.kpis.length} rated</div></div>
+    <div class="card stat"><div class="k">How · Competencies at target</div><div class="v">${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</div><div class="d">${cs?`${cs.met}/${cs.rated} met · ${cs.above} above · ${cs.below} below`:'Not used'}</div></div>
+    <div class="card stat"><div class="k">Overall</div><div class="v">${r.notAssessed?'N/A':r.overall??'—'}</div><div class="d">${r.notAssessed?'Still learning the role':r.overall?esc(bandName(r.overall)):sug?'Suggested '+sug+' · '+esc(bandName(sug)):'Rate KPIs first'}</div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Self-appraisal</h2><p>Completed by the employee before the appraisal interview.</p></div></div>
+    <div class="grid g2"><label class="f"><span>Key achievements this year (employee)</span><textarea class="in" rows="4" data-f="rec.achievements" ${selfRo?'readonly':''}>${esc(r.achievements)}</textarea></label>
+    <label class="f"><span>Manager's comments on achievements${awaiting?' <span class="muted small">(not released)</span>':''}</span><textarea class="in" rows="4" data-f="rec.achieveComment" ${mgrRo?'readonly':''}>${esc(r.achieveComment)}</textarea></label></div></div>
+  <div class="card"><div class="card-h"><div><h2>What — KPI ratings</h2><p>Rate each KPI 1–10. Self-rating first, then manager.</p></div><button class="btn sm" data-act="kpi-scale">Rating guide</button></div>
+    ${kpis || '<p class="muted">No KPIs in the plan.</p>'}</div>
+  <div class="card"><div class="card-h"><div><h2>How — Competency assessment</h2><p>Select the level actually demonstrated across the full year. The underline marks the target.</p></div></div>${comps}</div>
+  ${r.stretch.length ? `<div class="card"><div class="card-h"><h2>Stretch objectives</h2></div>${r.stretch.map((s,i)=>`<div class="kpi-a"><b>${esc(s.objective||'Untitled')}</b><div class="small muted">${esc(s.measure||'')}</div><div class="rates" style="grid-template-columns:auto minmax(160px,1fr)"><div class="f"><span>Manager rating</span>${seg('rec.stretch.'+i+'.rating', s.rating, 10)}</div><label class="f"><span>Outcome</span><input class="in" data-f="rec.stretch.${i}.result" value="${esc(s.result)}"></label></div></div>`).join('')}</div>` : ''}
+  <div class="card"><div class="card-h"><div><h2>Overall rating</h2><p>Consider both what was achieved and how. Focus on what the band means, not the number.</p></div><button class="btn sm" data-act="overall-guide">Band guide</button></div>
+    <label class="chk small" style="margin-bottom:12px"><input type="checkbox" data-f="rec.notAssessed" data-rr ${r.notAssessed?'checked':''}> Not assessed — in role under 6 months or on extended leave</label>
+    ${r.notAssessed ? '' : `<div class="row" style="gap:16px;align-items:flex-start"><div>${seg('rec.overall', r.overall, 9, {target:sug})}<div class="small muted" style="margin-top:6px">1–3 ${esc(S.org.bands.low)} · 4–6 ${esc(S.org.bands.mid)} · 7–9 ${esc(S.org.bands.high)}${sug?` · underline = suggested (${sug})`:''}</div></div>${r.overall?bandPill(r.overall):''}</div>`}
+    <label class="f" style="margin-top:14px"><span>Rationale and manager's comments${awaiting?' <span class="muted small">(not released)</span>':''}</span><textarea class="in" rows="3" data-f="rec.overallComment" ${mgrRo?'readonly':''}>${esc(r.overallComment)}</textarea></label>
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn pri" data-act="tab" data-v="develop">Development & sign-off →</button></div>`;
+}
+
+function tDevelop(p, r){
+  const gaps = r.useComps ? Object.entries(r.comps).filter(([id,c]) => c.target>0 && c.mgr!=null && c.mgr<c.target && compById(id)).map(([id,c]) => ({c:compById(id), d:c.mgr-c.target})) : [];
+  const lowK = r.kpis.filter(k => k.mgr!=null && k.mgr<=4);
+  const so = r.signoff;
+  const sig = (k,l) => `<div class="sig ${so[k].date?'done':''}"><h3>${l}</h3><div class="grid" style="gap:8px;margin-top:8px"><input class="in" placeholder="Name" data-f="rec.signoff.${k}.name" value="${esc(so[k].name)}"><div class="row" style="flex-wrap:nowrap"><input class="in" type="date" data-f="rec.signoff.${k}.date" data-rr value="${esc(so[k].date)}"><button class="btn sm" data-act="sign" data-v="${k}">Today</button></div></div></div>`;
+  return `<div class="card"><div class="card-h"><div><h2>Employee Development Plan</h2><p>What the person needs to learn, and the most effective way to develop it. Options in payback order: coaching (fastest), assignment, training (deepest, slowest).</p></div><button class="btn sm" data-act="add-edp">+ Add action</button></div>
+    ${gaps.length || lowK.length ? `<div class="note" style="margin-bottom:12px"><b>Suggested from this year's assessment:</b> ${[...gaps.map(g=>esc(g.c.name)+' ('+g.d+')'), ...lowK.map(k=>esc(k.name||'KPI')+' (KPI '+k.mgr+')')].join(' · ')} <button class="btn sm" style="margin-left:6px" data-act="edp-from-gaps">Add as actions</button></div>`:''}
+    ${r.edp.items.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Development need</th><th>Approach</th><th>Action</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
+    ${r.edp.items.map((e,i)=>`<tr><td><input class="in bare" data-f="rec.edp.items.${i}.need" value="${esc(e.need)}" placeholder="Need"></td>
+      <td><select class="in bare" data-f="rec.edp.items.${i}.approach" data-type="num">${[1,2,3].map(a=>`<option value="${a}" ${e.approach===a?'selected':''}>${EDP_APPROACHES[a]}</option>`).join('')}</select></td>
+      <td><input class="in bare" data-f="rec.edp.items.${i}.action" value="${esc(e.action)}" placeholder="What will happen"></td>
+      <td><input class="in bare" type="month" data-f="rec.edp.items.${i}.by" value="${esc(e.by)}"></td>
+      <td><select class="in bare" data-f="rec.edp.items.${i}.status">${['Planned','In progress','Done'].map(s=>`<option ${e.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td><button class="btn icon" data-act="del" data-f="rec.edp.items" data-i="${i}">✕</button></td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No development actions yet.</p>'}
+    <label class="f" style="margin-top:14px"><span>Career goals and ambitions (next 1–3 years)</span><textarea class="in" data-f="rec.edp.career">${esc(r.edp.career)}</textarea></label>
+  </div>
+  <div class="card"><div class="card-h"><div><h2>Sign-off</h2><p>Once signed, the appraisal goes to the manager's manager, then to HR for processing.</p></div></div>
+    <div class="grid g3">${sig('employee','Employee')}${sig('manager','Manager')}${sig('mgrMgr',"Manager's manager")}</div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-act="export-appraisal">Export appraisal</button></div>`;
+}
+
+/* ---------- role profiles ---------- */
+function vProfiles(){
+  const comps = S.org.framework.comps, profs = S.org.profiles;
+  const sel = profs.find(x => x.id === S.ui.profileId) || profs[0];
+  return `<div class="head"><div><h1>Role profiles</h1><p class="sub">Target competency levels by role type. Assigning a profile to a person pre-fills their How targets; you can still adjust per person.</p></div><button class="btn pri" data-act="add-profile">New profile</button></div>
+  ${profs.length ? `<div class="grid" style="grid-template-columns:240px minmax(0,1fr);align-items:start">
+    <div class="card" style="padding:8px">${profs.map(x => `<div class="row" style="justify-content:space-between;padding:8px 10px;border-radius:8px;cursor:pointer;${x===sel?'background:var(--line2);font-weight:600':''}" data-act="pick-profile" data-v="${x.id}"><span>${esc(x.name)}</span><span class="small muted">${Object.values(x.targets).filter(v=>v>0).length}</span></div>`).join('')}</div>
+    <div class="card"><div class="card-h"><input class="in" style="max-width:340px;font-weight:600" data-f="org.profiles.${profs.indexOf(sel)}.name" data-rr value="${esc(sel.name)}">
+      <div class="row"><button class="btn sm" data-act="dup-profile">Duplicate</button><button class="btn sm danger" data-act="del-profile">Delete</button></div></div>
+      ${S.org.framework.clusters.map(cl => { const list = comps.filter(c=>c.cluster===cl); if (!list.length) return '';
+        return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = sel.targets[c.id] ?? 0;
+          return `<div class="comp ${t?'':'off'}"><span class="nm">${esc(c.name)}</span>${seg('org.profiles.'+profs.indexOf(sel)+'.targets.'+c.id, t, c.levels.length, {n:true, titles:levelTitles(c)})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('')}
+    </div></div>` : `<div class="card empty"><h2>No role profiles</h2><button class="btn pri" data-act="add-profile">New profile</button></div>`}`;
+}
+
+/* ---------- reports ---------- */
+function vReports(){
+  const c = activeCycle(), ppl = peopleList(), recs = ppl.map(p => ({p, r:recOf(p)})).filter(x => x.r);
+  const assessed = recs.filter(x => x.r.overall != null && !x.r.notAssessed);
+  const hist = Array.from({length:9},(_,i)=> assessed.filter(x=>x.r.overall===i+1).length), hmax = Math.max(1,...hist);
+  const what = r => { const k = kpiScore(r); return k==null?null:k>=7?2:k>=5?1:0; };
+  const how = r => { const s = compStats(r); return !s||s.pct==null?null:s.pct>=1?2:s.pct>=.7?1:0; };
+  const mx = [[0,0,0],[0,0,0],[0,0,0]]; recs.forEach(({r}) => { const w = what(r), h = how(r); if (w!=null && h!=null) mx[w][h]++; });
+  const gaps = S.org.framework.comps.map(cp => { let n=0, below=0; recs.forEach(({r}) => { const v = r.useComps && r.comps[cp.id]; if (v && v.target>0 && v.mgr!=null){ n++; if (v.mgr<v.target) below++; } }); return {cp, n, below}; }).filter(g=>g.n).sort((a,b)=>b.below/b.n - a.below/a.n);
+  const edp = recs.flatMap(({p,r}) => r.edp.items.map(e => ({p,e})));
+  const appr = [1,2,3].map(a => edp.filter(x=>x.e.approach===a).length), amax = Math.max(1,...appr);
+  const stages = ['Not started','Planning','Plan agreed','In assessment','Assessed','Signed off'];
+  const sc = stages.map((s,i) => ppl.filter(p => stageOf(recOf(p)).i===i).length), smax = Math.max(1,...sc);
+  const cell = (w,h) => { const v = mx[w][h], tot = Math.max(1, mx.flat().reduce((a,b)=>a+b,0)); return `<div class="c" style="background:color-mix(in srgb,var(--accent) ${Math.round(v/tot*70)}%,var(--line2));${v/tot>.35?'color:var(--accent-ink)':''}"><b>${v}</b></div>`; };
+  return `<div class="head"><div><h1>Reports</h1><p class="sub">${esc(c.label)} · ${recs.length} records · ${assessed.length} assessed</p></div><div class="row"><button class="btn" data-act="csv-summary">Export summary (CSV)</button><button class="btn" data-act="csv-tna">Export training needs (CSV)</button></div></div>
+  <div class="grid g2" style="align-items:start">
+    <div class="card"><div class="card-h"><h2>Cycle progress</h2></div>${stages.map((s,i)=>`<div class="hbar"><span>${s}</span><div class="bar"><i style="width:${sc[i]/smax*100}%"></i></div><b style="text-align:right">${sc[i]}</b></div>`).join('')}</div>
+    <div class="card"><div class="card-h"><div><h2>Overall rating spread</h2><p>${esc(S.org.bands.low)} 1–3 · ${esc(S.org.bands.mid)} 4–6 · ${esc(S.org.bands.high)} 7–9</p></div></div>
+      ${assessed.length ? `<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:6px;align-items:end;height:140px">${hist.map((n,i)=>`<div style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px"><span class="small">${n||''}</span><div style="width:100%;height:${n/hmax*100}%;min-height:${n?4:0}px;background:var(--accent);opacity:${i<3?.45:i<6?.7:1};border-radius:4px 4px 0 0"></div></div>`).join('')}</div><div style="display:grid;grid-template-columns:repeat(9,1fr);gap:6px;text-align:center" class="small muted">${hist.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>` : '<p class="muted">No overall ratings yet.</p>'}
+    </div>
+    <div class="card"><div class="card-h"><div><h2>What × How</h2><p>KPI score against competencies at target.</p></div></div>
+      <div class="matrix"><div class="ax">KPI ≥ 7</div>${cell(2,0)}${cell(2,1)}${cell(2,2)}<div class="ax">KPI 5–6</div>${cell(1,0)}${cell(1,1)}${cell(1,2)}<div class="ax">KPI ≤ 4</div>${cell(0,0)}${cell(0,1)}${cell(0,2)}<div></div><div class="axb">&lt;70% at target</div><div class="axb">70–99%</div><div class="axb">All at target</div></div>
+    </div>
+    <div class="card"><div class="card-h"><div><h2>Competency gaps</h2><p>Share of people assessed below their target level.</p></div></div>
+      ${gaps.length ? gaps.slice(0,10).map(g=>`<div class="hbar"><span>${esc(g.cp.name)}</span><div class="bar"><i style="width:${g.below/g.n*100}%"></i></div><b style="text-align:right">${g.below}/${g.n}</b></div>`).join('') : '<p class="muted">No competency assessments yet.</p>'}
+    </div>
+    <div class="card"><div class="card-h"><h2>Development approach mix</h2></div>${[1,2,3].map(a=>`<div class="hbar"><span>${EDP_APPROACHES[a]}</span><div class="bar"><i style="width:${appr[a-1]/amax*100}%"></i></div><b style="text-align:right">${appr[a-1]}</b></div>`).join('')}</div>
+    <div class="card"><div class="card-h"><h2>Year-on-year</h2></div>${yoy()}</div>
+  </div>`;
+}
+function yoy(){
+  const rows = S.org.cycles.map(c => { const rs = peopleList(true).map(p => recOf(p,c.id)).filter(Boolean); const a = rs.filter(r=>r.overall!=null&&!r.notAssessed);
+    const ks = rs.map(r=>kpiScore(r)).filter(x=>x!=null);
+    return `<tr><td>${esc(c.label)}</td><td class="num">${rs.length}</td><td class="num">${ks.length?(ks.reduce((x,y)=>x+y,0)/ks.length).toFixed(1):'—'}</td><td class="num">${a.length?(a.reduce((x,r)=>x+r.overall,0)/a.length).toFixed(1):'—'}</td><td class="num">${a.length?Math.round(a.filter(r=>r.overall>=7).length/a.length*100)+'%':'—'}</td></tr>`; }).join('');
+  return `<table class="tbl"><thead><tr><th>Cycle</th><th class="num">People</th><th class="num">Avg KPI</th><th class="num">Avg overall</th><th class="num">Exceptional</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ---------- users and access (admin) ---------- */
+/* The roster, the link between a login and a person, and the allocations
+   that are the ONLY thing granting access to someone else's record.
+
+   Loaded through admin-only RPCs rather than read from the tables:
+   ppad_members carries just a user id, and profiles is readable only by its
+   owner, so the roster cannot be assembled client-side - by design. */
+async function loadAccess(){
+  try{
+    const [members, allocations] = await Promise.all([
+      ppadAdmin.listMembers(), ppadAdmin.listAllocations(true)]);
+    S.ui.access = {members: members || [], allocations: allocations || []};
+  }catch(e){ S.ui.access = {error: e.message, members: [], allocations: []}; }
+  rerender();
+}
+function vAccess(){
+  const a = S.ui.access;
+  if (!a) return '<div class="card"><p class="muted">Loading…</p></div>';
+  if (a.error) return '<div class="card"><h2>Could not load</h2><p class="muted">'+esc(a.error)+'</p></div>';
+
+  const live = a.allocations.filter(x => !x.ended_at);
+  const past = a.allocations.filter(x => x.ended_at);
+  const ppl = peopleList(true);
+  const allocFor = (uid, type) => live.filter(x => x.allocated_user_id === uid && x.type === type);
+
+  const memberRow = m => {
+    const mgr = allocFor(m.user_id, 'manager'), rev = allocFor(m.user_id, 'reviewer');
+    const chip = (x) => '<span class="pill" style="margin:0 4px 4px 0">'+esc(x.person_name || x.person_id)
+      + ' <button class="btn icon" title="End this allocation" data-act="acc-end" data-v="'+x.id+'">✕</button></span>';
+    return '<tr>'
+      + '<td><b>'+esc(m.name || m.email)+'</b><div class="small muted">'+esc(m.email)+'</div></td>'
+      + '<td><select class="in bare" data-act-change="acc-link" data-u="'+m.user_id+'">'
+        + '<option value="">Not linked</option>'
+        + ppl.map(p => '<option value="'+esc(p.id)+'"'+(m.person_id===p.id?' selected':'')+'>'+esc(fullName(p))+'</option>').join('')
+      + '</select></td>'
+      + '<td><label class="chk small"><input type="checkbox" data-act-change="acc-admin" data-u="'+m.user_id+'" '+(m.is_admin?'checked':'')+'> Admin</label>'
+        + '<label class="chk small" style="margin-top:4px"><input type="checkbox" data-act-change="acc-hr" data-u="'+m.user_id+'" '+(m.is_hr_reporting?'checked':'')+'> HR reporting</label></td>'
+      + '<td>'+(mgr.length?mgr.map(chip).join(''):'<span class="muted small">—</span>')
+        + '<div style="margin-top:6px"><select class="in bare" style="max-width:190px" data-act-change="acc-add" data-u="'+m.user_id+'" data-t="manager">'
+        + '<option value="">+ manages…</option>'+ppl.filter(p=>!mgr.some(x=>x.person_id===p.id)).map(p=>'<option value="'+esc(p.id)+'">'+esc(fullName(p))+'</option>').join('')+'</select></div></td>'
+      + '<td>'+(rev.length?rev.map(chip).join(''):'<span class="muted small">—</span>')
+        + '<div style="margin-top:6px"><select class="in bare" style="max-width:190px" data-act-change="acc-add" data-u="'+m.user_id+'" data-t="reviewer">'
+        + '<option value="">+ reviews…</option>'+ppl.filter(p=>!rev.some(x=>x.person_id===p.id)).map(p=>'<option value="'+esc(p.id)+'">'+esc(fullName(p))+'</option>').join('')+'</select></div></td>'
+      + '</tr>';
+  };
+
+  return '<div class="head"><div><h1>Users and access</h1><p class="sub">Who can sign in, who they are, and whose records they can see. '
+    + '<b>Allocation is the only thing that grants access to a record</b> - being an admin does not.</p></div>'
+    + '<button class="btn pri" data-act="acc-invite">Invite someone</button></div>'
+
+    + '<div class="card" style="padding:8px 12px"><div class="tbl-wrap"><table class="tbl">'
+    + '<thead><tr><th>User</th><th style="width:16%">Is this person</th><th style="width:14%">Role</th><th>Manages</th><th>Reviews</th></tr></thead>'
+    + '<tbody>'+(a.members.length?a.members.map(memberRow).join(''):'<tr><td colspan="5" class="muted">No members yet.</td></tr>')+'</tbody>'
+    + '</table></div></div>'
+
+    + '<div class="note" style="margin-top:14px"><b>Allocating yourself is recorded.</b> An admin has no access to any record until they allocate '
+    + 'themselves to that person, and doing so writes an <code>allocation.self_grant</code> entry to the audit log.</div>'
+
+    + (past.length ? '<div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Allocation history</h2>'
+      + '<p>Ended allocations are kept, never deleted, so who could see a record in the past stays answerable.</p></div></div>'
+      + '<table class="tbl"><thead><tr><th>Who</th><th>Person</th><th>Type</th><th>From</th><th>Until</th></tr></thead><tbody>'
+      + past.map(x => '<tr><td>'+esc(x.allocated_name || x.allocated_email || '')+'</td><td>'+esc(x.person_name || x.person_id)
+        + '</td><td>'+esc(x.type)+'</td><td>'+fmtDate((x.created_at||'').slice(0,10))+'</td><td>'+fmtDate((x.ended_at||'').slice(0,10))+'</td></tr>').join('')
+      + '</tbody></table></div>' : '');
+}
+
+/* ---------- settings ---------- */
+function vSettings(){
+  const b = S.org.brand, fw = S.org.framework;
+  return `<div class="head"><div><h1>Settings</h1><p class="sub">Branding, cycles, rating labels and the competency framework.</p></div></div>
+  <div class="card"><div class="card-h"><div><h2>Branding</h2><p>White-label the tool with your organisation's name, logo and colour.</p></div></div>
+    <div class="grid g2" style="gap:14px">
+      <label class="f"><span>Organisation name</span><input class="in" data-f="org.brand.orgName" data-rr value="${esc(b.orgName)}"></label>
+      <label class="f"><span>Tool name</span><input class="in" data-f="org.brand.appName" data-rr value="${esc(b.appName)}"></label>
+    <label class="f"><span>Tagline (under the tool name)</span><input class="in" data-f="org.brand.tagline" data-rr value="${esc(b.tagline||'')}"></label>
+      <div class="f"><span>Logo</span><div class="row"><div class="logo-box">${b.logo?`<img src="${b.logo}">`:'<span class="muted small">No logo</span>'}</div><label class="btn sm">Upload<input type="file" accept="image/*" data-act-change="logo" hidden></label>${b.logo?'<button class="btn sm ghost" data-act="logo-clear">Remove</button>':''}</div></div>
+      <div class="f"><span>Brand colour</span><div class="swatches">${ACCENTS.map(a => `<span class="sw ${b.accent===a?'on':''}" style="background:${a}" data-act="accent" data-v="${a}"></span>`).join('')}<input type="color" value="${esc(b.accent)}" data-f="org.brand.accent" data-rr style="width:32px;height:30px;border:0;background:none;padding:0"><code class="small muted">${esc(b.accent)}</code></div></div>
+    </div>
+    <label class="chk small" style="margin-top:14px"><input type="checkbox" data-f="org.brand.poweredBy" data-rr ${b.poweredBy?'checked':''}> Show "Powered by Humanistiqs" in the footer and exports</label>
+  </div>
+  <div class="card"><div class="card-h"><div><h2>Performance cycles</h2><p>One cycle per performance year. Start the next cycle to roll KPIs, targets and open development actions forward.</p></div><button class="btn sm pri" data-act="new-cycle">Start next cycle</button></div>
+    <label class="f" style="max-width:240px;margin-bottom:12px"><span>Performance year starts in</span><select class="in" data-f="org.yearStart" data-type="num">${MONTHS.map((m,i)=>`<option value="${i+1}" ${S.org.yearStart===i+1?'selected':''}>${m}</option>`).join('')}</select></label>
+    <table class="tbl"><thead><tr><th>Label</th><th>Period</th><th>Records</th><th></th></tr></thead><tbody>${S.org.cycles.map((c,i)=>`<tr><td><input class="in bare" style="max-width:160px" data-f="org.cycles.${i}.label" data-rr value="${esc(c.label)}"></td><td>${esc(cycleRange(c))}</td><td>${peopleList(true).filter(p=>recOf(p,c.id)).length}</td><td style="text-align:right">${c.id===S.org.activeCycle?'<span class="pill acc">Active</span>':`<button class="btn sm ghost" data-act="set-cycle" data-v="${c.id}">Make active</button>`} ${S.org.cycles.length>1?`<button class="btn sm ghost danger" data-act="del-cycle" data-v="${c.id}">Delete</button>`:''}</td></tr>`).join('')}</tbody></table>
+  </div>
+  <div class="card"><div class="card-h"><div><h2>Overall rating bands</h2><p>Labels used for overall ratings 1–3, 4–6 and 7–9.</p></div></div>
+    <div class="grid g3"><label class="f"><span>1–3</span><input class="in" data-f="org.bands.low" value="${esc(S.org.bands.low)}"></label><label class="f"><span>4–6</span><input class="in" data-f="org.bands.mid" value="${esc(S.org.bands.mid)}"></label><label class="f"><span>7–9</span><input class="in" data-f="org.bands.high" value="${esc(S.org.bands.high)}"></label></div></div>
+  <div class="card"><div class="card-h"><div><h2>Competency framework</h2><p>${fw.comps.length} competencies in ${fw.clusters.length} clusters. Edit names, definitions and level descriptors (one level per line, lowest first).</p></div><div class="row"><button class="btn sm" data-act="add-comp">+ Add competency</button><button class="btn sm ghost" data-act="reset-fw">Reset to default</button></div></div>
+    ${fw.comps.map((c,i)=>`<details class="acc"><summary><span><b>${esc(c.name)}</b> <span class="muted small">· ${esc(c.cluster)} · ${c.levels.length} levels</span></span></summary><div class="body grid" style="gap:10px">
+      <div class="grid g2"><label class="f"><span>Name</span><input class="in" data-f="org.framework.comps.${i}.name" value="${esc(c.name)}"></label><label class="f"><span>Cluster</span><select class="in" data-f="org.framework.comps.${i}.cluster">${fw.clusters.map(cl=>`<option ${cl===c.cluster?'selected':''}>${esc(cl)}</option>`).join('')}</select></label></div>
+      <label class="f"><span>Definition</span><textarea class="in" rows="2" data-f="org.framework.comps.${i}.def">${esc(c.def)}</textarea></label>
+      <label class="f"><span>Levels (one per line; "Title: description")</span><textarea class="in" rows="${c.levels.length+1}" data-f="org.framework.comps.${i}.levels" data-type="lines">${esc(c.levels.join('\n'))}</textarea></label>
+      <div><button class="btn sm danger" data-act="del-comp" data-i="${i}">Delete competency</button></div></div></details>`).join('')}
+  </div>
+  <div class="card"><div class="card-h"><div><h2>Data</h2><p>Saved to your organisation's HQ.ai workspace. Nothing is kept on this device, so signing out leaves no data behind.</p></div></div>
+    <div class="row"><button class="btn" data-act="backup">Export backup (JSON)</button><label class="btn">Import backup<input type="file" accept=".json,application/json" data-act-change="import" hidden></label><button class="btn ghost" data-act="sample">Load sample data</button><span class="spacer"></span><button class="btn danger" data-act="erase">Erase all data</button></div>
+  </div>`;
+}
+
+/* ===== Performance Manager — actions ===== */
+const curP = () => S.people[S.ui.personId];
+const curR = () => { const p = curP(); return p && recOf(p); };
+function rootOf(name){ return name==='rec' ? curR() : name==='p' ? curP() : name==='org' ? S.org : name==='pd' ? S.pds[S.ui.pdId] : null; }
+function getPath(path){ const [root,...parts] = path.split('.'); let o = rootOf(root); for (const k of parts){ if (o==null) return undefined; o = o[k]; } return o; }
+function setPath(path, val){
+  const [root,...parts] = path.split('.'); let o = rootOf(root);
+  for (let i=0;i<parts.length-1;i++){ if (o[parts[i]] == null) o[parts[i]] = {}; o = o[parts[i]]; }
+  o[parts[parts.length-1]] = val;
+  if (root==='org'){ saveOrg(); if (path.startsWith('org.brand')) applyBrand(); }
+  else if (root==='pd') savePd(S.pds[S.ui.pdId]);
+  else savePerson(curP());
+}
+function readVal(el){
+  if (el.type==='checkbox') return el.checked;
+  const t = el.dataset.type;
+  if (t==='num'){ return el.value==='' ? null : Number(el.value); }
+  if (t==='lines') return el.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  return el.value;
+}
+
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.f && el.tagName !== 'SELECT' && el.type !== 'checkbox' && el.type !== 'date' && el.type !== 'month'){
+    setPath(el.dataset.f, readVal(el));
+    if (el.dataset.f === 'org.brand.accent'){ /* live */ }
+  }
+  if (el.dataset.actInput === 'search'){ S.ui.q = el.value; const pos = el.selectionStart; rerender(); const n = document.querySelector('[data-act-input="search"]'); if (n){ n.focus(); n.setSelectionRange(pos,pos); } }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.f){
+    if (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'date' || el.type === 'month') setPath(el.dataset.f, readVal(el));
+    if (el.dataset.f === 'org.yearStart') { /* applies to new cycles */ }
+    if (el.dataset.rr !== undefined || el.tagName === 'SELECT' && el.dataset.f.startsWith('org.framework')) rerender();
+    if (el.dataset.f.endsWith('.levels') || el.dataset.f.endsWith('.name') && el.dataset.f.startsWith('org.framework')) {/* keep open */}
+  }
+  const a = el.dataset.actChange; if (a && CHANGE[a]) CHANGE[a](el);
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.tagName === 'SELECT') return;
+  const a = ACT[el.dataset.act]; if (a){ e.preventDefault(); a(el); }
+});
+document.addEventListener('change', e => { if (e.target.dataset.act === 'cycle'){ S.org.activeCycle = e.target.value; saveOrg(); render(); } });
+
+const CHANGE = {
+  'acc-link': async el => { try{ await ppadAdmin.linkPerson(el.dataset.u, el.value || null); toast('Updated'); S.ui.access = null; loadAccess(); }catch(e){ toast(e.message); } },
+  'acc-admin': async el => { const m = S.ui.access.members.find(x => x.user_id === el.dataset.u);
+    try{ await ppadAdmin.setMember(el.dataset.u, el.checked, m.is_hr_reporting); toast('Updated'); S.ui.access = null; loadAccess(); }
+    catch(e){ el.checked = !el.checked; toast(e.message); } },
+  'acc-hr': async el => { const m = S.ui.access.members.find(x => x.user_id === el.dataset.u);
+    try{ await ppadAdmin.setMember(el.dataset.u, m.is_admin, el.checked); toast('Updated'); S.ui.access = null; loadAccess(); }
+    catch(e){ el.checked = !el.checked; toast(e.message); } },
+  'acc-add': async el => { if (!el.value) return;
+    try{ await ppadAdmin.allocate(el.value, el.dataset.u, el.dataset.t); toast('Allocated'); S.ui.access = null; loadAccess(); await ppadAdmin.reload(); }
+    catch(e){ toast(e.message); } },
+  'logo': el => { const f = el.files[0]; if (!f) return; const rd = new FileReader();
+    rd.onload = () => { const img = new Image(); img.onload = () => { const max = 360, sc = Math.min(1, max/Math.max(img.width, img.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); S.org.brand.logo = cv.toDataURL('image/png'); saveOrg(); rerender(); };
+      img.onerror = () => toast('Could not read that image'); img.src = rd.result; };
+    rd.readAsDataURL(f); },
+  'show-inactive': el => { S.ui.showInactive = el.checked; rerender(); },
+  'apply-profile': el => { const pr = S.org.profiles.find(x=>x.id===el.value); if (!pr) return; const r = curR();
+    S.org.framework.comps.forEach(c => { r.comps[c.id] = r.comps[c.id] || {target:0,self:null,mgr:null}; r.comps[c.id].target = pr.targets[c.id] ?? 0; });
+    curP().profileId = pr.id; savePerson(curP()); toast('Targets set from ' + pr.name); rerender(); },
+  'import': el => { const f = el.files[0]; if (!f) return; f.text().then(t => { try{ const d = JSON.parse(t); if (!d.org || !d.people) throw 0; d.pds = d.pds || {};
+      confirmBox('Import backup?', 'This replaces all current data with the backup.', 'Replace data', () => {
+        const old = Object.keys(S.people), oldD = Object.keys(S.pds); S.org = d.org; S.people = d.people; S.pds = d.pds; old.forEach(id => { if (!S.people[id]) store.mark('p_'+id); }); oldD.forEach(id => { if (!S.pds[id]) store.mark('d_'+id); }); store.markAll(); applyBrand(); toast('Backup imported'); go('dashboard'); }, true);
+    }catch(x){ toast('That file is not a valid backup'); } }); }
+};
+
+const ACT = {
+  nav: el => go(el.dataset.h),
+  tab: el => { S.ui.tab = el.dataset.v; render(); },
+  seg: el => { const f = el.dataset.f, v = Number(el.dataset.v); const cur = getPath(f);
+    const nullable = !/\.target$/.test(f) && !/^org\.profiles/.test(f);
+    setPath(f, cur === v && nullable ? null : v); rerender(); },
+  accent: el => { setPath('org.brand.accent', el.dataset.v); rerender(); },
+  'logo-clear': () => { S.org.brand.logo = null; saveOrg(); rerender(); },
+  'finish-setup': () => { S.org.setup = true; const c = activeCycle(); if (!peopleList(true).some(p => p.records && Object.keys(p.records).length)){ const s = defaultCycleStart(S.org.yearStart); c.start = s; c.label = cycleLabel(s); } saveOrg(); go('dashboard'); },
+  'add-person': () => addPerson(),
+  'edit-person': () => { const p = curP();
+    modal(`<h2>Details</h2><form id="pf" style="margin-top:14px">${personForm(p)}<div class="acts" style="justify-content:space-between"><button type="button" class="btn ghost" id="deact">${p.active===false?'Reactivate':'Mark inactive'}</button><div class="row"><button type="button" class="btn danger ghost" id="delp">Delete</button><button class="btn pri">Save</button></div></div></form>`,
+    (m, close) => { m.querySelector('#pf').onsubmit = e => { e.preventDefault(); const oldPd = p.pdId; new FormData(e.target).forEach((v,k) => p[k] = String(v).trim());
+      const r = recOf(p), d = S.pds[p.pdId]; if (d && p.pdId !== oldPd && r){ if (!r.kpis.length && !r.planAgreed){ applyPdToRecord(d, r); toast('Plan started from '+d.title); } else toast('PD linked — use Re-apply PD on the Plan to pull in its KPIs and targets'); }
+      savePerson(p); close(); rerender(); };
+      m.querySelector('#deact').onclick = () => { p.active = p.active === false; savePerson(p); close(); rerender(); };
+      m.querySelector('#delp').onclick = () => { close(); confirmBox('Delete '+fullName(p)+'?', 'This removes the person and all of their records in every cycle. It can\'t be undone.', 'Delete', () => { delete S.people[p.id]; store.mark('p_'+p.id); go('people'); }, true); }; }); },
+  'start-record': () => { const p = curP(); p.records = p.records || {}; p.records[activeCycle().id] = carryForward(p) || newRecord(p); savePerson(p); S.ui.tab='plan'; rerender(); },
+  'add-kpi': () => { curR().kpis.push({id:uid(), name:'', target:'', weight:null, self:null, mgr:null, result:''}); savePerson(curP()); rerender(); setTimeout(()=>{ const l = document.querySelectorAll('[data-f$=".name"][data-f^="rec.kpis"]'); l[l.length-1]?.focus(); }); },
+  'add-stretch': () => { curR().stretch.push({id:uid(), objective:'', measure:'', rating:null, result:''}); savePerson(curP()); rerender(); },
+  del: el => { const arr = getPath(el.dataset.f); arr.splice(Number(el.dataset.i),1); savePerson(curP()); rerender(); },
+  agree: () => { curR().planAgreed = today(); savePerson(curP()); toast('Plan agreed'); rerender(); },
+  unagree: () => { curR().planAgreed = null; savePerson(curP()); rerender(); },
+  'add-checkin': el => { curR().checkins.push({id:uid(), type:el.dataset.v, date:today(), kpi:{}, notes:'', how:'', actions:''}); savePerson(curP()); rerender(); },
+  'ci-status': el => { const c = curR().checkins[Number(el.dataset.i)]; c.kpi = c.kpi || {}; c.kpi[el.dataset.k] = c.kpi[el.dataset.k] === el.dataset.v ? null : el.dataset.v; savePerson(curP()); rerender(); },
+  'add-edp': () => { curR().edp.items.push({id:uid(), need:'', approach:1, action:'', by:'', status:'Planned'}); savePerson(curP()); rerender(); },
+  'edp-from-gaps': () => { const r = curR(); const have = new Set(r.edp.items.map(i=>i.need));
+    Object.entries(r.comps).forEach(([id,c]) => { const cp = compById(id); if (cp && r.useComps && c.target>0 && c.mgr!=null && c.mgr<c.target && !have.has(cp.name)) r.edp.items.push({id:uid(), need:cp.name, approach:c.target-c.mgr>1?3:1, action:'', by:'', status:'Planned'}); });
+    r.kpis.forEach(k => { if (k.mgr!=null && k.mgr<=4 && !have.has(k.name)) r.edp.items.push({id:uid(), need:k.name||'KPI', approach:1, action:'', by:'', status:'Planned'}); });
+    savePerson(curP()); rerender(); },
+  sign: el => { const s = curR().signoff[el.dataset.v]; s.date = today(); if (!s.name){ const p = curP(); s.name = el.dataset.v==='employee' ? fullName(p) : el.dataset.v==='manager' ? (p.manager||'') : ''; } savePerson(curP()); rerender(); },
+  'pd-toggle': () => { S.ui.pdOpen = !S.ui.pdOpen; rerender(); },
+  'smart-help': () => modal(`<h2>Writing SMART KPIs</h2><p class="sub">A good goal statement has an action verb, a single measurable result, a completion date, and a cost (effort, resources or money).</p>
+    <dl class="kv" style="margin-top:14px"><dt><b>S</b>pecific</dt><dd>One clear result, not a list.</dd><dt><b>M</b>easurable</dt><dd>You can tell objectively whether it was met.</dd><dt><b>A</b>ttainable</dt><dd>Challenging but realistic.</dd><dt><b>R</b>elevant</dt><dd>Linked to the business plan and the role.</dd><dt><b>T</b>imely</dt><dd>Has a date.</dd></dl>
+    <div class="note" style="margin-top:14px">Keep it to a sentence. State <i>what</i> and <i>when</i>, not how or why.<br><br><b>Example:</b> Deliver monthly management accounts to the CEO by working day 8, every month.</div><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
+  'kpi-scale': () => modal(`<h2>KPI rating guide (1–10)</h2><table class="tbl" style="margin-top:10px">${KPI_SCALE.map(s=>`<tr><td style="white-space:nowrap"><b>${s[0]}–${s[1]}</b></td><td><b>${s[2]}</b><div class="small muted">${s[3]}</div></td></tr>`).join('')}</table><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
+  'overall-guide': () => modal(`<h2>Overall rating bands</h2>
+    <div class="grid" style="gap:10px;margin-top:10px">
+    <div class="callout"><b>7–9 · ${esc(S.org.bands.high)}</b><div class="small muted">Contribution significantly exceeds position requirements. Superior results against KPI targets; exceeds the competency levels for the role.</div></div>
+    <div class="callout"><b>4–6 · ${esc(S.org.bands.mid)}</b><div class="small muted">Delivering the required standard and occasionally exceeding it. Achieves required KPI results; consistently meets the competencies.</div></div>
+    <div class="callout"><b>1–3 · ${esc(S.org.bands.low)}</b><div class="small muted">Not meeting position requirements. An improvement action plan and schedule must be agreed.</div></div></div>
+    <p class="small muted">People in the role under 6 months, or on extended leave, are not rated on this scale.</p><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
+  'new-cycle': () => newCycleDialog(),
+  'set-cycle': el => { S.org.activeCycle = el.dataset.v; saveOrg(); rerender(); },
+  'del-cycle': el => { const c = S.org.cycles.find(x=>x.id===el.dataset.v);
+    confirmBox('Delete '+c.label+'?', 'All records in this cycle will be removed for everyone. Export a backup first if unsure.', 'Delete cycle', () => {
+      S.org.cycles = S.org.cycles.filter(x=>x!==c); if (S.org.activeCycle===c.id) S.org.activeCycle = S.org.cycles[S.org.cycles.length-1].id;
+      Object.values(S.people).forEach(p => { if (p.records && p.records[c.id]){ delete p.records[c.id]; savePerson(p); } }); saveOrg(); rerender(); }, true); },
+  'add-profile': () => { const p = {id:'r'+uid(), name:'New profile', targets:{}}; S.org.framework.comps.forEach(c => p.targets[c.id] = 0); S.org.profiles.push(p); S.ui.profileId = p.id; saveOrg(); rerender(); },
+  'pick-profile': el => { S.ui.profileId = el.dataset.v; rerender(); },
+  'dup-profile': () => { const s = S.org.profiles.find(x=>x.id===S.ui.profileId) || S.org.profiles[0]; const p = {id:'r'+uid(), name:s.name+' (copy)', targets:{...s.targets}}; S.org.profiles.push(p); S.ui.profileId = p.id; saveOrg(); rerender(); },
+  'del-profile': () => { const s = S.org.profiles.find(x=>x.id===S.ui.profileId) || S.org.profiles[0];
+    confirmBox('Delete '+s.name+'?', 'People using this profile keep their current targets.', 'Delete', () => { S.org.profiles = S.org.profiles.filter(x=>x!==s); S.ui.profileId = null; saveOrg(); rerender(); }, true); },
+  'add-comp': () => { const used = new Set(S.org.framework.comps.map(c=>c.id)); let id; do { id = 'X'+uid().slice(0,4); } while (used.has(id));
+    S.org.framework.comps.push({id, cluster:S.org.framework.clusters[0], name:'New competency', def:'', levels:['Level 1: description','Level 2: description','Level 3: description']}); saveOrg(); rerender();
+    setTimeout(()=>{ const d = document.querySelectorAll('details.acc'); const l = d[d.length-1]; if (l){ l.open = true; l.scrollIntoView({block:'center'}); } }); },
+  'del-comp': el => { const c = S.org.framework.comps[Number(el.dataset.i)]; confirmBox('Delete '+c.name+'?', 'It will no longer appear in plans or assessments. Ratings already recorded are kept in the data.', 'Delete', () => { S.org.framework.comps.splice(Number(el.dataset.i),1); saveOrg(); rerender(); }, true); },
+  'reset-fw': () => confirmBox('Reset the competency framework?', 'Restores the default 17 competencies and level descriptors. Custom competencies will be removed.', 'Reset', () => { S.org.framework = {clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)}; saveOrg(); rerender(); }, true),
+  backup: () => download(`${slug()}-backup-${today()}.json`, JSON.stringify({app:'performance-manager', exported:new Date().toISOString(), org:S.org, people:S.people, pds:S.pds}, null, 1), 'application/json'),
+  erase: () => confirmBox('Erase all data?', 'Every person, record, profile and setting will be deleted. Export a backup first.', 'Erase everything', () => { Object.keys(S.people).forEach(id => store.mark('p_'+id)); Object.keys(S.pds).forEach(id => store.mark('d_'+id)); S.people = {}; S.pds = {}; S.org = newOrg(); if (PRESET) applyPreset(); saveOrg(); applyBrand(); go('dashboard'); }, true),
+  sample: () => { loadSample(); toast('Sample data loaded'); go('dashboard'); },
+  'export-appraisal': () => exportAppraisal(curP(), curR()),
+  'csv-summary': () => csvSummary(),
+  'csv-tna': () => csvTna(),
+  'acc-invite': () => modal('<h2>Invite someone</h2><p class="sub">They get an email with a link to set a password. They will see nothing until you link them to a person or allocate them.</p>'
+    + '<form id="iv" style="margin-top:14px"><label class="f"><span>Work email</span><input class="in" name="email" type="email" required placeholder="name@company.com.au"></label>'
+    + '<label class="chk small" style="margin-top:10px"><input type="checkbox" name="isAdmin"> Make them an admin</label>'
+    + '<label class="chk small"><input type="checkbox" name="isHr"> Give them HR reporting (ratings across the whole org)</label>'
+    + '<div class="acts"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Send invite</button></div></form>',
+    (m, close) => m.querySelector('#iv').onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        const r = await ppadAdmin.invite(String(fd.get('email')||'').trim(), fd.get('isAdmin')==='on', fd.get('isHr')==='on');
+        close(); toast(r.invited ? 'Invite sent' : 'Added to this organisation');
+        S.ui.access = null; loadAccess();
+      }catch(err){ toast(err.message); }
+    }),
+  'acc-end': el => confirmBox('End this allocation?', 'Access ends immediately, including to past cycles. The record of the allocation is kept.', 'End it', async () => {
+    try{ await ppadAdmin.endAllocation(el.dataset.v); toast('Allocation ended'); S.ui.access = null; loadAccess(); await ppadAdmin.reload(); }
+    catch(e){ toast(e.message); } }),
+  'sign-out': () => confirmBox('Sign out?', 'Nothing is kept on this device - you will need to sign in again to see any of this.', 'Sign out', () => window.ppadSignOut())
+};
+
+/* ----- cycles / rollover ----- */
+function nextStart(c){ const [y,m] = c.start.split('-').map(Number); return (y+1)+'-'+String(m).padStart(2,'0'); }
+function carryForward(p, fromId, opts={kpis:true, comps:true, edp:true}){
+  const ids = S.org.cycles.map(c=>c.id); const cur = activeCycle().id;
+  fromId = fromId || ids.slice(0, ids.indexOf(cur)).reverse().find(id => p.records && p.records[id]);
+  const prev = fromId && p.records[fromId]; if (!prev) return null;
+  const r = newRecord(p);
+  if (opts.kpis) r.kpis = prev.kpis.map(k => ({id:uid(), name:k.name, target:k.target, weight:k.weight, area:k.area||'', self:null, mgr:null, result:''}));
+  if (opts.comps){ Object.keys(r.comps).forEach(id => { if (prev.comps[id]) r.comps[id].target = prev.comps[id].target; }); r.useComps = prev.useComps; }
+  if (opts.edp) r.edp.items = prev.edp.items.filter(i => i.status !== 'Done').map(i => ({...i, id:uid()}));
+  r.edp.career = prev.edp.career || '';
+  return r;
+}
+function newCycleDialog(){
+  const last = S.org.cycles[S.org.cycles.length-1]; const start = nextStart(last); const label = cycleLabel(start);
+  if (S.org.cycles.some(c => c.start === start)){ toast(label+' already exists'); return; }
+  const n = peopleList().length;
+  modal(`<h2>Start ${esc(label)}</h2><p class="sub">${esc(cycleRange({start}))}. Creates a draft plan for each of the ${n} active people, ready to review and agree.</p>
+    <div class="grid" style="gap:10px;margin-top:16px">
+      <label class="chk"><input type="checkbox" id="o1" checked> Carry forward KPIs (ratings cleared)</label>
+      <label class="chk"><input type="checkbox" id="o2" checked> Carry forward competency targets</label>
+      <label class="chk"><input type="checkbox" id="o3" checked> Carry forward unfinished development actions</label>
+    </div>
+    <div class="note" style="margin-top:14px">${esc(last.label)} records stay as they are and remain viewable from the cycle selector.</div>
+    <div class="acts"><button class="btn" data-close>Cancel</button><button class="btn pri" id="go">Start ${esc(label)}</button></div>`,
+  (m, close) => m.querySelector('#go').onclick = () => {
+    const opts = {kpis:m.querySelector('#o1').checked, comps:m.querySelector('#o2').checked, edp:m.querySelector('#o3').checked};
+    const c = {id:'c'+uid(), start, label}; const prevId = last.id; S.org.cycles.push(c); S.org.activeCycle = c.id;
+    peopleList().forEach(p => { p.records = p.records || {}; p.records[c.id] = carryForward(p, prevId, opts) || newRecord(p); savePerson(p); });
+    saveOrg(); close(); toast(label+' started'); go('dashboard'); render(); });
+}
+
+/* ----- downloads ----- */
+const slug = () => (S.org.brand.orgName || 'performance').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'performance';
+async function download(filename, data, type){
+  /* The window.claude downloads branch is gone: that API only exists inside
+     the Claude artifact runtime and can never be present here, so it was an
+     await on something that would never resolve. The Blob path below was
+     always the real fallback and is now the only path. */
+  try{ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data],{type})); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); }
+  catch(e){ modal(`<h2>Copy export</h2><p class="sub">Downloads aren't available here. Copy the content below.</p><textarea class="in" rows="10" readonly>${esc(data)}</textarea><div class="acts"><button class="btn pri" data-close>Close</button></div>`); }
+}
+const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+const toCsv = rows => rows.map(r => r.map(csvCell).join(',')).join('\n');
+/* CSV exports carry only the records the caller can already read - which is
+   automatic, because peopleList() reads S.people and S.people only ever held
+   what RLS returned. The guard here is about WHO may export at all: an
+   employee-only user has exactly one record and no business pulling it into
+   a spreadsheet of "the team". */
+function exportGuard(){
+  if (employeeOnly()){ toast('Exports are for managers and admins'); return false; }
+  return true;
+}
+function csvSummary(){
+  if (!exportGuard()) return;
+  const c = activeCycle(); const rows = [['Name','Position','Team','Manager','Role profile','Stage','KPI score (mgr)','KPI score (self)','Competencies at target %','Competencies below target','Overall','Band','Plan agreed','Signed off']];
+  peopleList().forEach(p => { const r = recOf(p); if (!r) return; const cs = compStats(r), st = stageOf(r); const k = kpiScore(r), ks = kpiScore(r,'self');
+    rows.push([fullName(p), p.position, p.dept, p.manager, S.org.profiles.find(x=>x.id===p.profileId)?.name||'', st.label, k!=null?k.toFixed(1):'', ks!=null?ks.toFixed(1):'', cs&&cs.pct!=null?Math.round(cs.pct*100):'', cs?cs.below:'', r.notAssessed?'N/A':r.overall??'', r.notAssessed?'Not assessed':bandName(r.overall), r.planAgreed||'', r.signoff.manager.date||'']); });
+  download(`${slug()}-${c.label}-summary.csv`, toCsv(rows), 'text/csv');
+}
+function csvTna(){
+  if (!exportGuard()) return;
+  const c = activeCycle(); const rows = [['Name','Position','Team','Development need','Approach','Action','By','Status']];
+  peopleList().forEach(p => { const r = recOf(p); if (!r) return; r.edp.items.forEach(e => rows.push([fullName(p), p.position, p.dept, e.need, EDP_APPROACHES[e.approach], e.action, e.by, e.status])); });
+  download(`${slug()}-${c.label}-training-needs.csv`, toCsv(rows), 'text/csv');
+}
+function exportBrand(){
+  const sb = S.org.brand || {}, pb = (PRESET && PRESET.brand) || {};
+  return {...pb, ...Object.fromEntries(Object.entries(sb).filter(([k,v]) => v !== '' && v != null)),
+    accent: (sb.accent && sb.accent !== '#111827') ? sb.accent : (pb.accent || sb.accent || '#111827')};
+}
+function exportCss(b){
+  return `*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bar{height:8px;background:${b.accent};margin:0 0 14px}
+  table.bhd{width:100%;border:0;border-collapse:collapse;border-bottom:3px solid ${b.accent};margin-bottom:18px}table.bhd td{border:0;padding:0 0 12px;vertical-align:middle}
+  table.bhd td.lg{text-align:right;width:25%}table.bhd td:first-child{width:75%}table.bhd img{height:56px;width:auto;max-width:200px}
+  .org{color:${b.accent};font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .ft{border-top:2px solid ${b.accent};padding-top:8px}.ft img{height:18px;width:auto;vertical-align:middle;margin-right:8px}`;
+}
+function exportHead(b, inner){
+  return `<div class="bar"></div><table class="bhd"><tr><td><div class="org">${esc(b.orgName)}</div>${inner}</td>${b.logo?`<td class="lg"><img src="${b.logo}" alt="${esc(b.orgName)} logo" height="56"></td>`:''}</tr></table>`;
+}
+function exportAppraisal(p, r){
+  const b = exportBrand(), c = activeCycle(), k = kpiScore(r), cs = compStats(r);
+  const kt = r.kpis.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.target)}</td><td class="c">${x.weight??''}</td><td class="c">${x.self??''}</td><td class="c"><b>${x.mgr??''}</b></td><td>${esc(x.result)}</td></tr>`).join('');
+  const ct = r.useComps ? S.org.framework.comps.filter(cp => (r.comps[cp.id]?.target||0)>0).map(cp => { const v = r.comps[cp.id]; return `<tr><td>${esc(cp.name)}<div class="m">${esc(cp.cluster)}</div></td><td class="c">${v.target}</td><td class="c">${v.self??''}</td><td class="c"><b>${v.mgr??''}</b></td><td class="c">${v.mgr==null?'':v.mgr>=v.target?(v.mgr>v.target?'Above':'Met'):'Gap '+(v.mgr-v.target)}</td></tr>`; }).join('') : '';
+  const sig = (l,s) => `<div class="sg"><div class="m">${l}</div><div>${esc(s.name)||'&nbsp;'}</div><div class="m">${s.date?fmtDate(s.date):'Date:'}</div></div>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fullName(p))} — ${esc(c.label)} appraisal</title><style>
+  body{font-family:Inter,Arial,sans-serif;color:#111827;font-size:12px;max-width:820px;margin:30px auto;padding:0 24px;line-height:1.45}
+  .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${b.accent};padding-bottom:12px;margin-bottom:18px}.hd img{max-height:44px}
+  h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin:22px 0 8px;color:${b.accent}}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:600}.c{text-align:center}
+  .m{color:#6b7280;font-size:11px}.g{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}.box{border:1px solid #e5e7eb;padding:8px 10px;min-height:30px;white-space:pre-wrap}
+  .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.sum div{border:1px solid #e5e7eb;padding:10px}.sum b{font-size:18px;display:block}
+  .sigs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.sg{border-top:1px solid #111;padding-top:6px;margin-top:30px}.ft{margin-top:30px;color:#9ca3af;font-size:10px;display:flex;justify-content:space-between}
+  @media print{body{margin:0}}${exportCss(b)}</style></head><body>
+  ${exportHead(b, `<h1>Performance Appraisal · ${esc(c.label)}</h1><div class="m">${esc(cycleRange(c))}</div>`)}
+  <h2>1 · Details</h2><div class="g"><div><span class="m">Name</span><br>${esc(fullName(p))}</div><div><span class="m">Position</span><br>${esc(p.position)}</div><div><span class="m">Team / location</span><br>${esc([p.dept,p.location].filter(Boolean).join(' · '))}</div><div><span class="m">Manager</span><br>${esc([p.manager,p.managerPos].filter(Boolean).join(', '))}</div><div><span class="m">Employee no.</span><br>${esc(p.empNo)}</div><div><span class="m">Start date</span><br>${esc(fmtDate(p.startDate))}</div></div>
+  <h2>Summary</h2><div class="sum"><div><span class="m">What · KPI score</span><b>${k!=null?k.toFixed(1)+' / 10':'—'}</b></div><div><span class="m">How · competencies at target</span><b>${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</b></div><div><span class="m">Overall</span><b>${r.notAssessed?'Not assessed':r.overall?r.overall+' · '+esc(bandName(r.overall)):'—'}</b></div></div>
+  <h2>2 · Self-appraisal — key achievements</h2><div class="box">${esc(r.achievements)}</div><p class="m" style="margin:8px 0 2px">Manager's comments</p><div class="box">${esc(r.achieveComment)}</div>
+  <h2>3 · What — Key Performance Indicators</h2><table><tr><th>KPI</th><th>Target</th><th class="c">Wt %</th><th class="c">Self</th><th class="c">Mgr</th><th>Result</th></tr>${kt||'<tr><td colspan="6" class="m">None</td></tr>'}</table>
+  ${r.useComps?`<h2>4 · How — Competencies</h2><table><tr><th>Competency</th><th class="c">Target</th><th class="c">Self</th><th class="c">Mgr</th><th class="c">Result</th></tr>${ct||'<tr><td colspan="5" class="m">None</td></tr>'}</table>`:''}
+  ${r.stretch.length?`<h2>5 · Stretch objectives</h2><table><tr><th>Objective</th><th>Measure</th><th class="c">Rating</th><th>Outcome</th></tr>${r.stretch.map(s=>`<tr><td>${esc(s.objective)}</td><td>${esc(s.measure)}</td><td class="c">${s.rating??''}</td><td>${esc(s.result)}</td></tr>`).join('')}</table>`:''}
+  <h2>6 · Overall rating</h2><div class="box"><b>${r.notAssessed?'Not assessed (under 6 months in role or extended leave)':r.overall?r.overall+' — '+esc(bandName(r.overall)):''}</b>${r.overallComment?'\n'+esc(r.overallComment):''}</div>
+  <h2>7 · Employee Development Plan</h2><table><tr><th>Need</th><th>Approach</th><th>Action</th><th>By</th><th>Status</th></tr>${r.edp.items.map(e=>`<tr><td>${esc(e.need)}</td><td>${EDP_APPROACHES[e.approach]}</td><td>${esc(e.action)}</td><td>${esc(e.by)}</td><td>${esc(e.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="m">None</td></tr>'}</table>
+  <p class="m" style="margin:8px 0 2px">Career goals (1–3 years)</p><div class="box">${esc(r.edp.career)}</div>
+  <h2>8 · Sign-off</h2><div class="sigs">${sig('Employee',r.signoff.employee)}${sig('Manager',r.signoff.manager)}${sig("Manager's manager",r.signoff.mgrMgr)}</div>
+  <div class="ft"><span>${b.logo?`<img src="${b.logo}" alt="" height="18">`:''}${esc(b.orgName)} · ${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''} · Confidential</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':''}</div></body></html>`;
+  download(`${fullName(p).replace(/[^A-Za-z0-9]+/g,'-')}-${c.label}-appraisal.html`, html, 'text/html');
+}
+
+/* ----- sample data ----- */
+function loadSample(){
+  const o = S.org; o.setup = true; if (!o.brand.orgName) o.brand.orgName = 'Sample Co';
+  const c = activeCycle(); const prof = n => o.profiles.find(x=>x.name.startsWith(n))?.id || '';
+  const fm = newPd('Finance Manager'); Object.assign(fm, {division:'Executive', department:'Finance', reportsTo:'Chief Executive Officer', location:'Head office', reviewDate:c.start+'-01', approvedBy:'CEO',
+    purpose:'Leads all corporate administration functions including finance, accounting, payroll, IT and company secretariat. Appraises the company\'s financial position and reports to the CEO, senior leadership team and board, with a leading role in governance, compliance, banking, taxation and management accounting systems and controls.',
+    environment:'A growing, family-owned services business with a strong customer focus. The Finance team of 6 provides the full breadth of financial controls, reporting and advice to the CEO, leadership team and site managers.',
+    qualifications:'CA or CPA qualified with a relevant degree. Continuing professional education to stay current with reporting and taxation requirements. Substantial experience managing financial and accounting functions.',
+    internal:[{who:'Chief Executive Officer',reason:'Reports to; keeps the CEO briefed on all significant financial issues.'},{who:'Senior leadership team',reason:'Financial support including budgeting and business-unit performance.'},{who:'Company Secretary',reason:'Statutory reporting obligations are met.'}],
+    external:[{who:'Auditors',reason:'Coordinates the external audit.'},{who:'Bankers',reason:'Debt funding and sound transactional banking.'},{who:'Board',reason:'Board papers, minutes and governance compliance.'}],
+    accountabilities:[{area:'Financial reporting',responsibilities:'Accurate, timely statutory and internal reports.\nDashboard information for all management teams.'},{area:'Budgets & expenditure',responsibilities:'Operating and capital budgets; reporting actual vs budget.\nCash flow and debt collection.'},{area:'Funding & tax',responsibilities:'Minimise net interest expense; appropriate debt/equity mix.\nTax compliance and optimisation.'},{area:'Controls',responsibilities:'Safeguard assets; reliable reports for decision making; procurement.'},{area:'People',responsibilities:'Lift performance and capability of direct reports; safe work environment.'}],
+    authority:[{item:'Major expenditure & contracts',limit:'$50,000',escalation:'CEO'},{item:'Office expenses',limit:'$5,000',escalation:'CEO'}],
+    kpis:[{id:uid(),name:'Monthly management accounts to CEO',target:'By working day 8, every month',area:'Financial reporting',weight:30},{id:uid(),name:'Operating budget variance',target:'Within ±3% of approved budget',area:'Budgets & expenditure',weight:30},{id:uid(),name:'Debtor days',target:'≤ 40 days',area:'Budgets & expenditure',weight:20},{id:uid(),name:'Team capability',target:'All direct reports with an agreed EDP by Q2',area:'People',weight:20}]});
+  const sl = o.profiles.find(x=>x.name.startsWith('Senior')); if (sl) Object.assign(fm.targets, sl.targets);
+  S.pds[fm.id] = fm; savePd(fm);
+  const mk = (first,last,position,dept,manager,profName,kpis,opts={}) => {
+    const p = {id:uid(), first, last, position, dept, location:'Head office', manager, managerPos:'Chief Executive Officer', empNo:'', startDate:'2022-03-01', pdId:opts.pd?opts.pd.id:'', profileId:prof(profName), active:true, records:{}};
+    const r = newRecord(p); if (!opts.pd) r.kpis = kpis.map(([name,target,weight]) => ({id:uid(), name, target, weight, self:null, mgr:null, result:''}));
+    if (opts.agreed) r.planAgreed = c.start + '-20';
+    if (opts.checkin) r.checkins.push({id:uid(), type:'Half-year review', date:nextMonth(c.start,6)+'-12', kpi:Object.fromEntries(r.kpis.map((k,i)=>[k.id, i===1?'risk':'on'])), notes:'Good progress overall; one KPI behind plan.', how:'Strong collaboration with operations.', actions:'Weekly cash review until back on track.'});
+    if (opts.rate){ r.kpis.forEach((k,i) => { k.self = opts.rate[i]+ (i%2?1:0); k.mgr = opts.rate[i]; k.result = 'See results summary'; });
+      Object.keys(r.comps).forEach((id,i) => { const t = r.comps[id].target; if (t>0){ r.comps[id].mgr = Math.max(1, t + ((i*7+opts.rate[0])%4===0 ? -1 : (i%5===0 ? 1 : 0))); r.comps[id].self = r.comps[id].target; } });
+      r.overall = suggestOverall(r); r.achievements = 'Delivered the year-end close two weeks early.\nLed the new reporting dashboard rollout.'; }
+    S.people[p.id] = p; p.records[c.id] = r; savePerson(p); return p;
+  };
+  mk('Jordan','Lee','Finance Manager','Finance','Alex Morgan','Senior',[['Monthly management accounts to CEO','By working day 8, every month',30],['Operating budget variance','Within ±3% of approved budget',30],['Debtor days','≤ 40 days by year end',20],['Team capability','All direct reports with an agreed EDP by Q2',20]],{agreed:true, checkin:true, rate:[8,6,7,7], pd:fm});
+  mk('Priya','Shah','Operations Manager','Operations','Alex Morgan','Manager',[['On-time delivery','≥ 96% each quarter',40],['Lost-time injuries','Zero LTIs',30],['Labour cost per job','Reduce by 5%',30]],{agreed:true, checkin:true});
+  mk('Sam','Taylor','Customer Service Lead','Customer','Priya Shah','Team leader',[['Customer satisfaction','CSAT ≥ 4.5 / 5',50],['First-contact resolution','≥ 80%',50]],{agreed:true});
+  mk('Chris','Nguyen','Payroll Officer','Finance','Jordan Lee','Team member',[['Payroll accuracy','≥ 99.5% error-free pays',60],['STP lodgement','100% on time',40]]);
+  saveOrg();
+}
+function nextMonth(ym, n){ const [y,m] = ym.split('-').map(Number); const d = new Date(y, m-1+n, 1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+
+
+/* ===== Position descriptions ===== */
+function newPd(title){
+  const t = {}; S.org.framework.comps.forEach(c => t[c.id] = 0);
+  return {id:'d'+uid(), title:title||'New position', division:'', department:'', reportsTo:'', location:'', reviewDate:'', approvedDate:'', approvedBy:'',
+    award:'', remuneration:'', hours:'', directReports:'', owner:'', nextReview:'', purpose:'', environment:'', qualifications:'', expectations:'', whs:'', requirements:'', internal:[], external:[], accountabilities:[], authority:[], kpis:[], targets:t, profileId:'', source:''};
+}
+const pdPeople = pd => peopleList(true).filter(p => p.pdId === pd.id);
+function pdReviewState(pd){
+  if (!pd.reviewDate) return {cls:'warn', label:'Not reviewed'};
+  const d = new Date(pd.reviewDate+'T00:00:00'), m = (Date.now() - d) / (30.44*864e5);
+  return m > 12 ? {cls:'warn', label:'Review due'} : {cls:'good', label:'Current'};
+}
+
+function vPds(){
+  const list = pdList();
+  return `<div class="head"><div><h1>Position descriptions</h1><p class="sub">One PD per role. Each PD sets the role's standard KPIs (What) and competency targets (How), and every plan for a person in that role starts from it.</p></div>
+    <div class="row"><label class="btn">Import PD (Word or PDF)<input type="file" accept=".docx,.pdf" multiple data-act-change="pd-import" hidden></label><button class="btn pri" data-act="pd-new">New PD</button></div></div>
+  <div class="card" style="padding:8px 12px">${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Position</th><th>Department</th><th>Reports to</th><th class="num">KPIs</th><th class="num">Competencies</th><th class="num">People</th><th>Review</th></tr></thead><tbody>
+    ${list.map(d => { const rs = pdReviewState(d); return `<tr class="click" data-act="nav" data-h="pd-${d.id}"><td><b>${esc(d.title||'Untitled')}</b><div class="small muted">${esc([d.division,d.location].filter(Boolean).join(' · '))}</div></td><td>${esc(d.department||'—')}</td><td>${esc(d.reportsTo||'—')}</td>
+      <td class="num">${d.kpis.filter(k=>k.name).length}</td><td class="num">${Object.values(d.targets||{}).filter(v=>v>0).length}</td><td class="num">${pdPeople(d).length}</td><td><span class="pill ${rs.cls}">${rs.label}</span></td></tr>`; }).join('')}
+    </tbody></table></div>` : `<div class="empty"><h2>No position descriptions yet</h2><p>Import existing Word PDs or create one here. Link people to their PD so each year's plan starts from the role's KPIs and competency profile.</p>
+      <div class="row" style="justify-content:center"><label class="btn">Import PD (Word or PDF)<input type="file" accept=".docx,.pdf" multiple data-act-change="pd-import" hidden></label><button class="btn pri" data-act="pd-new">New PD</button></div></div>`}</div>
+  <div class="note" style="margin-top:14px"><b>How PDs link to the PPAD cycle:</b> PD → <b>Plan</b> (KPIs and competency targets copied in at the start of each cycle) → <b>Perform</b> (check-ins against those KPIs) → <b>Assess</b> (rated against the PD's targets) → <b>Develop</b>. Review each PD during Planning; if the role has changed, update the PD first, then re-apply it to the plan.</div>`;
+}
+
+function rowsEditor(path, rows, cols, addLabel){
+  return `${rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c=>`<th style="${c.w?'width:'+c.w:''}">${c.l}</th>`).join('')}<th></th></tr></thead><tbody>
+  ${rows.map((r,i)=>`<tr>${cols.map(c=>`<td>${c.ta?`<textarea class="in bare" rows="${Math.min(6,Math.max(2,String(r[c.k]||'').split('\n').length))}" data-f="${path}.${i}.${c.k}">${esc(r[c.k])}</textarea>`:`<input class="in bare" data-f="${path}.${i}.${c.k}" value="${esc(r[c.k])}" placeholder="${esc(c.ph||'')}">`}</td>`).join('')}<td style="width:1%"><button class="btn icon" data-act="pd-del-row" data-f="${path}" data-i="${i}">✕</button></td></tr>`).join('')}
+  </tbody></table></div>` : ''}<button class="btn sm" style="margin-top:8px" data-act="pd-add-row" data-f="${path}" data-keys="${cols.map(c=>c.k).join(',')}">+ ${addLabel}</button>`;
+}
+
+function vPd(){
+  const d = S.pds[S.ui.pdId]; const P = 'pd';
+  const ppl = pdPeople(d), rs = pdReviewState(d);
+  const areas = d.accountabilities.map(a=>a.area).filter(Boolean);
+  const kp = d.kpis.map((k,i)=>`<div class="kpi-grid r" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px">
+    <input class="in" placeholder="KPI" data-f="${P}.kpis.${i}.name" value="${esc(k.name)}"><input class="in" placeholder="Standard target / measure" data-f="${P}.kpis.${i}.target" value="${esc(k.target)}">
+    <select class="in" data-f="${P}.kpis.${i}.area"><option value="">Accountability…</option>${areas.map(a=>`<option ${k.area===a?'selected':''}>${esc(a)}</option>`).join('')}</select>
+    <input class="in" type="number" placeholder="Wt %" data-f="${P}.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}"><button class="btn icon" data-act="pd-del-row" data-f="${P}.kpis" data-i="${i}">✕</button></div>`).join('');
+  const comps = S.org.framework.clusters.map(cl => { const list = S.org.framework.comps.filter(c=>c.cluster===cl); if (!list.length) return '';
+    return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = d.targets[c.id] ?? 0;
+      return `<div class="comp ${t?'':'off'}"><span class="nm">${esc(c.name)}</span>${seg(P+'.targets.'+c.id, t, c.levels.length, {n:true, titles:levelTitles(c)})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('');
+  const nav = [['pd-details','Details'],['pd-purpose','Purpose & context'],['pd-exp','Expectations'],['pd-rel','Relationships'],['pd-acc','Accountabilities'],['pd-doa','Authority'],['pd-kpi','KPIs (What)'],['pd-how','Competencies (How)'],['pd-people','People']];
+  return `<a class="back" href="#pds">← Position descriptions</a>
+  <div class="head"><div><div class="tag">Position description</div><h1>${esc(d.title||'Untitled')}</h1><p class="sub">${esc([d.department,d.reportsTo?'Reports to '+d.reportsTo:''].filter(Boolean).join(' · '))} <span class="pill ${rs.cls}" style="margin-left:6px">${rs.label}</span></p></div>
+    <div class="row"><button class="btn" data-act="pd-dup">Duplicate</button><button class="btn" data-act="pd-export">Export PD</button><button class="btn danger ghost" data-act="pd-delete">Delete</button></div></div>
+  <div class="row" style="gap:4px;margin:-6px 0 16px">${nav.map(([id,l])=>`<button class="btn sm ghost" data-act="jump" data-v="${id}">${l}</button>`).join('')}</div>
+
+  <div class="card" id="pd-details"><div class="card-h"><h2>Details</h2></div><div class="grid g3" style="gap:12px">
+    ${[['title','Position title'],['division','Division'],['department','Department'],['reportsTo','Reports to (position)'],['location','Location']].map(([k,l])=>`<label class="f"><span>${l}</span><input class="in" data-f="${P}.${k}" ${k==='title'?'data-rr':''} value="${esc(d[k])}"></label>`).join('')}
+    <label class="f"><span>Last review date</span><input class="in" type="date" data-f="${P}.reviewDate" data-rr value="${esc(d.reviewDate)}"></label>
+    <label class="f"><span>Approved by</span><input class="in" data-f="${P}.approvedBy" value="${esc(d.approvedBy)}" placeholder="e.g. CEO"></label>
+    <label class="f"><span>Date approved</span><input class="in" type="date" data-f="${P}.approvedDate" value="${esc(d.approvedDate)}"></label>
+    ${[['directReports','Direct reports'],['hours','Hours of employment'],['award','Award / classification'],['remuneration','Remuneration'],['owner','Document owner'],['nextReview','Next review']].map(([k,l])=>`<label class="f"><span>${l}</span><input class="in" data-f="${P}.${k}" value="${esc(d[k]||'')}"></label>`).join('')}
+  </div></div>
+  <div class="card" id="pd-purpose"><div class="card-h"><h2>Purpose & context</h2></div><div class="grid" style="gap:12px">
+    <label class="f"><span>Purpose — why the role exists</span><textarea class="in" rows="${Math.min(14,Math.max(4,Math.ceil((d.purpose||'').length/150)+(d.purpose||'').split('\n').length))}" data-f="${P}.purpose">${esc(d.purpose)}</textarea></label>
+    <label class="f"><span>Position environment — the business, team size and setting</span><textarea class="in" rows="${Math.min(14,Math.max(4,Math.ceil((d.environment||'').length/150)+(d.environment||'').split('\n').length))}" data-f="${P}.environment">${esc(d.environment)}</textarea></label>
+    <label class="f"><span>Experience, knowledge & qualifications</span><textarea class="in" rows="${Math.min(14,Math.max(3,(d.qualifications||'').split('\n').length+1))}" data-f="${P}.qualifications">${esc(d.qualifications)}</textarea></label></div></div>
+  <div class="card" id="pd-exp"><div class="card-h"><div><h2>Expectations & requirements</h2><p>Leadership and behavioural expectations feed the How; WHS and general requirements apply to everyone in the role.</p></div></div><div class="grid" style="gap:12px">
+    <label class="f"><span>Leadership / behavioural expectations</span><textarea class="in" rows="${Math.min(10,Math.max(3,(d.expectations||'').split('\n').length+1))}" data-f="${P}.expectations">${esc(d.expectations||'')}</textarea></label>
+    <label class="f"><span>Work health and safety</span><textarea class="in" rows="3" data-f="${P}.whs">${esc(d.whs||'')}</textarea></label>
+    <label class="f"><span>General / position-specific requirements</span><textarea class="in" rows="${Math.min(12,Math.max(3,(d.requirements||'').split('\n').length+1))}" data-f="${P}.requirements">${esc(d.requirements||'')}</textarea></label></div></div>
+  <div class="card" id="pd-rel"><div class="card-h"><div><h2>Working relationships</h2><p>The most important internal and external contacts.</p></div></div>
+    <div class="grid" style="gap:20px"><div><h3 style="margin-bottom:6px">Internal</h3>${rowsEditor(P+'.internal', d.internal, [{k:'who',l:'Who',w:'35%'},{k:'reason',l:'Reason for contact',ta:1}], 'Internal contact')}</div>
+    <div><h3 style="margin-bottom:6px">External</h3>${rowsEditor(P+'.external', d.external, [{k:'who',l:'Who',w:'35%'},{k:'reason',l:'Reason for contact',ta:1}], 'External contact')}</div></div></div>
+  <div class="card" id="pd-acc"><div class="card-h"><div><h2>Accountabilities & responsibilities</h2><p>Accountability = what the role is designed to cover. Responsibilities = the tasks it undertakes. KPIs below link back to these areas.</p></div></div>
+    ${rowsEditor(P+'.accountabilities', d.accountabilities, [{k:'area',l:'Accountability',w:'26%'},{k:'responsibilities',l:'Responsibilities',ta:1}], 'Accountability')}</div>
+  <div class="card" id="pd-doa"><div class="card-h"><h2>Delegation of authority</h2></div>
+    ${rowsEditor(P+'.authority', d.authority, [{k:'item',l:'Delegated authority'},{k:'limit',l:'Upper limit',w:'20%'},{k:'escalation',l:'Escalation point',w:'25%'}], 'Authority')}</div>
+  <div class="card" id="pd-kpi"><div class="card-h"><div><h2>Performance expectations & KPIs — What</h2><p>The role's standard KPIs. They're copied into each person's plan at the start of every cycle, where targets can be tailored.</p></div><button class="btn sm" data-act="pd-add-kpi">+ Add KPI</button></div>
+    ${d.kpis.length ? `<div class="kpi-grid h" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px"><span>KPI</span><span>Standard target</span><span>Accountability</span><span>Weight</span><span></span></div>${kp}` : '<p class="muted">No KPIs yet.</p>'}
+    ${areas.length && d.kpis.length ? (() => { const un = areas.filter(a => !d.kpis.some(k=>k.area===a)); return un.length ? `<p class="small" style="margin:10px 0 0"><span class="pill warn">No KPI yet for: ${un.map(esc).join(', ')}</span></p>` : ''; })() : ''}</div>
+  <div class="card" id="pd-how"><div class="card-h"><div><h2>Competency profile — How</h2><p>Required level for each competency in this role (N = not required). Used as the target in every plan for this role.</p></div>
+    <select class="in" style="width:auto" data-act-change="pd-from-profile"><option value="">Copy from role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>${comps}</div>
+  <div class="card" id="pd-people"><div class="card-h"><div><h2>People in this role</h2><p>Re-apply the PD to push updated KPIs and targets into their ${esc(activeCycle().label)} plan.</p></div>${ppl.length?`<button class="btn sm" data-act="pd-apply-all">Apply to all ${ppl.length} plans</button>`:''}</div>
+    ${ppl.length ? `<table class="tbl">${ppl.map(p => { const r = recOf(p); const st = stageOf(r); return `<tr class="click" data-act="nav" data-h="person-${p.id}"><td>${esc(fullName(p))}<div class="small muted">${esc(p.manager?'Manager: '+p.manager:'')}</div></td><td style="text-align:right"><span class="pill ${st.cls}">${st.label}</span></td></tr>`; }).join('')}</table>` : '<p class="muted">No one linked yet. Link people from their Details.</p>'}</div>`;
+}
+
+/* apply PD into a record: merge KPIs by name, set competency targets */
+function applyPdToRecord(pd, r){
+  let added = 0;
+  pd.kpis.filter(k=>k.name).forEach(k => { const ex = r.kpis.find(x => x.name.trim().toLowerCase() === k.name.trim().toLowerCase());
+    if (ex){ ex.area = k.area||ex.area||''; if (!ex.target) ex.target = k.target; }
+    else { r.kpis.push({id:uid(), name:k.name, target:k.target, weight:k.weight??null, area:k.area||'', self:null, mgr:null, result:''}); added++; } });
+  S.org.framework.comps.forEach(c => { r.comps[c.id] = r.comps[c.id] || {target:0,self:null,mgr:null}; r.comps[c.id].target = pd.targets[c.id] ?? 0; });
+  r.pdId = pd.id; return added;
+}
+
+/* ===== PD export ===== */
+function exportPd(d){
+  const b = exportBrand(); const tbl = (h, rows) => `<table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.length?rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x).replace(/\n/g,'<br>')}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${h.length}" class="m">—</td></tr>`}</table>`;
+  const comps = S.org.framework.comps.filter(c => (d.targets[c.id]||0) > 0).map(c => [c.name, String(d.targets[c.id]), (c.levels[d.targets[c.id]-1]||'')]);
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(d.title)} — Position Description</title><style>
+  body{font-family:Inter,Arial,sans-serif;color:#111827;font-size:12px;max-width:820px;margin:30px auto;padding:0 24px;line-height:1.45}
+  .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${b.accent};padding-bottom:12px;margin-bottom:18px}.hd img{max-height:44px}
+  h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin:22px 0 8px;color:${b.accent}}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:600}
+  .m{color:#6b7280;font-size:11px}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 20px}p{margin:0;white-space:pre-wrap}.ft{margin-top:30px;color:#9ca3af;font-size:10px;display:flex;justify-content:space-between}${exportCss(b)}</style></head><body>
+  ${exportHead(b, `<h1>Position Description</h1><div style="font-size:15px;font-weight:600">${esc(d.title)}</div>`)}
+  <div class="g">${[['Division',d.division],['Department',d.department],['Reports to',d.reportsTo],['Direct reports',d.directReports],['Location',d.location],['Hours',d.hours],['Award',d.award],['Remuneration',d.remuneration],['Last review',fmtDate(d.reviewDate)],['Approved',[d.approvedBy,fmtDate(d.approvedDate)].filter(Boolean).join(', ')],['Document owner',d.owner],['Next review',d.nextReview]].filter(([l,v])=>v || ['Division','Department','Reports to','Location'].includes(l)).map(([l,v])=>`<div><span class="m">${l}</span><br>${esc(v)||'—'}</div>`).join('')}</div>
+  <h2>Purpose</h2><p>${esc(d.purpose)}</p><h2>Position environment</h2><p>${esc(d.environment)}</p><h2>Experience, knowledge & qualifications</h2><p>${esc(d.qualifications)}</p>${d.expectations?`<h2>Leadership expectations</h2><p>${esc(d.expectations)}</p>`:''}${d.whs?`<h2>Work health and safety</h2><p>${esc(d.whs)}</p>`:''}${d.requirements?`<h2>General requirements</h2><p>${esc(d.requirements)}</p>`:''}
+  <h2>Working relationships — internal</h2>${tbl(['Who','Reason for contact'], d.internal.map(r=>[r.who,r.reason]))}
+  <h2>Working relationships — external</h2>${tbl(['Who','Reason for contact'], d.external.map(r=>[r.who,r.reason]))}
+  <h2>Accountabilities & responsibilities</h2>${tbl(['Accountability','Responsibilities'], d.accountabilities.map(r=>[r.area,r.responsibilities]))}
+  <h2>Delegation of authority</h2>${tbl(['Delegated authority','Upper limit','Escalation point'], d.authority.map(r=>[r.item,r.limit,r.escalation]))}
+  <h2>Performance expectations & KPIs — What</h2>${tbl(['KPI','Standard target','Accountability','Weight'], d.kpis.filter(k=>k.name).map(k=>[k.name,k.target,k.area,k.weight?k.weight+'%':'']))}
+  <h2>Competency profile — How</h2>${tbl(['Competency','Level','Expected behaviour'], comps)}
+  <div class="ft"><span>${b.logo?`<img src="${b.logo}" alt="" height="18">`:''}${esc(b.orgName)} · ${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''}</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':''}</div></body></html>`;
+  download(`${(d.title||'PD').replace(/[^A-Za-z0-9]+/g,'-')}-Position-Description.html`, html, 'text/html');
+}
+
+/* ===== Word (.docx) import — no external libraries ===== */
+async function unzipEntry(buf, name){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1; for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error('Not a Word file');
+  let p = dv.getUint32(eocd + 16, true); const n = dv.getUint16(eocd + 10, true);
+  for (let k = 0; k < n; k++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), fl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const fname = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + fl));
+    if (fname === name){
+      const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+      const data = u8.subarray(start, start + csize);
+      if (method === 0) return new TextDecoder().decode(data);
+      const ds = new DecompressionStream('deflate-raw');
+      const out = new Response(new Blob([data]).stream().pipeThrough(ds));
+      return await out.text();
+    }
+    p += 46 + fl + el + cl;
+  }
+  throw new Error('Not a Word document');
+}
+function docxBlocks(xml){
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const body = doc.getElementsByTagNameNS(W, 'body')[0]; const blocks = [];
+  const ptext = p => { let s = ''; p.querySelectorAll('*').forEach(e => { if (e.namespaceURI !== W) return; if (e.localName === 't') s += e.textContent; else if (e.localName === 'tab') s += ' '; else if (e.localName === 'br') s += '\n'; }); return s.trim(); };
+  const kids = (el, ln) => Array.from(el.children).filter(e => e.namespaceURI === W && e.localName === ln);
+  Array.from(body.children).forEach(el => {
+    if (el.localName === 'p'){ const t = ptext(el); if (t) blocks.push({t:'p', text:t}); }
+    else if (el.localName === 'tbl'){ blocks.push({t:'tbl', rows: kids(el,'tr').map(tr => kids(tr,'tc').map(tc => kids(tc,'p').map(ptext).filter(Boolean).join('\n')))}); }
+  });
+  return blocks;
+}
+function parsePd(blocks, fname){
+  const d = newPd(''); const norm = s => s.toLowerCase().replace(/[^a-z& ]/g,'').trim();
+  const HEAD = {'title':'title','position title':'title','position':'title','division':'division','department':'department','reports to position':'reportsTo','reports to':'reportsTo','location':'location','last review date':'reviewDate','date approved by ceo':'approvedDate','date approved':'approvedDate'};
+  const SECT = [['purpose','purpose'],['position environment','environment'],['technical experience','qualifications'],['qualifications','qualifications'],['working relationships',null],['organisation','x'],['accountabilities',null],['delegation of authority',null],['key performance indicators','kpis'],['kpis','kpis']];
+  let cur = null, ctx = '';
+  const toDate = v => { const m = String(v).match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/); if (!m) return ''; const y = m[3].length===2 ? '20'+m[3] : m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; };
+  let kind = null;
+  const line = t => {
+    const low = t.toLowerCase();
+    if (/^internal contact/i.test(t)){ ctx = 'internal'; cur = null; kind = null; return; }
+    if (/^external contact/i.test(t)){ ctx = 'external'; cur = null; kind = null; return; }
+    if (/^position description$/i.test(t.trim())) return;
+    const sec = SECT.find(([k]) => low.startsWith(k));
+    if (sec && t.length < 160 && (t.includes(':') || t.length < 60)){
+      cur = sec[1]; kind = null; const after = t.split(':').slice(1).join(':').replace(/^\s*\(.*?\)/,'').trim();
+      if (cur && cur !== 'x' && cur !== 'kpis' && after) d[cur] += (d[cur] ? '\n' : '') + after; return; }
+    if (cur && cur !== 'x' && cur !== 'kpis') d[cur] += (d[cur] ? '\n' : '') + t;
+  };
+  const row = r => {
+    const ne = r.map(x => x.trim()).filter(Boolean); if (!ne.length) return;
+    let hit = false;
+    r.forEach((c,i) => { const k = HEAD[norm(c)]; if (k && /:\s*$/.test(c.trim()) || (k && i+1 < r.length && !HEAD[norm(r[i+1])] && i % 2 === 0)){ if (i+1 < r.length && !HEAD[norm(r[i+1])]){ hit = true; const v = r[i+1].trim(); d[k] = /date/i.test(k) ? toDate(v) : v; } else if (i+1 >= r.length || HEAD[norm(r[i+1])]) hit = true; } });
+    if (hit) return;
+    if (ne.length === 1 && !(kind && r.length > 1 && r[0].trim())){ line(ne[0]); return; }
+    const h0 = norm(r[0]);
+    if (h0 === 'who'){ kind = ctx || 'internal'; cur = null; return; }
+    if (h0.startsWith('accountabilit')){ kind = 'acc'; cur = null; return; }
+    if (h0.startsWith('delegated authority')){ kind = 'doa'; cur = null; return; }
+    if (h0 === 'kpi' || h0.startsWith('key performance')){ kind = 'kpi'; cur = null; return; }
+    if (kind === 'internal' || kind === 'external') d[kind].push({who:r[0]||'', reason:r.slice(1).join('\n').trim()});
+    else if (kind === 'acc') d.accountabilities.push({area:r[0]||'', responsibilities:r.slice(1).join('\n').replace(/\.\s+(?=[A-Z])/g,'.\n').trim()});
+    else if (kind === 'doa') d.authority.push({item:r[0], limit:r[1]||'', escalation:r[2]||''});
+    else if (kind === 'kpi') d.kpis.push({id:uid(), name:r[0], target:r[1]||'', area:'', weight:null});
+    else line(ne.join(' '));
+  };
+  blocks.forEach(b => { if (b.t === 'p'){ kind = null; line(b.text); } else b.rows.forEach(row); });
+  ['purpose','environment','qualifications'].forEach(k => d[k] = d[k].trim());
+  if (!d.title) d.title = fname.replace(/\.docx$/i,'').replace(/[_-]+/g,' ');
+  d.source = fname; return d;
+}
+async function importPdFiles(files){
+  const done = [];
+  for (const f of files){
+    try{ let d;
+      if (/\.pdf$/i.test(f.name)) d = parsePdfPd(await pdfLines(await f.arrayBuffer()), f.name);
+      else { const xml = await unzipEntry(await f.arrayBuffer(), 'word/document.xml'); d = parsePd(docxBlocks(xml), f.name); }
+      const prof = S.org.profiles.find(p => p.name === 'Manager'); if (prof && !Object.values(d.targets).some(v=>v>0)) { /* leave targets unset — user chooses */ }
+      S.pds[d.id] = d; savePd(d); done.push(d); }
+    catch(e){
+      /* Name and message only, never the error object. A DOMParser or unzip
+         failure can carry a fragment of the document it choked on, and the
+         documents here are position descriptions. The user still gets the
+         filename in the toast, which is what they need to act. */
+      console.error('[ppad] PD import failed:', e && e.name, e && e.message);
+      toast('Could not read ' + f.name);
+    }
+  }
+  if (done.length === 1){ toast('Imported ' + done[0].title + ' — check the details and set the competency profile'); go('pd-'+done[0].id); }
+  else if (done.length){ toast('Imported ' + done.length + ' position descriptions'); rerender(); }
+}
+
+Object.assign(CHANGE, {
+  'pd-import': el => { const fs = Array.from(el.files||[]); el.value = ''; if (fs.length) importPdFiles(fs); },
+  'pd-from-profile': el => { const pr = S.org.profiles.find(x=>x.id===el.value); if (!pr) return; const d = S.pds[S.ui.pdId];
+    S.org.framework.comps.forEach(c => d.targets[c.id] = pr.targets[c.id] ?? 0); d.profileId = pr.id; savePd(d); toast('Copied targets from ' + pr.name); rerender(); },
+  'person-pd': el => { const d = S.pds[el.value]; if (!d) return; const f = el.closest('form'); if (f && f.position && !f.position.value) f.position.value = d.title;
+    if (f && f.dept && !f.dept.value) f.dept.value = d.department || ''; if (f && f.location && !f.location.value) f.location.value = d.location || ''; },
+  'plan-pd': el => { const p = curP(); p.pdId = el.value || ''; savePerson(p); const d = S.pds[p.pdId]; if (d){ const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Linked to ${d.title}${n?` — ${n} KPI${n>1?'s':''} added`:''}`); } rerender(); }
+});
+Object.assign(ACT, {
+  'pd-new': () => { const d = newPd('New position'); S.pds[d.id] = d; savePd(d); go('pd-'+d.id); },
+  'pd-add-row': el => { const arr = getPath(el.dataset.f); const o = {}; el.dataset.keys.split(',').forEach(k => o[k] = ''); arr.push(o); savePd(S.pds[S.ui.pdId]); rerender(); },
+  'pd-del-row': el => { getPath(el.dataset.f).splice(Number(el.dataset.i),1); savePd(S.pds[S.ui.pdId]); rerender(); },
+  'pd-add-kpi': () => { S.pds[S.ui.pdId].kpis.push({id:uid(), name:'', target:'', area:'', weight:null}); savePd(S.pds[S.ui.pdId]); rerender(); },
+  'pd-dup': () => { const s = S.pds[S.ui.pdId]; const d = clone(s); d.id = 'd'+uid(); d.title = s.title + ' (copy)'; d.kpis.forEach(k => k.id = uid()); S.pds[d.id] = d; savePd(d); go('pd-'+d.id); },
+  'pd-delete': () => { const d = S.pds[S.ui.pdId]; const n = pdPeople(d).length;
+    confirmBox('Delete '+(d.title||'this PD')+'?', n ? `${n} ${n>1?'people are':'person is'} linked to it. Their current plans are kept; they'll just no longer be linked.` : 'This can\'t be undone.', 'Delete', () => {
+      pdPeople(d).forEach(p => { p.pdId = ''; savePerson(p); }); delete S.pds[d.id]; store.mark('d_'+d.id); go('pds'); }, true); },
+  'pd-export': () => exportPd(S.pds[S.ui.pdId]),
+  'pd-apply-all': () => { const d = S.pds[S.ui.pdId]; const ppl = pdPeople(d);
+    confirmBox('Apply PD to '+ppl.length+' plan'+(ppl.length>1?'s':'')+'?', `Adds any of the PD's KPIs missing from each person's ${esc(activeCycle().label)} plan and resets their competency targets to the PD. Existing KPIs and ratings are kept.`, 'Apply', () => {
+      ppl.forEach(p => { p.records = p.records || {}; let r = recOf(p); if (!r){ r = p.records[activeCycle().id] = newRecord(p); } else applyPdToRecord(d, r); savePerson(p); }); toast('Applied to '+ppl.length+' plan'+(ppl.length>1?'s':'')); rerender(); }); },
+  'pd-apply': () => { const p = curP(), d = S.pds[p.pdId]; if (!d) return; const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Applied ${d.title}${n?` — ${n} KPI${n>1?'s':''} added`:' — targets updated'}`); rerender(); },
+  jump: el => { const t = document.getElementById(el.dataset.v); t && t.scrollIntoView({behavior:'smooth', block:'start'}); }
+});
+
+/* ===== PDF import (pdf.js loaded on demand from cdnjs) ===== */
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(s); }); }
+async function loadPdfJs(){
+  if (window.pdfjsLib) return window.pdfjsLib;
+  const base = '/vendor/pdfjs/';
+  await loadScript(base + 'pdf.worker.min.js'); await loadScript(base + 'pdf.min.js');
+  return window.pdfjsLib;
+}
+async function pdfLines(buf){
+  const lib = await loadPdfJs(); const doc = await lib.getDocument({data:new Uint8Array(buf), isEvalSupported:false}).promise; const out = [];
+  for (let n = 1; n <= doc.numPages; n++){
+    const tc = await (await doc.getPage(n)).getTextContent(); const rows = [];
+    tc.items.forEach(it => { if (!it.str || !it.str.trim()) return; const x = it.transform[4], y = it.transform[5];
+      let r = rows.find(r => Math.abs(r.y - y) < 2.5); if (!r){ r = {y, items:[]}; rows.push(r); } r.items.push({x, w:it.width, str:it.str}); });
+    rows.sort((a,b) => b.y - a.y).forEach(r => { r.items.sort((a,b) => a.x - b.x);
+      let t = ''; let end = null; r.items.forEach(i => { if (end != null && i.x - end > 1.5 && !t.endsWith(' ') && !i.str.startsWith(' ')) t += ' '; t += i.str; end = i.x + i.w; });
+      t = t.replace(/\s+/g,' ').trim();
+      if (/page \d+ of \d+\s*$/i.test(t) || /^position description\s*[—-]/i.test(t)) return;
+      out.push({page:n, y:r.y, x:r.items[0].x, items:r.items, text:t}); });
+  }
+  return out;
+}
+const BULLET = /^[•▪●‣⁃◦·-\-–]\s*/;
+function parsePdfPd(lines, fname){
+  const d = newPd(''); d.source = fname;
+  const monthDate = v => { const m = String(v).match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})/i); if (!m) return ''; const i = MONTHS.findIndex(x => x.toLowerCase() === m[1].slice(0,3).toLowerCase()); return m[2] + '-' + String(i+1).padStart(2,'0') + '-01'; };
+  const LBL = {'title':'title','position title':'title','award':'award','classification':'award','remuneration':'remuneration','salary':'remuneration','line manager':'reportsTo','reports to':'reportsTo','direct reports':'directReports','last updated':'reviewDate','hours of employment':'hours','hours':'hours','department':'department','division':'division','location':'location'};
+  const normL = s => s.toLowerCase().replace(/[^a-z]/g,'');
+  Object.keys(LBL).forEach(k => { LBL[k.replace(/ /g,'')] = LBL[k]; });
+  // title
+  let i = lines.findIndex(l => /^position description$/i.test(l.text.replace(/\s+/g,' ').replace(/(\w) (?=\w( |$))/g,'$1')) || /^p\s*o\s*s\s*i\s*t\s*i\s*o\s*n\s*d\s*e\s*s\s*c/i.test(l.text));
+  if (i >= 0 && lines[i+1]) d.title = lines[i+1].text;
+  // header grid: label rows (all items are known labels)
+  const isLabelRow = l => { const segs = splitCols(l); return segs.length >= 1 && segs.every(s => LBL[normL(s.str)] !== undefined); };
+  function splitCols(l){ const segs = []; l.items.forEach(it => { const last = segs[segs.length-1]; if (last && it.x - (last.x + last.w) < 12){ last.str += (it.x - (last.x+last.w) > 1.5 ? ' ' : '') + it.str; last.w = it.x + it.w - last.x; } else segs.push({x:it.x, w:it.w, str:it.str}); }); segs.forEach(s => s.str = s.str.replace(/\s+/g,' ').trim()); return segs; }
+  const lblKey = s => LBL[normL(s)];
+  const body = []; let k = 0; const used = new Set();
+  for (k = 0; k < lines.length; k++){
+    const l = lines[k]; if (!isLabelRow(l) || l.page > 1) continue;
+    const cols = splitCols(l).map(s => ({x:s.x, key:lblKey(s.str), val:[]}));
+    let j = k + 1;
+    for (; j < lines.length && !isLabelRow(lines[j]) && j - k < 6; j++){
+      const t = lines[j].text; if (/^(about this|1\.0|\d\.0\s)/i.test(t)) break;
+      lines[j].items.forEach(it => { let c = cols[0]; cols.forEach(cc => { if (it.x >= cc.x - 6) c = cc; }); c.val.push(it.str); }); used.add(j);
+    }
+    cols.forEach(c => { if (!c.key) return; const v = c.val.join(' ').replace(/\s+/g,' ').trim(); d[c.key] = c.key === 'reviewDate' ? monthDate(v) : (d[c.key] ? d[c.key] : v); });
+    used.add(k);
+  }
+  // sections
+  let sec = null, sub = null, perfCol2 = null, docCtl = false, org = false;
+  const add = (key, t) => { d[key] = (d[key] ? d[key] + '\n' : '') + t; };
+  const after = i >= 0 ? i + 2 : 0;
+  lines.forEach((l, idx) => {
+    if (idx < after || used.has(idx)) return;
+    const t = l.text; let m;
+    if (/^about this position description/i.test(t)){ sec = 'skip'; return; }
+    if ((m = t.match(/^(\d+)\.0\s+(.+)/))){ const h = m[2].toLowerCase(); sub = null; docCtl = false; org = false;
+      sec = /overview|purpose|summary/.test(h) ? 'purpose' : /responsibilit|accountabilit|duties/.test(h) ? 'acc' : /leadership|behaviour|values/.test(h) ? 'expectations' : /health and safety|whs|safety/.test(h) ? 'whs'
+        : /experience|qualification|knowledge|selection/.test(h) ? 'qualifications' : /performance|kpi/.test(h) ? 'perf' : /general requirement|requirement|conditions/.test(h) ? 'requirements' : 'skip'; return; }
+    if (/^document control$/i.test(t)){ sec = 'doc'; return; }
+    if (/^our organisation|^about (us|the organisation|the company)/i.test(t)){ sec = 'environment'; return; }
+    if (sec === 'acc' && (m = t.match(/^\d+\.\d+\s+(.+)/))){ sub = {area:m[1].trim(), responsibilities:''}; d.accountabilities.push(sub); return; }
+    if (sec === 'acc' && sub){ if (/^responsibilities include:?$/i.test(t)) return;
+      if (BULLET.test(t)) sub.responsibilities += (sub.responsibilities ? '\n' : '') + t.replace(BULLET,'');
+      else if (sub.responsibilities && !/[.:]$/.test(sub.responsibilities.split('\n').pop())) sub.responsibilities += ' ' + t;
+      else sub.responsibilities += (sub.responsibilities ? '\n' : '') + t; return; }
+    if (sec === 'perf'){
+      if (/^area\b/i.test(t) && l.items.length > 1){ perfCol2 = splitCols(l)[1]?.x || l.items[1].x; return; }
+      if (perfCol2 == null) return;
+      const left = l.items.filter(it => it.x < perfCol2 - 6).map(it=>it.str).join(' ').trim(), right = l.items.filter(it => it.x >= perfCol2 - 6).map(it=>it.str).join(' ').replace(/\s+/g,' ').trim();
+      if (left){ d.kpis.push({id:uid(), name:left, target:right, area:'', weight:null}); }
+      else if (right && d.kpis.length){ const kk = d.kpis[d.kpis.length-1]; kk.target = (kk.target + ' ' + right).trim(); }
+      return; }
+    if (sec === 'doc'){ const segs = splitCols(l); if (segs.length < 2 || /^field$/i.test(segs[0].str)) return;
+      const f = segs[0].str.toLowerCase(), v = segs.slice(1).map(s=>s.str).join(' ');
+      if (/owner/.test(f)) d.owner = v; else if (/approved/.test(f)) d.approvedBy = v; else if (/effective|approved date|date approved/.test(f)) d.approvedDate = monthDate(v) || d.approvedDate; else if (/next review/.test(f)) d.nextReview = v; else if (/position title/.test(f) && !d.title) d.title = v; return; }
+    if (['purpose','expectations','whs','qualifications','requirements','environment'].includes(sec)){
+      const key = sec; const prev = (d[key]||'').split('\n').pop();
+      if (BULLET.test(t)) add(key, '• ' + t.replace(BULLET,''));
+      else if (prev && !/[.:!?]$/.test(prev) && !/^(essential|desirable)$/i.test(prev) && !/^(essential|desirable|position-specific requirements)$/i.test(t)) d[key] += ' ' + t;
+      else if (prev && /[.]$/.test(prev) && !prev.startsWith('•') && !/^(essential|desirable|position-specific)/i.test(t) && key !== 'qualifications') d[key] += ' ' + t;
+      else add(key, t);
+    }
+  });
+  // paragraphs: blank line before headings inside long text
+  ['purpose','environment','requirements','qualifications'].forEach(k2 => d[k2] = (d[k2]||'').replace(/\n(Essential|Desirable|Position-specific requirements)\b/gi, '\n\n$1').trim());
+  // link performance areas to accountabilities by word overlap
+  const words = s => new Set(s.toLowerCase().replace(/[^a-z ]/g,' ').split(/\s+/).filter(w => w.length > 2 && !['management','service','services','and','the'].includes(w)));
+  d.kpis.forEach(kp => { let best = '', bs = 0; const kw = words(kp.name);
+    d.accountabilities.forEach(a => { const aw = words(a.area); let sc = 0; kw.forEach(w => { aw.forEach(x => { if (x.startsWith(w.slice(0,5)) || w.startsWith(x.slice(0,5))) sc++; }); }); if (sc > bs){ bs = sc; best = a.area; } });
+    if (!best){ const n = kp.name.toLowerCase(); best = (d.accountabilities.find(a => a.area.toLowerCase().split(/\s+/).some(x => x.length > 4 && n.includes(x.slice(0,5)))) || {}).area || ''; }
+    kp.area = best; });
+  if (!d.title) d.title = fname.replace(/\.pdf$/i,'').replace(/^position description\s*[-–]\s*/i,'').replace(/[_-]+/g,' ').trim();
+  d.title = d.title.trim();
+  return d;
+}
+
+/* Bootstrapping happens in ppad-store.js, which loads next. */
