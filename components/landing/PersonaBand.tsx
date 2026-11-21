@@ -87,7 +87,7 @@ export default function PersonaBand() {
               id="persona-heading"
               className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
             >
-              Built for your industry.
+              Built for your industry, from pubs to clinics.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
               No matter the industry or the types of everyday people challenges you face, HQ.ai has the answers.

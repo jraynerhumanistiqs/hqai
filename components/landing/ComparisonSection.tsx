@@ -38,7 +38,7 @@ export default function ComparisonSection() {
           aria-label="HQ.ai compared with a traditional retainer and doing it yourself"
           tabIndex={0}
         >
-          <table className="w-full min-w-[34rem] text-left text-sm">
+          <table className="w-full text-left text-sm">
             <thead className="bg-bg-soft text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
               <tr>
                 <th scope="col" className="px-5 py-4">&nbsp;</th>

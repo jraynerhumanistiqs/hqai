@@ -131,10 +131,20 @@ export default function MarketingFooter() {
             {COLUMNS.map((col) => (
               <div key={col.heading}>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">{col.heading}</p>
-                <ul className="mt-4 space-y-2.5">
+                {/* The links were 18px tall and touching, so on a phone a
+                    thumb aimed at one footer link regularly hit its
+                    neighbour. Each is a 44px row now and the list gap goes
+                    - the row height carries the spacing, so the column
+                    reads at about the same density as before. Back to the
+                    old rhythm from sm up, where a pointer is doing the
+                    aiming. */}
+                <ul className="mt-2 sm:mt-4 sm:space-y-2.5">
                   {col.links.map((l, i) => (
                     <li key={`${l.label}-${i}`}>
-                      <Link href={l.href} className="text-sm text-ink-soft transition-colors hover:text-ink">
+                      <Link
+                        href={l.href}
+                        className="flex min-h-11 items-center text-sm text-ink-soft transition-colors hover:text-ink sm:min-h-0"
+                      >
                         {l.label}
                       </Link>
                     </li>
