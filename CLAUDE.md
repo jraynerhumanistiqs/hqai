@@ -204,10 +204,20 @@ variants, so the parent snaps and the children stay hidden.
 - components/theme/ThemeBoundary.tsx / ThemeToggle.tsx - theming
 - components/sidebar/Sidebar.tsx - 68px auto-collapsing icon hover-rail,
   plus a pin toggle (localStorage "hqai:sidebar-locked") that holds it
-  open. Flat service nav since Aug 2026 - one tab per service (AI Advisor,
-  AI Assistant, Campaign Coach, CV Scoring Agent, Shortlist Agent), no
-  HQ People / HQ Recruit parents. Tools and Recruitment Templates are
-  hidden pre-MVP; their routes still work, only the tabs are gone.
+  open. Two flat service tabs (HQ Advisor, HQ Assistant) plus two
+  collapsible groups: HQ Recruit (Campaign Coach, CV Scoring Agent,
+  Shortlist Agent) and HQ Tools (HQ Performance). The Aug 2026 flat nav
+  went back to groups in Nov 2026 - five peers read as five unrelated
+  products, and HQ Tools needs room for a second tool. "AI Advisor" /
+  "AI Assistant" were renamed "HQ Advisor" / "HQ Assistant" at the same
+  time so every service carries the product prefix, not a mix.
+  A group opens itself when the current route is one of its children
+  (RECRUIT_HREFS / TOOLS_HREFS), adjusted during render - not in an
+  effect, which `react-hooks/set-state-in-effect` rejects.
+  HQ Tools is shown to EVERY business: the route itself decides between
+  the tool and an upsell panel on businesses.ppad_enabled, so the tab
+  doubles as the upsell. Recruitment Templates stays hidden pre-MVP; its
+  route still works, only the tab is gone.
 - components/ui/PortalMenu.tsx - row action menus render to <body>. The
   recruit lists clip (overflow-hidden for the rounded row fill, inside the
   overflow-y-auto role switcher), so an absolutely-positioned menu got cut

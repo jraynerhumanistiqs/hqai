@@ -24,6 +24,48 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
 ]
 
+// Content Security Policy for HQ Performance (/tools/ppad/*), and ONLY that
+// route. The rest of the site still has no CSP - see the note above; adding
+// one there needs its own pass over inline handlers, Cloudflare Stream frames
+// and Stripe.
+//
+// This route can afford a strict one because the tool was rewritten to earn
+// it: the stylesheet and the script were lifted out of the document into
+// app.css and app.js, so neither needs 'unsafe-inline' or a hash that would
+// have to be recomputed on every edit. There are no inline event handlers and
+// no eval anywhere in it (pdf.js is already loaded with isEvalSupported:false).
+//
+// The one concession is style-src-attr. The view templates set ~106 style=""
+// attributes for layout, and removing those means rewriting the view layer,
+// which is out of scope. Allowing style ATTRIBUTES is far narrower than
+// allowing arbitrary <style> blocks or inline <script>.
+//
+// connect-src carries the Supabase project because the iframe talks to
+// PostgREST directly. If NEXT_PUBLIC_SUPABASE_URL is unset at build time the
+// origin is simply omitted rather than guessed, which fails loudly in the
+// browser instead of silently allowing something wrong.
+const supabaseOrigin = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin } catch { return '' }
+})()
+
+const ppadCsp = [
+  "default-src 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "style-src-attr 'unsafe-inline'",
+  // data: for brand logos, which the tool stores as data URLs after resizing
+  // an upload on a canvas. blob: for images it generates client-side.
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  `connect-src 'self'${supabaseOrigin ? ' ' + supabaseOrigin : ''}`,
+  // pdf.js spins up a worker for PD import.
+  "worker-src 'self' blob:",
+  "frame-ancestors 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "object-src 'none'",
+].join('; ')
+
 const nextConfig = {
   // Pin the workspace root to this directory.
   //
@@ -78,6 +120,30 @@ const nextConfig = {
         // Apply to all routes.
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      {
+        // HQ Performance (PPAD). The app document is a static file under
+        // public/, so unlike the /dashboard route that frames it, it is
+        // directly reachable and would otherwise be crawlable. It carries its
+        // own noindex meta too; this covers the case where a crawler reads
+        // headers without executing the page. There is no root sitemap to
+        // exclude it from (only app/careers/sitemap.ts, which is scoped).
+        source: '/tools/ppad/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          // The global policy above sends X-Frame-Options: DENY, which
+          // forbids framing by ANYONE - same-origin included. HQ Performance
+          // is rendered in a same-origin iframe by /dashboard/tools/ppad, so
+          // under DENY the browser refuses the document and leaves an empty
+          // cross-origin placeholder: a blank white page with no console
+          // error in the framed document itself.
+          //
+          // SAMEORIGIN for old browsers, frame-ancestors 'self' for the ones
+          // that honour CSP (it supersedes X-Frame-Options where both are
+          // present). Every other route keeps DENY.
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: ppadCsp },
+        ],
       },
     ]
   },
