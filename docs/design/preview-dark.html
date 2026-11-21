@@ -23,7 +23,8 @@
     --ink:#F5F5F4; --ink-soft:#A8A8A3; --ink-muted:#7C7C77; --ink-on-accent:#111111;
     --accent:#F5F5F4; --accent-hover:#E5E5E3; --accent-soft:#23262B;
     --accent-text:#F5F5F4;
-    --clay:#E8B23A; --clay-hover:#F0C44E; --clay-soft:rgba(232,178,58,.16); --clay-ink:#0A0A0B;
+    --clay:#E8B23A; --clay-hover:#F0C44E; --clay-soft:rgba(232,178,58,.16); --clay-ink:#E8B23A;
+    --ink-on-clay:#111111;
     --border:#2A2D32; --border-strong:#3D4148;
     /* Not redeclared on marketing - these INHERIT the :root light values. */
     --danger:#C5483A; --warning:#B8770F; --success:#3D8A5E; --info:#6A9BCC;
@@ -40,6 +41,7 @@
     --accent:#E8B23A; --accent-hover:#F0C44E; --accent-soft:rgba(232,178,58,.18);
     --accent-text:#E8B23A;
     --clay:#E8B23A; --clay-hover:#F0C44E; --clay-soft:rgba(232,178,58,.18); --clay-ink:#E8B23A;
+    --ink-on-clay:#111111;
     --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.20);
     --input:rgba(255,255,255,.15); --ring:#737373; --focus-ring:#E8B23A;
     --danger:#FF6467; --warning:#FF6900;
@@ -117,7 +119,7 @@
   .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:9999px; font-family:var(--font-body), sans-serif; font-weight:600; font-size:14px; border:0; cursor:pointer; height:40px; padding:0 20px; text-decoration:none; transition:background-color 150ms cubic-bezier(.4,0,.2,1); }
   .btn-lg { height:48px; padding:0 28px; }
   .btn-sm { height:36px; padding:0 14px; font-size:12px; }
-  .btn-gold { background:var(--clay); color:var(--ink-on-accent); box-shadow:var(--shadow-card); }
+  .btn-gold { background:var(--clay); color:var(--ink-on-clay); box-shadow:var(--shadow-card); }
   .btn-gold:hover { background:var(--clay-hover); }
   .btn-primary { background:var(--accent); color:var(--ink-on-accent); }
   .btn-primary:hover { background:var(--accent-hover); }
@@ -198,7 +200,7 @@
       <div class="sw"><div class="sw-chip" style="background:#F5F5F4"></div><div class="sw-meta"><div class="sw-name">accent</div><div class="sw-val">#F5F5F4</div><div class="sw-role">The SECONDARY near-white, not gold</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#23262B"></div><div class="sw-meta"><div class="sw-name">accent-soft</div><div class="sw-val">#23262B</div><div class="sw-role">Quiet fill</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:rgba(232,178,58,.16)"></div><div class="sw-meta"><div class="sw-name">clay-soft</div><div class="sw-val">#E8B23A @ 16%</div><div class="sw-role">Badge tint</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#0A0A0B"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#0A0A0B</div><div class="sw-role">Label ON gold here - see Trap 2</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#E8B23A</div><div class="sw-role">Gold AS text, 10.23:1</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#2A2D32"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#2A2D32</div><div class="sw-role">Hairline</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#3D4148"></div><div class="sw-meta"><div class="sw-name">border-strong</div><div class="sw-val">#3D4148</div><div class="sw-role">Stronger line</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#C5483A"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#C5483A</div><div class="sw-role">INHERITED from :root - 4.11:1</div></div></div>
@@ -232,7 +234,7 @@
       <a class="btn btn-link" href="#">Link</a>
       <button class="btn btn-icon" aria-label="More">&#8943;</button>
     </div>
-    <div class="warn"><strong>Trap: <code>bg-accent</code> is not gold here.</strong> On marketing <code>--accent</code> is the inverted near-white #F5F5F4, so <code>variant="primary"</code> renders the near-white pill above. The gold CTA on marketing is <code>bg-clay text-ink-on-accent hover:bg-clay-hover</code>. This is the single most common cross-surface mistake.</div>
+    <div class="warn"><strong>Trap: <code>bg-accent</code> is not gold here.</strong> On marketing <code>--accent</code> is the inverted near-white #F5F5F4, so <code>variant="primary"</code> renders the near-white pill above. The gold CTA on marketing is <code>bg-clay text-ink-on-clay hover:bg-clay-hover</code> - <code>ink-on-clay</code>, never <code>ink-on-accent</code>, which is white wherever no data-app scope is set.</div>
 
     <h3>Cards - hairline and lift, no blur</h3>
     <div class="cards">
@@ -250,7 +252,7 @@
       <span class="pill p-danger">Expired</span>
       <span class="pill p-gold">Popular</span>
     </div>
-    <div class="warn"><strong>Trap 2 is live in that last pill.</strong> <code>bg-clay-soft text-clay-ink</code> - the <code>StatusPill</code> <code>gold</code> tone - is near-black #0A0A0B on a dark gold tint here: about <span class="bad">1.3:1</span>. It reads 4.96:1 on product light and 5.14:1 on product dark. <code>clay-ink</code> means "gold as text" on product and "label on a gold fill" on marketing, so this pairing does not travel. Use <code>text-clay</code> on marketing, as the landing components do.</div>
+    <div class="warn"><strong>Fixed Nov 2026.</strong> That gold pill is <code>bg-clay-soft text-clay-ink</code> - the <code>StatusPill</code> <code>gold</code> tone. It used to be near-black #0A0A0B on a dark gold tint here, about <span class="bad">1.3:1</span>, because <code>clay-ink</code> meant "gold as text" on product but "label on a gold fill" on marketing. Marketing now carries the gold like every other surface: <span class="bad">7.81:1</span>. A label ON a gold fill is <code>ink-on-clay</code>.</div>
 
     <h3>Type scale - Schibsted Grotesk + Geist</h3>
     <div class="type-row"><div class="type-label">hero &middot; 52px / 600 / -0.02em &middot; 34px base, 42px sm</div><div class="t-hero">Built for Australian small business</div></div>

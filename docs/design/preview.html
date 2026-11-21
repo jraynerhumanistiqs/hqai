@@ -22,7 +22,8 @@
     --ink:#111111; --ink-soft:#4D4D4D; --ink-muted:#9A9A99; --ink-on-accent:#FFFFFF;
     --accent:#111111; --accent-hover:#2A2A2A; --accent-soft:#EDEDE8;
     --accent-text:#111111;
-    --clay:#E8B23A; --clay-hover:#D9A52E; --clay-soft:#F7EBCB; --clay-ink:#8A6D12;
+    --clay:#E8B23A; --clay-hover:#D9A52E; --clay-soft:#F7EBCB; --clay-ink:#7A6010;
+    --ink-on-clay:#111111;
     --border:#E6E5E0; --border-strong:#C9C8C0;
     --danger:#C5483A; --warning:#B8770F; --success:#3D8A5E; --info:#6A9BCC;
     --radius-2xl:20px; --radius-3xl:24px;
@@ -38,6 +39,7 @@
     --accent:#E8B23A; --accent-hover:#D9A52E; --accent-soft:rgba(232,178,58,.16);
     --accent-text:#7A6010;
     --clay:#E8B23A; --clay-hover:#D9A52E; --clay-soft:rgba(232,178,58,.14); --clay-ink:#7A6010;
+    --ink-on-clay:#111111;
     --border:#E5E5E5; --border-strong:#A1A1A1; --input:#E5E5E5;
     --ring:#A1A1A1; --focus-ring:#7A6010;
     --danger:#D0000A; --warning:#A84600; --success:#3D8A5E; --info:#6A9BCC;
@@ -117,7 +119,7 @@
   .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:9999px; font-family:var(--font-body), sans-serif; font-weight:600; font-size:14px; border:0; cursor:pointer; height:40px; padding:0 20px; text-decoration:none; transition:background-color 150ms cubic-bezier(.4,0,.2,1); }
   .btn-lg { height:48px; padding:0 28px; }
   .btn-sm { height:36px; padding:0 14px; font-size:12px; }
-  .btn-gold { background:var(--clay); color:var(--ink-on-accent); box-shadow:var(--shadow-card); }
+  .btn-gold { background:var(--clay); color:var(--ink-on-clay); box-shadow:var(--shadow-card); }
   .btn-gold:hover { background:var(--clay-hover); }
   .btn-primary { background:var(--accent); color:var(--ink-on-accent); }
   .btn-primary:hover { background:var(--accent-hover); }
@@ -276,10 +278,10 @@
       <div class="sw"><div class="sw-chip" style="background:#111111"></div><div class="sw-meta"><div class="sw-name">ink / accent</div><div class="sw-val">#111111</div><div class="sw-role">Text, and the accent here</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#4D4D4D"></div><div class="sw-meta"><div class="sw-name">ink-soft</div><div class="sw-val">#4D4D4D</div><div class="sw-role">Secondary</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#9A9A99"></div><div class="sw-meta"><div class="sw-name">ink-muted</div><div class="sw-val">#9A9A99</div><div class="sw-role">Tertiary - 2.7:1, decoration only</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#FFFFFF; border-bottom:1px solid #E6E5E0"></div><div class="sw-meta"><div class="sw-name">ink-on-accent</div><div class="sw-val">#FFFFFF</div><div class="sw-role">White - correct on black, NOT on gold</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FFFFFF; border-bottom:1px solid #E6E5E0"></div><div class="sw-meta"><div class="sw-name">ink-on-accent</div><div class="sw-val">#FFFFFF</div><div class="sw-role">White - for the near-black accent fill only</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">clay</div><div class="sw-val">#E8B23A</div><div class="sw-role">Gold survives as a rare highlight</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#F7EBCB"></div><div class="sw-meta"><div class="sw-name">clay-soft</div><div class="sw-val">#F7EBCB</div><div class="sw-role">Opaque tint, not an alpha</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#8A6D12"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#8A6D12</div><div class="sw-role">4.91:1 - NOT #7A6010 here</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#7A6010"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#7A6010</div><div class="sw-role">Gold AS text, 5.99:1 - unified Nov 2026</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#E6E5E0"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#E6E5E0</div><div class="sw-role">Warm hairline</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#C5483A"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#C5483A</div><div class="sw-role">Softer than product's #D0000A</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#B8770F"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#B8770F</div><div class="sw-role">Close to gold - careful</div></div></div>
@@ -288,11 +290,11 @@
     <h3>Buttons</h3>
     <div class="row">
       <button class="btn btn-primary">Primary - near-black</button>
-      <button class="btn btn-gold">bg-clay + ink-on-accent</button>
+      <button class="btn btn-gold">bg-clay + ink-on-clay</button>
       <button class="btn btn-secondary">Secondary</button>
       <button class="btn btn-ghost">Ghost</button>
     </div>
-    <div class="warn"><strong>Trap 1.</strong> The second pill above is <code>bg-clay text-ink-on-accent</code>, which on this surface resolves to <span class="bad">white on #E8B23A - 1.93:1</span>. It is correct on marketing and product, and broken here. Put the near-black label on gold explicitly:<br><br><span class="trap">White on gold - do not ship</span> &nbsp; <span class="btn btn-gold" style="color:#111111">Near-black on gold - correct</span></div>
+    <div class="warn"><strong>Fixed Nov 2026.</strong> The gold pill above is <code>bg-clay text-ink-on-clay</code>. It used to be <code>text-ink-on-accent</code>, which on this surface resolves to <span class="bad">white on #E8B23A - 1.93:1</span>, because <code>ink-on-accent</code> labels an <em>accent</em> fill and <code>--accent</code> is near-black here. <code>--ink-on-clay</code> is #111111 on every surface, so the gold pill is now 9.77:1 wherever it lands:<br><br><span class="trap">text-ink-on-accent on gold - 1.93:1, do not ship</span> &nbsp; <span class="btn btn-gold">text-ink-on-clay - 9.77:1, correct</span></div>
 
     <h3>Type scale - Schibsted Grotesk + Geist</h3>
     <div class="type-row"><div class="type-label">hero &middot; 52px / 600 / -0.02em</div><div class="t-hero">Welcome back</div></div>

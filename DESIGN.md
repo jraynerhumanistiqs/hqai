@@ -11,15 +11,22 @@ description: "HQ.ai's own design system, written for coding agents. One brand co
 #   CLAUDE.md           - the "Design system" section
 # Every hex below was read out of app/globals.css, not from memory.
 # Tokens there are CHANNEL TRIPLETS (`--warning: 168 70 0`), never hex.
+#
+# DEPENDS ON branch fix/ink-on-clay-contrast, which is where the
+# `ink-on-clay` token and the unified `clay-ink` actually live. This file
+# describes the system as of that fix. Read on its own against main, the
+# `ink-on-clay` rule below is the intended state and not yet the code.
+# The two branches touch no file in common and merge in either order.
 # ─────────────────────────────────────────────────────────────────────
 
 brand:
   wattle-gold: "#E8B23A"
   wattle-gold-hover-on-light: "#D9A52E"
   wattle-gold-hover-on-dark: "#F0C44E"
-  on-gold: "#111111"          # label ON a gold fill. NEVER #FFFFFF (1.93:1).
-  gold-as-text-on-light: "#7A6010"
-  gold-as-text-on-dark: "#E8B23A"
+  # Two tokens, two jobs. Do not confuse them - this was a real bug.
+  ink-on-clay: "#111111"      # label ON a gold fill. Same on EVERY surface.
+  clay-ink-on-light: "#7A6010"   # the gold rendered AS TEXT, light surfaces
+  clay-ink-on-dark: "#E8B23A"    # the gold rendered AS TEXT, dark surfaces
 
 # Marketing surface - [data-app="marketing"], the non-member site.
 colors-marketing:
@@ -37,7 +44,8 @@ colors-marketing:
   clay: "#E8B23A"             # the gold - primary CTA lives here
   clay-hover: "#F0C44E"
   clay-soft: "#E8B23A @ 16%"
-  clay-ink: "#0A0A0B"         # label ON a gold fill here. See Known Traps.
+  clay-ink: "#E8B23A"         # gold AS text (10.23:1 on the page)
+  ink-on-clay: "#111111"      # inherited from :root
   border: "#2A2D32"
   border-strong: "#3D4148"
 
@@ -60,6 +68,7 @@ colors-product-light:
   clay-hover: "#D9A52E"
   clay-soft: "#E8B23A @ 14%"
   clay-ink: "#7A6010"
+  ink-on-clay: "#111111"      # inherited from :root
   border: "#E5E5E5"
   border-strong: "#A1A1A1"
   input: "#E5E5E5"
@@ -91,6 +100,7 @@ colors-product-dark:
   clay-hover: "#F0C44E"
   clay-soft: "#E8B23A @ 18%"
   clay-ink: "#E8B23A"
+  ink-on-clay: "#111111"      # inherited from :root
   border: "#FFFFFF @ 10%"
   border-strong: "#FFFFFF @ 20%"
   input: "#FFFFFF @ 15%"
@@ -118,7 +128,8 @@ colors-root:
   clay: "#E8B23A"
   clay-hover: "#D9A52E"
   clay-soft: "#F7EBCB"
-  clay-ink: "#8A6D12"
+  clay-ink: "#7A6010"
+  ink-on-clay: "#111111"      # declared here, inherited everywhere
   border: "#E6E5E0"
   border-strong: "#C9C8C0"
   danger: "#C5483A"
@@ -261,7 +272,7 @@ motion:
 components:
   cta-primary-marketing:
     backgroundColor: "{colors-marketing.clay}"
-    textColor: "{colors-marketing.ink-on-accent}"
+    textColor: "{brand.ink-on-clay}"
     hoverBackgroundColor: "{colors-marketing.clay-hover}"
     typography: "{typography.button}"
     rounded: "{rounded.full}"
@@ -271,7 +282,7 @@ components:
     focus: "outline 2px solid {colors-marketing.clay}, offset 2px"
   cta-primary-product:
     backgroundColor: "{colors-product-light.accent}"
-    textColor: "{colors-product-light.ink-on-accent}"
+    textColor: "{brand.ink-on-clay}"
     hoverBackgroundColor: "{colors-product-light.accent-hover}"
     typography: "{typography.button}"
     rounded: "{rounded.full}"
@@ -457,9 +468,11 @@ Product dark: `bg` #202020 (page) -> `bg-soft` #262626 (inset) ->
 ### Text
 
 `ink` is the primary, `ink-soft` the secondary, `ink-muted` the tertiary.
-`ink-on-accent` is the label that sits **on** a filled accent;
-`ink-on-danger` is the same job on a `danger` fill, split out because the two
-need opposite answers (see Known Traps).
+`ink-on-accent` is the label that sits **on** a filled `accent`;
+`ink-on-danger` is the same job on a `danger` fill and `ink-on-clay` on a
+gold `clay` fill. All three are split apart because the fills need opposite
+answers, and because `accent` is not the same colour on every surface
+(see Known Traps).
 
 ### Semantic
 
@@ -476,10 +489,10 @@ so it separates from gold by lightness as well as hue. Dark `warning` stays
 
 | Pair | Ratio | Verdict |
 |---|---|---|
-| #111111 on gold | 9.77:1 | the correct label on a gold fill |
+| #111111 on gold | 9.77:1 | `ink-on-clay`, the correct label on a gold fill |
 | #FFFFFF on gold | 1.93:1 | **never do this** |
 | gold text on #FFFFFF | 1.93:1 | **never do this** |
-| #7A6010 on #FFFFFF | 5.99:1 | gold-as-text, product light |
+| #7A6010 on #FFFFFF | 5.99:1 | `clay-ink`, gold-as-text on a light surface |
 | gold on #0A0A0B | 10.23:1 | gold text on marketing |
 | gold on #202020 | 8.43:1 | gold text on product dark |
 | #F5F5F4 on #0A0A0B | 18.14:1 | marketing body |
@@ -615,7 +628,7 @@ Use `components/ui/button.tsx` (`cva` variants) wherever a React button fits:
 `primary | secondary | ghost | outline | danger | link`, sizes
 `sm (h-9) | md (h-10) | lg (h-12) | icon (44x44 min)`.
 
-On **marketing** the gold CTA is **`bg-clay text-ink-on-accent
+On **marketing** the gold CTA is **`bg-clay text-ink-on-clay
 hover:bg-clay-hover`** - not `bg-accent`. On marketing `--accent` is the
 inverted near-white #F5F5F4, so `variant="primary"` renders a near-white pill
 with a near-black label. That is the correct *secondary* there. In **product**
@@ -625,7 +638,7 @@ single most common cross-surface mistake - see Known Traps.
 The hand-rolled marketing CTA, verbatim:
 
 ```tsx
-<Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+<Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-clay shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
   Get started
 </Link>
 ```
@@ -777,7 +790,8 @@ enforced on every surface.
 
 - Use `{brand.wattle-gold}` as the *only* chromatic accent, and ration it:
   CTAs, links, focus, eyebrow rules, citation signature.
-- Put `#111111` (`ink-on-accent`) on every gold fill.
+- Put `text-ink-on-clay` on every gold fill - `bg-clay`, `bg-accent` in
+  product, any of them. It is #111111 on every surface.
 - Use `accent-text` / `clay-ink` for gold **as text** - #7A6010 on product
   light, the gold itself on dark.
 - Reach for a token class (`bg-bg-elevated`, `text-ink-soft`,
@@ -795,6 +809,8 @@ enforced on every surface.
 ### Don't
 
 - Don't put white on gold (1.93:1) or gold text on white (1.93:1).
+- Don't label a gold fill with `text-ink-on-accent` or `text-clay-ink`.
+  The first is white on an unscoped route; the second is the gold itself.
 - Don't hardcode a hex, and don't use `bg-white` / `bg-black` /
   `text-gray-*` - those are the only Tailwind literals that break under
   `.dark`.
@@ -851,26 +867,39 @@ modal close.
 These are the mistakes this system actually invites. Read them before writing
 a component that spans both surfaces.
 
-1. **`ink-on-accent` is not a constant.** It is `#111111` on marketing and
-   product, but **`#FFFFFF` under `:root`** (where `--accent` is near-black
-   #111111). So `bg-clay text-ink-on-accent` is correct on marketing and
-   product, and **1.93:1 on an unscoped page** - `/login`, `/signup`,
-   `/doc/[id]`. On `:root` surfaces, put the near-black label on gold
-   explicitly.
+1. **A gold fill takes `text-ink-on-clay`. Always.** Not
+   `text-ink-on-accent`, and not `text-clay-ink`.
+   - `ink-on-accent` is the label for an **`accent`** fill, and `accent` is
+     not the gold everywhere: it is near-black under `:root` and near-white
+     under `data-app="marketing"`. So `bg-clay text-ink-on-accent` happens to
+     be right on marketing and product and is **white on gold, 1.93:1**, on
+     any unscoped route.
+   - `clay-ink` is the gold rendered **as text**, which is the opposite job.
+   - `ink-on-clay` is `#111111` on every surface, because the gold is
+     `#E8B23A` on every surface: 9.77:1 on the fill, 8.43:1 on the light
+     hover, 11.43:1 on the dark hover. It is declared once in `:root` and
+     never overridden. This mirrors `ink-on-danger`, which was split out of
+     `ink-on-accent` for exactly the same reason.
 
-2. **`clay-ink` means two different things.** On product it is *gold as text*
-   (#7A6010 light, #E8B23A dark). On marketing it is *the label on a gold fill*
-   (#0A0A0B). So `bg-clay-soft text-clay-ink` - the `StatusPill` `gold` tone -
-   reads 4.96:1 on product light and 5.14:1 on product dark, but about
-   **1.3:1 if it ever renders under `data-app="marketing"`**: near-black text on
-   a dark gold tint. Don't take a `clay-soft`/`clay-ink` pairing across to
-   marketing without checking it.
+   *Fixed Nov 2026 on branch `fix/ink-on-clay-contrast`.* `clay-ink`
+   previously meant "label on a gold fill" under
+   `data-app="marketing"` (#0A0A0B) and "gold as text" under product, so
+   `bg-clay-soft text-clay-ink` - the `StatusPill` `gold` tone - was ~5:1 on
+   product and would have been **1.3:1** on marketing. The system was correct
+   only because the two sets of callsites happened to be partitioned by route.
+   The 5 label-on-gold callsites moved to `ink-on-clay`, marketing's
+   `clay-ink` was repointed to the gold, and the 23 `bg-clay
+   text-ink-on-accent` CTAs moved to `text-ink-on-clay`. **Do not reintroduce
+   either pairing.**
 
-3. **For a label on a gold fill, prefer `ink-on-accent` over `clay-ink`.**
-   The onboarding plan picker uses `text-clay-ink` on a solid `bg-clay` swatch.
-   Under `data-app="marketing"` that is 10.23:1 and fine - but the same markup
-   is 3.10:1 under product and 2.54:1 under `:root`. It is correct only because
-   `/onboarding` forces the marketing scope.
+2. **`ink-on-accent` is still not a constant** - `#FFFFFF` under `:root`,
+   `#111111` on marketing and product. That is correct for each surface's own
+   `accent`, and it is only a trap when you point it at a fill that is not
+   `accent`. Use the matching `ink-on-*` token for the fill you actually used.
+
+3. **`clay-ink` is now two values with one meaning**: `#7A6010` on light
+   surfaces, `#E8B23A` on dark ones, both "the gold as text". If you find
+   yourself wanting it as a label on a gold pill, you want `ink-on-clay`.
 
 4. **`success` and `info` are never redeclared.** Neither
    `[data-app="marketing"]` nor the product dark block defines them, so both
@@ -911,9 +940,9 @@ a component that spans both surfaces.
 ### Quick reference
 
 ```
-accent fill       bg-clay text-ink-on-accent hover:bg-clay-hover    (marketing)
-                  bg-accent text-ink-on-accent hover:bg-accent-hover (product)
-accent text       text-accent  /  text-clay-ink
+gold fill         bg-clay text-ink-on-clay hover:bg-clay-hover      (marketing)
+                  bg-accent text-ink-on-clay hover:bg-accent-hover   (product)
+gold as text      text-accent  /  text-clay-ink
 card              rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-10
 section           bg-bg py-14 md:py-20  >  mx-auto max-w-6xl px-6 md:px-10
 eyebrow           font-mono text-[11px] uppercase tracking-[0.06em] text-clay
@@ -955,10 +984,10 @@ hero entrance     className="hq-hero-rise" style={{ animationDelay: '130ms' }}
   warm: #0A0A0B, #131417 and #1B1D21 are neutral-to-slightly-cool. The warmth
   in that surface is the gold accent alone. Treat "warm" as a description of
   the *feel*, not a licence to add warm greys.
-- **`CLAUDE.md` gives `accent-text` / `clay-ink` as #7A6010.** That is correct
-  under `[data-app="product"]` only. `:root` sets `--accent-clay-ink` to
-  **#8A6D12** (4.91:1 on white), and marketing sets it to #0A0A0B. The single
-  value in `CLAUDE.md` papers over a three-way split.
+- **`CLAUDE.md` does not yet mention `ink-on-clay`.** It gives
+  `accent-text` / `clay-ink` as #7A6010, which is now true of every light
+  surface (`:root` was unified onto it from #8A6D12 in Nov 2026), but it
+  says nothing about the separate label-on-a-gold-fill token.
 - **`tailwind.config.ts` comments are stale in three places.** The `textColor`
   override says `--accent-text` is "#733E0A light, #F0B100 dark" - the real
   values are #7A6010 and #E8B23A. The `clay-ink` fallback literal is
