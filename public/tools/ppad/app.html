@@ -432,7 +432,7 @@ function applyPreset(){
 
 /* ===== Performance Manager — views ===== */
 const $app = () => document.getElementById('app');
-const VIEWS = ['dashboard','people','pds','profiles','reports','settings'];
+const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access'];
 
 function route(){
   if (!S.ready) return;
@@ -440,6 +440,10 @@ function route(){
   if (h.startsWith('person-')){ const id = h.slice(7); if (S.people[id]){ if (S.ui.personId !== id) S.ui.tab = 'plan'; S.ui.view = 'person'; S.ui.personId = id; } else S.ui.view = 'people'; }
   else if (h.startsWith('pd-') && S.pds[h.slice(3)]){ S.ui.view = 'pd'; S.ui.pdId = h.slice(3); }
   else S.ui.view = VIEWS.includes(h) ? h : 'dashboard';
+  /* The screen is admin-only. The RPCs behind it refuse a non-admin anyway,
+     so this is to avoid showing a screen that could only ever error. */
+  if (S.ui.view === 'access' && !(S.me && S.me.isAdmin)) S.ui.view = 'dashboard';
+  if (S.ui.view === 'access' && !S.ui.access) loadAccess();
   if (!S.org.setup && S.ui.view !== 'settings') S.ui.view = 'welcome';
   render();
 }
@@ -449,8 +453,9 @@ const go = h => { if (location.hash === '#'+h) route(); else location.hash = h; 
 function render(){
   const b = S.org.brand, c = activeCycle(), v = S.ui.view;
   const nav = [['dashboard','Overview'],['people','People'],['pds','PDs'],['profiles','Role profiles'],['reports','Reports'],['settings','Settings']];
+  if (S.me && S.me.isAdmin) nav.push(['access','Users and access']);
   const logo = b.logo ? `<img src="${b.logo}" alt="">` : `<div class="mark">${esc((b.orgName||b.appName||'P').trim().slice(0,1).toUpperCase())}</div>`;
-  const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : vDashboard();
+  const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
   const sy = window.scrollY;
   $app().innerHTML = `
   <header class="top"><div class="top-in">
@@ -781,6 +786,72 @@ function yoy(){
   return `<table class="tbl"><thead><tr><th>Cycle</th><th class="num">People</th><th class="num">Avg KPI</th><th class="num">Avg overall</th><th class="num">Exceptional</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+/* ---------- users and access (admin) ---------- */
+/* The roster, the link between a login and a person, and the allocations
+   that are the ONLY thing granting access to someone else's record.
+
+   Loaded through admin-only RPCs rather than read from the tables:
+   ppad_members carries just a user id, and profiles is readable only by its
+   owner, so the roster cannot be assembled client-side - by design. */
+async function loadAccess(){
+  try{
+    const [members, allocations] = await Promise.all([
+      ppadAdmin.listMembers(), ppadAdmin.listAllocations(true)]);
+    S.ui.access = {members: members || [], allocations: allocations || []};
+  }catch(e){ S.ui.access = {error: e.message, members: [], allocations: []}; }
+  rerender();
+}
+function vAccess(){
+  const a = S.ui.access;
+  if (!a) return '<div class="card"><p class="muted">Loading…</p></div>';
+  if (a.error) return '<div class="card"><h2>Could not load</h2><p class="muted">'+esc(a.error)+'</p></div>';
+
+  const live = a.allocations.filter(x => !x.ended_at);
+  const past = a.allocations.filter(x => x.ended_at);
+  const ppl = peopleList(true);
+  const allocFor = (uid, type) => live.filter(x => x.allocated_user_id === uid && x.type === type);
+
+  const memberRow = m => {
+    const mgr = allocFor(m.user_id, 'manager'), rev = allocFor(m.user_id, 'reviewer');
+    const chip = (x) => '<span class="pill" style="margin:0 4px 4px 0">'+esc(x.person_name || x.person_id)
+      + ' <button class="btn icon" title="End this allocation" data-act="acc-end" data-v="'+x.id+'">✕</button></span>';
+    return '<tr>'
+      + '<td><b>'+esc(m.name || m.email)+'</b><div class="small muted">'+esc(m.email)+'</div></td>'
+      + '<td><select class="in bare" data-act-change="acc-link" data-u="'+m.user_id+'">'
+        + '<option value="">Not linked</option>'
+        + ppl.map(p => '<option value="'+esc(p.id)+'"'+(m.person_id===p.id?' selected':'')+'>'+esc(fullName(p))+'</option>').join('')
+      + '</select></td>'
+      + '<td><label class="chk small"><input type="checkbox" data-act-change="acc-admin" data-u="'+m.user_id+'" '+(m.is_admin?'checked':'')+'> Admin</label>'
+        + '<label class="chk small" style="margin-top:4px"><input type="checkbox" data-act-change="acc-hr" data-u="'+m.user_id+'" '+(m.is_hr_reporting?'checked':'')+'> HR reporting</label></td>'
+      + '<td>'+(mgr.length?mgr.map(chip).join(''):'<span class="muted small">—</span>')
+        + '<div style="margin-top:6px"><select class="in bare" style="max-width:190px" data-act-change="acc-add" data-u="'+m.user_id+'" data-t="manager">'
+        + '<option value="">+ manages…</option>'+ppl.filter(p=>!mgr.some(x=>x.person_id===p.id)).map(p=>'<option value="'+esc(p.id)+'">'+esc(fullName(p))+'</option>').join('')+'</select></div></td>'
+      + '<td>'+(rev.length?rev.map(chip).join(''):'<span class="muted small">—</span>')
+        + '<div style="margin-top:6px"><select class="in bare" style="max-width:190px" data-act-change="acc-add" data-u="'+m.user_id+'" data-t="reviewer">'
+        + '<option value="">+ reviews…</option>'+ppl.filter(p=>!rev.some(x=>x.person_id===p.id)).map(p=>'<option value="'+esc(p.id)+'">'+esc(fullName(p))+'</option>').join('')+'</select></div></td>'
+      + '</tr>';
+  };
+
+  return '<div class="head"><div><h1>Users and access</h1><p class="sub">Who can sign in, who they are, and whose records they can see. '
+    + '<b>Allocation is the only thing that grants access to a record</b> - being an admin does not.</p></div>'
+    + '<button class="btn pri" data-act="acc-invite">Invite someone</button></div>'
+
+    + '<div class="card" style="padding:8px 12px"><div class="tbl-wrap"><table class="tbl">'
+    + '<thead><tr><th>User</th><th style="width:16%">Is this person</th><th style="width:14%">Role</th><th>Manages</th><th>Reviews</th></tr></thead>'
+    + '<tbody>'+(a.members.length?a.members.map(memberRow).join(''):'<tr><td colspan="5" class="muted">No members yet.</td></tr>')+'</tbody>'
+    + '</table></div></div>'
+
+    + '<div class="note" style="margin-top:14px"><b>Allocating yourself is recorded.</b> An admin has no access to any record until they allocate '
+    + 'themselves to that person, and doing so writes an <code>allocation.self_grant</code> entry to the audit log.</div>'
+
+    + (past.length ? '<div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Allocation history</h2>'
+      + '<p>Ended allocations are kept, never deleted, so who could see a record in the past stays answerable.</p></div></div>'
+      + '<table class="tbl"><thead><tr><th>Who</th><th>Person</th><th>Type</th><th>From</th><th>Until</th></tr></thead><tbody>'
+      + past.map(x => '<tr><td>'+esc(x.allocated_name || x.allocated_email || '')+'</td><td>'+esc(x.person_name || x.person_id)
+        + '</td><td>'+esc(x.type)+'</td><td>'+fmtDate((x.created_at||'').slice(0,10))+'</td><td>'+fmtDate((x.ended_at||'').slice(0,10))+'</td></tr>').join('')
+      + '</tbody></table></div>' : '');
+}
+
 /* ---------- settings ---------- */
 function vSettings(){
   const b = S.org.brand, fw = S.org.framework;
@@ -859,6 +930,16 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { if (e.target.dataset.act === 'cycle'){ S.org.activeCycle = e.target.value; saveOrg(); render(); } });
 
 const CHANGE = {
+  'acc-link': async el => { try{ await ppadAdmin.linkPerson(el.dataset.u, el.value || null); toast('Updated'); S.ui.access = null; loadAccess(); }catch(e){ toast(e.message); } },
+  'acc-admin': async el => { const m = S.ui.access.members.find(x => x.user_id === el.dataset.u);
+    try{ await ppadAdmin.setMember(el.dataset.u, el.checked, m.is_hr_reporting); toast('Updated'); S.ui.access = null; loadAccess(); }
+    catch(e){ el.checked = !el.checked; toast(e.message); } },
+  'acc-hr': async el => { const m = S.ui.access.members.find(x => x.user_id === el.dataset.u);
+    try{ await ppadAdmin.setMember(el.dataset.u, m.is_admin, el.checked); toast('Updated'); S.ui.access = null; loadAccess(); }
+    catch(e){ el.checked = !el.checked; toast(e.message); } },
+  'acc-add': async el => { if (!el.value) return;
+    try{ await ppadAdmin.allocate(el.value, el.dataset.u, el.dataset.t); toast('Allocated'); S.ui.access = null; loadAccess(); await ppadAdmin.reload(); }
+    catch(e){ toast(e.message); } },
   'logo': el => { const f = el.files[0]; if (!f) return; const rd = new FileReader();
     rd.onload = () => { const img = new Image(); img.onload = () => { const max = 360, sc = Math.min(1, max/Math.max(img.width, img.height));
       const cv = document.createElement('canvas'); cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
@@ -939,6 +1020,23 @@ const ACT = {
   'export-appraisal': () => exportAppraisal(curP(), curR()),
   'csv-summary': () => csvSummary(),
   'csv-tna': () => csvTna(),
+  'acc-invite': () => modal('<h2>Invite someone</h2><p class="sub">They get an email with a link to set a password. They will see nothing until you link them to a person or allocate them.</p>'
+    + '<form id="iv" style="margin-top:14px"><label class="f"><span>Work email</span><input class="in" name="email" type="email" required placeholder="name@company.com.au"></label>'
+    + '<label class="chk small" style="margin-top:10px"><input type="checkbox" name="isAdmin"> Make them an admin</label>'
+    + '<label class="chk small"><input type="checkbox" name="isHr"> Give them HR reporting (ratings across the whole org)</label>'
+    + '<div class="acts"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Send invite</button></div></form>',
+    (m, close) => m.querySelector('#iv').onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try{
+        const r = await ppadAdmin.invite(String(fd.get('email')||'').trim(), fd.get('isAdmin')==='on', fd.get('isHr')==='on');
+        close(); toast(r.invited ? 'Invite sent' : 'Added to this organisation');
+        S.ui.access = null; loadAccess();
+      }catch(err){ toast(err.message); }
+    }),
+  'acc-end': el => confirmBox('End this allocation?', 'Access ends immediately, including to past cycles. The record of the allocation is kept.', 'End it', async () => {
+    try{ await ppadAdmin.endAllocation(el.dataset.v); toast('Allocation ended'); S.ui.access = null; loadAccess(); await ppadAdmin.reload(); }
+    catch(e){ toast(e.message); } }),
   'sign-out': () => confirmBox('Sign out?', 'Nothing is kept on this device - you will need to sign in again to see any of this.', 'Sign out', () => window.ppadSignOut())
 };
 

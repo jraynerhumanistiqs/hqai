@@ -364,6 +364,37 @@
     shell(title, esc(detail || 'Something went wrong.') + '<br><br><a href="">Try again</a>');
   }
 
+  // ── admin surface ────────────────────────────────────────────────────────
+  //
+  // Everything the "Users and access" screen needs. Each is admin-gated in
+  // the database, so these are a thin pass-through, not a permission layer -
+  // a non-admin calling them directly gets the same refusal the UI would.
+  window.ppadAdmin = {
+    listMembers()            { return rpc('ppad_list_members'); },
+    listAllocations(ended)   { return rpc('ppad_list_allocations', { p_include_ended: ended !== false }); },
+    setMember(u, admin, hr)  { return rpc('ppad_set_member', { p_user_id: u, p_is_admin: !!admin, p_is_hr_reporting: !!hr }); },
+    linkPerson(u, personId)  { return rpc('ppad_link_person', { p_user_id: u, p_person_id: personId || null }); },
+    allocate(personId, u, t) { return rpc('ppad_set_allocation', { p_person_id: personId, p_user_id: u, p_type: t }); },
+    endAllocation(id)        { return rpc('ppad_end_allocation', { p_allocation_id: id }); },
+    startCycle(id, start, label, opts) {
+      return rpc('ppad_start_cycle', { p_cycle_id: id, p_start: start, p_label: label, p_opts: opts });
+    },
+    // Invite goes through our own server route: creating an auth user needs
+    // the service role, which must never reach the browser.
+    async invite(email, isAdmin, isHrReporting) {
+      const res = await fetch('/api/ppad/invite', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, isAdmin: isAdmin, isHrReporting: isHrReporting }),
+      });
+      const body = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(body.error || ('Invite failed (' + res.status + ')'));
+      return body;
+    },
+    // After an allocation changes, the caller's own access may have changed.
+    reload() { return load(); },
+  };
+
   // Install as the global `store` the rest of the app calls. The main script
   // no longer declares one, so its unqualified `store.mark(...)` calls
   // resolve to this at call time via the global object.

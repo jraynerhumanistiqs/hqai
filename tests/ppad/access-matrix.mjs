@@ -25,6 +25,7 @@ const MIGRATIONS = [
   'ppad_01_schema.sql',
   'ppad_02_rls.sql',
   'ppad_03_rpcs.sql',
+  'ppad_04_admin_rpcs.sql',
 ]
 
 let PGlite
@@ -469,5 +470,51 @@ describe('HR reporting is ratings-only and separate from admin', () => {
     assert.ok(e2, 'reporting reaches people the caller has no allocation to')
     // and the columns it returns carry no free text
     assert.deepEqual(Object.keys(rows[0]).filter(k => /comment|note|achiev|career|edp/i.test(k)), [])
+  })
+})
+
+describe('admin screen support (ppad_04)', () => {
+  test('the roster is admin-only and carries names, not just ids', async () => {
+    const msg = await denied('M1', `select * from ppad_list_members()`)
+    assert.match(msg, /admin only/)
+
+    const { rows } = await as('admin', `select * from ppad_list_members()`)
+    assert.equal(rows.length, 7, 'every member of org A')
+    const m1 = rows.find(r => r.email === 'm1@a.test')
+    assert.equal(m1.person_id, 'p_M1', 'linked people resolve')
+    assert.equal(m1.person_name, 'M1 Test')
+    assert.ok(!rows.some(r => r.email.endsWith('@b.test')), 'org B must not appear')
+  })
+
+  test('allocation history includes ended ones, with names', async () => {
+    const { rows } = await as('admin', `select * from ppad_list_allocations(true)`)
+    const ended = rows.filter(r => r.ended_at !== null)
+    assert.ok(ended.length >= 1, 'the allocation ended earlier is still here')
+    assert.ok(ended[0].allocated_name || ended[0].allocated_email, 'resolved to a human')
+
+    const { rows: live } = await as('admin', `select * from ppad_list_allocations(false)`)
+    assert.ok(live.every(r => r.ended_at === null))
+  })
+
+  test('linking a person is admin-only, exclusive and audited', async () => {
+    const msg = await denied('M1', `select ppad_link_person($1,'p_E3')`, [U.M1])
+    assert.match(msg, /admin only/)
+
+    // E3 currently has no login linked in this fixture path; link then move it.
+    await as('admin', `select ppad_link_person($1,$2)`, [U.E3, 'p_E3'])
+    const { rows: a } = await as('admin',
+      `select person_id from ppad_people where user_id = $1`, [U.E3])
+    assert.deepEqual(a.map(r => r.person_id), ['p_E3'])
+
+    // Re-linking the same user elsewhere must clear the old link, not collide
+    // with the one-login-per-person unique constraint.
+    await as('admin', `select ppad_link_person($1,$2)`, [U.E3, 'p_E2'])
+    const { rows: b } = await as('admin',
+      `select person_id from ppad_people where user_id = $1`, [U.E3])
+    assert.deepEqual(b.map(r => r.person_id), ['p_E2'], 'moved, not duplicated')
+
+    const { rows: aud } = await as('admin',
+      `select count(*)::int n from ppad_audit_log where action = 'person.link'`)
+    assert.equal(aud[0].n, 2)
   })
 })
