@@ -12,11 +12,9 @@ description: "HQ.ai's own design system, written for coding agents. One brand co
 # Every hex below was read out of app/globals.css, not from memory.
 # Tokens there are CHANNEL TRIPLETS (`--warning: 168 70 0`), never hex.
 #
-# DEPENDS ON branch fix/ink-on-clay-contrast, which is where the
-# `ink-on-clay` token and the unified `clay-ink` actually live. This file
-# describes the system as of that fix. Read on its own against main, the
-# `ink-on-clay` rule below is the intended state and not yet the code.
-# The two branches touch no file in common and merge in either order.
+# Every rule below is live on main. The `ink-on-clay` token and the
+# unified `clay-ink` landed in Nov 2026; this file was written alongside
+# that change and describes the system as it now ships.
 # ─────────────────────────────────────────────────────────────────────
 
 brand:
@@ -881,7 +879,7 @@ a component that spans both surfaces.
      never overridden. This mirrors `ink-on-danger`, which was split out of
      `ink-on-accent` for exactly the same reason.
 
-   *Fixed Nov 2026 on branch `fix/ink-on-clay-contrast`.* `clay-ink`
+   *Fixed Nov 2026.* `clay-ink`
    previously meant "label on a gold fill" under
    `data-app="marketing"` (#0A0A0B) and "gold as text" under product, so
    `bg-clay-soft text-clay-ink` - the `StatusPill` `gold` tone - was ~5:1 on
@@ -984,15 +982,11 @@ hero entrance     className="hq-hero-rise" style={{ animationDelay: '130ms' }}
   warm: #0A0A0B, #131417 and #1B1D21 are neutral-to-slightly-cool. The warmth
   in that surface is the gold accent alone. Treat "warm" as a description of
   the *feel*, not a licence to add warm greys.
-- **`CLAUDE.md` does not yet mention `ink-on-clay`.** It gives
-  `accent-text` / `clay-ink` as #7A6010, which is now true of every light
-  surface (`:root` was unified onto it from #8A6D12 in Nov 2026), but it
-  says nothing about the separate label-on-a-gold-fill token.
-- **`tailwind.config.ts` comments are stale in three places.** The `textColor`
+- **`tailwind.config.ts` comments are stale in two places.** The `textColor`
   override says `--accent-text` is "#733E0A light, #F0B100 dark" - the real
-  values are #7A6010 and #E8B23A. The `clay-ink` fallback literal is
-  `138 109 18` (#8A6D12), not #7A6010. And the header says "~380 `token/NN`
-  callsites" where `CLAUDE.md` says ~990.
+  values are #7A6010 and #E8B23A. And the header says "~380 `token/NN`
+  callsites" where `CLAUDE.md` says ~990. (Its `clay-ink` fallback literal
+  was a third; that one was corrected to `122 96 16` in Nov 2026.)
 - **`app/globals.css` comments are stale in three places.** The marketing block
   still says "Clay (#D97757) is the unchanged brand highlight" - it is
   #E8B23A now. The product-light `--ink-on-accent` comment describes a "dark
