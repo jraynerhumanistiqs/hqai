@@ -518,3 +518,44 @@ describe('admin screen support (ppad_04)', () => {
     assert.equal(aud[0].n, 2)
   })
 })
+
+describe('a directory save must not disturb the login link', () => {
+  // Regression. The adapter used to send `user_id: person.userId || null` in
+  // its ppad_people upsert. After an admin linked a login through the access
+  // screen, the client still held the pre-link copy, so the next save of that
+  // person wrote null straight back over the link - and because the audit
+  // entry is written by ppad_link_person, the log said "linked" while the
+  // column said null. The person quietly stopped being "self" on their own
+  // record.
+  //
+  // This reproduces the sequence in SQL: link, then the exact upsert the
+  // adapter issues, then check the link survived.
+  test('upserting the profile leaves user_id alone', async () => {
+    await as('admin', `select ppad_link_person($1,'p_E1')`, [U.E1])
+    const { rows: before } = await as('admin',
+      `select user_id from ppad_people where person_id = 'p_E1'`)
+    assert.equal(before[0].user_id, U.E1, 'link made')
+
+    // What PostgREST sends for the adapter's upsert: only the columns in the
+    // payload reach the ON CONFLICT SET clause. user_id is not among them.
+    await as('admin', `
+      insert into ppad_people (business_id, person_id, profile, active, updated_at)
+      values ($1, 'p_E1', $2, true, now())
+      on conflict (business_id, person_id) do update
+        set profile = excluded.profile, active = excluded.active, updated_at = excluded.updated_at`,
+      [B.A, JSON.stringify({ first: 'E1', last: 'Test', position: 'Renamed' })])
+
+    const { rows: after } = await as('admin',
+      `select user_id, profile->>'position' pos from ppad_people where person_id = 'p_E1'`)
+    assert.equal(after[0].pos, 'Renamed', 'the edit landed')
+    assert.equal(after[0].user_id, U.E1, 'and the link survived it')
+  })
+
+  test('linking to a person that does not exist is refused, not audited', async () => {
+    const before = await as('admin', `select count(*)::int n from ppad_audit_log where action='person.link'`)
+    const msg = await denied('admin', `select ppad_link_person($1,'p_nope')`, [U.E1])
+    assert.match(msg, /no such person/)
+    const after = await as('admin', `select count(*)::int n from ppad_audit_log where action='person.link'`)
+    assert.equal(after.rows[0].n, before.rows[0].n, 'no audit entry for a link that did not happen')
+  })
+})

@@ -134,6 +134,15 @@ begin
     update public.ppad_people
        set user_id = p_user_id, updated_at = now(), updated_by = auth.uid()
      where business_id = v_biz and person_id = p_person_id;
+
+    -- An UPDATE that matches no row is not an error in SQL, so without this
+    -- the function would carry on and write an audit entry saying the link
+    -- was made while the column stayed null. That exact mismatch - audit
+    -- says linked, data says not - is what made the real bug so hard to
+    -- see, and it is worth refusing rather than recording a fiction.
+    if not found then
+      raise exception 'ppad: could not link - the person row was not updated';
+    end if;
   end if;
 
   perform ppad_audit(v_biz, 'person.link', 'person', coalesce(p_person_id, v_was),

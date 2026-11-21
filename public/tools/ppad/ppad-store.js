@@ -297,7 +297,21 @@
           method: 'POST',
           headers: { Prefer: 'resolution=merge-duplicates' },
           body: JSON.stringify({
-            business_id: cfg.user.businessId, person_id: id, user_id: person.userId || null,
+            // user_id is DELIBERATELY not sent.
+            //
+            // It used to be, as `person.userId || null`, and it silently
+            // unlinked people: an admin links a login to a person through
+            // the access screen, S.people still holds the pre-link copy with
+            // userId undefined, and the very next save of that person - any
+            // edit, or starting their plan - writes null straight back over
+            // the link. The audit log said person.link had happened while
+            // ppad_people.user_id was null, and the person stopped being
+            // "self" on their own record.
+            //
+            // Who a person IS belongs to ppad_link_person alone. Leaving the
+            // column out of the payload keeps it out of the ON CONFLICT SET
+            // clause, so an upsert preserves whatever the link currently is.
+            business_id: cfg.user.businessId, person_id: id,
             profile: profile, active: person.active !== false, updated_at: new Date().toISOString(),
           }),
         });
