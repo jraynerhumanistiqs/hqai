@@ -15,6 +15,10 @@ import {
   RiFileList3Line,
   RiUserSearchLine,
   RiSideBarLine,
+  RiArrowDownSLine,
+  RiBriefcaseLine,
+  RiToolsLine,
+  RiLineChartLine,
 } from '@remixicon/react'
 
 type AppRole = 'owner' | 'test_admin' | 'member'
@@ -297,22 +301,22 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
           <NavLinkBeacon />
         </Link>
 
-        {/* Aug 2026 - flat service nav. The HQ People / HQ Recruit
-            collapsible parents were removed in favour of one tab per
-            service, so every tool is reachable in a single click and the
-            icon rail shows a distinct glyph per service rather than two
-            pillars that hide everything behind a chevron. */}
-        <NavTab href="/dashboard/people/advisor" label="AI Advisor"
+        {/* Nov 2026 - the two advisory services stay flat (one click, used
+            daily); the three recruitment pages and the tools go back behind
+            groups. This partly reverses the Aug 2026 flattening, on the
+            owner's call: the flat list had grown to five peers with no
+            hierarchy, and HQ Tools needs somewhere to put a second tool.
+
+            "AI Advisor" / "AI Assistant" renamed to "HQ Advisor" /
+            "HQ Assistant" so every service carries the product prefix
+            rather than naming the technology. Routes are unchanged. */}
+        <NavTab href="/dashboard/people/advisor" label="HQ Advisor"
           icon={<RiChat3Line className={navIcon(isActive('/dashboard/people/advisor'))} />}
           active={isActive('/dashboard/people/advisor')} />
 
-        <NavTab href="/dashboard/assistant" label="AI Assistant"
+        <NavTab href="/dashboard/assistant" label="HQ Assistant"
           icon={<RiRobot2Line className={navIcon(isActive('/dashboard/assistant'))} />}
           active={isActive('/dashboard/assistant')} />
-
-        <NavTab href="/dashboard/recruit/campaign-coach" label="Campaign Coach"
-          icon={<RiMegaphoneLine className={navIcon(isActive('/dashboard/recruit/campaign-coach'))} />}
-          active={isActive('/dashboard/recruit/campaign-coach')} />
 
         {/* CV Scoring Agent comes before the Shortlist Agent - the natural
             first move is to score the CVs you have, then run the shortlisted
@@ -320,15 +324,38 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
             runs without a role anchor for the ad-hoc "score a CV, no role
             yet" case; it is also Step 1 inside a role in the Shortlist
             Agent. */}
-        <NavTab href="/dashboard/recruit/cv-screening" label="CV Scoring Agent"
-          icon={<RiFileList3Line className={navIcon(isActive('/dashboard/recruit/cv-screening'))} />}
-          active={isActive('/dashboard/recruit/cv-screening')}
-          tooltip="Score one or more CVs against role criteria - no role setup needed." />
+        <NavGroup
+          label="HQ Recruit"
+          icon={<RiBriefcaseLine className={navIcon(RECRUIT_HREFS.some(h => isActive(h)))} />}
+          anyActive={RECRUIT_HREFS.some(h => isActive(h))}
+        >
+          <NavChild href="/dashboard/recruit/campaign-coach" label="Campaign Coach"
+            icon={<RiMegaphoneLine className={navIcon(isActive('/dashboard/recruit/campaign-coach'))} />}
+            active={isActive('/dashboard/recruit/campaign-coach')} />
+          <NavChild href="/dashboard/recruit/cv-screening" label="CV Scoring Agent"
+            icon={<RiFileList3Line className={navIcon(isActive('/dashboard/recruit/cv-screening'))} />}
+            active={isActive('/dashboard/recruit/cv-screening')}
+            tooltip="Score one or more CVs against role criteria - no role setup needed." />
+          <NavChild href="/dashboard/recruit/shortlist" label="Shortlist Agent"
+            icon={<RiUserSearchLine className={navIcon(isActive('/dashboard/recruit/shortlist'))} />}
+            active={isActive('/dashboard/recruit/shortlist')}
+            tooltip="Full hiring workflow - score, prescreen, shortlist and interview inside one role." />
+        </NavGroup>
 
-        <NavTab href="/dashboard/recruit/shortlist" label="Shortlist Agent"
-          icon={<RiUserSearchLine className={navIcon(isActive('/dashboard/recruit/shortlist'))} />}
-          active={isActive('/dashboard/recruit/shortlist')}
-          tooltip="Full hiring workflow - score, prescreen, shortlist and interview inside one role." />
+        {/* HQ Tools is shown to every business, not gated on the add-on
+            flag. That is deliberate: the group doubles as the upsell
+            surface, and /dashboard/tools/ppad renders the upsell panel
+            rather than the tool when the business has no entitlement. */}
+        <NavGroup
+          label="HQ Tools"
+          icon={<RiToolsLine className={navIcon(TOOLS_HREFS.some(h => isActive(h)))} />}
+          anyActive={TOOLS_HREFS.some(h => isActive(h))}
+        >
+          <NavChild href="/dashboard/tools/ppad" label="HQ Performance"
+            icon={<RiLineChartLine className={navIcon(isActive('/dashboard/tools/ppad'))} />}
+            active={isActive('/dashboard/tools/ppad')}
+            tooltip="Plan, perform, assess and develop - the annual performance cycle." />
+        </NavGroup>
 
         {/* Recruitment Templates is hidden pre-MVP (Aug 2026). The route
             and lib/template-ip.ts are untouched - restore the tab here to
@@ -570,10 +597,116 @@ function navIcon(active: boolean) {
   return `w-5 h-5 flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`
 }
 
+// Child routes per group. Kept beside the components that use them so a new
+// tool cannot be added to a group without also being counted for the group's
+// active state.
+const RECRUIT_HREFS = [
+  '/dashboard/recruit/campaign-coach',
+  '/dashboard/recruit/cv-screening',
+  '/dashboard/recruit/shortlist',
+]
+const TOOLS_HREFS = ['/dashboard/tools/ppad']
+
 /**
- * One service = one top-level tab. Replaces the HQ People / HQ Recruit
- * collapsible parents, so nothing is buried behind a chevron and the 68px
- * rail shows a distinct glyph per service.
+ * A collapsible group of services (Nov 2026).
+ *
+ * Opens when one of its children is the current route, and remembers a manual
+ * toggle for the rest of the session. Native button + list rather than a
+ * floating menu: the rail is only 68px wide when idle and a portal menu would
+ * have to track its hover state, which the row action menus already showed to
+ * be fragile here.
+ *
+ * In the collapsed rail the children are hidden with the same
+ * `sidebar-collapsible-hide` class the group headings use, so the rail stays a
+ * clean column of glyphs. The rail expands on hover, which is when the group
+ * is actually usable - the parent glyph is the affordance until then.
+ */
+function NavGroup({
+  label, icon, anyActive, children,
+}: {
+  label: string
+  icon: React.ReactNode
+  anyActive: boolean
+  children: React.ReactNode
+}) {
+  // `manual` is the user's explicit toggle; null means "follow the route".
+  // Navigating into the group from outside it clears the toggle, so the group
+  // opens. Deliberately one-way: it does not slam shut when you navigate away,
+  // because that would fight a user who opened it to browse.
+  //
+  // Adjusted during render rather than in an effect. The effect version works
+  // but trips react-hooks/set-state-in-effect and costs a second render pass;
+  // this is the pattern React documents for deriving state from props.
+  const [manual, setManual] = useState<boolean | null>(null)
+  const [wasActive, setWasActive] = useState(anyActive)
+  if (anyActive !== wasActive) {
+    setWasActive(anyActive)
+    if (anyActive) setManual(null)
+  }
+  const open = manual ?? anyActive
+  const setOpen = (fn: (o: boolean) => boolean) => setManual(fn(open))
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        title={label}
+        className={`flex items-center gap-2.5 h-9 px-3 rounded-full text-[13px] transition-all w-full text-left
+          ${anyActive && !open
+            ? 'bg-bg-soft text-ink font-semibold'
+            : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}
+      >
+        {icon}
+        <span className="flex-1 sidebar-collapsible-hide">{label}</span>
+        <RiArrowDownSLine
+          aria-hidden
+          className={`w-4 h-4 flex-shrink-0 opacity-60 transition-transform duration-150 motion-reduce:transition-none sidebar-collapsible-hide ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div className="flex flex-col gap-0.5 sidebar-collapsible-hide">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A service inside a NavGroup. Same row as NavTab, indented. */
+function NavChild({
+  href, label, icon, active, tooltip,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+  active: boolean
+  tooltip?: string
+}) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-2.5 h-9 pl-6 pr-3 rounded-full text-[13px] transition-all group
+        ${active
+          ? 'bg-ink text-bg-elevated font-semibold'
+          : 'text-ink-soft hover:bg-bg-soft hover:text-ink'}`}
+    >
+      {icon}
+      <span className="flex-1">{label}</span>
+      {tooltip && <InfoTooltip text={tooltip} />}
+      <NavLinkBeacon />
+    </Link>
+  )
+}
+
+/**
+ * One service = one top-level tab. Used for the two advisory services, which
+ * stay flat - they are the daily-use surfaces and do not belong behind a
+ * chevron. Grouped services use NavGroup / NavChild above.
  */
 function NavTab({
   href, label, icon, active, tooltip,
