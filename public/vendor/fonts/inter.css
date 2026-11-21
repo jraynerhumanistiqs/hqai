@@ -1,0 +1,13 @@
+/* Inter, latin subset, self-hosted.
+   The tool renders employee performance data, so it makes no third-party
+   request on load - no fonts.googleapis.com, no fonts.gstatic.com. That also
+   keeps the route's CSP down to 'self'.
+   Inter v20 is a single VARIABLE font: one file covers 100-900. Declaring four
+   static weights against it would download the same 48KB four times. */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(/vendor/fonts/inter-var.woff2) format('woff2');
+}
