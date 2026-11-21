@@ -39,7 +39,7 @@ interface HeroFeature {
 // hero-26 ends on a strip of feature cards. Same shape, real content -
 // the three jobs HQ.ai actually does.
 const FEATURES: HeroFeature[] = [
-  { title: 'Answers, not templates', subtitle: 'Ask in plain English, get advice for your business' },
+  { title: 'Plain-English answers', subtitle: 'Ask in plain English, get advice for your business' },
   { title: 'Hiring end to end', subtitle: 'Score CVs, pre-screen and shortlist in one place' },
   { title: 'A real advisor', subtitle: 'A person picks up the hard 20 per cent' },
 ]
@@ -82,7 +82,7 @@ export default function HeroSection({ backgroundImage }: Props) {
         </>
       )}
 
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
+      <div className="mx-auto grid max-w-6xl items-start gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
         {/* Left: copy block.
             relative z-20 lifts this column's stacking context above the
             right-hand preview column. Both columns get a transform from the
@@ -177,7 +177,7 @@ export default function HeroSection({ backgroundImage }: Props) {
       </div>
 
       {/* Feature strip - hero-26's closing row, carried over. */}
-      <ul className="mx-auto grid max-w-7xl gap-px overflow-hidden border-t border-border px-6 md:grid-cols-3 md:px-10">
+      <ul className="mx-auto grid max-w-6xl gap-px overflow-hidden border-t border-border px-6 md:grid-cols-3 md:px-10">
         {FEATURES.map((f, i) => (
           <li
             key={f.title}

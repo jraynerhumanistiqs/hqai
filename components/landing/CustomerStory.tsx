@@ -17,7 +17,7 @@ export default function CustomerStory() {
         </h2>
 
         <div className="mt-10 rounded-3xl border border-border bg-bg-elevated p-8 shadow-card md:p-12">
-          <div className="grid items-center gap-10 md:grid-cols-[2fr_3fr] md:gap-14">
+          <div className="grid items-start gap-10 md:grid-cols-[2fr_3fr] md:gap-14">
             {/* LEFT (40%): abstract quote mark - reads as an editorial
                 pull-quote device, not a missing customer headshot. */}
             <div className="flex justify-center md:justify-start">

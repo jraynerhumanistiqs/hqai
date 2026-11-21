@@ -13,14 +13,34 @@ import { useEffect, useRef, useState } from 'react'
 // (inverted) marketing palette lives under [data-app="marketing"] in
 // globals.css, so it applies only to pages with this nav - login,
 // onboarding and the dashboard are unaffected.
+//
+// The attribute has to land BEFORE the first paint, not in an effect.
+// Every colour on this page is a token, and with no data-app on <html>
+// the tokens resolve to the :root (light product) ramp - so an effect
+// that runs after hydration paints the whole marketing site in the wrong
+// palette first. That is not a cosmetic flash: text-clay gold on the
+// light #FFFFFF page is 1.93:1, and the white-on-gold button label is
+// 1.93:1 too - the exact pair CLAUDE.md calls out as never allowed. A
+// visitor with JS still parsing, or blocked, reads an unreadable page.
+//
+// SET_MARKETING_SCOPE runs as a blocking inline script during HTML
+// parse, so the attribute is on <html> before anything paints. The
+// effect below stays for the other half of the job: putting the previous
+// value back when a client-side navigation leaves the marketing surface
+// for the product one.
+const SET_MARKETING_SCOPE =
+  'document.documentElement.setAttribute("data-app","marketing")'
+
 function useMarketingScope() {
   useEffect(() => {
     if (typeof document === 'undefined') return
     const html = document.documentElement
     const prev = html.getAttribute('data-app')
-    html.setAttribute('data-app', 'marketing')
+    if (prev !== 'marketing') html.setAttribute('data-app', 'marketing')
     return () => {
-      if (prev) html.setAttribute('data-app', prev)
+      // The inline script above has no cleanup of its own, so only hand
+      // back a value that was genuinely something else before us.
+      if (prev && prev !== 'marketing') html.setAttribute('data-app', prev)
       else html.removeAttribute('data-app')
     }
   }, [])
@@ -57,9 +77,17 @@ export default function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
+      {/* Paints the marketing palette before the first frame - see
+          SET_MARKETING_SCOPE above. */}
+      <script dangerouslySetInnerHTML={{ __html: SET_MARKETING_SCOPE }} />
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
         <Link href="/" aria-label="HQ.ai home" className="flex items-center">
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="h-7 w-auto" priority />
+          {/* The lockup renders at 28px tall (about 108px wide), so the
+              declared 1047x272 had Next preloading a 1080px-wide PNG for
+              it on every marketing page. These are the same 3.85:1 ratio
+              at 2x the painted size, which is what the srcset should be
+              choosing from. */}
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={216} height={56} className="h-7 w-auto" priority />
         </Link>
 
         {/* Desktop nav */}

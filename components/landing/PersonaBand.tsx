@@ -87,7 +87,7 @@ export default function PersonaBand() {
               id="persona-heading"
               className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
             >
-              Built for your industry, not a corporate HR team.
+              Built for your industry.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
               No matter the industry or the types of everyday people challenges you face, HQ.ai has the answers.
@@ -112,7 +112,12 @@ export default function PersonaBand() {
           <div
             key={page}
             className={[
-              'grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6',
+              // Three cards a page, so the grid goes straight from one
+              // column to three. The old sm:grid-cols-2 stage left the
+              // third card alone in a two-column row at 768 and 820 -
+              // half the row empty, which is the width a tablet is held
+              // at.
+              'grid gap-4 md:grid-cols-3 md:gap-6',
               reduced ? '' : 'persona-fade',
             ].join(' ')}
           >
@@ -134,8 +139,15 @@ export default function PersonaBand() {
           </div>
         </div>
 
-        {/* Dots */}
-        <div className="mt-8 flex items-center justify-center gap-1.5" role="tablist" aria-label="Industry pages">
+        {/* Dots.
+            The dot stays 6px tall - it is a position indicator, not a
+            button you aim at by sight. What changes is the target: each
+            one carries a 44px-tall hit area (py-5 on a flex button, so
+            the box grows around the dot without moving it), because at
+            6x6px with a 6px gap a thumb genuinely lands on the wrong
+            page. The row's own gap closes to 0 so the targets sit
+            shoulder to shoulder rather than overlapping. */}
+        <div className="mt-4 flex items-center justify-center" role="tablist" aria-label="Industry pages">
           {Array.from({ length: PAGES }).map((_, i) => (
             <button
               key={i}
@@ -144,8 +156,13 @@ export default function PersonaBand() {
               aria-selected={i === page}
               aria-label={`Industries page ${i + 1}`}
               onClick={() => setPage(i)}
-              className={`h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
-            />
+              className="group flex h-11 w-8 items-center justify-center"
+            >
+              <span
+                aria-hidden
+                className={`block h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border group-hover:bg-ink-muted'}`}
+              />
+            </button>
           ))}
         </div>
       </div>

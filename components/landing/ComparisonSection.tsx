@@ -26,8 +26,19 @@ export default function ComparisonSection() {
           The same everyday HR and hiring support, minus the lock-in contract with exit penalties, and the wait. A fraction of the price. Cancel any time.
         </p>
 
-        <div className="mt-10 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
-          <table className="w-full text-left text-sm">
+        {/* Four columns do not fit a phone, and overflow-hidden (there
+            for the rounded corners) was slicing the last header - at 390
+            "Traditional HR & recruitment retainer" lost 5px off its right
+            edge, with no way to read the rest. Scrolling the table
+            sideways keeps every cell reachable; the region is focusable
+            so it can be scrolled from the keyboard too. */}
+        <div
+          className="mt-10 overflow-x-auto rounded-3xl border border-border bg-bg-elevated shadow-card"
+          role="region"
+          aria-label="HQ.ai compared with a traditional retainer and doing it yourself"
+          tabIndex={0}
+        >
+          <table className="w-full min-w-[34rem] text-left text-sm">
             <thead className="bg-bg-soft text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
               <tr>
                 <th scope="col" className="px-5 py-4">&nbsp;</th>
@@ -57,7 +68,7 @@ export default function ComparisonSection() {
               </tr>
               <tr>
                 <th scope="row" className="px-5 py-4 font-medium text-ink">
-                  <Cited placement="top" note="Answers you can act on, not a list of links to read.">Answers the everyday questions</Cited>
+                  <Cited placement="top" note="Answers you can act on, with the working shown.">Answers the everyday questions</Cited>
                 </th>
                 <td className="px-5 py-4 font-semibold text-ink">Yes</td>
                 <td className="px-5 py-4 text-ink-soft">Sometimes</td>

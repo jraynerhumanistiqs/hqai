@@ -42,7 +42,14 @@ const FAQS: Array<{ q: string; a: string }> = [
 export default function FaqSection() {
   return (
     <section className="bg-bg py-14 md:py-20" aria-labelledby="faq-heading">
-      <div className="mx-auto max-w-3xl px-6 md:px-10">
+      {/* The page container is max-w-6xl everywhere else, so the FAQ used
+          to be the one section whose heading did not start on the same
+          left line as the rest of the page - its max-w-3xl box centred
+          itself, putting the heading 192px further in at 1440. The
+          reading measure is worth keeping, so it stays as an inner
+          column anchored to the page's left line instead. */}
+      <div className="mx-auto max-w-6xl px-6 md:px-10">
+        <div className="max-w-3xl">
         <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
           <span aria-hidden className="h-px w-5 bg-clay" />
           Questions
@@ -69,6 +76,7 @@ export default function FaqSection() {
               </div>
             </details>
           ))}
+          </div>
         </div>
       </div>
     </section>

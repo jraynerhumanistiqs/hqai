@@ -123,7 +123,10 @@ export default function HeroChatPreview() {
 
       {/* Progress dots - also manual controls (the only way to advance
           under reduced motion). */}
-      <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3" role="tablist" aria-label="Example questions">
+      {/* The dot stays 6px - it marks position. The target around it is
+          44px tall, because 6x6px with a 6px gap is a coin toss under a
+          thumb. Same treatment as the industry dots in PersonaBand. */}
+      <div className="mt-3 flex items-center border-t border-border" role="tablist" aria-label="Example questions">
         {EXCHANGES.map((_, i) => (
           <button
             key={i}
@@ -132,10 +135,15 @@ export default function HeroChatPreview() {
             aria-selected={i === active}
             aria-label={`Example ${i + 1}`}
             onClick={() => setActive(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === active ? 'w-6 bg-accent' : 'w-1.5 bg-border hover:bg-ink-muted'
-            }`}
-          />
+            className="group flex h-11 w-8 items-center justify-center"
+          >
+            <span
+              aria-hidden
+              className={`block h-1.5 rounded-full transition-all ${
+                i === active ? 'w-6 bg-accent' : 'w-1.5 bg-border group-hover:bg-ink-muted'
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>

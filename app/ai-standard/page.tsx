@@ -67,7 +67,7 @@ export default function AiStandardPage() {
           <div className="mx-auto max-w-3xl space-y-12 px-6 md:px-10">
             <article>
               <h2 className="font-display text-2xl font-bold tracking-tight text-ink">
-                Grounded in Australian sources, not the whole internet.
+                Grounded in Australian sources.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
                 HQ.ai is not a general chatbot with an HR costume on. Its answers are grounded in
@@ -91,13 +91,13 @@ export default function AiStandardPage() {
                 was right last year can be wrong today.
               </p>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-                So keeping HQ.ai current is a standing job, not a one-off:
+                So keeping HQ.ai current is a standing job:
               </p>
               <ul className="mt-4 space-y-3">
                 {[
                   'We review and update the AI\'s grounding when significant workplace changes land, including the annual wage review each July.',
-                  'We are building deeper coverage of the most recent financial year\'s reforms right now - it is on our public roadmap, not hidden in a backlog.',
-                  'When something changes that affects an answer you have already acted on, our aim is to tell you, not leave you to find out the hard way.',
+                  'We are building deeper coverage of the most recent financial year\'s reforms right now - it is on our public roadmap.',
+                  'When something changes that affects an answer you have already acted on, our aim is to tell you.',
                 ].map((item) => (
                   <li key={item} className="flex gap-2.5 text-[15px] leading-relaxed text-ink-soft">
                     <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-clay" />
