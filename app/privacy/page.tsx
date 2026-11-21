@@ -109,9 +109,9 @@ export default function PrivacyPage() {
           <table className="w-full text-sm my-4 border border-border rounded-2xl overflow-hidden">
             <thead className="bg-light text-charcoal">
               <tr>
-                <th className="text-left px-4 py-2 font-bold">Sub-processor</th>
-                <th className="text-left px-4 py-2 font-bold">Purpose</th>
-                <th className="text-left px-4 py-2 font-bold">Jurisdiction</th>
+                <th scope="col" className="text-left px-4 py-2 font-bold">Sub-processor</th>
+                <th scope="col" className="text-left px-4 py-2 font-bold">Purpose</th>
+                <th scope="col" className="text-left px-4 py-2 font-bold">Jurisdiction</th>
               </tr>
             </thead>
             <tbody className="text-mid">

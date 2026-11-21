@@ -167,7 +167,10 @@ export default function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {2026} Rayner Consulting Group Pty Ltd, trading as Humanistiqs. All rights reserved.</p>
+          {/* Computed, not a literal - the old {2026} would have read 2026
+              forever. This is a server component, so there is no
+              hydration mismatch to guard against. */}
+          <p>&copy; {new Date().getFullYear()} Rayner Consulting Group Pty Ltd, trading as Humanistiqs. All rights reserved.</p>
           <p>Built for Australian workplaces only - no overseas clutter.</p>
         </div>
       </div>

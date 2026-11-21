@@ -45,14 +45,20 @@ export default function StickyMobileCta() {
       <div
         className={[
           'fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg-elevated/95 px-4 py-3 backdrop-blur transition-opacity duration-300 md:hidden',
-          visible ? 'opacity-100' : 'pointer-events-none opacity-0',
+          // `invisible` (visibility: hidden), not just opacity-0. With
+          // opacity alone the "Get started" link stayed in the tab order,
+          // so a keyboard user tabbing from the top of the page landed on
+          // an invisible control. visibility:hidden removes it. The fade
+          // still works: this only ever goes hidden -> visible, and
+          // visibility flips at the start of the transition.
+          visible ? 'visible opacity-100' : 'pointer-events-none invisible opacity-0',
           'pb-safe',
         ].join(' ')}
       >
         <div className="mx-auto flex max-w-md items-center gap-2">
           <Link
             href="/signup"
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-clay transition-colors hover:bg-clay-hover"
+            className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-clay px-4 text-sm font-semibold text-ink-on-clay transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
           >
             Get started
           </Link>

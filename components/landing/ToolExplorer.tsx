@@ -1,10 +1,22 @@
 'use client'
 
 // "Explore the tools" - the homepage centerpiece (qase-modelled tabbed
-// switcher). Two tabs (HQ People / HQ Recruit); clicking
-// a tab swaps the copy AND an animated in-browser preview. Auto-advances
-// slowly to invite exploration, pauses on hover/focus, and honours
-// prefers-reduced-motion (no auto-advance, previews render in final state).
+// switcher). Two tabs (HQ People / HQ Recruit); picking a tab swaps the
+// copy AND an animated in-browser preview.
+//
+// The tabs are VISITOR-DRIVEN ONLY - do not reintroduce auto-advance.
+// It rotated every 6.5s, which WCAG 2.2.2 treats as moving content that
+// needs a pause, stop or hide mechanism once it runs past five seconds.
+// Pausing on hover and focus covered pointer and keyboard users but not
+// touch, where the panel swapped under a reader mid-sentence - including
+// out from under the CTA they were reaching for. With only two tabs, both
+// visible and labelled, the rotation was competing with the reader rather
+// than inviting exploration, so it is gone rather than wrapped in a pause
+// control. Nov 2026, after the Web Interface Guidelines audit - see
+// docs/audits/web-interface-guidelines.md.
+//
+// The previews still honour prefers-reduced-motion by rendering in their
+// final state (the `reduced` prop below).
 //
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
@@ -77,23 +89,27 @@ const TABS: Tab[] = [
   },
 ]
 
-const DWELL_MS = 6500
-
 export default function ToolExplorer() {
   const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
   const reduced = usePrefersReducedMotion()
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
-  useEffect(() => {
-    if (reduced || paused) return
-    timer.current = setInterval(() => {
-      setActive((i) => (i + 1) % TABS.length)
-    }, DWELL_MS)
-    return () => {
-      if (timer.current) clearInterval(timer.current)
-    }
-  }, [reduced, paused])
+  // Tabs pattern keyboard support (WAI-ARIA): Left/Right wrap through the
+  // tabs, Home/End jump to the ends, and focus follows selection. Without
+  // this the tablist role promised a pattern the component did not
+  // implement - a keyboard user could Tab to a tab and activate it, but
+  // not move between them the way the role advertises.
+  const onTabKeyDown = (e: React.KeyboardEvent, i: number) => {
+    let next: number | null = null
+    if (e.key === 'ArrowRight') next = (i + 1) % TABS.length
+    else if (e.key === 'ArrowLeft') next = (i - 1 + TABS.length) % TABS.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = TABS.length - 1
+    if (next === null) return
+    e.preventDefault()
+    setActive(next)
+    tabRefs.current[next]?.focus()
+  }
 
   const tab = TABS[active]
 
@@ -125,12 +141,17 @@ export default function ToolExplorer() {
             return (
               <button
                 key={t.id}
+                ref={(el) => { tabRefs.current[i] = el }}
                 role="tab"
                 type="button"
                 aria-selected={selected}
                 aria-controls={`tool-panel-${t.id}`}
                 id={`tool-tab-${t.id}`}
+                // Roving tabindex: the tablist is one Tab stop, and the
+                // arrow keys move within it.
+                tabIndex={selected ? 0 : -1}
                 onClick={() => setActive(i)}
+                onKeyDown={(e) => onTabKeyDown(e, i)}
                 className={[
                   'inline-flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors',
                   selected
@@ -150,10 +171,6 @@ export default function ToolExplorer() {
           role="tabpanel"
           aria-labelledby={`tool-tab-${tab.id}`}
           className="mt-8 grid items-center gap-10 rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocusCapture={() => setPaused(true)}
-          onBlurCapture={() => setPaused(false)}
         >
           {/* LEFT: copy (re-keys per tab so it fades on switch) */}
           <div key={tab.id} className="tool-fade">
@@ -233,7 +250,7 @@ export default function ToolExplorer() {
 
 // HQ People - a question, then an answer fades in with a citation chip.
 function PeoplePreview({ reduced }: { reduced: boolean }) {
-  const [phase, setPhase] = useState(reduced ? 2 : 0)
+  const [phase, setPhase] = useState(0)
   useEffect(() => {
     if (reduced) return
     const t1 = setTimeout(() => setPhase(1), 600)
@@ -243,6 +260,18 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
       clearTimeout(t2)
     }
   }, [reduced])
+
+  // Nov 2026 - the resting state is DERIVED, not stored.
+  // usePrefersReducedMotion starts false and only learns the truth in an
+  // effect, so the old `useState(reduced ? 2 : 0)` always captured 0.
+  // This component is not re-keyed when `reduced` flips, so the effect's
+  // early return left phase at 0 forever and the answer bubble - which
+  // starts at opacity-0 - never appeared at all for anyone with
+  // reduce-motion on. Deriving it cannot go stale and needs no
+  // setState-in-effect to resync. This is the failure mode CLAUDE.md
+  // already records three times: content must never depend on an
+  // animation to become visible.
+  const shown = reduced ? 2 : phase
 
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float">
@@ -260,8 +289,8 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
         </div>
         <div
           className={[
-            'mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5 transition-all duration-500',
-            phase >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0',
+            'mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5 transition-[opacity,transform] duration-500',
+            shown >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0',
           ].join(' ')}
         >
           <p className="text-xs leading-relaxed text-ink">
@@ -270,7 +299,7 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
           <div
             className={[
               'mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-2.5 py-1 text-[10px] font-medium text-clay transition-opacity duration-500',
-              phase >= 2 ? 'opacity-100' : 'opacity-0',
+              shown >= 2 ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
           >
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
@@ -292,12 +321,19 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
     { label: 'Communication', score: 80 },
     { label: 'Role fit', score: 74 },
   ]
-  const [fill, setFill] = useState(reduced)
+  const [animated, setAnimated] = useState(false)
   useEffect(() => {
     if (reduced) return
-    const t = setTimeout(() => setFill(true), 80)
+    const t = setTimeout(() => setAnimated(true), 80)
     return () => clearTimeout(t)
   }, [reduced])
+
+  // Derived for the same reason as PeoplePreview above: seeding state with
+  // `useState(reduced)` captured false on the first render, and the
+  // effect's early return then left it there - so the score bars stayed at
+  // width 0% and the "Strong yes" badge at opacity-0 for reduce-motion
+  // users. Reduced motion means "skip to the end", never "never arrive".
+  const fill = reduced || animated
 
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float md:p-6">

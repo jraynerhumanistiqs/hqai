@@ -95,12 +95,19 @@ export default function EnterpriseInquiryForm() {
   const labelCls = 'text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted'
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:p-8">
+    // noValidate removed (Nov 2026). Seven fields are marked `required`
+    // but there was no client-side validation to replace what noValidate
+    // switched off, so an empty submit posted to the server and came back
+    // as one generic form-level message - nothing pointed at the field and
+    // focus never moved. Native validation blocks the submit, puts the
+    // message on the offending control and focuses the first invalid one.
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:p-8">
       <div className="grid gap-5 md:grid-cols-2">
         <label className="flex flex-col gap-2">
           <span className={labelCls}>Your name</span>
           <input
             required
+            name="full_name"
             type="text"
             autoComplete="name"
             value={state.full_name}
@@ -114,8 +121,11 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Work email</span>
           <input
             required
+            name="work_email"
             type="email"
+            inputMode="email"
             autoComplete="email"
+            spellCheck={false}
             value={state.work_email}
             onChange={(e) => update('work_email', e.target.value)}
             className={fieldCls}
@@ -127,6 +137,7 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Business name</span>
           <input
             required
+            name="business_name"
             type="text"
             autoComplete="organization"
             value={state.business_name}
@@ -140,6 +151,7 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Staff headcount</span>
           <select
             required
+            name="staff_headcount"
             value={state.staff_headcount}
             onChange={(e) => update('staff_headcount', e.target.value)}
             className={selectCls}
@@ -156,6 +168,7 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Which plan interests you?</span>
           <select
             required
+            name="variant_interest"
             value={state.variant_interest}
             onChange={(e) => update('variant_interest', e.target.value as FormState['variant_interest'])}
             className={selectCls}
@@ -171,6 +184,7 @@ export default function EnterpriseInquiryForm() {
         <label className="flex flex-col gap-2 md:col-span-2">
           <span className={labelCls}>Current spend on HR and recruitment, ballpark</span>
           <input
+            name="current_spend"
             type="text"
             value={state.current_spend}
             onChange={(e) => update('current_spend', e.target.value)}
@@ -183,6 +197,7 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>When do you need this in place?</span>
           <select
             required
+            name="urgency"
             value={state.urgency}
             onChange={(e) => update('urgency', e.target.value as FormState['urgency'])}
             className={selectCls}
@@ -207,6 +222,7 @@ export default function EnterpriseInquiryForm() {
             <label className="flex flex-col gap-2">
               <span className={labelCls}>How many entities does the business operate as?</span>
               <select
+                name="entity_count"
                 value={state.entity_count}
                 onChange={(e) => update('entity_count', e.target.value as FormState['entity_count'])}
                 className={selectCls}
@@ -225,6 +241,7 @@ export default function EnterpriseInquiryForm() {
               <label className="flex flex-col gap-2">
                 <span className={labelCls}>Annual hiring volume estimate</span>
                 <select
+                  name="annual_hiring_volume"
                   value={state.annual_hiring_volume}
                   onChange={(e) =>
                     update('annual_hiring_volume', e.target.value as FormState['annual_hiring_volume'])
@@ -245,6 +262,7 @@ export default function EnterpriseInquiryForm() {
         <label className="flex flex-col gap-2 md:col-span-2">
           <span className={labelCls}>Anything else?</span>
           <textarea
+            name="notes"
             value={state.notes}
             onChange={(e) => update('notes', e.target.value)}
             rows={4}
@@ -256,6 +274,7 @@ export default function EnterpriseInquiryForm() {
         <label className="flex items-start gap-3 md:col-span-2">
           <input
             required
+            name="consent"
             type="checkbox"
             checked={state.consent}
             onChange={(e) => update('consent', e.target.checked)}
