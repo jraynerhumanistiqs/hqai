@@ -309,6 +309,21 @@ function finishLoad(){
     ['orgName','logo','accent'].forEach(k => { const v = sb[k]; if (PRESET.brand[k] && (!v || (k==='accent' && v==='#111827'))){ sb[k] = PRESET.brand[k]; fixed = true; } });
     if (fixed) store.mark('org'); }
   S.org.bands = S.org.bands || {low:'Under Review', mid:'Positive Contributor', high:'Exceptional Contributor'};
+  /* An org with no cycles blanks the entire tool. render() calls
+     activeCycle() on its first line and reads c.label in the footer, so an
+     empty cycles array throws before anything is written to the DOM - a
+     white screen with no message. newOrg() always made one, so the app had
+     never seen this; an org created by SQL can. Same guard style as the
+     lines above. */
+  if (!Array.isArray(S.org.cycles) || !S.org.cycles.length){
+    const st = defaultCycleStart(S.org.yearStart || 7);
+    S.org.cycles = [{id:'c'+uid(), start:st, label:cycleLabel(st)}];
+    S.org.activeCycle = S.org.cycles[0].id;
+    store.mark('org');
+  }
+  if (!S.org.cycles.some(c => c.id === S.org.activeCycle)){
+    S.org.activeCycle = S.org.cycles[S.org.cycles.length-1].id; store.mark('org');
+  }
   S.ready = true; applyBrand(); route();
 }
 const savePerson = p => store.mark('p_' + p.id);

@@ -19,7 +19,16 @@ declare
   v_user  uuid;
   v_biz   uuid;
   v_name  text;
+  v_cycle_start text;
+  v_cycle_id    text;
 begin
+  -- July start, per defaultCycleStart(7) in the client: before July we are
+  -- still in the cycle that began last July.
+  v_cycle_start := to_char(
+    case when extract(month from now()) < 7
+         then make_date(extract(year from now())::int - 1, 7, 1)
+         else make_date(extract(year from now())::int, 7, 1) end, 'YYYY-MM');
+  v_cycle_id := 'c' || substr(md5(random()::text), 1, 10);
   -- Preconditions, checked before anything is written.
   --
   -- Without these the first failure is a raw 42703 "column ppad_enabled does
@@ -69,7 +78,21 @@ begin
       'logo', null, 'poweredBy', true),
     'yearStart', 7,
     'bands', jsonb_build_object('low','Under Review','mid','Positive Contributor','high','Exceptional Contributor'),
-    'cycles', '[]'::jsonb, 'activeCycle', null,
+    -- A first cycle is NOT optional. render() calls activeCycle() on its
+    -- first line and reads c.label in the footer, so an org with an empty
+    -- cycles array throws before anything reaches the DOM - the tool opens
+    -- as a blank white page with no error. newOrg() in the client always
+    -- makes one; an org created here has to do the same.
+    --
+    -- Mirrors defaultCycleStart(7) and cycleLabel(): the performance year
+    -- starts in July, so the current cycle began in July of this year (or
+    -- last year if we are before July), and a July start is labelled FY of
+    -- the following year.
+    'cycles', jsonb_build_array(jsonb_build_object(
+      'id', v_cycle_id,
+      'start', v_cycle_start,
+      'label', 'FY' || (split_part(v_cycle_start, '-', 1)::int + 1)::text)),
+    'activeCycle', v_cycle_id,
     'framework', jsonb_build_object('clusters','[]'::jsonb,'comps','[]'::jsonb),
     'profiles', '[]'::jsonb,
     'setup', false), v_user)
