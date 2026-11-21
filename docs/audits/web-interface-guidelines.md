@@ -98,7 +98,8 @@ so that rule never applies to them. What marketing actually relies on:
   so `outline-accent` falls back to `var(--accent)` here.
 - The browser default outline for everything else: header nav links, the
   mobile menu, the mobile and sticky CTAs, FAQ `<summary>` elements,
-  PersonaBand arrows and dots, HeroChatPreview dots, ToolExplorer tabs,
+  PersonaBand arrows and dots, HeroChatPreview dots (since retired),
+  ToolExplorer tabs,
   the pricing toggles and all footer links. None of these carry a focus
   utility.
 
@@ -160,8 +161,9 @@ shows the message against the field and focuses the first invalid one.
 Rule: *Checkboxes/radios: label + control share single hit target* and the
 24x24 minimum (WCAG 2.5.8 Target Size).
 
-- `components/landing/HeroChatPreview.tsx:135` - carousel dots are
-  `h-1.5 w-1.5` = **6x6 px** (24 px for the active one).
+- `components/landing/HeroChatPreview.tsx:135` - carousel dots were
+  `h-1.5 w-1.5` = **6x6 px** (24 px for the active one). Fixed, then made
+  moot: the static rewrite under finding 8 removed the dots entirely.
 - `components/landing/PersonaBand.tsx:147` - same pattern, **6x6 px**.
 - `components/landing/PricingSection.tsx:381` - the pricing info "i"
   button is `h-5 w-5` = **20x20 px**.
@@ -196,10 +198,10 @@ refs, the `paused` and `userPicked` state, and eight hover/focus pause
 handlers. Both are visitor-driven only now, and both file headers say so
 so it does not get reintroduced.
 
-Two things deliberately kept: the 420 ms `.tool-fade` on ToolExplorer's
-tab switch and the 500 ms crossfade on HeroChatPreview's dots. Each
-answers a deliberate interaction rather than running on its own, and both
-are already reduced-motion guarded.
+One thing deliberately kept: the 420 ms `.tool-fade` on ToolExplorer's
+tab switch. It answers a deliberate interaction rather than running on
+its own, and it is already reduced-motion guarded. HeroChatPreview's
+500 ms crossfade went with its dots in the static rewrite below.
 
 HeroChatPreview no longer needs a `prefers-reduced-motion` branch at all,
 so its local `usePrefersReducedMotion` hook went too - which is why the
@@ -207,12 +209,45 @@ lint warning count drops by one below the recorded baseline. Its resting
 state is the first exchange fully rendered, so visibility still never
 depends on an animation running (CLAUDE.md).
 
-Trade-off worth naming: the hero preview now shows one exchange unless
-the visitor clicks a dot, so three of the four example answers go unseen
-by most people. That is a content decision, not an accessibility one -
-if those answers are load-bearing for the pitch, they want a layout that
-shows more than one at a time rather than a rotation that shows them to
-nobody who scrolls past.
+Follow-on, same day: with the rotation gone the hero preview showed one
+exchange unless a dot was clicked, so three of the four answers went
+unseen by anyone who scrolled past - the pitch was hiding its own
+evidence behind an interaction almost nobody performs. It is now a static
+transcript showing all four at once, which retires the dots, the `active`
+state and the crossfade stage.
+
+That makes `HeroChatPreview` a server component: it has no client state
+left, so `'use client'` is gone and the hero's signature element ships
+zero JS and server-renders complete. `HeroSection` was already a server
+component, so the whole hero is now static markup - which puts it
+permanently out of reach of the blank-hero failure mode CLAUDE.md
+records, rather than merely avoiding it.
+
+The four repeated "Answered in seconds" chips collapsed into one footer
+line with a derived count (`{EXCHANGES.length} questions, answered in
+seconds`). Four identical chips in one card read as padding rather than
+proof, and they cost roughly 130 px of hero height.
+
+Open trade-off: **height.** The card is now the tallest thing in the
+hero's right column. Rough estimates, not measurements - this worktree
+cannot serve the page, so nothing here was checked in a browser:
+
+| Exchanges | Card at 582 px (desktop rail) | Card at 327 px (mobile) |
+| --- | --- | --- |
+| 4 (shipped) | ~570 px | ~790 px |
+| 3 | ~460 px | ~620 px |
+| 2 | ~350 px | ~450 px |
+
+For comparison the rotating version was ~330 px at both widths, and the
+hero's left-hand copy column is ~490 px on desktop. So desktop is roughly
+balanced; mobile adds a long scroll before the feature strip.
+
+`EXCHANGES` is the only lever - drop an entry to shorten it. If it wants
+cutting, exchanges 3 and 4 are **both** about annual leave ("how much do
+full-timers accrue" and "do I have to pay out unused leave"), so cutting
+one of those loses the least variety. I have not cut it: that is the
+founder's copy, and which examples earn hero space is a positioning call,
+not an accessibility one.
 
 ### 9. Fake buttons in the tab order
 
@@ -240,7 +275,8 @@ Rule: *Interactive elements need keyboard handlers*.
   implement. **Fixed** by dropping the tab roles for plain buttons with
   `aria-current`.
 - `components/landing/HeroChatPreview.tsx:126` - same mismatch.
-  **Fixed** the same way.
+  **Fixed** the same way, then made moot - the static rewrite under
+  finding 8 removed those buttons entirely.
 
 ### 11. The comparison table is clipped on mobile, with no way to scroll
 
@@ -351,7 +387,8 @@ Reported, not fixed - see "Not fixed" #2.
 Rule: *Never `transition: all` - list properties explicitly*.
 
 - `components/landing/ToolExplorer.tsx:263` - **fixed**.
-- `components/landing/HeroChatPreview.tsx:135` - **fixed**.
+- `components/landing/HeroChatPreview.tsx:135` - **fixed** (the element
+  it was on has since gone, with the dots).
 - `components/landing/PersonaBand.tsx:147` - **fixed**.
 
 ### 19. Invisible but focusable sticky CTA
