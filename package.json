@@ -20,7 +20,8 @@
     "smoke:doc": "node scripts/smoke-doc-engine.mjs",
     "axe": "node scripts/axe-scan.mjs",
     "axe:strict": "node scripts/axe-scan.mjs --strict",
-    "test:assistant": "tsx --test tests/assistant/"
+    "test:assistant": "tsx --test tests/assistant/",
+    "test:ppad": "node --test \"tests/ppad/**/*.mjs\""
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.37",
@@ -85,6 +86,7 @@
   },
   "devDependencies": {
     "@axe-core/cli": "^4.11.3",
+    "@electric-sql/pglite": "^0.5.17",
     "@eslint/eslintrc": "^3.3.5",
     "@types/node": "^20",
     "@types/react": "^18",

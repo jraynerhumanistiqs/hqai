@@ -3,7 +3,8 @@
 <meta name="robots" content="noindex, nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HQ Performance</title>
 <link rel="stylesheet" href="/vendor/fonts/inter.css">
-<style>:root{--accent:#111827;--accent-ink:#fff;--ink:#111827;--ink2:#4b5563;--ink3:#9ca3af;--line:#e5e7eb;--line2:#f3f4f6;--bg:#fafafa;--card:#fff;--good:#15803d;--goodbg:#ecfdf5;--warn:#b45309;--warnbg:#fffbeb;--bad:#b91c1c;--badbg:#fef2f2;--r:10px}
+<style>.sync-bad{color:var(--bad);font-weight:600}
+:root{--accent:#111827;--accent-ink:#fff;--ink:#111827;--ink2:#4b5563;--ink3:#9ca3af;--line:#e5e7eb;--line2:#f3f4f6;--bg:#fafafa;--card:#fff;--good:#15803d;--goodbg:#ecfdf5;--warn:#b45309;--warnbg:#fffbeb;--bad:#b91c1c;--badbg:#fef2f2;--r:10px}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
@@ -287,66 +288,17 @@ const peopleList = (all) => Object.values(S.people).filter(p => all || p.active 
 const recOf = (p, cid) => p.records && p.records[cid || activeCycle().id];
 const compById = id => S.org.framework.comps.find(c => c.id === id);
 
-/* ===== store: claude db → localStorage → memory ===== */
+/* ===== store =====
+   The adapter lives in /tools/ppad/ppad-store.js, loaded after this script,
+   and installs itself as window.store. It keeps the same method names the
+   rest of this file calls (mark, markAll, schedule, flush, setStatus) but
+   persists to Supabase under RLS instead of to this device.
+
+   It must load AFTER this script: it closes over S, finishLoad, toast, esc,
+   fullName and rerender, which are declared here. Top-level const and
+   function declarations are shared between classic scripts, so the later
+   script sees them; the reverse would not hold. */
 const LS_KEY = 'pm-tool-v1';
-const store = {
-  db:null, col:null, dirty:new Set(), timer:null, writing:false, status:'',
-  async init(){
-    let done = false;
-    const fallback = () => { if (done) return; done = true; this.loadLocal(); };
-    const t = setTimeout(fallback, 10000);
-    try{
-      if (window.claude && typeof window.claude.use === 'function'){
-        const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
-        const id = user ? await user.id() : null;
-        if (db && id && !done){
-          this.db = db; this.col = db.collection('data/users/' + id);
-          const snap = await this.col.get();
-          if (done) return;
-          clearTimeout(t); done = true; S.mode = 'cloud';
-          snap.docs.forEach(d => { const v = d.data(); if (!v) return;
-            if (d.id === 'org') S.org = clone(v); else if (d.id.startsWith('p_')) S.people[v.id] = clone(v); else if (d.id.startsWith('d_')) S.pds[v.id] = clone(v); });
-          if (!S.org){ const local = this.readLocal(); if (local){ S.org = local.org; S.people = local.people||{}; S.pds = local.pds||{}; this.markAll(); } }
-          return finishLoad();
-        }
-      }
-    }catch(e){ console.warn('db unavailable', e); }
-    clearTimeout(t); fallback();
-  },
-  readLocal(){ try{ const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } },
-  loadLocal(){
-    const l = this.readLocal();
-    try{ localStorage.setItem(LS_KEY+'-t','1'); S.mode = 'local'; }catch(e){ S.mode = 'memory'; }
-    if (l){ S.org = l.org; S.people = l.people || {}; S.pds = l.pds || {}; }
-    finishLoad();
-  },
-  markAll(){ this.dirty.add('org'); Object.keys(S.people).forEach(id => this.dirty.add('p_'+id)); Object.keys(S.pds).forEach(id => this.dirty.add('d_'+id)); this.schedule(); },
-  mark(key){ this.dirty.add(key); this.schedule(); },
-  schedule(){ clearTimeout(this.timer); this.setStatus('Saving…'); this.timer = setTimeout(() => this.flush(), 700); },
-  async flush(){
-    if (this.writing){ this.schedule(); return; }
-    this.writing = true;
-    try{
-      if (S.mode === 'cloud'){
-        const keys = [...this.dirty]; this.dirty.clear();
-        for (const k of keys){
-          try{
-            if (k === 'org') await this.col.doc('org').set(clone(S.org));
-            else { const id = k.slice(2); const p = k.startsWith('d_') ? S.pds[id] : S.people[id];
-              if (p) await this.col.doc(k).set(clone(p)); else await this.col.doc(k).delete(); }
-          }catch(e){
-            if (e && e.code === 'unavailable'){ this.dirty.add(k); }
-            else { console.error(e); toast(e && e.code === 'quota_exceeded' ? 'Storage is full — export a backup and remove old data.' : 'Could not save: ' + (e && e.message || e)); }
-          }
-        }
-      } else { this.dirty.clear(); }
-      try{ localStorage.setItem(LS_KEY, JSON.stringify({org:S.org, people:S.people, pds:S.pds})); }catch(e){}
-      this.setStatus(this.dirty.size ? 'Saving…' : (S.mode === 'memory' ? 'Not saved — export a backup' : 'Saved'));
-      if (this.dirty.size) this.schedule();
-    } finally { this.writing = false; }
-  },
-  setStatus(s){ this.status = s; const el = document.getElementById('sync'); if (el) el.textContent = s; }
-};
 function finishLoad(){
   if (!S.org){ S.org = newOrg(); if (PRESET) applyPreset(); }
   // migrations / guards
@@ -470,7 +422,8 @@ function render(){
     ${S.org.setup ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
     <div class="spacer"></div>
     ${S.org.setup ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
-    <span class="sync" id="sync">${esc(store.status || (S.mode==='cloud'?'Saved':S.mode==='local'?'Saved on this device':''))}</span>
+    <span class="sync" id="sync">${esc(store.status || '')}</span>
+    <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
   </div></header>
   <main>${body}</main>
   <footer><span>${esc(b.orgName||'')} ${b.orgName?'·':''} ${esc(c.label)} · ${esc(cycleRange(c))}</span>${b.poweredBy ? '<span>Powered by Humanistiqs</span>' : ''}</footer>`;
@@ -804,7 +757,7 @@ function vSettings(){
       <label class="f"><span>Levels (one per line; "Title: description")</span><textarea class="in" rows="${c.levels.length+1}" data-f="org.framework.comps.${i}.levels" data-type="lines">${esc(c.levels.join('\n'))}</textarea></label>
       <div><button class="btn sm danger" data-act="del-comp" data-i="${i}">Delete competency</button></div></div></details>`).join('')}
   </div>
-  <div class="card"><div class="card-h"><div><h2>Data</h2><p>${S.mode==='cloud'?'Saved privately to your Claude account.':S.mode==='local'?'Saved in this browser only.':'Not saved — export a backup before closing.'} Keep a backup each cycle.</p></div></div>
+  <div class="card"><div class="card-h"><div><h2>Data</h2><p>Saved to your organisation's HQ.ai workspace. Nothing is kept on this device, so signing out leaves no data behind.</p></div></div>
     <div class="row"><button class="btn" data-act="backup">Export backup (JSON)</button><label class="btn">Import backup<input type="file" accept=".json,application/json" data-act-change="import" hidden></label><button class="btn ghost" data-act="sample">Load sample data</button><span class="spacer"></span><button class="btn danger" data-act="erase">Erase all data</button></div>
   </div>`;
 }
@@ -934,7 +887,8 @@ const ACT = {
   sample: () => { loadSample(); toast('Sample data loaded'); go('dashboard'); },
   'export-appraisal': () => exportAppraisal(curP(), curR()),
   'csv-summary': () => csvSummary(),
-  'csv-tna': () => csvTna()
+  'csv-tna': () => csvTna(),
+  'sign-out': () => confirmBox('Sign out?', 'Nothing is kept on this device - you will need to sign in again to see any of this.', 'Sign out', () => window.ppadSignOut())
 };
 
 /* ----- cycles / rollover ----- */
@@ -972,8 +926,10 @@ function newCycleDialog(){
 /* ----- downloads ----- */
 const slug = () => (S.org.brand.orgName || 'performance').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'performance';
 async function download(filename, data, type){
-  try{ if (window.claude && window.claude.use){ const d = await window.claude.use('downloads'); if (d){ await d.save({filename, data}); return; } } }
-  catch(e){ if (e && /declin|cancel|reject/i.test(e.code + ' ' + e.message)) return; console.warn(e); }
+  /* The window.claude downloads branch is gone: that API only exists inside
+     the Claude artifact runtime and can never be present here, so it was an
+     await on something that would never resolve. The Blob path below was
+     always the real fallback and is now the only path. */
   try{ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data],{type})); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); }
   catch(e){ modal(`<h2>Copy export</h2><p class="sub">Downloads aren't available here. Copy the content below.</p><textarea class="in" rows="10" readonly>${esc(data)}</textarea><div class="acts"><button class="btn pri" data-close>Close</button></div>`); }
 }
@@ -1390,8 +1346,7 @@ function parsePdfPd(lines, fname){
   return d;
 }
 
-/* Phase 1: local-only store. Phase 2 replaces store with the Supabase
-   adapter. window.claude never exists outside the Claude runtime, so the
-   10s probe in store.init() is skipped entirely. */
-store.loadLocal();
-</script></body></html>
+/* Bootstrapping happens in ppad-store.js, which loads next. */
+</script>
+<script src="/tools/ppad/ppad-store.js"></script>
+</body></html>
