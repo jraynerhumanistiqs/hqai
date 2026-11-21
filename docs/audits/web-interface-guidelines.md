@@ -3,8 +3,28 @@
 Date: 2026-11-21
 Method: static code review against the Web Interface Guidelines
 (vercel-labs, snapshot pinned at commit `434b7f9`), applied via the
-`web-design-guidelines` skill. No dev server - this worktree has no
-`.env.local` by design. Verified with `npx tsc --noEmit` and `npm run lint`.
+`web-design-guidelines` skill.
+
+Verification: `npx tsc --noEmit` and `npm run lint` throughout, then -
+before merging to `main` - a real `npm run build` and a browser pass
+against the production build. Neither of the last two can run in the
+skill worktree: it has no `.env.local` by design, and its `node_modules`
+is a junction to the main checkout, which Turbopack rejects as "a symlink
+pointing out of the filesystem root". They were run in a throwaway
+worktree with its own dependencies instead.
+
+That final pass earned its keep. It caught two defects that `tsc` and
+`lint` had both passed over for four commits:
+
+1. An unterminated CSS comment (`ring-*` immediately followed by `/NN`
+   closes a comment early) that broke `app/globals.css` outright, so the
+   marketing focus indicator and `scroll-padding-top` were never
+   compiling. Neither tsc nor ESLint parses CSS, so "typecheck clean" was
+   never evidence the stylesheet built.
+2. Hit targets fixed to 12x24 rather than 24x24 - see finding 7.
+
+Anything below marked with a measurement was measured; anything marked an
+estimate was not.
 
 Scope: `app/page.tsx`, `app/about`, `app/ai-standard`, `app/compare`,
 `app/outsourcing`, `app/product/people`, `app/product/recruit`,
@@ -168,9 +188,29 @@ Rule: *Checkboxes/radios: label + control share single hit target* and the
 - `components/landing/PricingSection.tsx:381` - the pricing info "i"
   button is `h-5 w-5` = **20x20 px**.
 
-**Fixed** - all three keep their exact visual size; the hit area is
-expanded to >=24 px via padding (dots) and an invisible pseudo-element
-(info dot).
+**Fixed** - each keeps its exact visual size while the hit area grows to
+>=24 px: padding on the dots, an invisible `::before` on the info dot.
+
+Measured in a browser against the production build, because the first
+attempt at this was wrong. `px-[3px]` around a 6 px dot fixed the height
+but left the PersonaBand buttons **12x24** - half the required width -
+and that shipped for four commits described as "clears the minimum". It
+took `px-[9px]` (9 + 6 + 9) to actually get there. Final measurements:
+
+| Control | Visible | Hit area |
+| --- | --- | --- |
+| PersonaBand dot, inactive | 6x6 | **24x24** |
+| PersonaBand dot, active | 24x6 | **42x24** |
+| Pricing info dot | 20x20 | **25x25** |
+
+The dot row is still 6 px tall (negative vertical margins absorb the
+padding), so the only visual change is the gap between dots, 6 px -> 18 px.
+The HeroChatPreview dots were fixed the same way and then removed
+entirely by the static rewrite under finding 8.
+
+Lesson worth keeping: a hit-target fix is not done until something has
+measured the rendered box. Reasoning about the padding arithmetic is how
+the 12x24 got written down as correct in the first place.
 
 ---
 

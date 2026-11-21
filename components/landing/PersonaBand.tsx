@@ -151,7 +151,13 @@ export default function PersonaBand() {
               aria-current={i === page ? 'true' : undefined}
               aria-label={`Industries page ${i + 1}`}
               onClick={() => setPage(i)}
-              className="-my-[9px] flex h-6 items-center px-[3px] py-[9px]"
+              // 24x24 minimum (WCAG 2.5.8). px-[9px] around the 6px dot is
+              // what gets the WIDTH there: 9 + 6 + 9 = 24. An earlier pass
+              // used px-[3px], which fixed the height but left these 12x24
+              // - measured in a browser, not assumed. The negative vertical
+              // margin keeps the row the same 6px tall it was, so only the
+              // spacing between dots changes.
+              className="-my-[9px] flex h-6 items-center px-[9px] py-[9px]"
             >
               <span
                 aria-hidden
