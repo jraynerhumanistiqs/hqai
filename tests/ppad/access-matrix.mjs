@@ -26,6 +26,7 @@ const MIGRATIONS = [
   'ppad_02_rls.sql',
   'ppad_03_rpcs.sql',
   'ppad_04_admin_rpcs.sql',
+  'ppad_05_release_gate.sql',
 ]
 
 let PGlite
@@ -103,7 +104,10 @@ async function denied(userKey, sql, params = []) {
 
 /** The set of person_ids whose records this user can actually read. */
 async function readableRecords(userKey) {
-  const { rows } = await as(userKey, `select person_id from ppad_records order by 1`)
+  // Reads go through ppad_list_records since ppad_05: the direct SELECT
+  // policy was withdrawn so an employee cannot pull the unredacted row with
+  // the token in their own browser.
+  const { rows } = await as(userKey, `select person_id from ppad_list_records() order by 1`)
   return rows.map(r => r.person_id)
 }
 
@@ -255,8 +259,7 @@ describe('tenant isolation', () => {
 describe('the field matrix is enforced by the RPC, not the UI', () => {
   // Helper: read a record as a user and hand back the row for editing.
   const load = async (who, pid) => {
-    const { rows } = await as(who, `select data, updated_at from ppad_records
-      where person_id=$1 and cycle_id=$2`, [pid, CYCLE])
+    const { rows } = await as(who, `select data, updated_at from ppad_read_record($1,$2)`, [pid, CYCLE])
     return rows[0]
   }
 
@@ -346,8 +349,7 @@ describe('the field matrix is enforced by the RPC, not the UI', () => {
   })
 
   test('a user with no relationship cannot write at all', async () => {
-    const { rows } = await as('M1', `select data, updated_at from ppad_records
-      where person_id='p_E1' and cycle_id=$1`, [CYCLE])
+    const { rows } = await as('M1', `select data, updated_at from ppad_read_record('p_E1',$1)`, [CYCLE])
     const msg = await denied('M2', `select * from ppad_save_record($1,$2,$3,$4)`,
       ['p_E1', CYCLE, JSON.stringify(rows[0].data), rows[0].updated_at])
     assert.match(msg, /no access to this record/)
@@ -366,7 +368,7 @@ describe('sign-off locks the record', () => {
   test('all three sign-offs lock it, and further writes are refused', async () => {
     // E1's record now has manager + reviewer sign-off from the tests above.
     const { rows: before } = await as('E1', `select data, updated_at, locked_at
-      from ppad_records where person_id='p_E1' and cycle_id=$1`, [CYCLE])
+      from ppad_read_record('p_E1',$1)`, [CYCLE])
     assert.equal(before[0].locked_at, null, 'not locked until all three')
 
     const d = before[0].data
@@ -395,8 +397,7 @@ describe('sign-off locks the record', () => {
 
 describe('optimistic locking', () => {
   test('a second session with a stale timestamp is refused, not silently merged', async () => {
-    const { rows: s1 } = await as('M1', `select data, updated_at from ppad_records
-      where person_id='p_E2' and cycle_id=$1`, [CYCLE])
+    const { rows: s1 } = await as('M1', `select data, updated_at from ppad_read_record('p_E2',$1)`, [CYCLE])
     const stale = s1[0].updated_at
 
     const a = s1[0].data; a.overallComment = 'first writer'
@@ -408,8 +409,7 @@ describe('optimistic locking', () => {
       ['p_E2', CYCLE, JSON.stringify(b), stale])
     assert.match(msg, /changed since you loaded it/)
 
-    const { rows } = await as('M1', `select data->>'overallComment' c from ppad_records
-      where person_id='p_E2' and cycle_id=$1`, [CYCLE])
+    const { rows } = await as('M1', `select data->>'overallComment' c from ppad_read_record('p_E2',$1)`, [CYCLE])
     assert.equal(rows[0].c, 'first writer', 'the first write must not be clobbered')
   })
 })
@@ -428,7 +428,7 @@ describe('allocations control access over time', () => {
     const after = await readableRecords('M1')
     assert.ok(!after.includes('p_E2'), 'access must end with the allocation')
     const { rows: past } = await as('M1',
-      `select count(*)::int n from ppad_records where person_id='p_E2' and cycle_id='c2025'`)
+      `select count(*)::int n from ppad_list_records() where person_id='p_E2' and cycle_id='c2025'`)
     assert.equal(past[0].n, 0, 'past cycles must go too')
   })
 
@@ -573,8 +573,7 @@ describe('one caller holding all three relationships', () => {
   })
 
   test('self, manager and reviewer fields all land in ONE save', async () => {
-    const { rows } = await as('M2', `select data, updated_at from ppad_records
-      where person_id = $1 and cycle_id = $2`, [pid, CYCLE])
+    const { rows } = await as('M2', `select data, updated_at from ppad_read_record($1,$2)`, [pid, CYCLE])
     const d = rows[0].data
     d.kpis[0].self = 6          // employee-owned
     d.kpis[0].mgr = 8           // manager-owned
@@ -603,8 +602,7 @@ describe('one caller holding all three relationships', () => {
 
   test('a rating set on a KPI the manager added in the same save is kept', async () => {
     await as('admin', `select ppad_unlock_record($1,$2)`, [pid, CYCLE])
-    const { rows } = await as('M2', `select data, updated_at from ppad_records
-      where person_id = $1 and cycle_id = $2`, [pid, CYCLE])
+    const { rows } = await as('M2', `select data, updated_at from ppad_read_record($1,$2)`, [pid, CYCLE])
     const d = rows[0].data
     // A brand new KPI has no stored counterpart, so the merge has to take
     // its self value from the payload rather than clamping it to null.
@@ -615,5 +613,95 @@ describe('one caller holding all three relationships', () => {
     const k = out[0].data.kpis.find(x => x.id === 'knew')
     assert.equal(k.self, 4, 'self on a newly added KPI is not clamped away')
     assert.equal(k.mgr, 5)
+  })
+})
+
+describe('manager ratings are withheld until the manager signs', () => {
+  // Decision (a). Before sign-off the subject sees their own half and
+  // nothing of the manager's; afterwards they see all of it.
+  const E = 'p_E2'   // M1 no longer manages E2 (ended earlier), so re-allocate
+  before(async () => {
+    await as('admin', `select ppad_set_allocation($1,$2,'manager')`, [E, U.M1])
+    await as('admin', `select ppad_link_person($1,$2)`, [U.E2, E])
+  })
+
+  const readAs = async (who) => {
+    const { rows } = await as(who, `select data, updated_at from ppad_read_record($1,$2)`, [E, CYCLE])
+    return rows[0]
+  }
+
+  test('the manager fills the record in', async () => {
+    const r = await readAs('M1')
+    const d = r.data
+    d.kpis[0].mgr = 9
+    d.kpis[0].result = 'Smashed it'
+    d.comps.A.mgr = 4
+    d.overall = 8
+    d.overallComment = 'Outstanding year'
+    d.achieveComment = 'Agreed'
+    d.notAssessed = false
+    await as('M1', `select * from ppad_save_record($1,$2,$3,$4)`,
+      [E, CYCLE, JSON.stringify(d), r.updated_at])
+    const back = await readAs('M1')
+    assert.equal(back.data.overall, 8, 'the manager sees what they wrote')
+  })
+
+  test('the employee sees NONE of it before sign-off', async () => {
+    const { data } = await readAs('E2')
+    assert.equal(data.kpis[0].mgr, null, 'manager rating withheld')
+    assert.equal(data.kpis[0].result, '', 'result withheld')
+    assert.equal(data.comps.A.mgr, null, 'competency rating withheld')
+    assert.equal(data.overall, null, 'overall withheld')
+    assert.equal(data.overallComment, '', 'rationale withheld')
+    assert.equal(data.achieveComment, '', "manager's comment withheld")
+  })
+
+  test('the employee cannot reach around it to the table', async () => {
+    // The whole point. If the direct select still worked, the redaction
+    // would only be hiding things from the honest.
+    const msg = await denied('E2', `select data from ppad_records where person_id = $1`, [E])
+    assert.match(msg, /permission denied|policy/)
+  })
+
+  test('the employee can still save their own half against the redacted copy', async () => {
+    // The trap: they cannot send back manager fields they were never shown,
+    // so a naive comparison would reject every employee save.
+    const r = await readAs('E2')
+    const d = r.data
+    d.kpis[0].self = 5
+    d.achievements = 'My account of the year'
+    const { rows } = await as('E2', `select * from ppad_save_record($1,$2,$3,$4)`,
+      [E, CYCLE, JSON.stringify(d), r.updated_at])
+    assert.equal(rows[0].data.kpis[0].self, 5)
+    assert.equal(rows[0].data.kpis[0].mgr, null, 'still redacted on the way back')
+  })
+
+  test('and the manager rating survived that employee save', async () => {
+    const { data } = await readAs('M1')
+    assert.equal(data.kpis[0].mgr, 9, 'not blanked by the redacted round trip')
+    assert.equal(data.overall, 8)
+    assert.equal(data.kpis[0].self, 5, 'and the employee edit landed')
+  })
+
+  test('after the manager signs, the employee sees everything', async () => {
+    const r = await readAs('M1')
+    const d = r.data
+    d.signoff.manager = { name: 'M1 Test', date: '2026-11-21' }
+    await as('M1', `select * from ppad_save_record($1,$2,$3,$4)`,
+      [E, CYCLE, JSON.stringify(d), r.updated_at])
+
+    const { data } = await readAs('E2')
+    assert.equal(data.kpis[0].mgr, 9, 'released')
+    assert.equal(data.overall, 8)
+    assert.equal(data.overallComment, 'Outstanding year')
+    assert.equal(data.kpis[0].result, 'Smashed it')
+  })
+
+  test('a reviewer always sees the manager half, signed or not', async () => {
+    // R1 reviews E1, whose manager has not signed.
+    const { rows } = await as('R1', `select data from ppad_read_record('p_E1',$1)`, [CYCLE])
+    assert.ok(rows.length === 1, 'reviewer can read it')
+    // E1's record carries a manager rating from the earlier matrix tests.
+    assert.ok(rows[0].data.kpis[0].mgr !== undefined)
   })
 })

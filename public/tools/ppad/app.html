@@ -680,27 +680,37 @@ function tMonitor(p, r){
 
 function tAssess(p, r){
   const k = kpiScore(r), ks = kpiScore(r,'self'), cs = compStats(r), sug = suggestOverall(r);
+  /* Who may write which half. The database enforces all of this again -
+     these only stop the UI offering a control whose save would be refused.
+     mgrRo also covers the employee's view BEFORE release: the values are
+     redacted server-side, so an editable-looking control would be offering
+     to overwrite something they cannot see. */
+  const mgrRo  = !canManage(p.id);
+  const selfRo = !isSelf(p.id);
+  const released = !!(r.signoff && r.signoff.manager && r.signoff.manager.date);
+  const awaiting = isSelf(p.id) && !canManage(p.id) && !canReview(p.id) && !released;
+  const banner = awaiting ? `<div class="note" style="margin-bottom:16px"><b>Your manager's assessment has not been released yet.</b> You will see their ratings and comments once they sign off. Record your own self-assessment below in the meantime.</div>` : '';
   const kTitles = {}; for (let i=1;i<=10;i++){ const b = KPI_SCALE.find(x=>i>=x[0]&&i<=x[1]); kTitles[i] = i+' — '+b[2]; }
   const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPI')}</b><div class="small muted">Target: ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
-    <div class="rates"><div class="f"><span>Self-rating</span>${seg('rec.kpis.'+i+'.self', x.self, 10, {titles:kTitles})}</div><div class="f"><span>Manager rating</span>${seg('rec.kpis.'+i+'.mgr', x.mgr, 10, {titles:kTitles})}</div>
-    <label class="f"><span>Result achieved</span><input class="in" data-f="rec.kpis.${i}.result" value="${esc(x.result)}" placeholder="Actual result"></label></div>
+    <div class="rates"><div class="f"><span>Self-rating</span>${seg('rec.kpis.'+i+'.self', x.self, 10, {titles:kTitles, ro:selfRo})}</div><div class="f"><span>Manager rating${awaiting?' <span class="muted small">(not released)</span>':''}</span>${seg('rec.kpis.'+i+'.mgr', x.mgr, 10, {titles:kTitles, ro:mgrRo})}</div>
+    <label class="f"><span>Result achieved</span><input class="in" data-f="rec.kpis.${i}.result" value="${esc(x.result)}" placeholder="Actual result" ${mgrRo?'readonly':''}></label></div>
     ${x.self!=null && x.mgr!=null && Math.abs(x.self-x.mgr)>=3 ? `<p class="small" style="margin:8px 0 0"><span class="pill warn">Ratings differ by ${Math.abs(x.self-x.mgr)} — discuss in the interview</span></p>`:''}</div>`).join('');
   const comps = !r.useComps ? '<p class="muted">Competencies are switched off for this person this cycle.</p>' : S.org.framework.clusters.map(cl => {
     const list = S.org.framework.comps.filter(c => c.cluster===cl && (r.comps[c.id]?.target||0) > 0); if (!list.length) return '';
     return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const v = r.comps[c.id]; const d = v.mgr!=null ? v.mgr - v.target : null;
       return `<div class="comp-a"><div><div style="font-weight:600">${esc(c.name)}</div><div class="small muted">${levelText(c, v.mgr!=null?v.mgr:v.target)}</div></div>
       <div style="text-align:center"><div class="lbl">Target</div><div class="tgt">${v.target}</div></div>
-      <div><div class="lbl">Self</div>${seg('rec.comps.'+c.id+'.self', v.self, c.levels.length, {target:v.target, titles:levelTitles(c)})}</div>
-      <div><div class="lbl">Manager</div>${seg('rec.comps.'+c.id+'.mgr', v.mgr, c.levels.length, {target:v.target, titles:levelTitles(c)})}</div>
+      <div><div class="lbl">Self</div>${seg('rec.comps.'+c.id+'.self', v.self, c.levels.length, {target:v.target, titles:levelTitles(c), ro:selfRo})}</div>
+      <div><div class="lbl">Manager</div>${seg('rec.comps.'+c.id+'.mgr', v.mgr, c.levels.length, {target:v.target, titles:levelTitles(c), ro:mgrRo})}</div>
       <div style="text-align:right">${d==null?'<span class="muted small">—</span>':d>0?`<span class="pill good">+${d} above</span>`:d===0?'<span class="pill acc">Met</span>':`<span class="pill bad">${d} gap</span>`}</div></div>`; }).join('')}</div>`; }).join('') || '<p class="muted">No competencies have a target. Set targets in the Plan.</p>';
-  return `<div class="grid g3">
+  return banner + `<div class="grid g3">
     <div class="card stat"><div class="k">What · KPI score</div><div class="v">${k!=null?k.toFixed(1):'—'}<span class="muted" style="font-size:14px"> /10</span></div><div class="d">Self ${ks!=null?ks.toFixed(1):'—'} · ${r.kpis.filter(x=>x.mgr!=null).length}/${r.kpis.length} rated</div></div>
     <div class="card stat"><div class="k">How · Competencies at target</div><div class="v">${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</div><div class="d">${cs?`${cs.met}/${cs.rated} met · ${cs.above} above · ${cs.below} below`:'Not used'}</div></div>
     <div class="card stat"><div class="k">Overall</div><div class="v">${r.notAssessed?'N/A':r.overall??'—'}</div><div class="d">${r.notAssessed?'Still learning the role':r.overall?esc(bandName(r.overall)):sug?'Suggested '+sug+' · '+esc(bandName(sug)):'Rate KPIs first'}</div></div>
   </div>
   <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Self-appraisal</h2><p>Completed by the employee before the appraisal interview.</p></div></div>
-    <div class="grid g2"><label class="f"><span>Key achievements this year (employee)</span><textarea class="in" rows="4" data-f="rec.achievements">${esc(r.achievements)}</textarea></label>
-    <label class="f"><span>Manager's comments on achievements</span><textarea class="in" rows="4" data-f="rec.achieveComment">${esc(r.achieveComment)}</textarea></label></div></div>
+    <div class="grid g2"><label class="f"><span>Key achievements this year (employee)</span><textarea class="in" rows="4" data-f="rec.achievements" ${selfRo?'readonly':''}>${esc(r.achievements)}</textarea></label>
+    <label class="f"><span>Manager's comments on achievements${awaiting?' <span class="muted small">(not released)</span>':''}</span><textarea class="in" rows="4" data-f="rec.achieveComment" ${mgrRo?'readonly':''}>${esc(r.achieveComment)}</textarea></label></div></div>
   <div class="card"><div class="card-h"><div><h2>What — KPI ratings</h2><p>Rate each KPI 1–10. Self-rating first, then manager.</p></div><button class="btn sm" data-act="kpi-scale">Rating guide</button></div>
     ${kpis || '<p class="muted">No KPIs in the plan.</p>'}</div>
   <div class="card"><div class="card-h"><div><h2>How — Competency assessment</h2><p>Select the level actually demonstrated across the full year. The underline marks the target.</p></div></div>${comps}</div>
@@ -708,7 +718,7 @@ function tAssess(p, r){
   <div class="card"><div class="card-h"><div><h2>Overall rating</h2><p>Consider both what was achieved and how. Focus on what the band means, not the number.</p></div><button class="btn sm" data-act="overall-guide">Band guide</button></div>
     <label class="chk small" style="margin-bottom:12px"><input type="checkbox" data-f="rec.notAssessed" data-rr ${r.notAssessed?'checked':''}> Not assessed — in role under 6 months or on extended leave</label>
     ${r.notAssessed ? '' : `<div class="row" style="gap:16px;align-items:flex-start"><div>${seg('rec.overall', r.overall, 9, {target:sug})}<div class="small muted" style="margin-top:6px">1–3 ${esc(S.org.bands.low)} · 4–6 ${esc(S.org.bands.mid)} · 7–9 ${esc(S.org.bands.high)}${sug?` · underline = suggested (${sug})`:''}</div></div>${r.overall?bandPill(r.overall):''}</div>`}
-    <label class="f" style="margin-top:14px"><span>Rationale and manager's comments</span><textarea class="in" rows="3" data-f="rec.overallComment">${esc(r.overallComment)}</textarea></label>
+    <label class="f" style="margin-top:14px"><span>Rationale and manager's comments${awaiting?' <span class="muted small">(not released)</span>':''}</span><textarea class="in" rows="3" data-f="rec.overallComment" ${mgrRo?'readonly':''}>${esc(r.overallComment)}</textarea></label>
   </div>
   <div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn pri" data-act="tab" data-v="develop">Development & sign-off →</button></div>`;
 }

@@ -106,8 +106,14 @@
       peopleUpdatedAt[row.person_id] = row.updated_at;
     });
 
-    // Reassemble person.records[cycleId] from the records table.
-    var recs = await rest('ppad_records?select=person_id,cycle_id,data,locked_at,updated_at');
+    // Reassemble person.records[cycleId].
+    //
+    // Through ppad_list_records, not a table read. Since ppad_05 the direct
+    // SELECT is revoked: an employee is handed their record with the
+    // manager's half stripped until their manager signs, and that can only
+    // hold if the raw row is out of reach. The function returns exactly the
+    // rows this caller may see, each already redacted for them.
+    var recs = await rpc('ppad_list_records');
     (recs || []).forEach(function (row) {
       var p = S.people[row.person_id];
       // A record whose person row RLS withheld should not happen, but if the
@@ -351,8 +357,7 @@
   // On a conflict, take the server's version. Losing the local edit is the
   // point: the alternative is overwriting whoever got there first.
   async function reloadRecord(personId, cycleId) {
-    var rows = await rest('ppad_records?select=data,locked_at,updated_at&person_id=eq.'
-      + encodeURIComponent(personId) + '&cycle_id=eq.' + encodeURIComponent(cycleId));
+    var rows = await rpc('ppad_read_record', { p_person_id: personId, p_cycle_id: cycleId });
     if (rows && rows[0] && S.people[personId]) {
       S.people[personId].records[cycleId] = Object.assign(rows[0].data, { lockedAt: rows[0].locked_at });
       updatedAt[personId + '|' + cycleId] = rows[0].updated_at;
