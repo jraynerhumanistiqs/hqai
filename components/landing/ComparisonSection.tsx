@@ -26,65 +26,62 @@ export default function ComparisonSection() {
           The same everyday HR and hiring support, minus the lock-in contract with exit penalties, and the wait. A fraction of the price. Cancel any time.
         </p>
 
-        {/* The outer overflow-hidden is what rounds the corners, and the
-            four-column table sat directly inside it - so at phone widths
-            the "DIY" column was CLIPPED with no way to reach it. The inner
-            overflow-x-auto gives it somewhere to scroll; tabIndex makes
-            that scroll reachable from the keyboard, which is why the
-            region carries its own accessible name. Desktop is unchanged:
-            the table still fits, so no scrollbar appears. */}
-        <div className="mt-10 overflow-hidden rounded-3xl border border-border bg-bg-elevated shadow-card">
-          <div
-            role="region"
-            aria-label="HQ.ai compared with a traditional retainer and DIY"
-            tabIndex={0}
-            className="overflow-x-auto"
-          >
-            <table className="w-full min-w-[40rem] text-left text-sm">
-              <thead className="bg-bg-soft text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
-                <tr>
-                  <th scope="col" className="px-5 py-4">&nbsp;</th>
-                  <th scope="col" className="px-5 py-4 text-accent">HQ.ai</th>
-                  <th scope="col" className="px-5 py-4">Traditional HR &amp; recruitment retainer</th>
-                  <th scope="col" className="px-5 py-4">DIY</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <th scope="row" className="px-5 py-4 font-medium text-ink">Average monthly cost</th>
-                  <td className="px-5 py-4 font-semibold text-ink">From $59</td>
-                  <td className="px-5 py-4 text-ink-soft">~$850/mo</td>
-                  <td className="px-5 py-4 text-ink-soft">$0 (with risk)</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="px-5 py-4 font-medium text-ink">Contract length</th>
-                  <td className="px-5 py-4 font-semibold text-ink">Cancel anytime</td>
-                  <td className="px-5 py-4 text-ink-soft">Multi-year lock-in (typical)</td>
-                  <td className="px-5 py-4 text-ink-soft">n/a</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="px-5 py-4 font-medium text-ink">Pricing</th>
-                  <td className="px-5 py-4 font-semibold text-ink">Published, transparent</td>
-                  <td className="px-5 py-4 text-ink-soft">Quote on a sales call</td>
-                  <td className="px-5 py-4 text-ink-soft">n/a</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="px-5 py-4 font-medium text-ink">
-                    <Cited placement="top" note="Answers you can act on, not a list of links to read.">Answers the everyday questions</Cited>
-                  </th>
-                  <td className="px-5 py-4 font-semibold text-ink">Yes</td>
-                  <td className="px-5 py-4 text-ink-soft">Sometimes</td>
-                  <td className="px-5 py-4 text-ink-soft">No</td>
-                </tr>
-                <tr>
-                  <th scope="row" className="px-5 py-4 font-medium text-ink">Covers hiring too</th>
-                  <td className="px-5 py-4 font-semibold text-ink">Yes - full recruit suite</td>
-                  <td className="px-5 py-4 text-ink-soft">Usually extra</td>
-                  <td className="px-5 py-4 text-ink-soft">No</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        {/* Four columns do not fit a phone, and overflow-hidden (there
+            for the rounded corners) was slicing the last header - at 390
+            "Traditional HR & recruitment retainer" lost 5px off its right
+            edge, with no way to read the rest. Scrolling the table
+            sideways keeps every cell reachable; the region is focusable
+            so it can be scrolled from the keyboard too. */}
+        <div
+          className="mt-10 overflow-x-auto rounded-3xl border border-border bg-bg-elevated shadow-card"
+          role="region"
+          aria-label="HQ.ai compared with a traditional retainer and doing it yourself"
+          tabIndex={0}
+        >
+          <table className="w-full text-left text-sm">
+            <thead className="bg-bg-soft text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              <tr>
+                <th scope="col" className="px-5 py-4">&nbsp;</th>
+                <th scope="col" className="px-5 py-4 text-accent">HQ.ai</th>
+                <th scope="col" className="px-5 py-4">Traditional HR &amp; recruitment retainer</th>
+                <th scope="col" className="px-5 py-4">DIY</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">Average monthly cost</th>
+                <td className="px-5 py-4 font-semibold text-ink">From $59</td>
+                <td className="px-5 py-4 text-ink-soft">~$850/mo</td>
+                <td className="px-5 py-4 text-ink-soft">$0 (with risk)</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">Contract length</th>
+                <td className="px-5 py-4 font-semibold text-ink">Cancel anytime</td>
+                <td className="px-5 py-4 text-ink-soft">Multi-year lock-in (typical)</td>
+                <td className="px-5 py-4 text-ink-soft">n/a</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">Pricing</th>
+                <td className="px-5 py-4 font-semibold text-ink">Published, transparent</td>
+                <td className="px-5 py-4 text-ink-soft">Quote on a sales call</td>
+                <td className="px-5 py-4 text-ink-soft">n/a</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">
+                  <Cited placement="top" note="Answers you can act on, with the working shown.">Answers the everyday questions</Cited>
+                </th>
+                <td className="px-5 py-4 font-semibold text-ink">Yes</td>
+                <td className="px-5 py-4 text-ink-soft">Sometimes</td>
+                <td className="px-5 py-4 text-ink-soft">No</td>
+              </tr>
+              <tr>
+                <th scope="row" className="px-5 py-4 font-medium text-ink">Covers hiring too</th>
+                <td className="px-5 py-4 font-semibold text-ink">Yes - full recruit suite</td>
+                <td className="px-5 py-4 text-ink-soft">Usually extra</td>
+                <td className="px-5 py-4 text-ink-soft">No</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         {/* Public-record buyer-beware callout. States a true Federal Court

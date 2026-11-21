@@ -13,14 +13,18 @@ import { useEffect, useRef, useState } from 'react'
 // (inverted) marketing palette lives under [data-app="marketing"] in
 // globals.css, so it applies only to pages with this nav - login,
 // onboarding and the dashboard are unaffected.
+//
+
 function useMarketingScope() {
   useEffect(() => {
     if (typeof document === 'undefined') return
     const html = document.documentElement
     const prev = html.getAttribute('data-app')
-    html.setAttribute('data-app', 'marketing')
+    if (prev !== 'marketing') html.setAttribute('data-app', 'marketing')
     return () => {
-      if (prev) html.setAttribute('data-app', prev)
+      // The inline script above has no cleanup of its own, so only hand
+      // back a value that was genuinely something else before us.
+      if (prev && prev !== 'marketing') html.setAttribute('data-app', prev)
       else html.removeAttribute('data-app')
     }
   }, [])
@@ -71,9 +75,14 @@ export default function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
         <Link href="/" aria-label="HQ.ai home" className="flex items-center">
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="h-7 w-auto" priority />
+          {/* The lockup renders at 28px tall (about 108px wide), so the
+              declared 1047x272 had Next preloading a 1080px-wide PNG for
+              it on every marketing page. These are the same 3.85:1 ratio
+              at 2x the painted size, which is what the srcset should be
+              choosing from. */}
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={216} height={56} className="h-7 w-auto" priority />
         </Link>
 
         {/* Desktop nav */}

@@ -42,33 +42,41 @@ const FAQS: Array<{ q: string; a: string }> = [
 export default function FaqSection() {
   return (
     <section className="bg-bg py-14 md:py-20" aria-labelledby="faq-heading">
-      <div className="mx-auto max-w-3xl px-6 md:px-10">
-        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
-          <span aria-hidden className="h-px w-5 bg-clay" />
-          Questions
-        </p>
-        <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
-          The stuff you&apos;re wondering.
-        </h2>
+      {/* The page container is max-w-6xl everywhere else, so the FAQ used
+          to be the one section whose heading did not start on the same
+          left line as the rest of the page - its max-w-3xl box centred
+          itself, putting the heading 192px further in at 1440. The
+          reading measure is worth keeping, so it stays as an inner
+          column anchored to the page's left line instead. */}
+      <div className="mx-auto max-w-6xl px-6 md:px-10">
+        <div className="max-w-3xl">
+          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+            <span aria-hidden className="h-px w-5 bg-clay" />
+            Questions
+          </p>
+          <h2 id="faq-heading" className="font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]">
+            The stuff you&apos;re wondering.
+          </h2>
 
-        <div className="mt-10 divide-y divide-border border-y border-border">
-          {FAQS.map((item) => (
-            <details key={item.q} name="faq" className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
-                <span className="text-base font-medium text-ink md:text-lg">{item.q}</span>
-                <svg
-                  aria-hidden
-                  viewBox="0 0 20 20"
-                  className="h-5 w-5 shrink-0 text-ink-muted group-open:rotate-180"
-                >
-                  <path d="M5 7l5 6 5-6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </summary>
-              <div className="pb-6">
-                <p className="text-sm leading-relaxed text-ink-soft md:text-base">{item.a}</p>
-              </div>
-            </details>
-          ))}
+          <div className="mt-10 divide-y divide-border border-y border-border">
+            {FAQS.map((item) => (
+              <details key={item.q} name="faq" className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left transition-colors hover:text-accent [&::-webkit-details-marker]:hidden">
+                  <span className="text-base font-medium text-ink md:text-lg">{item.q}</span>
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 20 20"
+                    className="h-5 w-5 shrink-0 text-ink-muted group-open:rotate-180"
+                  >
+                    <path d="M5 7l5 6 5-6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </summary>
+                <div className="pb-6">
+                  <p className="text-sm leading-relaxed text-ink-soft md:text-base">{item.a}</p>
+                </div>
+              </details>
+            ))}
+          </div>
         </div>
       </div>
     </section>

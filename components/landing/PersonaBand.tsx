@@ -87,7 +87,7 @@ export default function PersonaBand() {
               id="persona-heading"
               className="max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink md:text-[40px]"
             >
-              Built for your industry, not a corporate HR team.
+              Built for your industry, from pubs to clinics.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
               No matter the industry or the types of everyday people challenges you face, HQ.ai has the answers.
@@ -112,7 +112,12 @@ export default function PersonaBand() {
           <div
             key={page}
             className={[
-              'grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6',
+              // Three cards a page, so the grid goes straight from one
+              // column to three. The old sm:grid-cols-2 stage left the
+              // third card alone in a two-column row at 768 and 820 -
+              // half the row empty, which is the width a tablet is held
+              // at.
+              'grid gap-4 md:grid-cols-3 md:gap-6',
               reduced ? '' : 'persona-fade',
             ].join(' ')}
           >
@@ -135,15 +140,18 @@ export default function PersonaBand() {
         </div>
 
         {/* Dots.
-            Nov 2026 - same two fixes as HeroChatPreview's dots: the
-            role="tab" buttons had no aria-controls and no tabpanel to
-            control (the card region is a role="group"), so the tabs
-            pattern was advertised but not implemented; and the dot itself
-            was the button, giving a 6x6 px hit target against WCAG
-            2.5.8's 24x24. The dot is now a child span inside a
-            24px-tall padded button - identical visually, tappable in
-            practice. */}
-        <div className="mt-8 flex items-center justify-center" role="group" aria-label="Industry pages">
+            The dot stays 6px tall - it is a position indicator, not a
+            button you aim at by sight. What changes is the target: each
+            carries a 44px hit area, because at 6x6px with a 6px gap a
+            thumb genuinely lands on the wrong page. The row's gap closes
+            to 0 so the targets sit shoulder to shoulder without
+            overlapping.
+
+            role="group", not "tablist": there are no tabpanels here and
+            the arrow-key handler is on the card region, so a tablist
+            would announce a pattern this does not implement. The dots
+            carry aria-current instead. */}
+        <div className="mt-4 flex items-center justify-center" role="group" aria-label="Industry pages">
           {Array.from({ length: PAGES }).map((_, i) => (
             <button
               key={i}
@@ -151,17 +159,11 @@ export default function PersonaBand() {
               aria-current={i === page ? 'true' : undefined}
               aria-label={`Industries page ${i + 1}`}
               onClick={() => setPage(i)}
-              // 24x24 minimum (WCAG 2.5.8). px-[9px] around the 6px dot is
-              // what gets the WIDTH there: 9 + 6 + 9 = 24. An earlier pass
-              // used px-[3px], which fixed the height but left these 12x24
-              // - measured in a browser, not assumed. The negative vertical
-              // margin keeps the row the same 6px tall it was, so only the
-              // spacing between dots changes.
-              className="-my-[9px] flex h-6 items-center px-[9px] py-[9px]"
+              className="group flex h-11 w-8 items-center justify-center"
             >
               <span
                 aria-hidden
-                className={`block h-1.5 rounded-full transition-[width,background-color] ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
+                className={`block h-1.5 rounded-full transition-[width,background-color] ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border group-hover:bg-ink-muted'}`}
               />
             </button>
           ))}

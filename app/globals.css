@@ -175,7 +175,14 @@
 
     --ink:              245 245 244;
     --ink-soft:         168 168 163;
-    --ink-muted:        124 124 119;
+    /* 124 124 119 read 4.02:1 on bg-elevated and 4.39:1 on bg-soft -
+       under AA for the small labels that use it (the preview card
+       headers, "Without HQ.ai", the scorecard's row names). Lifted to
+       the first value that clears 4.5:1 on all three marketing
+       surfaces: 5.56 on bg, 5.17 on bg-soft, 4.74 on bg-elevated. Still
+       a clear third step under --ink-soft 168. Marketing scope only -
+       the product ramp is a different set of surfaces. */
+    --ink-muted:        136 136 131;
     --ink-on-accent:    17 17 17;
 
     /* Secondary "black" accent inverts to light on dark. */
@@ -713,4 +720,49 @@
   .hq-hero-rise,
   .hq-hero-lead,
   .hq-hero-backdrop { animation: none; }
+}
+
+/* ---- In-card reveals -------------------------------------------------
+   The same rule as the hero, for the small staged reveals inside the
+   product previews (a chat answer arriving, a score bar filling).
+
+   Those used to be driven by React state that started "hidden" and was
+   raised by a timer: `useState(reduced ? 2 : 0)`, where `reduced` is
+   itself only known after an effect. So the resting state WAS the hidden
+   state, and anything that stopped the timer chain left the content at
+   opacity 0 for good - which is what happened under
+   prefers-reduced-motion (the phase state was initialised before the
+   media query had been read, and the advancing effect then bailed out),
+   and to any visitor whose JS never got that far.
+
+   Expressed as keyframes, the resting state is the FINISHED state: with
+   `both` the element holds the TO frame, and the reduced-motion block
+   below removes the animation entirely, which leaves the plain CSS -
+   visible. There is no code path left that can hide this content.
+
+   --hq-delay staggers the parts of one reveal without a second class. */
+@keyframes hq-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hq-bar-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.hq-reveal {
+  animation: hq-reveal .5s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: var(--hq-delay, 0ms);
+}
+/* The bar's own width carries the score, so the fill animates on the X
+   axis from its left edge and never on `width` - a width keyframe would
+   need the score baked into the CSS. */
+.hq-bar-fill {
+  transform-origin: left center;
+  animation: hq-bar-fill .9s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: var(--hq-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hq-reveal,
+  .hq-bar-fill { animation: none; }
 }
