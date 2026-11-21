@@ -82,7 +82,13 @@ export default function HeroSection({ backgroundImage }: Props) {
         </>
       )}
 
-      <div className="mx-auto grid max-w-6xl items-start gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
+      {/* The columns stay centred on each other. Top-aligning them lines
+          the preview up with the h1, which is tidier on paper, but the
+          copy column is much the taller of the two and all ~230px of the
+          difference then piles up under the preview as one dead block.
+          Centred, that space splits above and below, which reads better
+          at every width this hero is actually seen at. */}
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-14 pt-8 md:grid-cols-[1fr_1.05fr] md:gap-12 md:px-10 md:pb-20 md:pt-12 lg:gap-16">
         {/* Left: copy block.
             relative z-20 lifts this column's stacking context above the
             right-hand preview column. Both columns get a transform from the
