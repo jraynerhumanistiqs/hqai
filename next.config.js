@@ -79,6 +79,18 @@ const nextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        // HQ Performance (PPAD). The app document is a static file under
+        // public/, so unlike the /dashboard route that frames it, it is
+        // directly reachable and would otherwise be crawlable. It carries its
+        // own noindex meta too; this covers the case where a crawler reads
+        // headers without executing the page. There is no root sitemap to
+        // exclude it from (only app/careers/sitemap.ts, which is scoped).
+        source: '/tools/ppad/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      },
     ]
   },
   async redirects() {
