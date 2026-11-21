@@ -14,6 +14,9 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './tests/ppad/e2e',
   testIgnore: '**/global-setup.ts',
+  // Screenshots are a PR artefact, not a check. Run them deliberately:
+  //   npx playwright test --project=desktop -g @screenshots
+  grepInvert: process.env.PPAD_E2E_SCREENSHOTS ? undefined : /@screenshots/,
   // Compile the route once before any test, so the first few do not race
   // the dev server's on-demand build. See the file for what that looked like.
   globalSetup: './tests/ppad/e2e/global-setup.ts',
