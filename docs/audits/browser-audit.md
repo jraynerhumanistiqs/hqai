@@ -13,9 +13,24 @@ Screenshots: `docs/audits/screenshots/` (65 files, `<page>-<viewport>.png` plus
 named evidence shots).
 
 **Findings 1 and 2 have since been fixed and re-verified in the browser** (see
-the status note on each). Findings 3-7 are listed with a recommended fix
+the status note on each). Findings 3-7 were listed with a recommended fix
 rather than applied - no other defect fell into the "missing `alt` / trivial
 console error" class the audit itself authorised fixing.
+
+> **Status update, 2026-11-21 (post-merge).** This audit was run against base
+> `8917902`, which was ~52 commits behind `main`. `origin/main` was then merged
+> into this branch (`096760c`), and **findings 3, 4, 5 and 6 had already been
+> fixed independently on `main`** - by the web-design-guidelines and taste-skill
+> work, not by this audit. Each is marked below. **Finding 7 is the only one
+> still open.** Read the per-finding status notes before acting on anything
+> here.
+>
+> Those four statuses were confirmed by **reading the component source on
+> `origin/main`, not by re-running the browser.** That distinction matters in
+> this document more than most: the whole point of the audit was that source
+> reading missed all seven of these. Source proves the handler exists; it does
+> not prove focus actually moves or the menu actually closes. **A live re-run
+> against the merged tree is still worth doing** and has not been done.
 
 ---
 
@@ -33,11 +48,11 @@ The bugs are all in behaviour, and all seven were invisible to static review:
 |---|----------|---------|------|
 | 1 | High - **FIXED** | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
 | 2 | High - **FIXED** | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
-| 3 | Medium-high | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
-| 4 | Medium-high | ToolExplorer discards the tab the user picked after 6.5s | `/` |
-| 5 | Medium | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
-| 6 | Low-medium | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
-| 7 | Low | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
+| 3 | Medium-high - **FIXED ON MAIN** | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
+| 4 | Medium-high - **FIXED ON MAIN** | ToolExplorer discards the tab the user picked after 6.5s | `/` |
+| 5 | Medium - **PARTLY FIXED ON MAIN** | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
+| 6 | Low-medium - **FIXED ON MAIN** | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
+| 7 | Low - **STILL OPEN** | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
 
 Two things the brief expected to be broken are **not** broken - see
 [Expected findings that did not reproduce](#expected-findings-that-did-not-reproduce).
@@ -289,7 +304,12 @@ The server-side validation is untouched and still the real gate.
 
 ---
 
-## 3. Products dropdown cannot be dismissed by keyboard (Medium-high)
+## 3. Products dropdown cannot be dismissed by keyboard (Medium-high - FIXED ON MAIN)
+
+> **Fixed on `origin/main`, not by this audit.** `MarketingHeader` now has an
+> Escape keydown handler that closes both menus, plus `aria-haspopup` and
+> `aria-controls`. Source-verified on `origin/main`; not re-run in a browser.
+> Worth a live check that Escape also returns focus to the trigger.
 
 **Pages:** every marketing page (shared `MarketingHeader`)
 **Viewport:** 1440x900
@@ -333,7 +353,12 @@ already do.
 
 ---
 
-## 4. ToolExplorer throws away the tab the user chose (Medium-high)
+## 4. ToolExplorer throws away the tab the user chose (Medium-high - FIXED ON MAIN)
+
+> **Fixed on `origin/main`, more thoroughly than recommended here.** Rather
+> than pausing the rotation on interaction, the auto-advance was removed
+> outright - `DWELL_MS` no longer appears in the component. That resolves the
+> WCAG 2.2.2 concern below completely. Source-verified on `origin/main`.
 
 **Page:** `/` ("One login. Everything people and hiring.")
 **Viewport:** all
@@ -390,7 +415,29 @@ pause permanently once the user has expressed a choice.
 
 ---
 
-## 5. Carousel dots are 6x6 px tap targets (Medium)
+## 5. Carousel dots are 6x6 px tap targets (Medium - PARTLY FIXED ON MAIN)
+
+> **Both halves of this finding changed on `origin/main`, in different ways.**
+> This finding covered two components; check them separately.
+>
+> - **`PersonaBand` dots: raised to the WCAG floor, still under the house
+>   rule.** They now carry a 24x24 hit area (`px-[9px] py-[9px]` around the 6px
+>   visual dot), clearing WCAG 2.5.8's 24px minimum. But the project's own
+>   `tailwind.config.ts` documents **44px** (`min-h-touch`, "A0.7 ... Use
+>   `min-h-touch` on icon-only buttons"), so by house rule they are still
+>   under-size - as are the `PersonaBand` paging arrows at `h-9 w-9` (36px).
+>   The `skill/taste-skill` branch reportedly carries a 44px version; that is
+>   the one that satisfies the documented rule.
+> - **`HeroChatPreview` dots: resolved by removal, not resizing.** On
+>   `origin/main` that component has no `<button>` and no `onClick` at all -
+>   the clickable example dots were taken out. At this audit's base they were
+>   `<button onClick={() => setActive(i)}>` (`HeroChatPreview.tsx:128-134`).
+>   So the 6x6px target is gone, but so is the ability to pick an example.
+>   **Whether that was deliberate is worth confirming with whoever changed it**
+>   - if the dots were meant to stay interactive, this is a regression rather
+>   than a fix, and the tap-target finding would come back with them.
+>
+> Source-verified on `origin/main`; not re-run in a browser.
 
 **Page:** `/`
 **Viewport:** 390x844
@@ -438,7 +485,12 @@ Only measuring the rendered box shows there is no padding expanding the target.
 
 ---
 
-## 6. ToolExplorer tablist has no arrow-key support (Low-medium)
+## 6. ToolExplorer tablist has no arrow-key support (Low-medium - FIXED ON MAIN)
+
+> **Fixed on `origin/main`, not by this audit.** Arrow Left/Right, Home and End
+> are handled, with a roving `tabIndex`. Source-verified on `origin/main`; a
+> live run should confirm focus actually follows selection, which source cannot
+> show.
 
 **Page:** `/`
 **Viewport:** 1440x900
@@ -462,7 +514,11 @@ particular key handling.
 
 ---
 
-## 7. Mobile menu button is 40x40 px (Low)
+## 7. Mobile menu button is 40x40 px (Low - STILL OPEN)
+
+> **Still open on `origin/main`** - the button is `h-10 w-10` (40px) against the
+> 44px the project documents. This is the one finding of 3-7 that nobody has
+> picked up.
 
 **Pages:** every marketing page
 **Viewport:** 390x844
