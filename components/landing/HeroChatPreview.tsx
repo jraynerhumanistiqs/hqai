@@ -1,16 +1,30 @@
 'use client'
 
-// Animated HQ People chat preview - the landing page's "signature moment"
-// from the research brief. Cycles through a few everyday HR questions,
-// crossfading each question + answer with a small speed marker. Auto-
-// advances, pauses on hover/focus, and honours prefers-reduced-motion
-// (no auto-cycle; the dots become manual controls).
+// HQ People chat preview - the landing page's "signature moment" from the
+// research brief. A few everyday HR questions, each with its answer and a
+// small speed marker; the dots below switch between them and the cards
+// crossfade on the way.
+//
+// VISITOR-DRIVEN ONLY - do not reintroduce auto-advance. It used to cycle
+// every 4.8s, which WCAG 2.2.2 treats as moving content needing a pause,
+// stop or hide mechanism once it runs past five seconds. The dots were
+// technically that mechanism, but a row of 6px dots is not a pause button
+// anyone recognises, and on touch the card swapped under a reader
+// mid-sentence. Nov 2026, after the Web Interface Guidelines audit and in
+// step with the same change on ToolExplorer - see
+// docs/audits/web-interface-guidelines.md.
+//
+// There is no prefers-reduced-motion branch left to carry: nothing moves
+// until the visitor asks it to, and the global reduce-motion block in
+// app/globals.css already collapses the crossfade. Note that the resting
+// state here is the FIRST exchange fully rendered, not a blank card -
+// visibility never depends on an animation running (CLAUDE.md).
 //
 // Copy rules: Australian English, plain hyphens only, no competitor
 // names, ASCII apostrophes. Answers are illustrative and helpful, in
 // plain English - not legal advice.
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 interface Exchange {
   q: string
@@ -41,46 +55,14 @@ const EXCHANGES: Exchange[] = [
   },
 ]
 
-const DWELL_MS = 4800
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener?.('change', handler)
-    return () => mq.removeEventListener?.('change', handler)
-  }, [])
-  return reduced
-}
-
 export default function HeroChatPreview() {
   const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const reduced = usePrefersReducedMotion()
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => {
-    if (reduced || paused) return
-    timer.current = setInterval(() => {
-      setActive((i) => (i + 1) % EXCHANGES.length)
-    }, DWELL_MS)
-    return () => {
-      if (timer.current) clearInterval(timer.current)
-    }
-  }, [reduced, paused])
 
   return (
     <div
       className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float"
       role="group"
       aria-label="HQ People - example HR answers"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
     >
       <div className="flex items-center gap-2 border-b border-border pb-3">
         <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
@@ -121,8 +103,8 @@ export default function HeroChatPreview() {
         ))}
       </div>
 
-      {/* Progress dots - also manual controls (the only way to advance
-          under reduced motion).
+      {/* The dots are the only way to change the card, now that nothing
+          advances on its own.
 
           Nov 2026 - two fixes here:
           1. role="tablist"/"tab" promised the tabs pattern without

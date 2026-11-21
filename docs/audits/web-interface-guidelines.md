@@ -110,7 +110,7 @@ mirrors the product one (including its documented text-entry exception),
 at a specificity that lets the existing per-control gold outlines keep
 winning. Pages that render no `MarketingHeader` (privacy, terms, careers)
 still have no `data-app`, so they keep the browser default - see
-"Not fixed" #4.
+"Not fixed" #3.
 
 ### 4. Form labels are not associated with their inputs
 
@@ -174,28 +174,45 @@ expanded to >=24 px via padding (dots) and an invisible pseudo-element
 
 ## Medium
 
-### 8. Auto-advancing carousel with no pause control
+### 8. Auto-advancing carousels with no pause control
 
 `components/landing/ToolExplorer.tsx` (was a 6.5 s dwell, infinite loop)
+`components/landing/HeroChatPreview.tsx` (was a 4.8 s dwell, infinite loop)
 
 Rule: *Autoplay motion >5 seconds alongside other content needs pause,
 stop, or hide controls*. WCAG 2.2.2.
 
-It paused on hover and focus and honoured reduced motion, which covered
-pointer and keyboard users. Touch users got neither - the panel swapped
-under them while they read, including the CTA they were reaching for.
+Both paused on hover and focus and honoured reduced motion, which covered
+pointer and keyboard users. Touch users got neither - the card swapped
+under them while they read, in ToolExplorer's case including the CTA they
+were reaching for. HeroChatPreview's dots were technically the required
+mechanism, but a row of 6 px dots is not a pause control anyone
+recognises.
 
-**Fixed** - the auto-advance is gone entirely (founder call, Nov 2026).
-With only two tabs, both visible and labelled, the rotation competed with
-the reader rather than inviting exploration, so removing it was the
-better answer than wrapping it in a pause control. The `paused`,
-`userPicked`, `DWELL_MS` and interval machinery and the hover/focus pause
-handlers all went with it; the tabs are visitor-driven only. The 420 ms
-`.tool-fade` on tab switch stays - it answers a deliberate interaction
-and is already reduced-motion guarded.
+**Fixed** - both auto-advances are gone entirely (founder call,
+Nov 2026), rather than being wrapped in pause controls. Between them that
+removed two `DWELL_MS` constants, two interval effects and their timer
+refs, the `paused` and `userPicked` state, and eight hover/focus pause
+handlers. Both are visitor-driven only now, and both file headers say so
+so it does not get reintroduced.
 
-`components/landing/HeroChatPreview.tsx:65` has the same auto-advance at
-4.8 s but does expose manual dot controls, so it is acceptable.
+Two things deliberately kept: the 420 ms `.tool-fade` on ToolExplorer's
+tab switch and the 500 ms crossfade on HeroChatPreview's dots. Each
+answers a deliberate interaction rather than running on its own, and both
+are already reduced-motion guarded.
+
+HeroChatPreview no longer needs a `prefers-reduced-motion` branch at all,
+so its local `usePrefersReducedMotion` hook went too - which is why the
+lint warning count drops by one below the recorded baseline. Its resting
+state is the first exchange fully rendered, so visibility still never
+depends on an animation running (CLAUDE.md).
+
+Trade-off worth naming: the hero preview now shows one exchange unless
+the visitor clicks a dot, so three of the four example answers go unseen
+by most people. That is a content decision, not an accessibility one -
+if those answers are load-bearing for the pitch, they want a layout that
+shows more than one at a time rather than a rotation that shows them to
+nobody who scrolls past.
 
 ### 9. Fake buttons in the tab order
 
@@ -296,7 +313,7 @@ Rule: *Async updates (toasts, validation) need `aria-live="polite"`*.
 
 Rule: *Native `<select>`: explicit `background-color` and `color`*. The
 colours are set correctly; the problem is that five selects now look
-exactly like text inputs. Reported, not fixed - see "Not fixed" #2.
+exactly like text inputs. Reported, not fixed - see "Not fixed" #1.
 
 ### 16. Product dropdown misses its disclosure semantics and Escape
 
@@ -323,7 +340,7 @@ Team size and billing cycle live in `useState`, so an annual-pricing view
 cannot be linked, shared or restored. Same for the PersonaBand page index
 (`components/landing/PersonaBand.tsx:58`) and the ToolExplorer tab.
 
-Reported, not fixed - see "Not fixed" #3.
+Reported, not fixed - see "Not fixed" #2.
 
 ---
 
@@ -444,14 +461,14 @@ No `app/layout.tsx` or `MarketingHeader` skip link exists anywhere.
 Rule: *Headings hierarchical; include skip link for main content*. Every
 page does provide a `<main>` landmark, so landmark navigation works; the
 gap is the visible keyboard shortcut past the header. Adding one means
-new visible chrome on focus. See "Not fixed" #5.
+new visible chrome on focus. See "Not fixed" #4.
 
 ### 31. No `<meta name="theme-color">`
 
 `app/layout.tsx`. Rule: *`<meta name="theme-color">` matches page
 background*. Marketing is a fixed dark slab (`#0A0A0B`), product toggles
 light/dark, and the legal pages are light - one static value would be
-wrong on two of the three. See "Not fixed" #6.
+wrong on two of the three. See "Not fixed" #5.
 
 ### 32. Five differently-named links to one destination
 
@@ -522,23 +539,14 @@ Tailwind preflight already stripped the default `dl` margins.
 
 ## Not fixed - needs a decision
 
-1. **The HeroChatPreview still auto-advances** (`components/landing/HeroChatPreview.tsx:65`,
-   4.8 s dwell, infinite loop). Left alone deliberately: unlike
-   ToolExplorer it exposes manual dot controls, pauses on hover and focus,
-   and honours reduced motion, so there is a mechanism to stop it. It also
-   *is* the hero's "live product" moment rather than a container for copy
-   the visitor is trying to read. Worth revisiting only if the same
-   objection that retired ToolExplorer's rotation applies here too - the
-   dots are the pause affordance, which is subtle.
-
-2. **A chevron on the enterprise selects** (finding 15). `appearance-none`
+1. **A chevron on the enterprise selects** (finding 15). `appearance-none`
    removed the native arrow and `pr-10` reserves space for a replacement
    that was never drawn, so five required dropdowns read as text inputs.
    The fix is adding a glyph - new visual chrome on a form I was asked
    not to redesign. Either draw the chevron or drop `appearance-none` and
    accept the native control.
 
-3. **Putting pricing state in the URL** (finding 17). The right fix is
+2. **Putting pricing state in the URL** (finding 17). The right fix is
    `nuqs` or `useSearchParams` on `PricingSection`, which mounts on both
    `/` and `/pricing`. That means deciding whether `/?cycle=annual` is a
    URL you want crawled and canonicalised alongside `/pricing`, plus
@@ -546,7 +554,7 @@ Tailwind preflight already stripped the default `dl` margins.
    Worth doing - sales links to annual pricing are a real use case - but
    it is a routing decision, not a cleanup.
 
-4. **The legal and careers pages are a different website.** `app/privacy`,
+3. **The legal and careers pages are a different website.** `app/privacy`,
    `app/privacy/request`, `app/terms` and `app/careers` never mount
    `MarketingHeader`, so they get no `data-app` attribute, fall through to
    the light `:root` palette, and use literal `bg-white` / `bg-black` /
@@ -562,17 +570,17 @@ Tailwind preflight already stripped the default `dl` margins.
    legal pages join the dark marketing surface or stay deliberately plain.
    This is the largest single piece of remaining work.
 
-5. **A skip link** (finding 30). Standard pattern is a visually hidden
+4. **A skip link** (finding 30). Standard pattern is a visually hidden
    anchor that appears on focus. It needs an `id` on each page's `<main>`,
    a focus style, and agreement on where it sits in the header. Low risk,
    but it adds visible chrome and touches 15 files.
 
-6. **`theme-color`** (finding 31). Needs per-surface values -
+5. **`theme-color`** (finding 31). Needs per-surface values -
    `#0A0A0B` for marketing, the product ramp for the dashboard, white for
    the legal pages - which means per-route `metadata` exports rather than
    one tag in the root layout.
 
-7. **Marketing text inputs rely on a 1 px border colour change for focus.**
+6. **Marketing text inputs rely on a 1 px border colour change for focus.**
    `components/landing/ContactForm.tsx:40` (`outline-none focus:border-ink`),
    `components/enterprise/EnterpriseInquiryForm.tsx:93` and `:251`
    (`focus:outline-none focus:ring-2 focus:ring-accent/20`),
@@ -585,7 +593,7 @@ Tailwind preflight already stripped the default `dl` margins.
    on the privacy page the replacement is a hardcoded `border-black`.
    Reversing the founder call is not mine to make.
 
-8. **`components/landing/ComparisonSection.tsx:80`** - the buyer-beware
+7. **`components/landing/ComparisonSection.tsx:80`** - the buyer-beware
    callout uses `border-warning/30 bg-warning/5`, but `--warning` is not
    redefined under `[data-app="marketing"]`, so the dark slab inherits the
    light-surface value `#A84600` from `:root` (`app/globals.css:402` sets
@@ -596,7 +604,7 @@ Tailwind preflight already stripped the default `dl` margins.
    which is a token decision, and CLAUDE.md warns that every foreground on
    a changed surface has to be re-checked.
 
-9. **`app/compare/page.tsx:87`** renders a comparison grid out of `<div>`s
+8. **`app/compare/page.tsx:87`** renders a comparison grid out of `<div>`s
    with `md:hidden` row labels. On desktop those labels are
    `display: none`, so a screen reader gets three unlabelled paragraphs
    per row with the column headings announced only once at the top. It is
@@ -650,6 +658,7 @@ Tailwind preflight already stripped the default `dl` margins.
 | Low | 19 | 9 |
 | **Total** | **36** | **24** |
 
-All eight fixed Medium findings are now fully fixed - finding 8 was
-closed by dropping ToolExplorer's auto-advance outright rather than
-adding a pause control.
+All eight fixed Medium findings are now fully fixed. Finding 8 was closed
+by dropping the auto-advance outright on both carousels rather than
+adding pause controls, which also emptied the carousel entry from the
+"Not fixed" list - eight items remain there.
