@@ -406,7 +406,7 @@ function vPerson(){
   const prof = S.org.profiles.find(x => x.id === p.profileId);
   const head = `${employeeOnly() ? '' : '<a class="back" href="#people">← People</a>'}
   <div class="head" style="margin-bottom:0"><div class="ph"><span class="av">${esc(initials(p))}</span><div><h1>${esc(fullName(p))}</h1><p class="sub" style="margin:2px 0 0">${esc([p.position, p.dept].filter(Boolean).join(' · ') || 'No position set')}${S.pds[p.pdId] ? ` · <a href="#pd-${p.pdId}">PD: ${esc(S.pds[p.pdId].title)}</a>` : prof ? ' · '+esc(prof.name) : ''}</p></div></div>
-  <div class="row">${canManage(p.id) || (S.me && S.me.isAdmin) ? '<button class="btn" data-act="edit-person">Details</button>' : ''}${r?`<button class="btn" data-act="export-appraisal">Export</button>`:''}</div></div>`;
+  <div class="row">${canManage(p.id) || (S.me && S.me.isAdmin) ? '<button class="btn" data-act="edit-person">Details</button>' : ''}${r && !employeeOnly() ? `<button class="btn" data-act="export-appraisal">Export</button>` : ''}</div></div>`;
   /* Only an allocated manager can create a record - the database refuses
      anyone else, so offering the button to anyone else is offering an error.
      An admin who has not allocated themselves gets told what is missing
@@ -557,7 +557,7 @@ function tDevelop(p, r){
   </div>
   <div class="card"><div class="card-h"><div><h2>Sign-off</h2><p>Once signed, the appraisal goes to the manager's manager, then to HR for processing.</p></div></div>
     <div class="grid g3">${sig('employee','Employee')}${sig('manager','Manager')}${sig('mgrMgr',"Manager's manager")}</div></div>
-  <div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-act="export-appraisal">Export appraisal</button></div>`;
+  ${employeeOnly() ? '' : `<div class="row" style="justify-content:flex-end;margin-top:18px"><button class="btn" data-act="export-appraisal">Export appraisal</button></div>`}`;
 }
 
 /* ---------- role profiles ---------- */
@@ -877,7 +877,7 @@ const ACT = {
   },
   erase: () => confirmBox('Erase all data?', 'Every person, record, profile and setting will be deleted. Export a backup first.', 'Erase everything', () => { Object.keys(S.people).forEach(id => store.mark('p_'+id)); Object.keys(S.pds).forEach(id => store.mark('d_'+id)); S.people = {}; S.pds = {}; S.org = newOrg(); if (PRESET) applyPreset(); saveOrg(); applyBrand(); go('dashboard'); }, true),
   sample: () => { loadSample(); toast('Sample data loaded'); go('dashboard'); },
-  'export-appraisal': () => exportAppraisal(curP(), curR()),
+  'export-appraisal': () => { if (exportGuard()) exportAppraisal(curP(), curR()); },
   'csv-summary': () => csvSummary(),
   'csv-tna': () => csvTna(),
   'acc-invite': () => modal('<h2>Invite someone</h2><p class="sub">They get an email with a link to set a password. They will see nothing until you link them to a person or allocate them.</p>'
@@ -944,13 +944,22 @@ async function download(filename, data, type){
 }
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
 const toCsv = rows => rows.map(r => r.map(csvCell).join(',')).join('\n');
-/* CSV exports carry only the records the caller can already read - which is
+/* Exports carry only the records the caller can already read - which is
    automatic, because peopleList() reads S.people and S.people only ever held
-   what RLS returned. The guard here is about WHO may export at all: an
-   employee-only user has exactly one record and no business pulling it into
-   a spreadsheet of "the team". */
+   what RLS returned, and an employee's copy is redacted server-side anyway.
+   The guard is about WHO may export at all.
+
+   It covers the single-record appraisal as well as the CSVs. An employee
+   taking a copy of their own appraisal is defensible, and the file would
+   carry nothing they cannot already see on screen - but the owner's rule is
+   that exports are for managers and admins, and a quiet exception to a
+   stated access rule is how access rules stop meaning anything. If an
+   employee needs a copy, their manager exports it.
+
+   Applied in the action, not only by hiding buttons: data-act handlers are
+   reachable from the console, and "we removed the button" is not a rule. */
 function exportGuard(){
-  if (employeeOnly()){ toast('Exports are for managers and admins'); return false; }
+  if (employeeOnly()){ toast('Exports are for managers and admins - ask your manager for a copy'); return false; }
   return true;
 }
 function csvSummary(){

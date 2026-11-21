@@ -1,5 +1,11 @@
 import { test, expect } from './fixture'
 
+// Declared, not reached through window. ACT is a top-level `const` in
+// app.js, so like S it lives in the global LEXICAL environment and never
+// appears as a window property - window.ACT is undefined. A bare reference
+// inside a page function resolves to it.
+declare const ACT: Record<string, (el?: unknown) => void>
+
 /**
  * What the UI actually shows each role, in a real browser.
  *
@@ -48,18 +54,41 @@ test.describe('employee-only', () => {
     await expect(mgr).toBeDisabled()
   })
 
-  test('exports are refused', async ({ page, asRole }) => {
+  test('every export is refused, including their own appraisal', async ({ page, asRole }) => {
     await asRole('employee')
-    const msg = await page.evaluate(() => {
-      const w = window as unknown as { toast: (m: string) => void; csvSummary: () => void }
-      let captured = 'no toast'
-      const real = w.toast
-      w.toast = (m: string) => { captured = m }
+
+    // No export buttons offered anywhere on their record.
+    await expect(page.locator('[data-act="export-appraisal"]')).toHaveCount(0)
+    await page.locator('[data-act="tab"][data-v="develop"]').click()
+    await expect(page.locator('[data-act="export-appraisal"]')).toHaveCount(0)
+
+    // And the handlers refuse when reached directly. Hiding a button is not
+    // a rule - data-act handlers are one console line away.
+    const msgs = await page.evaluate(() => {
+      const w = window as unknown as {
+        toast: (m: string) => void
+        csvSummary: () => void
+        csvTna: () => void
+        download: (f: string, d: string, t: string) => void
+      }
+      const out: string[] = []
+      const realToast = w.toast
+      const realDownload = w.download
+      let downloaded = false
+      // toast and download ARE function declarations, so they do land on
+      // window and overriding them there takes effect for bare calls too.
+      w.toast = (m: string) => { out.push(m) }
+      w.download = () => { downloaded = true }
       w.csvSummary()
-      w.toast = real
-      return captured
+      w.csvTna()
+      ACT['export-appraisal']()
+      w.toast = realToast
+      w.download = realDownload
+      return { out, downloaded }
     })
-    expect(msg).toContain('managers and admins')
+    expect(msgs.out).toHaveLength(3)
+    for (const m of msgs.out) expect(m).toContain('managers and admins')
+    expect(msgs.downloaded, 'nothing was written to a file').toBe(false)
   })
 })
 

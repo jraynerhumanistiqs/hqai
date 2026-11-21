@@ -163,6 +163,10 @@ only an admin can unlock, and the unlock is audited.
 
 ## Exports
 
+**Employee-only users cannot export at all** - not the team CSVs and not
+their own appraisal. If an employee needs a copy, their manager exports it.
+Enforced in the action, not just by hiding the buttons.
+
 The JSON export in Settings is **scoped to the signed-in user** - the people
 and assessments they can see, not the organisation. An admin with no
 allocations gets the directory and no assessments, and the file says so in a
