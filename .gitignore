@@ -32,3 +32,5 @@ scripts/stripe-v2-price-ids.live.env
 docs/research/au-hr-recruitment-2026/supabase/batches/*/PROMPT.md
 __pycache__/
 *.pyc
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
