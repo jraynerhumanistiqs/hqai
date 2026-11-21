@@ -52,6 +52,21 @@ h3{font-size:14px;margin:0;font-weight:600}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.nav a{padding:7px 8px}}
 @media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr}.top-in{gap:10px;padding:0 14px}.brand .nm span{display:none}main{padding:20px 14px 60px}.cyc label{display:none}}
+
+/* The header is one non-wrapping flex row: brand, nav, cycle selector, save
+   status and sign out. At 375px that ran 313px past the viewport and took
+   the whole page sideways with it - every screen, not just this one. Caught
+   by the 375px Playwright project.
+   The row wraps instead of overflowing, and the nav scrolls within its own
+   line rather than forcing the page to. Desktop is untouched. */
+@media(max-width:640px){
+  .top-in{flex-wrap:wrap;height:auto;padding:10px 14px;row-gap:8px}
+  .top-in .spacer{display:none}
+  .nav{order:3;flex:1 0 100%;margin-left:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .nav::-webkit-scrollbar{display:none}
+  .cyc{margin-left:auto}
+  .sync{font-size:11px}
+}
 /* stat */
 .stat{padding:16px 18px}
 .stat .k{font-size:12px;color:var(--ink2);font-weight:500}
