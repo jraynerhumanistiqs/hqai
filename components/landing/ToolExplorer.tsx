@@ -82,18 +82,48 @@ const DWELL_MS = 6500
 export default function ToolExplorer() {
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
+  // Once the visitor picks a tab themselves, the rotation stops for good.
+  // WCAG 2.2.2 wants a way to stop motion that runs longer than five
+  // seconds; hover and focus pausing covers pointer and keyboard users but
+  // leaves touch users with the panel swapping under them mid-read. This
+  // at least makes one tap final. A visible pause control is still open -
+  // see docs/audits/web-interface-guidelines.md.
+  const [userPicked, setUserPicked] = useState(false)
   const reduced = usePrefersReducedMotion()
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
-    if (reduced || paused) return
+    if (reduced || paused || userPicked) return
     timer.current = setInterval(() => {
       setActive((i) => (i + 1) % TABS.length)
     }, DWELL_MS)
     return () => {
       if (timer.current) clearInterval(timer.current)
     }
-  }, [reduced, paused])
+  }, [reduced, paused, userPicked])
+
+  const select = (i: number) => {
+    setActive(i)
+    setUserPicked(true)
+  }
+
+  // Tabs pattern keyboard support (WAI-ARIA): Left/Right wrap through the
+  // tabs, Home/End jump to the ends, and focus follows selection. Without
+  // this the tablist role promised a pattern the component did not
+  // implement - a keyboard user could Tab to a tab and activate it, but
+  // not move between them the way the role advertises.
+  const onTabKeyDown = (e: React.KeyboardEvent, i: number) => {
+    let next: number | null = null
+    if (e.key === 'ArrowRight') next = (i + 1) % TABS.length
+    else if (e.key === 'ArrowLeft') next = (i - 1 + TABS.length) % TABS.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = TABS.length - 1
+    if (next === null) return
+    e.preventDefault()
+    select(next)
+    tabRefs.current[next]?.focus()
+  }
 
   const tab = TABS[active]
 
@@ -125,12 +155,17 @@ export default function ToolExplorer() {
             return (
               <button
                 key={t.id}
+                ref={(el) => { tabRefs.current[i] = el }}
                 role="tab"
                 type="button"
                 aria-selected={selected}
                 aria-controls={`tool-panel-${t.id}`}
                 id={`tool-tab-${t.id}`}
-                onClick={() => setActive(i)}
+                // Roving tabindex: the tablist is one Tab stop, and the
+                // arrow keys move within it.
+                tabIndex={selected ? 0 : -1}
+                onClick={() => select(i)}
+                onKeyDown={(e) => onTabKeyDown(e, i)}
                 className={[
                   'inline-flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors',
                   selected
@@ -233,7 +268,7 @@ export default function ToolExplorer() {
 
 // HQ People - a question, then an answer fades in with a citation chip.
 function PeoplePreview({ reduced }: { reduced: boolean }) {
-  const [phase, setPhase] = useState(reduced ? 2 : 0)
+  const [phase, setPhase] = useState(0)
   useEffect(() => {
     if (reduced) return
     const t1 = setTimeout(() => setPhase(1), 600)
@@ -243,6 +278,18 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
       clearTimeout(t2)
     }
   }, [reduced])
+
+  // Nov 2026 - the resting state is DERIVED, not stored.
+  // usePrefersReducedMotion starts false and only learns the truth in an
+  // effect, so the old `useState(reduced ? 2 : 0)` always captured 0.
+  // This component is not re-keyed when `reduced` flips, so the effect's
+  // early return left phase at 0 forever and the answer bubble - which
+  // starts at opacity-0 - never appeared at all for anyone with
+  // reduce-motion on. Deriving it cannot go stale and needs no
+  // setState-in-effect to resync. This is the failure mode CLAUDE.md
+  // already records three times: content must never depend on an
+  // animation to become visible.
+  const shown = reduced ? 2 : phase
 
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float">
@@ -260,8 +307,8 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
         </div>
         <div
           className={[
-            'mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5 transition-all duration-500',
-            phase >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0',
+            'mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5 transition-[opacity,transform] duration-500',
+            shown >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0',
           ].join(' ')}
         >
           <p className="text-xs leading-relaxed text-ink">
@@ -270,7 +317,7 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
           <div
             className={[
               'mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-2.5 py-1 text-[10px] font-medium text-clay transition-opacity duration-500',
-              phase >= 2 ? 'opacity-100' : 'opacity-0',
+              shown >= 2 ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
           >
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
@@ -292,12 +339,19 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
     { label: 'Communication', score: 80 },
     { label: 'Role fit', score: 74 },
   ]
-  const [fill, setFill] = useState(reduced)
+  const [animated, setAnimated] = useState(false)
   useEffect(() => {
     if (reduced) return
-    const t = setTimeout(() => setFill(true), 80)
+    const t = setTimeout(() => setAnimated(true), 80)
     return () => clearTimeout(t)
   }, [reduced])
+
+  // Derived for the same reason as PeoplePreview above: seeding state with
+  // `useState(reduced)` captured false on the first render, and the
+  // effect's early return then left it there - so the score bars stayed at
+  // width 0% and the "Strong yes" badge at opacity-0 for reduce-motion
+  // users. Reduced motion means "skip to the end", never "never arrive".
+  const fill = reduced || animated
 
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float md:p-6">

@@ -122,20 +122,36 @@ export default function HeroChatPreview() {
       </div>
 
       {/* Progress dots - also manual controls (the only way to advance
-          under reduced motion). */}
-      <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3" role="tablist" aria-label="Example questions">
+          under reduced motion).
+
+          Nov 2026 - two fixes here:
+          1. role="tablist"/"tab" promised the tabs pattern without
+             aria-controls, without a role="tabpanel" and without arrow-key
+             navigation. Plain buttons carrying aria-current describe what
+             these actually are, so nothing is advertised that is not
+             implemented.
+          2. The dot WAS the button, so the inactive hit target was 6x6 px
+             (WCAG 2.5.8 wants 24x24). The button is now a 24px-tall
+             padded target and the dot is a child span, so the visual is
+             unchanged and the tappable area clears the minimum. The
+             negative margin keeps the row's original height. */}
+      <div className="-ml-[3px] mt-3 flex items-center border-t border-border pt-3" aria-label="Example questions" role="group">
         {EXCHANGES.map((_, i) => (
           <button
             key={i}
             type="button"
-            role="tab"
-            aria-selected={i === active}
+            aria-current={i === active ? 'true' : undefined}
             aria-label={`Example ${i + 1}`}
             onClick={() => setActive(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === active ? 'w-6 bg-accent' : 'w-1.5 bg-border hover:bg-ink-muted'
-            }`}
-          />
+            className="-my-[9px] flex h-6 items-center px-[3px] py-[9px]"
+          >
+            <span
+              aria-hidden
+              className={`block h-1.5 rounded-full transition-[width,background-color] ${
+                i === active ? 'w-6 bg-accent' : 'w-1.5 bg-border hover:bg-ink-muted'
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>

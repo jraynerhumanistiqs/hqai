@@ -468,6 +468,56 @@
   ):focus {
     outline: none;
   }
+
+  /* Keyboard focus indicator (marketing surface).
+     Nov 2026 - the rule above is scoped to data-app="product", so the
+     public site was never covered by it. What marketing actually had was
+     per-control `focus-visible:outline-*` utilities on most CTAs (those
+     DO emit CSS - they are outline-*, not the ring-*/NN family) and the
+     browser default outline on everything else: header nav, the mobile
+     menu, FAQ summaries, carousel arrows and dots, the pricing toggles
+     and every footer link. An indicator that depends on per-control
+     opt-in is one most controls miss, so this gives the surface a
+     baseline (WCAG 2.4.7).
+
+     Specificity is deliberate and the opposite of the product rule's.
+     `[data-app="marketing"] :focus-visible` is 0,2,0 - a TIE with
+     Tailwind's `.focus-visible\:outline-clay:focus-visible`, and the
+     utilities layer wins a tie on source order. So the existing gold
+     outlines on the CTAs keep painting gold, and this only fills the
+     gaps. Do NOT add the `html` prefix here: that would make it 0,2,1
+     and repaint every branded focus outline near-white.
+
+     --accent is near-white #F5F5F4 under [data-app="marketing"] (and
+     near-black under :root), so one token serves both. */
+  [data-app="marketing"] :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+  }
+
+  /* ...except text entry, mirroring the product exception above. That is
+     a recorded founder call (a coloured ring around a focused text box
+     reads as the box changing colour), and text fields keep the caret as
+     their focus affordance. Kept identical here so the two surfaces
+     behave the same way rather than inventing a third policy.
+     The :is() raises this to 0,3,1 so it beats the rule above. */
+  [data-app="marketing"] :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+    textarea,
+    [contenteditable="true"],
+    [contenteditable=""]
+  ):focus-visible {
+    outline: none;
+  }
+
+  /* In-page anchors must clear the sticky header.
+     MarketingHeader is `sticky top-0` and ~68px tall, so every link to
+     #inquiry / #variants / #tools / #pricing scrolled its target heading
+     behind the nav. scroll-padding-top belongs on the scroll container,
+     which is <html> - the same element that carries data-app. */
+  html[data-app="marketing"] {
+    scroll-padding-top: 6rem;
+  }
 }
 
 @layer components {

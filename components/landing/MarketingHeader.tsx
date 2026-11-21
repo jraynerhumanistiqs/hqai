@@ -55,6 +55,20 @@ export default function MarketingHeader() {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [productOpen])
 
+  // Escape closes whichever menu is open. An outside mousedown was the
+  // only dismissal, so a keyboard user had no way to back out of either
+  // menu and tabbing past the dropdown left it hanging over the page.
+  useEffect(() => {
+    if (!productOpen && !open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      setProductOpen(false)
+      setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [productOpen, open])
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
@@ -69,15 +83,17 @@ export default function MarketingHeader() {
               type="button"
               onClick={() => setProductOpen((v) => !v)}
               aria-expanded={productOpen}
+              aria-haspopup="true"
+              aria-controls="marketing-products-menu"
               className="inline-flex items-center gap-1 text-sm text-ink-soft transition-colors hover:text-ink"
             >
               Products
-              <svg viewBox="0 0 12 12" className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 4.5L6 7.5L9 4.5" />
               </svg>
             </button>
             {productOpen && (
-              <div className="absolute left-0 top-9 w-72 rounded-2xl border border-border bg-bg-elevated p-2 shadow-float">
+              <div id="marketing-products-menu" className="absolute left-0 top-9 w-72 rounded-2xl border border-border bg-bg-elevated p-2 shadow-float">
                 {PRODUCTS.map((p) => (
                   <Link
                     key={p.href}
@@ -114,9 +130,10 @@ export default function MarketingHeader() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
+          aria-controls="marketing-mobile-menu"
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink md:hidden"
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
           </svg>
         </button>
@@ -124,7 +141,7 @@ export default function MarketingHeader() {
 
       {/* Mobile menu */}
       {open && (
-        <nav className="border-t border-border bg-bg px-6 py-4 md:hidden">
+        <nav id="marketing-mobile-menu" className="border-t border-border bg-bg px-6 py-4 md:hidden">
           <div className="flex flex-col gap-1">
             <p className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">Products</p>
             {PRODUCTS.map((p) => (
@@ -158,7 +175,7 @@ export default function MarketingHeader() {
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover"
+              className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-clay px-5 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Get started
             </Link>

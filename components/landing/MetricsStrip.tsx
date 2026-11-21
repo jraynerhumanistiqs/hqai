@@ -22,25 +22,33 @@ export default function MetricsStrip() {
           The difference
         </p>
 
-        {/* Typographic stat band - hairline-divided, no card chrome. */}
-        <dl className="mt-10 grid divide-y divide-border border-y border-border md:grid-cols-3 md:divide-x md:divide-y-0">
+        {/* Typographic stat band - hairline-divided, no card chrome.
+
+            This was a <dl> that emitted two <dd> elements BEFORE their
+            <dt> in every group. A <dd> has to follow its <dt>, so
+            assistive tech paired the terms and definitions wrongly - and
+            "Half a day -> 3 minutes" is not really a term/definition pair
+            to begin with. A plain list says what this is. No visual
+            change: Tailwind preflight had already stripped the default
+            dl/dd margins. */}
+        <ul className="mt-10 grid divide-y divide-border border-y border-border md:grid-cols-3 md:divide-x md:divide-y-0">
           {deltas.map((d) => (
-            <div key={d.label} className="px-6 py-8 text-center md:px-8">
+            <li key={d.label} className="px-6 py-8 text-center md:px-8">
               <div className="flex items-baseline justify-center gap-2.5">
-                <dd className="font-display text-base font-medium text-ink-muted line-through decoration-ink-muted/50">
+                <p className="font-display text-base font-medium text-ink-muted line-through decoration-ink-muted/50">
                   {d.from}
-                </dd>
+                </p>
                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 self-center text-ink-muted" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
-                <dd className="font-display text-[32px] font-semibold leading-none tracking-[-0.02em] text-ink md:text-[40px]">
+                <p className="font-display text-[32px] font-semibold leading-none tracking-[-0.02em] text-ink md:text-[40px]">
                   {d.to}
-                </dd>
+                </p>
               </div>
-              <dt className="mt-4 text-sm leading-relaxed text-ink-soft">{d.label}</dt>
-            </div>
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">{d.label}</p>
+            </li>
           ))}
-        </dl>
+        </ul>
 
         <p className="mt-6 text-center text-[11px] text-ink-muted">
           Estimates based on our own modelling against typical Australian retainer prices.

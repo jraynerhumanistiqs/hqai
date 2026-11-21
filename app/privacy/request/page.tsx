@@ -30,7 +30,8 @@ export default function PrivacyRequestPage() {
   const [submitted, setSubmitted] = useState<{ ref: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function submit() {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     if (!email || !name) {
       setError('Please provide your name and email so we can verify the request.')
       return
@@ -55,7 +56,9 @@ export default function PrivacyRequestPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-2xl mx-auto px-6 py-16">
+        {/* role="status" - this panel replaces the whole form, so without a
+            live region the submit is silent and focus falls to <body>. */}
+        <div role="status" className="max-w-2xl mx-auto px-6 py-16">
           <Link href="/privacy" className="text-xs font-bold text-mid hover:text-ink uppercase tracking-wider">
             &larr; Back to Privacy Policy
           </Link>
@@ -93,9 +96,14 @@ export default function PrivacyRequestPage() {
           identity before fulfilling the request.
         </p>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">What do you need?</label>
+        {/* A real <form> (Nov 2026). This was a <div> with an onClick
+            button, so Enter did not submit and the markup carried none of
+            the form semantics assistive tech looks for. */}
+        <form onSubmit={submit} className="space-y-5">
+          {/* fieldset/legend, not a <label>: this caption names a GROUP of
+              radios, which is not something a label can do. */}
+          <fieldset>
+            <legend className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">What do you need?</legend>
             <div className="space-y-2">
               {REQUEST_TYPES.map(rt => (
                 <label
@@ -119,12 +127,20 @@ export default function PrivacyRequestPage() {
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
+          {/* Every label below now carries htmlFor against a matching id.
+              They had neither, and did not wrap their control either, so
+              these three fields had NO accessible name at all and clicking
+              a label did not focus its field. */}
           <div>
-            <label className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Your name</label>
+            <label htmlFor="pr-name" className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Your name</label>
             <input
+              id="pr-name"
+              name="name"
               type="text"
+              required
+              autoComplete="name"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Full name"
@@ -132,19 +148,28 @@ export default function PrivacyRequestPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Email used with HQ.ai</label>
+            <label htmlFor="pr-email" className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Email used with HQ.ai</label>
             <input
+              id="pr-email"
+              name="email"
               type="email"
+              required
+              inputMode="email"
+              autoComplete="email"
+              spellCheck={false}
+              aria-describedby="pr-email-hint"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:border-black"
             />
-            <p className="text-[11px] text-muted mt-1">We use this to find your record and to email our reply. Please use the same address you applied or signed up with.</p>
+            <p id="pr-email-hint" className="text-[11px] text-muted mt-1">We use this to find your record and to email our reply. Please use the same address you applied or signed up with.</p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Anything else? (optional)</label>
+            <label htmlFor="pr-detail" className="block text-xs font-bold text-mid uppercase tracking-wider mb-1.5">Anything else? (optional)</label>
             <textarea
+              id="pr-detail"
+              name="detail"
               value={detail}
               onChange={e => setDetail(e.target.value)}
               placeholder="If your request is about a specific role or video, include the role name or invitation link to speed things up."
@@ -154,16 +179,16 @@ export default function PrivacyRequestPage() {
             />
           </div>
 
-          {error && <p className="text-xs text-danger bg-danger/10 rounded-lg px-3 py-2">{error}</p>}
+          {error && <p role="alert" className="text-xs text-danger bg-danger/10 rounded-lg px-3 py-2">{error}</p>}
 
           <button
-            onClick={submit}
+            type="submit"
             disabled={busy}
             className="w-full bg-black text-white font-bold py-3 rounded-full hover:bg-charcoal disabled:opacity-50 text-sm transition-colors"
           >
             {busy ? 'Sending...' : 'Send request'}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   )
