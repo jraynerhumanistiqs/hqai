@@ -32,6 +32,13 @@
 // hero's right column. EXCHANGES is the only lever - drop an entry to
 // shorten it. Keep the answers short enough to stay about three lines.
 //
+// Three exchanges, not four (founder call, Nov 2026). A fourth - "do I
+// have to pay out unused annual leave" - was cut because it doubled up on
+// annual leave with the entry above it, so it cost hero height without
+// widening the range of things the product is shown answering. Each entry
+// here should carry a DIFFERENT kind of question: termination, casuals,
+// leave. The footer count is derived, so it follows the array.
+//
 // Copy rules: Australian English, plain hyphens only, no competitor
 // names, ASCII apostrophes. Answers are illustrative and helpful, in
 // plain English - not legal advice.
@@ -57,10 +64,6 @@ const EXCHANGES: Exchange[] = [
     q: 'How much annual leave do full-timers accrue?',
     a: 'Four weeks a year, building up from day one - plus an extra week for some shift workers.',
   },
-  {
-    q: 'Do I have to pay out unused annual leave?',
-    a: 'Yes. When someone leaves, their unused annual leave is paid out, at the rate they would have been paid.',
-  },
 ]
 
 export default function HeroChatPreview() {
@@ -81,7 +84,7 @@ export default function HeroChatPreview() {
 
       {/* The transcript. An ordered list because the exchanges read as a
           sequence - one session, several questions - and it gives screen
-          readers a count up front ("list of 4 items") rather than a wall
+          readers a count up front ("list of 3 items") rather than a wall
           of bubbles. */}
       <ol className="mt-4 space-y-4">
         {EXCHANGES.map((ex) => (

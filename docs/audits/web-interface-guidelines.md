@@ -213,8 +213,8 @@ Follow-on, same day: with the rotation gone the hero preview showed one
 exchange unless a dot was clicked, so three of the four answers went
 unseen by anyone who scrolled past - the pitch was hiding its own
 evidence behind an interaction almost nobody performs. It is now a static
-transcript showing all four at once, which retires the dots, the `active`
-state and the crossfade stage.
+transcript showing every exchange at once, which retires the dots, the
+`active` state and the crossfade stage.
 
 That makes `HeroChatPreview` a server component: it has no client state
 left, so `'use client'` is gone and the hero's signature element ships
@@ -223,31 +223,33 @@ component, so the whole hero is now static markup - which puts it
 permanently out of reach of the blank-hero failure mode CLAUDE.md
 records, rather than merely avoiding it.
 
-The four repeated "Answered in seconds" chips collapsed into one footer
-line with a derived count (`{EXCHANGES.length} questions, answered in
-seconds`). Four identical chips in one card read as padding rather than
-proof, and they cost roughly 130 px of hero height.
+The per-answer "Answered in seconds" chips collapsed into one footer line
+with a derived count (`{EXCHANGES.length} questions, answered in
+seconds`). The same chip repeated on every answer read as padding rather
+than proof, and the set of them cost roughly 130 px of hero height.
 
-Open trade-off: **height.** The card is now the tallest thing in the
-hero's right column. Rough estimates, not measurements - this worktree
-cannot serve the page, so nothing here was checked in a browser:
+**Height**, the trade-off this opened, is now settled: the fourth
+exchange was cut (founder call, Nov 2026). It asked "do I have to pay out
+unused annual leave" directly under "how much annual leave do full-timers
+accrue", so it spent hero height without widening the range of questions
+the product is shown answering. The three that remain each carry a
+different kind: termination, casuals, leave.
+
+Rough estimates, not measurements - this worktree cannot serve the page,
+so none of this was checked in a browser:
 
 | Exchanges | Card at 582 px (desktop rail) | Card at 327 px (mobile) |
 | --- | --- | --- |
-| 4 (shipped) | ~570 px | ~790 px |
-| 3 | ~460 px | ~620 px |
+| 4 | ~570 px | ~790 px |
+| 3 (shipped) | ~460 px | ~620 px |
 | 2 | ~350 px | ~450 px |
 
 For comparison the rotating version was ~330 px at both widths, and the
-hero's left-hand copy column is ~490 px on desktop. So desktop is roughly
-balanced; mobile adds a long scroll before the feature strip.
+hero's left-hand copy column is ~490 px on desktop - so at three
+exchanges the two columns land close to even.
 
-`EXCHANGES` is the only lever - drop an entry to shorten it. If it wants
-cutting, exchanges 3 and 4 are **both** about annual leave ("how much do
-full-timers accrue" and "do I have to pay out unused leave"), so cutting
-one of those loses the least variety. I have not cut it: that is the
-founder's copy, and which examples earn hero space is a positioning call,
-not an accessibility one.
+`EXCHANGES` remains the only lever if it needs to move again. The footer
+count is derived from the array, so it follows automatically.
 
 ### 9. Fake buttons in the tab order
 
