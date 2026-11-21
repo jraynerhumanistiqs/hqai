@@ -42,8 +42,10 @@ console error" class the audit itself authorised fixing.
 > | 6 Arrow keys | fixed | **fixed** - roving tabindex confirmed, Arrow/Home/End all move focus AND selection |
 > | 7 Mobile menu | open | **open** - measured 40x40 |
 >
-> Plus the `HeroChatPreview` question below, now **confirmed**: the hero has
-> zero example-dot buttons on the live site.
+> Plus the `HeroChatPreview` question below, now **closed**: the hero has zero
+> example-dot buttons on the live site, and the removal was deliberate - the
+> component was rebuilt as a static transcript, and its header on `main`
+> documents the decision and argues against reverting it. Not a regression.
 >
 > The original wording of this note is kept below because its reasoning still
 > stands, and it is the reason the re-run happened.
@@ -504,9 +506,16 @@ pause permanently once the user has expressed a choice.
 >   the clickable example dots were taken out. At this audit's base they were
 >   `<button onClick={() => setActive(i)}>` (`HeroChatPreview.tsx:128-134`).
 >   So the 6x6px target is gone, but so is the ability to pick an example.
->   **Whether that was deliberate is worth confirming with whoever changed it**
->   - if the dots were meant to stay interactive, this is a regression rather
->   than a fix, and the tap-target finding would come back with them.
+>   **Confirmed deliberate - not a regression.** The dots went because the
+>   content they revealed is now all on screen at once: the hero was rebuilt
+>   as a static transcript, after removing the 4.8s auto-advance left three of
+>   four answers unreachable behind a 6px control. Verified directly in
+>   `components/landing/HeroChatPreview.tsx` on `origin/main`, which documents
+>   the decision in its own header - "STATIC, AND SHOWS EVERYTHING AT ONCE -
+>   do not turn this back into a carousel" - and sets out both the WCAG 2.2.2
+>   reasoning and the hidden-evidence problem. The component now has zero
+>   `useState`, zero `useEffect`, no `'use client'` directive and no
+>   `<button>`, so it server-renders complete.
 >
 > **Confirmed live on the merged tree.** This was raised from source as an open
 > question; the browser settles the factual half of it. On the production home
@@ -520,10 +529,27 @@ pause permanently once the user has expressed a choice.
 > finding 5 is therefore "fixed" only in the sense that the target no longer
 > exists.
 >
-> The browser can prove the control is absent; it cannot prove whether that was
-> intended. **That part is still a question for whoever changed the component**
-> - and it should be answered before this is filed as fixed, because if the
-> dots return at their old size the 6x6 finding returns with them.
+> The browser proved the control is absent; it could not prove whether that was
+> intended, and that question has since been answered. **This half of finding 5
+> is closed - deliberate, not a regression.**
+>
+> Worth separating the two kinds of evidence, since this document's whole
+> argument is about what each kind can and cannot show:
+>
+> - **Verified here.** The component's header on `origin/main` documents the
+>   removal and argues against reverting it, and the file is genuinely static
+>   (no state, no effects, no client directive, no buttons). That is a fact
+>   about the code, checked directly.
+> - **Reported, not verified here.** That the change came from a sequence of
+>   explicit user instructions during the Web Interface Guidelines work was
+>   relayed by the sessions that made it. Nothing in this audit independently
+>   establishes the provenance - but the code comment is contemporaneous with
+>   the change and says the same thing, which is as close to corroboration as
+>   this document can get on its own.
+>
+> The 6x6 finding can only come back if someone reintroduces a carousel there,
+> which the component's own header now argues against - and that header, rather
+> than this audit, is what will be read by whoever is tempted.
 
 **Page:** `/`
 **Viewport:** 390x844
