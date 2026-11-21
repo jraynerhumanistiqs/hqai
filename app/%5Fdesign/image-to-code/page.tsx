@@ -106,7 +106,7 @@ function Hero() {
           <div style={{ animationDelay: '260ms' }} className="hq-hero-rise mt-10">
             <Link
               href="/signup"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-clay shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
             >
               Get started
             </Link>
@@ -523,7 +523,7 @@ function Pricing() {
                 {p.kicker}
               </p>
               {p.highlight && (
-                <span className="rounded-full bg-clay px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-on-accent">
+                <span className="rounded-full bg-clay px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-on-clay">
                   Best value
                 </span>
               )}
@@ -548,7 +548,7 @@ function Pricing() {
                 className={[
                   'inline-flex h-11 w-full items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay',
                   p.highlight
-                    ? 'bg-clay text-ink-on-accent shadow-card hover:bg-clay-hover'
+                    ? 'bg-clay text-ink-on-clay shadow-card hover:bg-clay-hover'
                     : 'border border-border-strong text-ink hover:border-ink-muted',
                 ].join(' ')}
               >
@@ -665,7 +665,7 @@ function ClosingCta() {
         <div className="mt-10">
           <Link
             href="/signup"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-8 text-sm font-semibold text-ink-on-clay shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
           >
             Get started - it&apos;s three minutes
           </Link>

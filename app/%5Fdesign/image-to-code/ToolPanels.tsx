@@ -97,7 +97,7 @@ export default function ToolPanels() {
               <p className="max-w-xl font-display text-lg font-semibold tracking-tight text-ink">
                 {t.title}
               </p>
-              <span className="shrink-0 rounded-full bg-clay px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-on-accent">
+              <span className="shrink-0 rounded-full bg-clay px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-on-clay">
                 {t.tag}
               </span>
             </div>

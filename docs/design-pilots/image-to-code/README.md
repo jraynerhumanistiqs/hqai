@@ -18,7 +18,9 @@ The opening screen on each, live left, pilot right:
 - `home-full-live-vs-pilot.png` - both pages end to end
 
 Both captured in headless Chrome at 1440 wide, in one session, with the hero
-entrance and the `data-app` flip allowed to settle first.
+entrance and the `data-app` flip allowed to settle first. Recaptured after the
+branch was rebased onto `main` at `f139192`, so the live side shows the current
+hero (full chat transcript, fourth exchange cut) rather than the older one.
 
 ## Why this exists
 
@@ -56,21 +58,25 @@ from `lib/pricing-config.ts`.
 
 ## What changed
 
-Measured in the browser at 1440, both pages, same header and same tokens.
+Measured in the browser at 1440, both pages, same header and same tokens, in the
+same run. An element counts as a text block or a micro-label on its own direct
+text nodes, not on being a childless leaf: every live eyebrow wraps a `<span>`
+dash rule, so a leaf-only test silently scores all of them as zero.
 
 | | live `/` | pilot |
 |---|---:|---:|
-| hero height | 800px | 573px |
+| hero height | 809px | 573px |
 | hero headline lines | 4 | 3 |
-| **words in the hero** | **253** | **72** |
-| discrete text blocks in the hero | 20 | 5 |
-| rounded containers in the hero | 10 | 3 |
+| **words in the hero** | **238** | **86** |
+| discrete text blocks in the hero | 27 | 7 |
+| rounded containers in the hero | 15 | 3 |
 | CTAs in the hero | 1 | 1 |
-| **SVG icons on the whole page** | **53** | **0** |
-| mono uppercase micro-labels | 20 | 10 |
+| **SVG icons on the whole page** | **50** | **0** |
+| mono uppercase micro-labels | 23 | 15 |
 | sections carrying a gold eyebrow | 9 of 10 | 5 of 10 |
+| those eyebrows with a leading gold dash rule | 9 | 0 |
 | sections | 10 | 10 |
-| full page height | 8898px | 8822px |
+| full page height | 8870px | 8822px |
 
 Section by section:
 
@@ -81,15 +87,21 @@ Section by section:
 - **Problem.** Three bordered, filled, shadowed cards - each with an inner
   header row and two circular icon badges - become three hairline columns.
 - **Industries.** Fifteen bordered cards with fifteen bespoke SVG icons behind a
-  carousel become fifteen plain hairline text entries, all visible at once.
+  carousel become the same fifteen as plain hairline text entries, all visible
+  at once.
 - **Customer story.** Loses its card and its decorative quote-mark glyph; the
   type carries it instead.
 - **Pricing.** Three separate cards become one container with hairline columns.
 - **Eyebrows.** Drop from 9 of 10 sections to 5, and lose the leading gold dash
-  rule.
+  rule entirely.
 
-The total height barely moves (8898px against 8822px) on the same ten sections
+The total height barely moves (8870px against 8822px) on the same ten sections
 with the same copy. The content did not shrink. The chrome did.
+
+The micro-label count is the weakest of these numbers: 23 against 15 is a real
+reduction but not the step change the others are, because the pilot still leans
+on mono eyebrows to label its hairline columns where the live page uses a card
+header instead.
 
 ## What this is not
 
@@ -115,7 +127,7 @@ through the `puppeteer-core` already in the dependency tree: load each of `/` an
 `document.documentElement.dataset.app === 'marketing'`, scroll to the bottom and
 back to force the lazy sections to render, then take a `fullPage` screenshot.
 Stitch the pair side by side and quantise to a 256-colour palette - lossless to
-the eye on a flat dark UI, and it cuts the pair from 1.7MB to 630KB.
+the eye on a flat dark UI, and it keeps the full-page pair under 500KB.
 
 Note that `/` and every other page send `X-Frame-Options: DENY` from
 `next.config.js`, so a live side-by-side in two iframes will not work, even
@@ -133,3 +145,11 @@ same-origin. Capture to images instead rather than weakening that header.
    alone: remove the junction with `cmd /c rmdir node_modules` - which removes
    the link only, not the target, so do not let npm delete it and do not
    `rm -rf` it - then run `npm ci`.
+
+## Keeping it current
+
+The pilot reads the same tokens as the live page, so a token change on `main`
+lands here too. The rebase onto `f139192` picked up PR #4, which split
+`ink-on-clay` out of `ink-on-accent`; the pilot's five gold fills were relabelled
+`text-ink-on-clay` to match. Verified in the browser: every gold control on both
+pages resolves to `rgb(17, 17, 17)` on `rgb(232, 178, 58)`, 9.8:1.
