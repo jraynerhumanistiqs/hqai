@@ -181,7 +181,7 @@ before(async () => {
   await alloc('p_E1', 'R1', 'reviewer')
 
   // A record for each of E1, E2, E3 and M1, written by their manager.
-  const blank = pid => ({
+  const blank = () => ({
     pdId: null, kpis: [{ id: 'k1', name: 'Deliver', target: '100%', weight: null, area: '',
                          self: null, mgr: null, result: '' }],
     comps: { A: { target: 3, self: null, mgr: null } }, useComps: true, stretch: [],
@@ -192,7 +192,7 @@ before(async () => {
   })
   for (const [pid, mgr] of [['p_E1','M1'], ['p_E2','M1'], ['p_E3','M2'], ['p_M1','M2']]) {
     await as(mgr, `select * from ppad_save_record($1,$2,$3,null)`,
-      [pid, CYCLE, JSON.stringify(blank(pid))])
+      [pid, CYCLE, JSON.stringify(blank())])
   }
 })
 
