@@ -505,7 +505,8 @@
      Nov 2026 - the rule above is scoped to data-app="product", so the
      public site was never covered by it. What marketing actually had was
      per-control `focus-visible:outline-*` utilities on most CTAs (those
-     DO emit CSS - they are outline-*, not the ring-*/NN family) and the
+     DO emit CSS - they set an outline, not one of the ring utilities
+     carrying an alpha modifier) and the
      browser default outline on everything else: header nav, the mobile
      menu, FAQ summaries, carousel arrows and dots, the pricing toggles
      and every footer link. An indicator that depends on per-control
