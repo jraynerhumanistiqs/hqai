@@ -9,13 +9,13 @@ Pages swept: `/`, `/about`, `/ai-standard`, `/compare`, `/outsourcing`,
 `/product/people`, `/product/recruit`, `/pricing`, `/roadmap`, `/changelog`,
 `/contact`, `/marketplace`, `/careers`, `/privacy`, `/terms`
 
-Screenshots: `docs/audits/screenshots/` (59 files, `<page>-<viewport>.png` plus
+Screenshots: `docs/audits/screenshots/` (65 files, `<page>-<viewport>.png` plus
 named evidence shots).
 
-**Finding 2 has since been fixed and re-verified in the browser** (see the
-status note on that finding). Everything else is listed with a recommended
-fix rather than applied - no other defect fell into the "missing `alt` /
-trivial console error" class the audit itself authorised fixing.
+**Findings 1 and 2 have since been fixed and re-verified in the browser** (see
+the status note on each). Findings 3-7 are listed with a recommended fix
+rather than applied - no other defect fell into the "missing `alt` / trivial
+console error" class the audit itself authorised fixing.
 
 ---
 
@@ -31,7 +31,7 @@ The bugs are all in behaviour, and all seven were invisible to static review:
 
 | # | Severity | Finding | Page |
 |---|----------|---------|------|
-| 1 | High | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
+| 1 | High - **FIXED** | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
 | 2 | High - **FIXED** | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
 | 3 | Medium-high | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
 | 4 | Medium-high | ToolExplorer discards the tab the user picked after 6.5s | `/` |
@@ -45,7 +45,14 @@ The headline hypothesis about focus indicators is disproved.
 
 ---
 
-## 1. `/privacy`, `/terms` and `/careers` render on the wrong palette (High)
+## 1. `/privacy`, `/terms` and `/careers` render on the wrong palette (High - FIXED)
+
+> **Status: fixed** in `app/privacy/page.tsx`, `app/terms/page.tsx`,
+> `app/careers/page.tsx` and
+> `app/careers/[business_slug]/[campaign_slug]/page.tsx`. The design call the
+> original write-up deferred was made both ways: `/privacy` and `/terms` join
+> the marketing surface, `/careers` stays light on purpose. See
+> [Fix and verification](#fix-and-verification) at the end of this finding.
 
 **Pages:** `/privacy`, `/terms`, `/careers`
 **Viewports:** all three
@@ -93,12 +100,86 @@ consequence of an absent component. Reading `app/privacy/page.tsx` shows a
 tidy page using `text-ink` and `bg-bg` tokens - it looks correct. Only the
 rendered page shows those tokens resolving against the wrong root.
 
-**Recommended fix:** decide whether these pages are meant to be on the
-marketing surface. If yes, mount `MarketingHeader` + `MarketingFooter` (which
-also fixes the nav gap and the hardcoded `bg-white`). If the bare treatment is
-deliberate, set `data-app` explicitly rather than leaving it to fall through,
-so the palette is a decision rather than an accident. This is a design call,
-so it is listed, not fixed.
+### Fix and verification
+
+The three pages turned out not to be one group, so the call went both ways.
+
+**`/privacy` and `/terms` join the marketing surface.** Both are linked from
+`MarketingFooter`, so a visitor reaches them from the dark slab and should not
+be thrown onto a white page. Both now mount `MarketingHeader` +
+`MarketingFooter`, which sets `data-app="marketing"` and closes the nav gap at
+the same time. `bg-white` became `bg-bg`, and the root wrapper became `<main>`
+so each page has one `header` / `main` / `footer` landmark.
+
+**`/careers` deliberately stays light.** It is not part of the marketing site:
+**nothing on the site links to it** (verified by grep - it is absent from both
+`MarketingHeader` and `MarketingFooter`). It is an SEO entry point reached from
+Google for Jobs and Jora, sitting in the job sitemap above the client job ads
+at `/careers/<business>/<role>`, and it shares their whitelabel "Powered by
+HQ.ai" chrome. Bolting the HQ.ai marketing nav (Products, Pricing, Get started)
+onto that surface would advertise our product to a client's candidates, and
+would split the index from the ads it links to.
+
+So the accident was fixed without changing the decision: every `bg-white` /
+`bg-black` literal in the careers tree is now a token that resolves to the same
+paint, and both files carry a comment recording why the surface stays on the
+bare `:root` scope. That scope is safe to depend on - `.dark` is only ever
+matched under `[data-app="product"]`, which nothing in the tree sets.
+
+| File | Was | Now |
+|------|-----|-----|
+| `app/careers/page.tsx` (page, header) | `bg-white` | `bg-bg` |
+| `app/careers/page.tsx` (2 cards) | `bg-white` | `bg-bg-elevated` |
+| `…/[campaign_slug]/page.tsx` (page, header) | `bg-white` | `bg-bg` |
+| `…/[campaign_slug]/page.tsx` (2 Apply CTAs) | `bg-black text-white` | `bg-accent text-ink-on-accent` |
+
+Re-measured in the browser:
+
+| Route | `data-app` | `body` background | Matches `/changelog`? | Contrast failures | Overflow @390 |
+|-------|-----------|-------------------|----------------------|-------------------|---------------|
+| `/privacy` | `marketing` | `rgb(10, 10, 11)` | yes | **0** | none (390 == 390) |
+| `/terms` | `marketing` | `rgb(10, 10, 11)` | yes | **0** | none (390 == 390) |
+| `/careers` | *(absent, by design)* | `rgb(255, 255, 255)` | n/a - deliberate | **0** | none (390 == 390) |
+| `/changelog` (reference) | `marketing` | `rgb(10, 10, 11)` | - | - | - |
+
+Zero white-painting nodes remain on `/privacy` and `/terms`. Every text/background
+pair on both pages passes WCAG AA; the tightest is the version line at **4.72:1**
+(`text-muted` -> `--ink-muted` on the slab), against a 4.5 requirement.
+
+The header is not just chrome here - it is the palette switch - so it was
+exercised on the fixed pages: the Products dropdown opens with all 4 items on
+`/privacy`, and the first six tab stops on `/terms` are the real nav
+(HQ.ai home, Products, Pricing, About, Contact, Sign in), each with a visible
+focus outline.
+
+**Client-side navigation**, which is where a palette leak would actually show,
+since `MarketingHeader` clears `data-app` on unmount:
+
+| Soft navigation | `data-app` after | `body` background |
+|-----------------|------------------|-------------------|
+| `/privacy` -> `/terms` | `marketing` | `rgb(10, 10, 11)` |
+| `/terms` -> `/pricing` | `marketing` | `rgb(10, 10, 11)` |
+| `/pricing` -> `/privacy` | `marketing` | `rgb(10, 10, 11)` |
+| `/privacy` -> `/careers` | **cleared to absent** | `rgb(255, 255, 255)` |
+
+That last row is the one that matters: the marketing scope does **not** leak
+onto the whitelabel careers surface, which is the same failure mode
+`ThemeBoundary`'s own comment records for the `/login` dark-leak bug.
+
+0 console errors, 0 page errors across all four routes.
+
+**Not verified in the browser:** the two Apply-CTA swaps on
+`/careers/<business>/<role>`. That page needs a launched campaign and the dev
+database has none, so the index renders its empty state and no ad URL exists to
+visit. The swap was instead confirmed at the token level on the same `:root`
+scope that page runs on: `bg-bg` and `bg-bg-elevated` both resolve to
+`rgb(255, 255, 255)` - identical to the `bg-white` they replace - and
+`bg-accent text-ink-on-accent` resolves to `rgb(17, 17, 17)` on white, against
+`rgb(0, 0, 0)` on white before. The CTA therefore shifts from `#000000` to the
+design system's ink `#111111`; nothing else changes.
+
+**Screenshots:** `palette-fixed-privacy-1440.png`, `palette-fixed-terms-1440.png`,
+`palette-fixed-careers-1440.png` and the matching `-390.png` set.
 
 ---
 
