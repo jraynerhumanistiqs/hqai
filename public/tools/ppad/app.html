@@ -292,6 +292,14 @@ const recOf = (p, cid) => p.records && p.records[cid || activeCycle().id];
 const canManage = pid => !!(S.me && S.me.manages && S.me.manages.indexOf(pid) >= 0);
 const canReview = pid => !!(S.me && S.me.reviews && S.me.reviews.indexOf(pid) >= 0);
 const isSelf    = pid => !!(S.me && S.me.personId === pid);
+/* Someone with their own record and no responsibility for anyone else's.
+   They get their record and nothing else: no dashboard of other people's
+   progress, no people list, no framework, no cycle management, no exports.
+   RLS already means those screens would be nearly empty for them - this is
+   so they are not offered at all. */
+const employeeOnly = () => !!(S.me && S.me.personId
+  && !S.me.isAdmin && !S.me.isHrReporting
+  && !(S.me.manages || []).length && !(S.me.reviews || []).length);
 const compById = id => S.org.framework.comps.find(c => c.id === id);
 
 /* ===== store =====
@@ -443,6 +451,12 @@ function route(){
   /* The screen is admin-only. The RPCs behind it refuse a non-admin anyway,
      so this is to avoid showing a screen that could only ever error. */
   if (S.ui.view === 'access' && !(S.me && S.me.isAdmin)) S.ui.view = 'dashboard';
+  /* An employee-only user lands on their own record whatever the hash says.
+     Every other screen is either empty for them or about other people. */
+  if (employeeOnly() && !(S.ui.view === 'person' && S.ui.personId === S.me.personId)){
+    S.ui.view = 'person'; S.ui.personId = S.me.personId;
+    if (!['plan','monitor','assess','develop'].includes(S.ui.tab)) S.ui.tab = 'plan';
+  }
   if (S.ui.view === 'access' && !S.ui.access) loadAccess();
   if (!S.org.setup && S.ui.view !== 'settings') S.ui.view = 'welcome';
   render();
@@ -454,15 +468,16 @@ function render(){
   const b = S.org.brand, c = activeCycle(), v = S.ui.view;
   const nav = [['dashboard','Overview'],['people','People'],['pds','PDs'],['profiles','Role profiles'],['reports','Reports'],['settings','Settings']];
   if (S.me && S.me.isAdmin) nav.push(['access','Users and access']);
+  const showNav = S.org.setup && !employeeOnly();
   const logo = b.logo ? `<img src="${b.logo}" alt="">` : `<div class="mark">${esc((b.orgName||b.appName||'P').trim().slice(0,1).toUpperCase())}</div>`;
   const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
   const sy = window.scrollY;
   $app().innerHTML = `
   <header class="top"><div class="top-in">
     <div class="brand" data-act="nav" data-h="dashboard">${logo}<div class="nm"><b>${esc(b.appName||'HQ Performance')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
-    ${S.org.setup ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
+    ${showNav ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
     <div class="spacer"></div>
-    ${S.org.setup ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
+    ${showNav ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
     <span class="sync" id="sync">${esc(store.status || '')}</span>
     <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
   </div></header>
@@ -592,9 +607,9 @@ function addPerson(){
 function vPerson(){
   const p = S.people[S.ui.personId], c = activeCycle(); let r = recOf(p);
   const prof = S.org.profiles.find(x => x.id === p.profileId);
-  const head = `<a class="back" href="#people">← People</a>
+  const head = `${employeeOnly() ? '' : '<a class="back" href="#people">← People</a>'}
   <div class="head" style="margin-bottom:0"><div class="ph"><span class="av">${esc(initials(p))}</span><div><h1>${esc(fullName(p))}</h1><p class="sub" style="margin:2px 0 0">${esc([p.position, p.dept].filter(Boolean).join(' · ') || 'No position set')}${S.pds[p.pdId] ? ` · <a href="#pd-${p.pdId}">PD: ${esc(S.pds[p.pdId].title)}</a>` : prof ? ' · '+esc(prof.name) : ''}</p></div></div>
-  <div class="row"><button class="btn" data-act="edit-person">Details</button>${r?`<button class="btn" data-act="export-appraisal">Export</button>`:''}</div></div>`;
+  <div class="row">${canManage(p.id) || (S.me && S.me.isAdmin) ? '<button class="btn" data-act="edit-person">Details</button>' : ''}${r?`<button class="btn" data-act="export-appraisal">Export</button>`:''}</div></div>`;
   /* Only an allocated manager can create a record - the database refuses
      anyone else, so offering the button to anyone else is offering an error.
      An admin who has not allocated themselves gets told what is missing
@@ -615,19 +630,23 @@ function levelTitles(comp){ const o = {0:'N — not required'}; comp.levels.forE
 
 function tPlan(p, r){
   const locked = !!r.planAgreed;
+  /* The plan - KPIs, competency targets, stretch objectives - belongs to the
+     manager. ppad_save_record refuses an employee writing any of it, so the
+     fields render read-only rather than inviting an edit that cannot land. */
+  const ro = !canManage(p.id);
   const pd = S.pds[p.pdId]; const areas = pd ? pd.accountabilities.map(a=>a.area).filter(Boolean) : [];
   const gcols = areas.length ? 'style="grid-template-columns:minmax(0,2fr) minmax(0,1.8fr) minmax(0,1.2fr) 80px 34px"' : '';
   const kpis = r.kpis.map((k,i) => `<div class="kpi-grid r" ${gcols}>
-      <input class="in" placeholder="KPI — e.g. Monthly reporting" data-f="rec.kpis.${i}.name" value="${esc(k.name)}">
-      <input class="in" placeholder="Target / measure" data-f="rec.kpis.${i}.target" value="${esc(k.target)}">
+      <input class="in" placeholder="KPI — e.g. Monthly reporting" data-f="rec.kpis.${i}.name" value="${esc(k.name)}" ${ro?'readonly':''}>
+      <input class="in" placeholder="Target / measure" data-f="rec.kpis.${i}.target" value="${esc(k.target)}" ${ro?'readonly':''}>
       ${areas.length ? `<select class="in" data-f="rec.kpis.${i}.area"><option value="">Accountability…</option>${areas.map(a=>`<option ${k.area===a?'selected':''}>${esc(a)}</option>`).join('')}</select>` : ''}
-      <input class="in" type="number" min="0" max="100" placeholder="—" data-f="rec.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}">
-      <button class="btn icon" title="Remove" data-act="del" data-f="rec.kpis" data-i="${i}">✕</button></div>`).join('');
+      <input class="in" type="number" min="0" max="100" placeholder="—" data-f="rec.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}" ${ro?'readonly':''}>
+      ${ro?'<span></span>':`<button class="btn icon" title="Remove" data-act="del" data-f="rec.kpis" data-i="${i}">✕</button>`}</div>`).join('');
   const wsum = r.kpis.reduce((a,k)=>a+(Number(k.weight)||0),0);
   const comps = r.useComps ? S.org.framework.clusters.map(cl => {
     const list = S.org.framework.comps.filter(c => c.cluster === cl); if (!list.length) return '';
     return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = r.comps[c.id]?.target ?? 0;
-      return `<div class="comp ${t?'':'off'}"><div><span class="nm">${esc(c.name)}</span></div>${seg('rec.comps.'+c.id+'.target', t, c.levels.length, {n:true, titles:levelTitles(c)})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('') : `<p class="muted">Competencies are switched off for this person this cycle.</p>`;
+      return `<div class="comp ${t?'':'off'}"><div><span class="nm">${esc(c.name)}</span></div>${seg('rec.comps.'+c.id+'.target', t, c.levels.length, {n:true, titles:levelTitles(c), ro:ro})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('') : `<p class="muted">Competencies are switched off for this person this cycle.</p>`;
   const nReq = Object.values(r.comps).filter(c=>c.target>0).length;
   const pdBox = pd ? `<div class="card" style="margin-bottom:16px"><div class="card-h" style="margin-bottom:${S.ui.pdOpen?'14px':'0'}"><div><div class="tag">Linked position description</div><h2 style="margin-top:2px"><a href="#pd-${pd.id}" style="text-decoration:none">${esc(pd.title)}</a></h2><p>${pd.kpis.filter(k=>k.name).length} standard KPIs · ${Object.values(pd.targets).filter(v=>v>0).length} competencies · <span class="pill ${pdReviewState(pd).cls}">${pdReviewState(pd).label}</span> Review the PD with the employee during Planning.</p></div>
       <div class="row"><button class="btn sm ghost" data-act="pd-toggle">${S.ui.pdOpen?'Hide':'Show'} accountabilities</button><button class="btn sm" data-act="pd-apply">Re-apply PD</button></div></div>
@@ -637,7 +656,7 @@ function tPlan(p, r){
   ${locked ? `<div class="callout row" style="justify-content:space-between;margin-bottom:16px"><span>Plan agreed on <b>${fmtDate(r.planAgreed)}</b>. Changes are still allowed — they'll be kept with the record.</span><button class="btn sm" data-act="unagree">Reopen plan</button></div>` : ''}
   <div class="card"><div class="card-h"><div><h2>What — Key Performance Indicators</h2><p>What the person will deliver this year. Keep each one SMART: specific, measurable, attainable, relevant, timely.</p></div><button class="btn sm" data-act="smart-help">SMART guide</button></div>
     ${r.kpis.length ? `<div class="kpi-grid h" ${gcols}><span>KPI</span><span>Target / measure</span>${areas.length?'<span>Accountability</span>':''}<span>Weight %</span><span></span></div>${kpis}` : '<p class="muted">No KPIs yet.</p>'}
-    <div class="row" style="justify-content:space-between;margin-top:12px"><button class="btn sm" data-act="add-kpi">+ Add KPI</button>${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
+    <div class="row" style="justify-content:space-between;margin-top:12px">${ro?'<span></span>':'<button class="btn sm" data-act="add-kpi">+ Add KPI</button>'}${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
   </div>
   <div class="card"><div class="card-h"><div><h2>How — Competency profile</h2><p>The behaviours expected in the role. Set the target level for each; N means not required. ${nReq} of ${S.org.framework.comps.length} required.</p></div>
     <div class="row"><select class="in" style="width:auto" data-act-change="apply-profile"><option value="">Apply role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
@@ -647,7 +666,7 @@ function tPlan(p, r){
   <div class="card"><div class="card-h"><div><h2>Stretch objectives <span class="muted small">(optional)</span></h2><p>Projects beyond the position description — for strong performers and succession.</p></div><button class="btn sm" data-act="add-stretch">+ Add</button></div>
     ${r.stretch.length ? r.stretch.map((s,i) => `<div class="kpi-grid r" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) 34px"><input class="in" placeholder="Objective" data-f="rec.stretch.${i}.objective" value="${esc(s.objective)}"><input class="in" placeholder="Measure / due" data-f="rec.stretch.${i}.measure" value="${esc(s.measure)}"><button class="btn icon" data-act="del" data-f="rec.stretch" data-i="${i}">✕</button></div>`).join('') : '<p class="muted small" style="margin:0">None set.</p>'}
   </div>
-  <div class="row" style="justify-content:flex-end;margin-top:18px">${locked ? `<button class="btn pri" data-act="tab" data-v="monitor">Go to Perform →</button>` : `<button class="btn pri" data-act="agree" ${r.kpis.length?'':'disabled'}>Mark plan as agreed</button>`}</div>`;
+  <div class="row" style="justify-content:flex-end;margin-top:18px">${locked || ro ? `<button class="btn pri" data-act="tab" data-v="monitor">Go to Perform →</button>` : `<button class="btn pri" data-act="agree" ${r.kpis.length?'':'disabled'}>Mark plan as agreed</button>`}</div>`;
 }
 
 function tMonitor(p, r){
@@ -1094,13 +1113,24 @@ async function download(filename, data, type){
 }
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
 const toCsv = rows => rows.map(r => r.map(csvCell).join(',')).join('\n');
+/* CSV exports carry only the records the caller can already read - which is
+   automatic, because peopleList() reads S.people and S.people only ever held
+   what RLS returned. The guard here is about WHO may export at all: an
+   employee-only user has exactly one record and no business pulling it into
+   a spreadsheet of "the team". */
+function exportGuard(){
+  if (employeeOnly()){ toast('Exports are for managers and admins'); return false; }
+  return true;
+}
 function csvSummary(){
+  if (!exportGuard()) return;
   const c = activeCycle(); const rows = [['Name','Position','Team','Manager','Role profile','Stage','KPI score (mgr)','KPI score (self)','Competencies at target %','Competencies below target','Overall','Band','Plan agreed','Signed off']];
   peopleList().forEach(p => { const r = recOf(p); if (!r) return; const cs = compStats(r), st = stageOf(r); const k = kpiScore(r), ks = kpiScore(r,'self');
     rows.push([fullName(p), p.position, p.dept, p.manager, S.org.profiles.find(x=>x.id===p.profileId)?.name||'', st.label, k!=null?k.toFixed(1):'', ks!=null?ks.toFixed(1):'', cs&&cs.pct!=null?Math.round(cs.pct*100):'', cs?cs.below:'', r.notAssessed?'N/A':r.overall??'', r.notAssessed?'Not assessed':bandName(r.overall), r.planAgreed||'', r.signoff.manager.date||'']); });
   download(`${slug()}-${c.label}-summary.csv`, toCsv(rows), 'text/csv');
 }
 function csvTna(){
+  if (!exportGuard()) return;
   const c = activeCycle(); const rows = [['Name','Position','Team','Development need','Approach','Action','By','Status']];
   peopleList().forEach(p => { const r = recOf(p); if (!r) return; r.edp.items.forEach(e => rows.push([fullName(p), p.position, p.dept, e.need, EDP_APPROACHES[e.approach], e.action, e.by, e.status])); });
   download(`${slug()}-${c.label}-training-needs.csv`, toCsv(rows), 'text/csv');
