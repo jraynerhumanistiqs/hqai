@@ -559,3 +559,61 @@ describe('a directory save must not disturb the login link', () => {
     assert.equal(after.rows[0].n, before.rows[0].n, 'no audit entry for a link that did not happen')
   })
 })
+
+describe('one caller holding all three relationships', () => {
+  // The owner's own situation while testing: linked to a person AND
+  // allocated as their own manager AND reviewer. No other test covers it,
+  // and the merge takes a different path for each role, so this is where a
+  // clamp could silently eat a rating.
+  let pid = 'p_E3'
+  before(async () => {
+    await as('admin', `select ppad_link_person($1,$2)`, [U.M2, pid])      // self
+    await as('admin', `select ppad_set_allocation($1,$2,'reviewer')`, [pid, U.M2])
+    // M2 already manages p_E3 from the main fixture.
+  })
+
+  test('self, manager and reviewer fields all land in ONE save', async () => {
+    const { rows } = await as('M2', `select data, updated_at from ppad_records
+      where person_id = $1 and cycle_id = $2`, [pid, CYCLE])
+    const d = rows[0].data
+    d.kpis[0].self = 6          // employee-owned
+    d.kpis[0].mgr = 8           // manager-owned
+    d.comps.A.self = 2
+    d.comps.A.mgr = 3
+    d.achievements = 'self text'        // employee-owned
+    d.overallComment = 'manager text'   // manager-owned
+    d.signoff.employee = { name: 'Me', date: '2026-11-21' }
+    d.signoff.manager = { name: 'Me', date: '2026-11-21' }
+    d.signoff.mgrMgr = { name: 'Me', date: '2026-11-21' }
+
+    const { rows: out } = await as('M2', `select * from ppad_save_record($1,$2,$3,$4)`,
+      [pid, CYCLE, JSON.stringify(d), rows[0].updated_at])
+    const saved = out[0].data
+
+    assert.equal(saved.kpis[0].self, 6, 'self rating survived the manager branch')
+    assert.equal(saved.kpis[0].mgr, 8, 'manager rating survived the self branch')
+    assert.equal(saved.comps.A.self, 2)
+    assert.equal(saved.comps.A.mgr, 3)
+    assert.equal(saved.achievements, 'self text')
+    assert.equal(saved.overallComment, 'manager text')
+    assert.equal(saved.signoff.employee.date, '2026-11-21')
+    assert.equal(saved.signoff.mgrMgr.date, '2026-11-21', 'reviewer branch applied too')
+    assert.ok(out[0].locked_at, 'three sign-offs in one save still locks it')
+  })
+
+  test('a rating set on a KPI the manager added in the same save is kept', async () => {
+    await as('admin', `select ppad_unlock_record($1,$2)`, [pid, CYCLE])
+    const { rows } = await as('M2', `select data, updated_at from ppad_records
+      where person_id = $1 and cycle_id = $2`, [pid, CYCLE])
+    const d = rows[0].data
+    // A brand new KPI has no stored counterpart, so the merge has to take
+    // its self value from the payload rather than clamping it to null.
+    d.kpis.push({ id: 'knew', name: 'Added now', target: 'x', weight: null,
+                  area: '', self: 4, mgr: 5, result: '' })
+    const { rows: out } = await as('M2', `select * from ppad_save_record($1,$2,$3,$4)`,
+      [pid, CYCLE, JSON.stringify(d), rows[0].updated_at])
+    const k = out[0].data.kpis.find(x => x.id === 'knew')
+    assert.equal(k.self, 4, 'self on a newly added KPI is not clamped away')
+    assert.equal(k.mgr, 5)
+  })
+})
