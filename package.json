@@ -21,7 +21,8 @@
     "axe": "node scripts/axe-scan.mjs",
     "axe:strict": "node scripts/axe-scan.mjs --strict",
     "test:assistant": "tsx --test tests/assistant/",
-    "test:ppad": "node --test \"tests/ppad/**/*.mjs\""
+    "test:ppad": "node --test \"tests/ppad/**/*.mjs\"",
+    "ppad:seed": "node scripts/ppad/dev-seed.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.37",

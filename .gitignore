@@ -32,3 +32,7 @@ scripts/stripe-v2-price-ids.live.env
 docs/research/au-hr-recruitment-2026/supabase/batches/*/PROMPT.md
 __pycache__/
 *.pyc
+
+# Dev-only Supabase credentials for the PPAD fixture. Service role key -
+# never commit. See scripts/ppad/dev-seed.mjs.
+.env.ppad-dev
