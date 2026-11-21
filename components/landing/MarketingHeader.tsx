@@ -20,11 +20,9 @@ function useMarketingScope() {
     if (typeof document === 'undefined') return
     const html = document.documentElement
     const prev = html.getAttribute('data-app')
-    if (prev !== 'marketing') html.setAttribute('data-app', 'marketing')
+    html.setAttribute('data-app', 'marketing')
     return () => {
-      // The inline script above has no cleanup of its own, so only hand
-      // back a value that was genuinely something else before us.
-      if (prev && prev !== 'marketing') html.setAttribute('data-app', prev)
+      if (prev) html.setAttribute('data-app', prev)
       else html.removeAttribute('data-app')
     }
   }, [])
