@@ -286,6 +286,12 @@ const S = {org:null, people:{}, pds:{}, ui:{view:'dashboard', personId:null, tab
 const activeCycle = () => S.org.cycles.find(c => c.id === S.org.activeCycle) || S.org.cycles[S.org.cycles.length-1];
 const peopleList = (all) => Object.values(S.people).filter(p => all || p.active !== false).sort((a,b)=> fullName(a).localeCompare(fullName(b)));
 const recOf = (p, cid) => p.records && p.records[cid || activeCycle().id];
+/* Role helpers. S.me is populated by the Supabase adapter from the caller's
+   live allocations; these are for USABILITY only - every one of them is
+   enforced again in the database, which is the real boundary. */
+const canManage = pid => !!(S.me && S.me.manages && S.me.manages.indexOf(pid) >= 0);
+const canReview = pid => !!(S.me && S.me.reviews && S.me.reviews.indexOf(pid) >= 0);
+const isSelf    = pid => !!(S.me && S.me.personId === pid);
 const compById = id => S.org.framework.comps.find(c => c.id === id);
 
 /* ===== store =====
@@ -302,7 +308,22 @@ const LS_KEY = 'pm-tool-v1';
 function finishLoad(){
   if (!S.org){ S.org = newOrg(); if (PRESET) applyPreset(); }
   // migrations / guards
-  S.org.framework = S.org.framework || {clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)};
+  /* EMPTY counts as missing here, not just absent. An org created by SQL
+     arrives with framework {clusters:[],comps:[]} and profiles [] - both
+     truthy, so a plain `||` guard leaves the org with zero competencies and
+     the entire "How" half of the tool dead. The defaults live in this file
+     (DEFAULT_COMPS, 17 competencies with their level descriptors, and
+     PROFILE_SEED), which is why the shell is created empty in SQL and
+     filled here rather than duplicating 15KB of competency text into a
+     migration. */
+  if (!S.org.framework || !Array.isArray(S.org.framework.comps) || !S.org.framework.comps.length){
+    S.org.framework = {clusters:CLUSTERS.slice(), comps:clone(DEFAULT_COMPS)};
+    store.mark('org');
+  }
+  if (!Array.isArray(S.org.profiles) || !S.org.profiles.length){
+    S.org.profiles = PROFILE_SEED.map(([name,t]) => ({id:'r'+uid(), name, targets:{...t}}));
+    store.mark('org');
+  }
   if (['Performance Manager','PPA','PPAD','PPA – Plan · Perform · Assess','PPA – Plan – Perform – Assess'].includes(S.org.brand.appName)) { S.org.brand.appName = 'HQ Performance'; S.org.brand.tagline = 'Plan ~ Perform ~ Assess ~ Develop'; store.mark('org'); }
   if (S.org.brand.tagline == null) { S.org.brand.tagline = ''; }
   if (PRESET && PRESET.brand){ let fixed = false; const sb = S.org.brand;
@@ -552,7 +573,14 @@ function addPerson(){
   (m, close) => m.querySelector('#pf').onsubmit = e => { e.preventDefault();
     new FormData(e.target).forEach((v,k) => p[k] = String(v).trim());
     if (!p.first && !p.last){ toast('Enter a name'); return; }
-    p.records[activeCycle().id] = newRecord(p); S.people[p.id] = p; savePerson(p); close(); go('person-'+p.id); });
+    /* Adding a person no longer creates their record.
+       Only someone with a live MANAGER allocation to that person may create
+       one - ppad_save_record enforces it - and the admin doing the adding
+       usually has no allocation at all, so this used to fail with an error
+       toast the moment you added anyone. The person lands on the "No record
+       for <cycle>" empty state instead, which already exists and is the
+       right place for the plan to be started from. */
+    S.people[p.id] = p; savePerson(p); close(); go('person-'+p.id); });
 }
 
 /* ---------- person ---------- */
@@ -562,7 +590,15 @@ function vPerson(){
   const head = `<a class="back" href="#people">← People</a>
   <div class="head" style="margin-bottom:0"><div class="ph"><span class="av">${esc(initials(p))}</span><div><h1>${esc(fullName(p))}</h1><p class="sub" style="margin:2px 0 0">${esc([p.position, p.dept].filter(Boolean).join(' · ') || 'No position set')}${S.pds[p.pdId] ? ` · <a href="#pd-${p.pdId}">PD: ${esc(S.pds[p.pdId].title)}</a>` : prof ? ' · '+esc(prof.name) : ''}</p></div></div>
   <div class="row"><button class="btn" data-act="edit-person">Details</button>${r?`<button class="btn" data-act="export-appraisal">Export</button>`:''}</div></div>`;
-  if (!r) return head + `<div class="card" style="margin-top:22px"><div class="empty"><h2>No record for ${esc(c.label)}</h2><p>Start this person's plan for the cycle.</p><button class="btn pri" data-act="start-record">Start ${esc(c.label)} plan</button></div></div>`;
+  /* Only an allocated manager can create a record - the database refuses
+     anyone else, so offering the button to anyone else is offering an error.
+     An admin who has not allocated themselves gets told what is missing
+     rather than a toast reading "no access to this record". */
+  if (!r) return head + `<div class="card" style="margin-top:22px"><div class="empty"><h2>No record for ${esc(c.label)}</h2>${
+    canManage(p.id)
+      ? `<p>Start this person's plan for the cycle.</p><button class="btn pri" data-act="start-record">Start ${esc(c.label)} plan</button>`
+      : `<p>Their manager starts the plan. You are not allocated as ${esc(fullName(p))}'s manager for this cycle, so you cannot create it.${S.me && S.me.isAdmin ? ' As an admin you can allocate a manager in Users and access - allocating yourself is recorded in the audit log.' : ''}</p>`
+  }</div></div>`;
   const st = stageOf(r);
   const tabs = [['plan','Plan',st.i>=2],['monitor','Perform',(r.checkins||[]).length>0],['assess','Assess',st.i>=4],['develop','Develop & sign off',st.i>=5]];
   const body = S.ui.tab==='monitor' ? tMonitor(p,r) : S.ui.tab==='assess' ? tAssess(p,r) : S.ui.tab==='develop' ? tDevelop(p,r) : tPlan(p,r);
