@@ -89,6 +89,18 @@ const nextConfig = {
         source: '/tools/ppad/:path*',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          // The global policy above sends X-Frame-Options: DENY, which
+          // forbids framing by ANYONE - same-origin included. HQ Performance
+          // is rendered in a same-origin iframe by /dashboard/tools/ppad, so
+          // under DENY the browser refuses the document and leaves an empty
+          // cross-origin placeholder: a blank white page with no console
+          // error in the framed document itself.
+          //
+          // SAMEORIGIN for old browsers, frame-ancestors 'self' for the ones
+          // that honour CSP (it supersedes X-Frame-Options where both are
+          // present). Every other route keeps DENY.
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
         ],
       },
     ]
