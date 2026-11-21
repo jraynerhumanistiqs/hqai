@@ -1,4 +1,4 @@
-import { test, expect } from './fixture'
+import { test, expect, WIDE_LOGO } from './fixture'
 
 // Declared, not reached through window. ACT is a top-level `const` in
 // app.js, so like S it lives in the global LEXICAL environment and never
@@ -160,6 +160,61 @@ test.describe('sign-out leaves nothing behind', () => {
 })
 
 test.describe('layout', () => {
+  /**
+   * The header is one flex row and an ADMIN overruns it: seven tabs plus a
+   * client wordmark plus the org name plus the cycle, status and Sign out.
+   * It shipped with the tool name and tagline painted over the nav, because
+   * .brand .nm was flex:none - so the text-overflow:ellipsis already set on
+   * it could never fire and it overflowed instead.
+   *
+   * The conditions matter: the default fixture has logo:null and renders a
+   * 30px letter mark, so every other test in this file passed throughout.
+   * This one gives the org a real wide logo and a long name, as a client has.
+   */
+  test('an admin header with a client logo and long org name has nothing overlapping', async ({ page, asRole }, testInfo) => {
+    await asRole('admin', { logo: WIDE_LOGO, orgName: 'Carlingford Scaffold & Building Services' })
+    await expect(page.locator('header.top .brand img')).toBeVisible()
+
+    const r = await page.evaluate(() => {
+      const sel = ['.brand img', '.brand .nm', '.brand .org', 'nav.nav', '.cyc', '.sync', 'header.top .btn']
+      const boxes = sel
+        .map(s => [s, document.querySelector(s)] as const)
+        .filter(([, e]) => e && e.getBoundingClientRect().width > 0)
+        .map(([s, e]) => [s, e!.getBoundingClientRect()] as const)
+
+      // Overlap needs BOTH axes. Comparing left/right alone reports a
+      // collision for two boxes on different rows, which is every pair once
+      // the header wraps at <=820px.
+      const hits: string[] = []
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const [na, a] = boxes[i], [nb, b] = boxes[j]
+          const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
+          const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+          if (ox > 1 && oy > 1) hits.push(`${na} over ${nb} by ${Math.round(ox)}x${Math.round(oy)}px`)
+        }
+      }
+
+      const brand = document.querySelector('.brand')!.getBoundingClientRect()
+      const img = document.querySelector('.brand img')!.getBoundingClientRect()
+      const name = document.querySelector('.brand .nm b') as HTMLElement
+      return {
+        hits,
+        // The logo must not be cut off by the brand box.
+        logoPastBrand: Math.round(img.right - brand.right),
+        // ...and the tool name must stay readable rather than crush to a sliver.
+        nameWidth: Math.round(name.getBoundingClientRect().width),
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      }
+    })
+
+    const where = `at ${testInfo.project.name}`
+    expect(r.hits, `header elements overlap ${where}`).toEqual([])
+    expect(r.logoPastBrand, `client logo is clipped ${where}`).toBeLessThanOrEqual(1)
+    expect(r.nameWidth, `tool name crushed ${where}`).toBeGreaterThan(60)
+    expect(r.pageOverflow, `page scrolls sideways ${where}`).toBeLessThanOrEqual(2)
+  })
+
   test('the record is usable and does not scroll sideways', async ({ page, asRole }, testInfo) => {
     await asRole('manager')
     await page.evaluate(() => { location.hash = '#person-p_emp' })
