@@ -15,19 +15,17 @@ export default function PeopleDeepDive() {
               </span>
             </div>
 
+            {/* These two are mock chat bubbles, not controls. They used to
+                be real <button type="button"> elements with cursor-default
+                and no handler, which put two focusable "buttons" that do
+                nothing into the keyboard tab order. Plain divs now. */}
             <div className="mt-5 space-y-3">
-              <button
-                type="button"
-                className="block w-full cursor-default rounded-2xl border border-border bg-bg px-4 py-3 text-left text-sm text-ink-soft"
-              >
+              <div className="block w-full rounded-2xl border border-border bg-bg px-4 py-3 text-left text-sm text-ink-soft">
                 Do I have to approve a flexible-work request?
-              </button>
-              <button
-                type="button"
-                className="block w-full cursor-default rounded-2xl border border-accent bg-accent-soft px-4 py-3 text-left text-sm text-ink"
-              >
+              </div>
+              <div className="block w-full rounded-2xl border border-accent bg-accent-soft px-4 py-3 text-left text-sm text-ink">
                 Termination notice for a 7-month employee?
-              </button>
+              </div>
             </div>
 
             <div className="mt-5 rounded-2xl bg-bg p-4">

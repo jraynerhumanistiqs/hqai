@@ -134,18 +134,36 @@ export default function PersonaBand() {
           </div>
         </div>
 
-        {/* Dots */}
-        <div className="mt-8 flex items-center justify-center gap-1.5" role="tablist" aria-label="Industry pages">
+        {/* Dots.
+            Nov 2026 - same two fixes as HeroChatPreview's dots: the
+            role="tab" buttons had no aria-controls and no tabpanel to
+            control (the card region is a role="group"), so the tabs
+            pattern was advertised but not implemented; and the dot itself
+            was the button, giving a 6x6 px hit target against WCAG
+            2.5.8's 24x24. The dot is now a child span inside a
+            24px-tall padded button - identical visually, tappable in
+            practice. */}
+        <div className="mt-8 flex items-center justify-center" role="group" aria-label="Industry pages">
           {Array.from({ length: PAGES }).map((_, i) => (
             <button
               key={i}
               type="button"
-              role="tab"
-              aria-selected={i === page}
+              aria-current={i === page ? 'true' : undefined}
               aria-label={`Industries page ${i + 1}`}
               onClick={() => setPage(i)}
-              className={`h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
-            />
+              // 24x24 minimum (WCAG 2.5.8). px-[9px] around the 6px dot is
+              // what gets the WIDTH there: 9 + 6 + 9 = 24. An earlier pass
+              // used px-[3px], which fixed the height but left these 12x24
+              // - measured in a browser, not assumed. The negative vertical
+              // margin keeps the row the same 6px tall it was, so only the
+              // spacing between dots changes.
+              className="-my-[9px] flex h-6 items-center px-[9px] py-[9px]"
+            >
+              <span
+                aria-hidden
+                className={`block h-1.5 rounded-full transition-[width,background-color] ${i === page ? 'w-6 bg-ink-soft' : 'w-1.5 bg-border hover:bg-ink-muted'}`}
+              />
+            </button>
           ))}
         </div>
       </div>

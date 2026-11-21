@@ -50,7 +50,7 @@ export default function MarketplacePage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/pricing"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-accent transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="inline-flex h-11 items-center justify-center rounded-full bg-clay px-6 text-sm font-semibold text-ink-on-clay transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 See pricing
               </Link>

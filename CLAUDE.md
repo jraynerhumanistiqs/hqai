@@ -107,11 +107,20 @@ to wrap it: `rgb(var(--bg))`.
 - Text: `ink`, `ink-soft`, `ink-muted`, `ink-on-accent`, `ink-on-danger`
 - Lines: `border`, `border-strong`, `input`, `ring`
 - Accent = Wattle Gold #E8B23A on BOTH surfaces (`accent` and `clay`).
-  - Labels on gold are near-black #111111 (9.8:1). NEVER white - white on
-    #E8B23A is 1.9:1.
+  - Labels on gold are near-black #111111 (9.8:1) via `ink-on-clay`. NEVER
+    white - white on #E8B23A is 1.9:1. Use that token and not
+    `ink-on-accent`, which is the label for an `accent` fill and is WHITE
+    under :root, where `accent` is near-black. `bg-clay text-ink-on-accent`
+    is therefore white-on-gold on any route with no data-app scope.
+    `--ink-on-clay` is declared once in :root and never overridden,
+    because the gold is #E8B23A on every surface.
   - Gold as TEXT is NOT #E8B23A on light (1.9:1 on white). Use
-    `accent-text` / `clay-ink` #7A6010 (4.9:1). Dark can use the gold
-    itself (8.4:1 on the page).
+    `accent-text` / `clay-ink` #7A6010 (6.0:1). Dark can use the gold
+    itself (8.4:1 on the page). `clay-ink` means gold-AS-TEXT and nothing
+    else - it used to mean "label on a gold fill" under marketing
+    (#0A0A0B), which made `bg-clay-soft text-clay-ink` 1.3:1 there against
+    5.0:1 in product. Unified Nov 2026; :root moved #8A6D12 -> #7A6010 at
+    the same time. Do not re-fork it.
   - marketing keeps a near-black secondary `accent` that inverts light on
     dark; `clay` is the gold on both.
 - Semantic (product): `danger` #D0000A / #FF6467 dark, `warning` #A84600 /
@@ -195,10 +204,20 @@ variants, so the parent snaps and the children stay hidden.
 - components/theme/ThemeBoundary.tsx / ThemeToggle.tsx - theming
 - components/sidebar/Sidebar.tsx - 68px auto-collapsing icon hover-rail,
   plus a pin toggle (localStorage "hqai:sidebar-locked") that holds it
-  open. Flat service nav since Aug 2026 - one tab per service (AI Advisor,
-  AI Assistant, Campaign Coach, CV Scoring Agent, Shortlist Agent), no
-  HQ People / HQ Recruit parents. Tools and Recruitment Templates are
-  hidden pre-MVP; their routes still work, only the tabs are gone.
+  open. Two flat service tabs (HQ Advisor, HQ Assistant) plus two
+  collapsible groups: HQ Recruit (Campaign Coach, CV Scoring Agent,
+  Shortlist Agent) and HQ Tools (HQ Performance). The Aug 2026 flat nav
+  went back to groups in Nov 2026 - five peers read as five unrelated
+  products, and HQ Tools needs room for a second tool. "AI Advisor" /
+  "AI Assistant" were renamed "HQ Advisor" / "HQ Assistant" at the same
+  time so every service carries the product prefix, not a mix.
+  A group opens itself when the current route is one of its children
+  (RECRUIT_HREFS / TOOLS_HREFS), adjusted during render - not in an
+  effect, which `react-hooks/set-state-in-effect` rejects.
+  HQ Tools is shown to EVERY business: the route itself decides between
+  the tool and an upsell panel on businesses.ppad_enabled, so the tab
+  doubles as the upsell. Recruitment Templates stays hidden pre-MVP; its
+  route still works, only the tab is gone.
 - components/ui/PortalMenu.tsx - row action menus render to <body>. The
   recruit lists clip (overflow-hidden for the rounded row fill, inside the
   overflow-y-auto role switcher), so an absolutely-positioned menu got cut

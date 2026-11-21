@@ -192,12 +192,38 @@ export default function EnterpriseInquiryForm() {
     ) : null
 
   return (
+    // `noValidate` is deliberate, and this is the second time it has been
+    // reasoned about - read before removing it again.
+    //
+    // The underlying bug was real: seven fields were marked `required`,
+    // `noValidate` switched that enforcement off, and nothing replaced it,
+    // so a blank form POSTed. Two fixes were written independently. The
+    // other dropped `noValidate` and let native validation take over; this
+    // one kept it and added validate() above. They cannot both run - native
+    // fires first and blocks the submit handler, so the styled messages,
+    // aria-invalid/aria-describedby wiring and focus handling below would
+    // never execute. One had to win.
+    //
+    // Native loses on two counts. It only knows `required` and
+    // type="email", so it cannot enforce what the server actually checks -
+    // STAFF_BUCKETS / VARIANT_VALUES / URGENCY_VALUES membership, and an
+    // EMAIL_RE stricter than the browser's - which leaves a client that
+    // happily submits payloads the server answers with a 400. And its
+    // message is a browser-drawn bubble: unstyleable, gone on blur, with no
+    // aria-invalid or aria-describedby behind it. validate() does
+    // everything native does (blocks, identifies the field, moves focus)
+    // and closes both gaps.
+    //
+    // Everything else from the native fix was kept: the `name` attributes,
+    // inputMode/spellCheck on the email field, and text-ink-on-clay on the
+    // submit button.
     <form onSubmit={handleSubmit} noValidate className="rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:p-8">
       <div className="grid gap-5 md:grid-cols-2">
         <label className="flex flex-col gap-2">
           <span className={labelCls}>Your name</span>
           <input
             required
+            name="full_name"
             type="text"
             autoComplete="name"
             ref={(el) => { fieldRefs.current.full_name = el }}
@@ -214,9 +240,12 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Work email</span>
           <input
             required
+            name="work_email"
             type="email"
+            inputMode="email"
             autoComplete="email"
             ref={(el) => { fieldRefs.current.work_email = el }}
+            spellCheck={false}
             value={state.work_email}
             onChange={(e) => update('work_email', e.target.value)}
             className={withError(fieldCls, 'work_email')}
@@ -230,6 +259,7 @@ export default function EnterpriseInquiryForm() {
           <span className={labelCls}>Business name</span>
           <input
             required
+            name="business_name"
             type="text"
             autoComplete="organization"
             ref={(el) => { fieldRefs.current.business_name = el }}
@@ -247,6 +277,7 @@ export default function EnterpriseInquiryForm() {
           <select
             required
             ref={(el) => { fieldRefs.current.staff_headcount = el }}
+            name="staff_headcount"
             value={state.staff_headcount}
             onChange={(e) => update('staff_headcount', e.target.value)}
             className={withError(selectCls, 'staff_headcount')}
@@ -266,6 +297,7 @@ export default function EnterpriseInquiryForm() {
           <select
             required
             ref={(el) => { fieldRefs.current.variant_interest = el }}
+            name="variant_interest"
             value={state.variant_interest}
             onChange={(e) => update('variant_interest', e.target.value as FormState['variant_interest'])}
             className={withError(selectCls, 'variant_interest')}
@@ -283,6 +315,7 @@ export default function EnterpriseInquiryForm() {
         <label className="flex flex-col gap-2 md:col-span-2">
           <span className={labelCls}>Current spend on HR and recruitment, ballpark</span>
           <input
+            name="current_spend"
             type="text"
             value={state.current_spend}
             onChange={(e) => update('current_spend', e.target.value)}
@@ -296,6 +329,7 @@ export default function EnterpriseInquiryForm() {
           <select
             required
             ref={(el) => { fieldRefs.current.urgency = el }}
+            name="urgency"
             value={state.urgency}
             onChange={(e) => update('urgency', e.target.value as FormState['urgency'])}
             className={withError(selectCls, 'urgency')}
@@ -322,6 +356,7 @@ export default function EnterpriseInquiryForm() {
             <label className="flex flex-col gap-2">
               <span className={labelCls}>How many entities does the business operate as?</span>
               <select
+                name="entity_count"
                 value={state.entity_count}
                 onChange={(e) => update('entity_count', e.target.value as FormState['entity_count'])}
                 className={selectCls}
@@ -340,6 +375,7 @@ export default function EnterpriseInquiryForm() {
               <label className="flex flex-col gap-2">
                 <span className={labelCls}>Annual hiring volume estimate</span>
                 <select
+                  name="annual_hiring_volume"
                   value={state.annual_hiring_volume}
                   onChange={(e) =>
                     update('annual_hiring_volume', e.target.value as FormState['annual_hiring_volume'])
@@ -360,6 +396,7 @@ export default function EnterpriseInquiryForm() {
         <label className="flex flex-col gap-2 md:col-span-2">
           <span className={labelCls}>Anything else?</span>
           <textarea
+            name="notes"
             value={state.notes}
             onChange={(e) => update('notes', e.target.value)}
             rows={4}
@@ -374,6 +411,7 @@ export default function EnterpriseInquiryForm() {
           <label className="flex items-start gap-3">
             <input
               required
+              name="consent"
               type="checkbox"
               ref={(el) => { fieldRefs.current.consent = el }}
               checked={state.consent}
@@ -413,7 +451,7 @@ export default function EnterpriseInquiryForm() {
         <button
           type="submit"
           disabled={status === 'submitting'}
-          className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-clay shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === 'submitting' ? 'Sending...' : 'Send to our team ->'}
         </button>

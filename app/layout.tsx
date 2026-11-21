@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Schibsted_Grotesk, Geist, Geist_Mono, Figtree } from 'next/font/google'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { Analytics } from '@vercel/analytics/next'
+// Analytics is wrapped so HQ Performance can be excluded - see the component.
+// A function prop (beforeSend) cannot be passed from this server layout, so
+// the wrapper is a client component.
+import SiteAnalytics from '@/components/analytics/SiteAnalytics'
 import './globals.css'
 
 // Typography (June 2026 repositioning pass). The display face moved off
@@ -70,7 +72,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // formatters use Australian conventions.
     <html lang="en-AU" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${schibsted.variable} ${figtree.variable}`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        {/* No maximum-scale / user-scalable here. Capping the scale blocks
+            pinch-zoom, which is a WCAG 1.4.4 (Resize Text, AA) failure on
+            every page and hits exactly the low-vision mobile users who
+            need it most. viewport-fit=cover stays - the sticky mobile CTA
+            relies on it for env(safe-area-inset-bottom). */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* CHR-10 - pre-paint theme shim. ThemeBoundary sets data-app +
             the .dark class in a useEffect, so a cold product load painted
             :root for a frame, then hydrated - a visible flash. This stamps
@@ -95,8 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        <SpeedInsights />
-        <Analytics />
+        <SiteAnalytics />
       </body>
     </html>
   )

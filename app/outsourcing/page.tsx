@@ -137,7 +137,7 @@ export default function EnterprisePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <a
                 href="#inquiry"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-accent shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-clay px-7 text-sm font-semibold text-ink-on-clay shadow-card transition-colors hover:bg-clay-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Book a discovery call
               </a>
@@ -240,21 +240,21 @@ export default function EnterprisePage() {
               <table className="w-full text-left text-sm">
                 <thead className="bg-bg-soft text-xs uppercase tracking-[0.12em] text-ink-muted">
                   <tr>
-                    <th className="px-5 py-4 font-semibold">Plan</th>
-                    <th className="px-5 py-4 font-semibold">Sounds like you if</th>
+                    <th scope="col" className="px-5 py-4 font-semibold">Plan</th>
+                    <th scope="col" className="px-5 py-4 font-semibold">Sounds like you if</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
-                    <td className="px-5 py-4 font-semibold text-ink">HR365</td>
+                    <th scope="row" className="px-5 py-4 font-semibold text-ink">HR365</th>
                     <td className="px-5 py-4 text-ink-soft">An office manager or ops lead does HR on the side and wants one dedicated person for the tricky stuff, with a few advisor hours each month.</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-4 font-semibold text-ink">Recruit365</td>
+                    <th scope="row" className="px-5 py-4 font-semibold text-ink">Recruit365</th>
                     <td className="px-5 py-4 text-ink-soft">You are sick of agency fees, you do not want an in-house recruiter, and you want a dedicated talent advisor on call to run your hiring.</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-4 font-semibold text-ink">HR365 + Recruit365</td>
+                    <th scope="row" className="px-5 py-4 font-semibold text-ink">HR365 + Recruit365</th>
                     <td className="px-5 py-4 text-ink-soft">Both of the above. You want one team handling HR and hiring together, with the AI doing the admin behind them.</td>
                   </tr>
                 </tbody>

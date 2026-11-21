@@ -212,7 +212,10 @@ export default function PricingSection() {
 
           {/* Conceptual graphic - a real one-to-one between your advisor and you, AI quietly doing the admin */}
           <div className="shrink-0 md:w-[300px]">
-            <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden role="img">
+            {/* aria-hidden and role="img" contradicted each other - hidden
+                wins, so the role was dead weight. The caption below
+                carries the meaning. */}
+            <svg viewBox="0 0 280 150" className="mx-auto w-full max-w-[260px]" fill="none" aria-hidden>
               {/* the two people, leaning in toward each other - a genuine conversation */}
               <g className="text-ink-muted" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 {/* your dedicated advisor (left) */}
@@ -311,7 +314,7 @@ function PlanCard({
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{kicker}</p>
         <div className="flex items-center gap-2">
           {badge && (
-            <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-accent">
+            <span className="rounded-full bg-clay px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-on-clay">
               {badge}
             </span>
           )}
@@ -345,7 +348,7 @@ function PlanCard({
           className={[
             'inline-flex h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
             ctaStyle === 'solid'
-              ? 'bg-clay text-ink-on-accent hover:bg-clay-hover focus-visible:outline-clay'
+              ? 'bg-clay text-ink-on-clay hover:bg-clay-hover focus-visible:outline-clay'
               : 'border border-ink text-ink hover:bg-bg-soft focus-visible:outline-accent',
           ].join(' ')}
         >
@@ -378,7 +381,10 @@ function PricingInfoDot({ label, children }: { label: string; children: React.Re
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-bg text-[11px] font-bold leading-none text-ink-soft transition-colors hover:border-ink hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+        // The ring stays 20x20 so the card layout is untouched, but the
+        // before: pseudo-element extends the pointer target to 26x26,
+        // clearing the WCAG 2.5.8 minimum of 24x24. `relative` anchors it.
+        className="relative inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-bg text-[11px] font-bold leading-none text-ink-soft transition-colors before:absolute before:-inset-[3px] before:content-[''] hover:border-ink hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
       >
         i
       </button>
