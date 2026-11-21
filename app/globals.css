@@ -117,8 +117,19 @@
     /* ── Semantic ──────────────────────────────────────────── */
     --danger:            197 72 58;
     --warning:           184 119 15;
-    --success:           61 138 94;
-    --info:              106 155 204;
+    /* Nov 2026: success and info were the only two semantic tokens never
+       tuned per surface - they kept their original mid-tone values while
+       danger and warning were deepened for light and brightened for dark.
+       As text they were failing AA badly on EVERY surface: success 2.9:1
+       and info 2.1:1 at worst on light, 3.0:1 and 4.1:1 on dark. Both are
+       rendered as `bg-x/10 text-x` pills (StatusPill, ResponsesKanban,
+       RoleDetail), and a tint of the same hue pulls the background toward
+       the text, so the tinted case is always the worst one and is what
+       these are tuned against: 4.7:1 is now the floor anywhere.
+       They follow the same shape as danger and warning - a deep 700/800
+       on light, a bright 400 on dark. */
+    --success:           1 102 48;
+    --info:              25 60 184;
 
     /* ── Radii ─────────────────────────────────────────────── */
     --radius-sm:    4px;
@@ -192,6 +203,16 @@
 
     --border:           42 45 50;
     --border-strong:    61 65 72;
+
+    /* This surface is dark too, so it takes the dark success / info -
+       it was inheriting the light mid-tones and rendering them at 3.6:1
+       and 5.8:1 on a card. Marketing still inherits --danger and
+       --warning from :root; those clear AA here (4.1:1 and 5.4:1) but
+       only just, and they are a warm red and a warm amber on a surface
+       whose accent is already warm gold. Worth revisiting if this
+       surface ever shows real status chrome - today it does not. */
+    --success:          5 223 114;
+    --info:             142 197 255;
 
     --shadow-hairline:  0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:      0 0 0 1px rgba(255,255,255,0.06);
@@ -316,8 +337,13 @@
        between gold and danger, and moving it any redder walks it into
        --danger #FF6467. */
     --warning:          168 70 0;      /* deepened, further from gold */
-    --success:          61 138 94;
-    --info:             106 155 204;
+    /* Light success / info. Deep enough to clear AA on the #E4E4E4 inset
+       under their own 10-12% tint, which is the worst case the pills hit:
+       5.6:1 plain on the inset, 4.7:1 tinted. Hues sit at 145 and 221
+       degrees, well clear of the warm family (gold 41, warning 25,
+       danger 357) that the palette has to keep them apart from. */
+    --success:          1 102 48;      /* green-800 */
+    --info:             25 60 184;     /* blue-800, = --chart-5 */
 
     /* Preset radius scale, written as ratios off the base so the
        relationship stays legible: 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2.
@@ -432,6 +458,13 @@
        Previously the dark block never declared --warning at all and
        silently inherited the light value. */
     --warning:          255 105 0;
+    /* Dark success / info. Same story --warning had: this block never
+       declared either, so both silently inherited the light mid-tones and
+       landed at 3.0:1 and 4.1:1 on a tinted card - under AA. These are the
+       400-level siblings of the deep light values, matching how danger and
+       warning already invert. Worst case 6.4:1 and 6.2:1. */
+    --success:          5 223 114;     /* green-400 */
+    --info:             142 197 255;   /* blue-300, = --chart-1 */
 
     --shadow-hairline: 0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:     0 0 0 1px rgba(255,255,255,0.06);

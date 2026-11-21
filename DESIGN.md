@@ -74,8 +74,8 @@ colors-product-light:
   focus-ring: "#7A6010"
   danger: "#D0000A"
   warning: "#A84600"
-  success: "#3D8A5E"
-  info: "#6A9BCC"
+  success: "#016630"
+  info: "#193CB8"
   sidebar: "#FAFAFA"
   sidebar-accent: "#E4E4E4"
 
@@ -132,8 +132,8 @@ colors-root:
   border-strong: "#C9C8C0"
   danger: "#C5483A"
   warning: "#B8770F"
-  success: "#3D8A5E"
-  info: "#6A9BCC"
+  success: "#016630"
+  info: "#193CB8"
 
 # Chart series - [data-app="product"] only, identical in both modes.
 # Deliberately blue: a gold series would read as an interactive accent.
@@ -474,8 +474,15 @@ answers, and because `accent` is not the same colour on every surface
 
 ### Semantic
 
-Product light: `danger` #D0000A, `warning` #A84600, `success` #3D8A5E,
-`info` #6A9BCC. Product dark: `danger` #FF6467, `warning` #FF6900.
+Product light: `danger` #D0000A, `warning` #A84600, `success` #016630,
+`info` #193CB8. Product dark: `danger` #FF6467, `warning` #FF6900,
+`success` #05DF72, `info` #8EC5FF - and the same dark pair on marketing.
+
+All four follow one shape: a deep 700/800 on light surfaces, a bright 400
+on dark ones. **Tune any of them against its own tint, not the bare
+surface.** These render as `bg-x/10 text-x` pills, and a tint of the same
+hue drags the background toward the text, so the tinted pair is always
+the worst one - typically 0.4-0.9 worse than the plain reading.
 
 All three warm colours are tuned **against the gold**, which is the real risk -
 gold, warning and danger are all warm. Light `warning` is deepened to #A84600
@@ -899,15 +906,28 @@ a component that spans both surfaces.
    surfaces, `#E8B23A` on dark ones, both "the gold as text". If you find
    yourself wanting it as a label on a gold pill, you want `ink-on-clay`.
 
-4. **`success` and `info` are never redeclared.** Neither
-   `[data-app="marketing"]` nor the product dark block defines them, so both
-   inherit the `:root` light values. `success` #3D8A5E lands at **3.88:1 on the
-   product dark page and 3.46:1 on a product dark card** - below AA for text.
-   Use it as a dot or an icon on dark, not as body text, or give it a dark
-   value.
+4. **Tune a semantic colour against its own tint, not the bare surface.**
+   `success`, `info`, `danger` and `warning` are nearly always rendered as
+   `bg-x/10 text-x` - a 10-12% tint of the colour, carrying that same
+   colour as text. A tint of one hue pulls the background toward the text,
+   so the tinted pair reads 0.4-0.9 lower than the bare surface does. Check
+   the tint.
 
-5. **`danger` and `warning` are also inherited on marketing**, at #C5483A
-   (4.11:1) and #B8770F (5.36:1) on #0A0A0B. The red only just clears AA.
+   *Fixed Nov 2026 for `success` and `info`.* They were the only two
+   semantic tokens never tuned per surface, so both dark blocks inherited
+   the light mid-tones. Measured against the tint they were failing AA on
+   **every** surface: worst 2.9:1 (success) and 2.1:1 (info) on light,
+   3.0:1 and 4.1:1 on dark. Light is now #016630 / #193CB8 and dark
+   #05DF72 / #8EC5FF, worst case 4.72:1 anywhere.
+
+5. **`danger` and `warning` still fail against their own tints.** Not
+   fixed. On a tinted pill: product light `danger` 3.76:1 and `warning`
+   4.07:1; product dark `danger` 4.40:1 and `warning` 4.44:1. All four clear
+   AA on the bare surface, which is what the comments in `app/globals.css`
+   quote, and all four miss it under the `/10` they actually ship with.
+   Marketing inherits the `:root` pair (#C5483A, #B8770F) and is tighter
+   again. Deepening them is a live design call, because `warning` is
+   already tuned to sit between the gold accent and `danger`.
 
 6. **A triplet is not a colour.** `style={{ color: 'var(--ink)' }}` renders
    nothing. Wrap it: `rgb(var(--ink))`.
@@ -999,7 +1019,7 @@ hero entrance     className="hq-hero-rise" style={{ animationDelay: '130ms' }}
 - **Both `CLAUDE.md` and `app/globals.css` list `/enterprise` as a marketing
   page.** There is no `app/enterprise` route; the enterprise inquiry lives
   elsewhere. Don't use that list as a route map.
-- `--success` and `--info` have no dark or marketing values (see Known Traps 4).
+- `danger` and `warning` are not AA against their own tints (Known Traps 5).
 - The `sidebar*` tokens are defined but not yet consumed -
   `components/sidebar/Sidebar.tsx` still paints the rail with `bg-bg`, so the
   recessed #101010 rail is specified but not shipped.
