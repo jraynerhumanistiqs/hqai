@@ -188,7 +188,7 @@ export default function ComparePage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center rounded-full bg-clay px-6 py-3 text-sm font-bold text-clay-ink transition-colors hover:bg-clay-hover"
+                  className="inline-flex items-center justify-center rounded-full bg-clay px-6 py-3 text-sm font-bold text-ink-on-clay transition-colors hover:bg-clay-hover"
                 >
                   Get started
                 </Link>

@@ -64,6 +64,15 @@ const config: Config = {
         // still needs a white label in light / near-black in dark.
         // Falls back to ink-on-accent so marketing is unchanged.
         'ink-on-danger':  'rgb(var(--ink-on-danger, var(--ink-on-accent)) / <alpha-value>)',
+        // Label on a `clay` (Wattle Gold) fill. Same split as ink-on-danger
+        // above, for the same reason: `accent` is not the gold on every
+        // surface (near-black under :root, near-white under marketing), so
+        // ink-on-accent is the wrong label for a gold pill and resolves to
+        // WHITE ON GOLD - 1.9:1 - wherever no data-app scope is set.
+        // Declared once in :root and never overridden, because the gold is
+        // #E8B23A everywhere. Falls back to ink-on-accent for safety.
+        // NB this is not `clay-ink`, which is the gold rendered AS TEXT.
+        'ink-on-clay':    'rgb(var(--ink-on-clay, var(--ink-on-accent)) / <alpha-value>)',
         // Brand accent (public = ink; product = Clay, via data-app scope)
         accent:           'rgb(var(--accent) / <alpha-value>)',
         'accent-hover':   'rgb(var(--accent-hover) / <alpha-value>)',
@@ -77,7 +86,10 @@ const config: Config = {
         'clay-hover':     'rgb(var(--accent-clay-hover, 217 165 46) / <alpha-value>)',
         // alpha form - marketing and product bake a 14-18% gold tint in.
         'clay-soft':      'rgb(var(--accent-clay-soft, 247 235 203) / calc(var(--accent-clay-soft-a, 1) * <alpha-value>))',
-        'clay-ink':       'rgb(var(--accent-clay-ink, 138 109 18) / <alpha-value>)',
+        // Gold rendered AS TEXT, at whatever value clears AA on the current
+        // surface: #7A6010 on a light one, #E8B23A on a dark one. NOT a
+        // label on a gold fill - that is `ink-on-clay` above.
+        'clay-ink':       'rgb(var(--accent-clay-ink, 122 96 16) / <alpha-value>)',
         // Border + decoration. alpha form - product dark makes these white
         // hairlines at 10% / 20% so they sit correctly on page AND card.
         border:           'rgb(var(--border) / calc(var(--border-a, 1) * <alpha-value>))',

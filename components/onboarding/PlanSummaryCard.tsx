@@ -194,7 +194,7 @@ export default function PlanSummaryCard({
             >
               <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors
                 ${safeId === p.id ? 'border-clay bg-clay' : 'border-border'}`}>
-                {safeId === p.id && <div className="w-1.5 h-1.5 bg-clay-ink rounded-full" />}
+                {safeId === p.id && <div className="w-1.5 h-1.5 bg-ink-on-clay rounded-full" />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">

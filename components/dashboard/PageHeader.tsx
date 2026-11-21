@@ -26,7 +26,9 @@ export function PageHeader({ eyebrow, title, subtitle, className }: PageHeaderPr
       {/* Gold eyebrow. Bright Wattle Gold (text-clay, #E8B23A) is ~1.9:1 on a
           white surface - fine on the dark surface, but it fails contrast in
           light mode. Per the design system, gold TEXT on light uses the darker
-          clay-ink (#8A6D12, AA); the dark surface keeps the bright gold. */}
+          clay-ink (#7A6010, 6.0:1); the dark surface keeps the bright gold.
+          NB clay-ink is gold AS TEXT. A label sitting ON a gold fill is
+          ink-on-clay instead - see the token comments in app/globals.css. */}
       <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay-ink dark:text-clay">
         <span aria-hidden className="h-px w-5 bg-clay-ink dark:bg-clay" />
         {eyebrow}

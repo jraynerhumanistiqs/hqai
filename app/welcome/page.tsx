@@ -205,7 +205,7 @@ export default function WelcomePage() {
 
               <a
                 href="/dashboard"
-                className="mt-6 inline-flex w-full items-center justify-center bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="mt-6 inline-flex w-full items-center justify-center bg-clay hover:bg-clay-hover text-ink-on-clay font-bold py-3 rounded-full text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 Open my dashboard
               </a>
@@ -254,7 +254,7 @@ export default function WelcomePage() {
                 onClick={resumeCheckout}
                 disabled={loading}
                 aria-busy={loading}
-                className="w-full bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+                className="w-full bg-clay hover:bg-clay-hover text-ink-on-clay font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >
                 {loading ? 'Taking you to secure checkout...' : 'Start my plan'}
               </button>
@@ -320,7 +320,7 @@ export default function WelcomePage() {
                     return (
                       <button key={t} type="button" aria-pressed={on} onClick={() => setQTopic(on ? null : t)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-clay/30
-                          ${on ? 'bg-clay text-ink-on-accent border-clay' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
+                          ${on ? 'bg-clay text-ink-on-clay border-clay' : 'bg-bg-elevated border-border text-ink-soft hover:border-ink'}`}>
                         {t}
                       </button>
                     )
@@ -358,7 +358,7 @@ export default function WelcomePage() {
                 {qError && <p className="mt-3 text-xs text-danger">{qError}</p>}
 
                 <button type="button" onClick={submitQuery} disabled={qSubmitting} aria-busy={qSubmitting}
-                  className="mt-5 w-full bg-clay hover:bg-clay-hover text-ink-on-accent font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+                  className="mt-5 w-full bg-clay hover:bg-clay-hover text-ink-on-clay font-bold py-3 rounded-full text-sm transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
                   {qSubmitting ? 'Sending...' : 'Send my question'}
                 </button>
                 <p className="mt-2 text-center text-[11px] text-ink-muted">No obligation. Your plan is saved either way.</p>
