@@ -25,12 +25,34 @@ console error" class the audit itself authorised fixing.
 > still open.** Read the per-finding status notes before acting on anything
 > here.
 >
-> Those four statuses were confirmed by **reading the component source on
-> `origin/main`, not by re-running the browser.** That distinction matters in
+> **The live re-run has now been done** (2026-11-21, against production after
+> PR #9 merged as `f095567` - production *is* the merged tree, so no dev server
+> was needed). It changed two of the statuses above and turned up two things
+> source reading had missed:
+>
+> | Finding | Source-read status | **Measured status** |
+> |---|---|---|
+> | 3 Dropdown Escape | fixed | **mostly** - Escape from inside the panel closes it but does NOT return focus to the trigger |
+> | 4 ToolExplorer selection | fixed | **fixed** - selection held 10s with no pointer, auto-advance gone |
+> | 5 Tap targets | partly | **partly** - and one control measures 20x20, below even WCAG 2.5.8's 24px |
+> | 6 Arrow keys | fixed | **fixed** - roving tabindex confirmed, Arrow/Home/End all move focus AND selection |
+> | 7 Mobile menu | open | **open** - measured 40x40 |
+>
+> Plus the `HeroChatPreview` question below, now **confirmed**: the hero has
+> zero example-dot buttons on the live site.
+>
+> The original wording of this note is kept below because its reasoning still
+> stands, and it is the reason the re-run happened.
+>
+> Those four statuses were *initially* confirmed by **reading the component
+> source on `origin/main`, not by re-running the browser.** That distinction
+> matters in
 > this document more than most: the whole point of the audit was that source
 > reading missed all seven of these. Source proves the handler exists; it does
 > not prove focus actually moves or the menu actually closes. **A live re-run
-> against the merged tree is still worth doing** and has not been done.
+> against the merged tree is still worth doing** - and it was duly done; see
+> the measured table at the top of this note, which corrected two of the five
+> statuses that source reading had produced.
 
 ---
 
@@ -48,11 +70,11 @@ The bugs are all in behaviour, and all seven were invisible to static review:
 |---|----------|---------|------|
 | 1 | High - **FIXED** | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
 | 2 | High - **FIXED** | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
-| 3 | Medium-high - **FIXED ON MAIN** | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
-| 4 | Medium-high - **FIXED ON MAIN** | ToolExplorer discards the tab the user picked after 6.5s | `/` |
-| 5 | Medium - **PARTLY FIXED ON MAIN** | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
-| 6 | Low-medium - **FIXED ON MAIN** | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
-| 7 | Low - **STILL OPEN** | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
+| 3 | Medium-high - **MOSTLY FIXED ON MAIN** (measured) | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
+| 4 | Medium-high - **FIXED ON MAIN** (measured) | ToolExplorer discards the tab the user picked after 6.5s | `/` |
+| 5 | Medium - **PARTLY FIXED ON MAIN** (measured) | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
+| 6 | Low-medium - **FIXED ON MAIN** (measured) | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
+| 7 | Low - **STILL OPEN** (measured 40x40) | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
 
 Two things the brief expected to be broken are **not** broken - see
 [Expected findings that did not reproduce](#expected-findings-that-did-not-reproduce).
@@ -304,12 +326,29 @@ The server-side validation is untouched and still the real gate.
 
 ---
 
-## 3. Products dropdown cannot be dismissed by keyboard (Medium-high - FIXED ON MAIN)
+## 3. Products dropdown cannot be dismissed by keyboard (Medium-high - MOSTLY FIXED ON MAIN, one gap)
 
-> **Fixed on `origin/main`, not by this audit.** `MarketingHeader` now has an
-> Escape keydown handler that closes both menus, plus `aria-haspopup` and
-> `aria-controls`. Source-verified on `origin/main`; not re-run in a browser.
-> Worth a live check that Escape also returns focus to the trigger.
+> **Mostly fixed on `origin/main`, not by this audit - but re-measured live
+> against the merged tree (production, post-`f095567`) and one gap remains.**
+> `MarketingHeader` now has an Escape keydown handler that closes both menus,
+> plus `aria-haspopup="true"` and `aria-controls="marketing-products-menu"`.
+> The earlier source-read note here said this was fully fixed and suggested
+> "a live check that Escape also returns focus to the trigger". That check was
+> run. It does not:
+>
+> | Measured live | Closes? | Focus returns to trigger? |
+> |---|---|---|
+> | Escape, focus on the trigger | yes | **yes** |
+> | Escape, focus on a link inside the panel | yes | **no** |
+>
+> Closing the menu while focus sits on a link inside it leaves focus on an
+> element that is no longer rendered, so the next Tab restarts from the top of
+> the document. The remaining fix is one line in the Escape handler: return
+> focus to the trigger before closing, in both paths, not just the first.
+>
+> This is the clearest vindication of the audit's own thesis in the document.
+> Reading the source proves an Escape handler exists; only running it shows
+> that half of it strands the keyboard user.
 
 **Pages:** every marketing page (shared `MarketingHeader`)
 **Viewport:** 1440x900
@@ -353,12 +392,15 @@ already do.
 
 ---
 
-## 4. ToolExplorer throws away the tab the user chose (Medium-high - FIXED ON MAIN)
+## 4. ToolExplorer throws away the tab the user chose (Medium-high - FIXED ON MAIN, measured)
 
 > **Fixed on `origin/main`, more thoroughly than recommended here.** Rather
 > than pausing the rotation on interaction, the auto-advance was removed
 > outright - `DWELL_MS` no longer appears in the component. That resolves the
-> WCAG 2.2.2 concern below completely. Source-verified on `origin/main`.
+> WCAG 2.2.2 concern below completely. Source-verified on `origin/main`, then
+> **confirmed live on the merged tree**: with the pointer parked away from the
+> component, a clicked tab stayed selected for the full 10s sample
+> (`[0,0,0,0,0,0,0,0,0,0]`), where the original defect lost it after ~2s.
 
 **Page:** `/` ("One login. Everything people and hiring.")
 **Viewport:** all
@@ -415,7 +457,7 @@ pause permanently once the user has expressed a choice.
 
 ---
 
-## 5. Carousel dots are 6x6 px tap targets (Medium - PARTLY FIXED ON MAIN)
+## 5. Carousel dots are 6x6 px tap targets (Medium - PARTLY FIXED ON MAIN, measured)
 
 > **Both halves of this finding changed on `origin/main`, in different ways.**
 > This finding covered two components; check them separately.
@@ -428,6 +470,23 @@ pause permanently once the user has expressed a choice.
 >   under-size - as are the `PersonaBand` paging arrows at `h-9 w-9` (36px).
 >   The `skill/taste-skill` branch reportedly carries a 44px version; that is
 >   the one that satisfies the documented rule.
+>
+> **Measured live at 390px on the merged tree**, which confirms the above and
+> adds one thing source reading could not see:
+>
+> | Control | Size | WCAG 2.5.8 (24px) | House rule (44px) |
+> |---|---|---|---|
+> | Industries dots 2-5 | 24x24 | pass | **fail** |
+> | Industries dot 1 (active pill) | 42x24 | pass | **fail** |
+> | Previous / Next industries | 36x36 | pass | **fail** |
+> | Mobile menu button | 40x40 | pass | **fail** |
+> | **"HQ People subscriber add-on" info button** | **20x20** | **FAIL** | **fail** |
+>
+> **That last row is a new finding and the only WCAG failure left on the home
+> page.** Every other control clears 24px; this one does not, so it is the one
+> with an actual conformance problem rather than a house-style problem. Across
+> the whole page at 390px: 1 control under the WCAG floor, 19 under the
+> documented 44px.
 > - **`HeroChatPreview` dots: resolved by removal, not resizing.** On
 >   `origin/main` that component has no `<button>` and no `onClick` at all -
 >   the clickable example dots were taken out. At this audit's base they were
@@ -437,7 +496,22 @@ pause permanently once the user has expressed a choice.
 >   - if the dots were meant to stay interactive, this is a regression rather
 >   than a fix, and the tap-target finding would come back with them.
 >
-> Source-verified on `origin/main`; not re-run in a browser.
+> **Confirmed live on the merged tree.** This was raised from source as an open
+> question; the browser settles the factual half of it. On the production home
+> page the group is still present and still labelled
+> `role="group"` / `aria-label="HQ People - example HR answers"`, but it
+> contains **zero buttons**, and a query for `button[aria-label^="Example"]`
+> returns **0 nodes** (it returned 4 at the audit base).
+>
+> So the dots are not merely smaller or restyled - the control is gone, and a
+> visitor can no longer choose which example to read. The tap-target half of
+> finding 5 is therefore "fixed" only in the sense that the target no longer
+> exists.
+>
+> The browser can prove the control is absent; it cannot prove whether that was
+> intended. **That part is still a question for whoever changed the component**
+> - and it should be answered before this is filed as fixed, because if the
+> dots return at their old size the 6x6 finding returns with them.
 
 **Page:** `/`
 **Viewport:** 390x844
@@ -485,12 +559,22 @@ Only measuring the rendered box shows there is no padding expanding the target.
 
 ---
 
-## 6. ToolExplorer tablist has no arrow-key support (Low-medium - FIXED ON MAIN)
+## 6. ToolExplorer tablist has no arrow-key support (Low-medium - FIXED ON MAIN, measured)
 
 > **Fixed on `origin/main`, not by this audit.** Arrow Left/Right, Home and End
-> are handled, with a roving `tabIndex`. Source-verified on `origin/main`; a
-> live run should confirm focus actually follows selection, which source cannot
-> show.
+> are handled, with a roving `tabIndex`. Source-verified on `origin/main`, and
+> the live run that note asked for has been done - focus genuinely follows
+> selection, which source could not show:
+>
+> | Key | `tabindex` before | focused -> | selected -> |
+> |---|---|---|---|
+> | (start) | `["0","-1"]` | 0 | 0 |
+> | ArrowRight | `["-1","0"]` | 1 | 1 |
+> | End | `["-1","0"]` | 1 (last) | 1 |
+> | Home | `["0","-1"]` | 0 (first) | 0 |
+>
+> Exactly one tab carries `tabindex="0"` at any time, and focus and selection
+> move together. This one is fully closed.
 
 **Page:** `/`
 **Viewport:** 1440x900
@@ -518,7 +602,10 @@ particular key handling.
 
 > **Still open on `origin/main`** - the button is `h-10 w-10` (40px) against the
 > 44px the project documents. This is the one finding of 3-7 that nobody has
-> picked up.
+> picked up. **Re-measured live on the merged tree: 40x40.** It clears WCAG
+> 2.5.8's 24px floor, so this remains a house-rule gap rather than a
+> conformance failure - unlike the 20x20 info button now recorded under
+> finding 5, which fails both.
 
 **Pages:** every marketing page
 **Viewport:** 390x844
