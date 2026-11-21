@@ -12,18 +12,65 @@ a{color:inherit}
 /* top bar */
 .top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
 .top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:0 24px;height:60px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;flex:0 1 auto}
-.brand .nm{flex:none}
-.brand img{max-height:30px;max-width:140px;object-fit:contain}
+/* The brand block must contain its own children. `overflow:hidden` is the
+   backstop: the header is a single flex row and at 1180px an ADMIN view
+   genuinely over-demands it (logo + tool name + tagline + org name + seven
+   nav items + cycle + status + sign out), so .brand gets squeezed on a
+   perfectly ordinary desktop, not only on a narrow one. Without this, a
+   child that refuses to shrink paints over the nav instead. */
+/* Two things here are load-bearing and both look removable.
+   1. No min-width:0. Without it a flex container's automatic minimum size is
+      its min-content, so .brand cannot shrink past logo + the .nm floor
+      below. That floor is what keeps a client's logo whole and the tool name
+      readable.
+   2. No overflow:hidden. It reads like a safe backstop and is the opposite:
+      per spec the automatic minimum size is ZERO when overflow is not
+      visible, so adding it silently cancels (1) and the brand crushes again.
+      That is exactly how this bug was first written. */
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex:0 1 auto}
+/* flex:none on the LOGO, not on the text. Reversed, a client wordmark got
+   squashed while the text block kept its full width and overflowed. */
+.brand img{max-height:30px;max-width:140px;object-fit:contain;flex:none}
 .brand .mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
-.brand .nm{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+/* ONE rule. There were two, and the first set flex:none, which meant the
+   ellipsis below could never fire - the block kept its natural width and
+   overflowed .brand by ~150px at every width. min-width:0 is what lets a
+   flex child shrink below its content at all. */
+.brand .nm{display:flex;flex-direction:column;line-height:1.15;min-width:6.5rem;flex:0 1 auto}
 .brand .nm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand .org{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;min-width:0}
+.brand .org{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;min-width:0;flex:0 1 auto}
 @media(max-width:1100px){.brand .org{display:none}}
+/* An org that has uploaded a logo does not need its name printed next to it -
+   that is the same information twice, and it costs ~198px in a row that is
+   already short by about that much. Drop it and all seven admin tabs fit
+   without the nav scrolling.
+   Orgs with NO logo render the letter mark instead, and for them the name is
+   the only thing identifying the tenant, so they keep it. Browsers without
+   :has() simply show the name and get the scrolling nav, which is the
+   behaviour either way - nothing breaks. */
+.brand:has(img) .org{display:none}
+/* Shed the decorative tagline before the tool NAME has to ellipsise. An
+   org name and a tool name carry information; "Plan ~ Perform ~ Assess ~
+   Develop" does not, and "Plan ~ Perfo..." reads like a bug. */
+@media(max-width:1280px){.brand .nm span{display:none}}
 .brand .nm b{letter-spacing:.02em}
 .brand .nm span{font-size:11.5px;letter-spacing:.03em;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav{display:flex;gap:2px;margin-left:8px}
-.nav a{white-space:nowrap;padding:7px 12px;border-radius:8px;text-decoration:none;color:var(--ink2);font-weight:500}
+/* The brand and the nav SHARE the shortfall; neither absorbs all of it.
+   An admin header is genuinely over budget - seven tabs want 593px and the
+   brand wants ~540px in a 1132px row - so something has to give whatever we
+   do. Both items shrink with factor 1, which splits the deficit in
+   proportion to their size, and min-width:0 plus overflow-x lets the nav
+   scroll within its own line rather than be painted over.
+   The two failed attempts, for whoever changes this next: letting the brand
+   shrink freely crushed the tool name to 4px and clipped the client's logo;
+   giving the nav a lopsided shrink factor (0 999 auto) protected the brand
+   but starved the nav to 243px of the 593px it needs, hiding "Users and
+   access" entirely. */
+.nav{display:flex;gap:2px;margin-left:8px;min-width:0;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+/* 10px not 12px. Seven tabs x 4px of padding is 28px, which is most of what
+   the admin row was over by. Cheaper than hiding a tab. */
+.nav a{white-space:nowrap;padding:7px 10px;border-radius:8px;text-decoration:none;color:var(--ink2);font-weight:500}
 .nav a:hover{background:var(--line2);color:var(--ink)}
 .nav a.on{background:var(--line2);color:var(--ink)}
 .spacer{flex:1}
@@ -59,7 +106,11 @@ h3{font-size:14px;margin:0;font-weight:600}
    by the 375px Playwright project.
    The row wraps instead of overflowing, and the nav scrolls within its own
    line rather than forcing the page to. Desktop is untouched. */
-@media(max-width:640px){
+/* 820px, not 640px. Below roughly 780px the single row cannot hold the brand
+   at its floor plus the cycle selector, the save status and Sign out, so it
+   would overflow the row no matter how the nav shrinks. Wrapping is the only
+   honest answer there; above it, one row with a scrolling nav. */
+@media(max-width:820px){
   .top-in{flex-wrap:wrap;height:auto;padding:10px 14px;row-gap:8px}
   .top-in .spacer{display:none}
   .nav{order:3;flex:1 0 100%;margin-left:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}

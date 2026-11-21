@@ -29,9 +29,25 @@ const geistMono = Geist_Mono({
   display: 'swap',
 })
 
+// Nov 2026 - the `weight: ['500','600','700','800']` array is gone.
+// Schibsted Grotesk is a VARIABLE font (Next's own font-data.json lists
+// `variable` among its weights, axis wght 400-900), and per the next/font
+// docs a weight array is "an array of weight values if the font is not a
+// variable google font" - required only for non-variable faces. Passing
+// one forced the static path and emitted EIGHT @font-face rules (4 weights
+// x latin + latin-ext) where a variable font needs one.
+//
+// That is what broke the Vercel builds. Turbopack's font replacer failed
+// with "next/font/google queries have exactly one entry", 8 errors, one
+// per generated rule, traced to this file - but only on deployments that
+// restored a build cache, which is why it passed locally and on some
+// previews and failed on others. Clearing the cache cleared the symptom;
+// this removes the construct that the failing path chokes on.
+//
+// The variable font covers 400-900, a superset of the four weights that
+// were listed, and arrives as one file instead of eight slices.
 const schibsted = Schibsted_Grotesk({
   subsets: ['latin'],
-  weight: ['500', '600', '700', '800'],
   variable: '--font-display',
   display: 'swap',
 })

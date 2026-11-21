@@ -264,7 +264,11 @@ const go = h => { if (location.hash === '#'+h) route(); else location.hash = h; 
 function render(){
   const b = S.org.brand, c = activeCycle(), v = S.ui.view;
   const nav = [['dashboard','Overview'],['people','People'],['pds','PDs'],['profiles','Role profiles'],['reports','Reports'],['settings','Settings']];
-  if (S.me && S.me.isAdmin) nav.push(['access','Users and access']);
+  // Tab reads "Access", the page heading stays "Users and access". The long
+  // label cost 130px in a header row that an admin already overruns, and it
+  // was the seventh tab - the one that pushed it over. Prose elsewhere and
+  // the README refer to the page by its heading, which has not changed.
+  if (S.me && S.me.isAdmin) nav.push(['access','Access']);
   const showNav = S.org.setup && !employeeOnly();
   const logo = b.logo ? `<img src="${b.logo}" alt="">` : `<div class="mark">${esc((b.orgName||b.appName||'P').trim().slice(0,1).toUpperCase())}</div>`;
   const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();

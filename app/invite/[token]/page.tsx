@@ -41,23 +41,23 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
         {!invite ? (
           <>
-            <h1 className="font-display text-2xl mt-2">This invite is not valid</h1>
+            <h1 className="font-display text-2xl font-medium mt-2">This invite is not valid</h1>
             <p className="mt-2 text-sm text-ink-soft">The link may be incomplete. Ask the person who invited you to send it again.</p>
           </>
         ) : used ? (
           <>
-            <h1 className="font-display text-2xl mt-2">This invite has been used</h1>
+            <h1 className="font-display text-2xl font-medium mt-2">This invite has been used</h1>
             <p className="mt-2 text-sm text-ink-soft">If that was you, just sign in.</p>
             <Link href="/login" className="mt-4 inline-block rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink-on-accent hover:bg-accent-hover">Sign in</Link>
           </>
         ) : expired ? (
           <>
-            <h1 className="font-display text-2xl mt-2">This invite has expired</h1>
+            <h1 className="font-display text-2xl font-medium mt-2">This invite has expired</h1>
             <p className="mt-2 text-sm text-ink-soft">Invites last 7 days. Ask {inviter} to send a new one.</p>
           </>
         ) : (
           <>
-            <h1 className="font-display text-2xl mt-2">You are invited to {biz}</h1>
+            <h1 className="font-display text-2xl font-medium mt-2">You are invited to {biz}</h1>
             <p className="mt-2 text-sm text-ink-soft">
               {inviter} has invited you to {invite.role === 'admin' ? 'help manage people records' : 'join the team'} on HQ.ai.
               The invite was sent to <span className="text-ink">{invite.email}</span>.

@@ -94,15 +94,35 @@ function world(role: Role) {
   return { me, visible, records }
 }
 
-export const test = base.extend<{ asRole: (r: Role) => Promise<void> }>({
+/**
+ * A wide wordmark, the shape a real client logo actually is - and the shape
+ * that broke the header. The default fixture has logo:null, which renders the
+ * 30px letter mark instead, so none of the other tests exercise this.
+ */
+export const WIDE_LOGO =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" width="420" height="90">' +
+      '<rect width="420" height="90" fill="#0b3d5c"/>' +
+      '<text x="18" y="58" font-family="Arial" font-size="42" font-weight="700" fill="#fff">CARLINGFORD</text>' +
+      '</svg>'
+  )
+
+/** Brand fields a test may override, e.g. to give the org a real logo. */
+export type BrandOver = { logo?: string | null; orgName?: string; appName?: string; tagline?: string }
+
+export const test = base.extend<{ asRole: (r: Role, brand?: BrandOver) => Promise<void> }>({
   asRole: async ({ page }, use) => {
     // Not a React hook. `use` is Playwright's fixture API - it hands the
     // fixture value to the test and resumes for teardown afterwards. The
     // rule matches on the name alone and cannot tell the difference, and the
     // parameter name is fixed by Playwright.
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use(async (role: Role) => {
+    await use(async (role: Role, brand?: BrandOver) => {
       const w = world(role)
+      // Per-test org, so a brand override cannot leak into the next test
+      // through the module-level ORG object.
+      const org = { ...ORG, brand: { ...ORG.brand, ...(brand || {}) } }
       const json = (route: Route, body: unknown) =>
         route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
 
@@ -114,7 +134,7 @@ export const test = base.extend<{ asRole: (r: Role) => Promise<void> }>({
 
       await page.route('**/__supabase/**', (r) => {
         const url = r.request().url()
-        if (url.includes('ppad_org_config')) return json(r, [{ data: ORG }])
+        if (url.includes('ppad_org_config')) return json(r, [{ data: org }])
         if (url.includes('ppad_position_descriptions')) return json(r, [])
         if (url.includes('ppad_people')) return json(r, w.visible)
         if (url.includes('rpc/ppad_list_records')) return json(r, w.records)

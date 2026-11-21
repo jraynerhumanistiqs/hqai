@@ -256,13 +256,27 @@ export default async function CareersCampaignPage({
   if (role.award?.code) chips.push(`Award ${role.award.code}`)
 
   return (
-    <main className="min-h-screen bg-white text-charcoal">
+    // PALETTE: this surface deliberately stays LIGHT and deliberately does
+    // NOT mount MarketingHeader/MarketingFooter, unlike the 12 pages of the
+    // marketing site. Nothing on the site links here - /careers and its
+    // child job ads are a whitelabel job-board surface reached from Google
+    // for Jobs and Jora, and the HQ.ai marketing nav (Products, Pricing,
+    // Get started) has no business advertising to a client's candidates.
+    // The "Powered by HQ.ai" chrome below is the whole brand presence by
+    // design, and the index has to match the ads it links to.
+    //
+    // So it sits on the bare :root token scope, which is the light ramp.
+    // That is safe to rely on: `.dark` is only ever matched under
+    // [data-app="product"], which nothing here sets. Use TOKENS anyway -
+    // bg-white / bg-black here previously broke the documented ban and
+    // would have painted through any future scope change.
+    <main className="min-h-screen bg-bg text-charcoal">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="sticky top-0 z-10 w-full bg-white border-b border-border">
+      <header className="sticky top-0 z-10 w-full bg-bg border-b border-border">
         <div className="mx-auto max-w-5xl flex items-center justify-between px-6 h-16">
           <Link href="/" className="font-display font-bold text-xl text-ink">HQ.ai</Link>
           <Link
@@ -292,7 +306,7 @@ export default async function CareersCampaignPage({
           <div className="mt-8">
             <Link
               href={applyHref}
-              className="inline-block bg-black text-white rounded-full px-8 py-3 text-sm font-bold hover:opacity-90 transition"
+              className="inline-block bg-accent text-ink-on-accent rounded-full px-8 py-3 text-sm font-bold hover:opacity-90 transition"
             >
               Apply now
             </Link>
@@ -346,7 +360,7 @@ export default async function CareersCampaignPage({
           <div className="pt-6 border-t border-border">
             <Link
               href={applyHref}
-              className="inline-block bg-black text-white rounded-full px-8 py-3 text-sm font-bold hover:opacity-90 transition"
+              className="inline-block bg-accent text-ink-on-accent rounded-full px-8 py-3 text-sm font-bold hover:opacity-90 transition"
             >
               {blocks.apply_cta || 'Apply now'}
             </Link>
