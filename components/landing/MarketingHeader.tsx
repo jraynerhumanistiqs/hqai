@@ -46,6 +46,8 @@ export default function MarketingHeader() {
   const [open, setOpen] = useState(false)
   const [productOpen, setProductOpen] = useState(false)
   const productRef = useRef<HTMLDivElement | null>(null)
+  const productBtnRef = useRef<HTMLButtonElement | null>(null)
+  const menuBtnRef = useRef<HTMLButtonElement | null>(null)
 
   // Close the product dropdown on outside click.
   useEffect(() => {
@@ -64,8 +66,18 @@ export default function MarketingHeader() {
     if (!productOpen && !open) return
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
-      setProductOpen(false)
-      setOpen(false)
+      // Return focus to whichever trigger owns the menu being closed.
+      // Without this the focused node inside the panel is unmounted
+      // underneath the user, focus falls to <body>, and the next Tab
+      // restarts from the top of the page.
+      if (productOpen) {
+        setProductOpen(false)
+        productBtnRef.current?.focus()
+      }
+      if (open) {
+        setOpen(false)
+        menuBtnRef.current?.focus()
+      }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
@@ -88,6 +100,7 @@ export default function MarketingHeader() {
           <div className="relative" ref={productRef}>
             <button
               type="button"
+              ref={productBtnRef}
               onClick={() => setProductOpen((v) => !v)}
               aria-expanded={productOpen}
               aria-haspopup="true"
@@ -134,6 +147,7 @@ export default function MarketingHeader() {
         {/* Mobile toggle */}
         <button
           type="button"
+          ref={menuBtnRef}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
