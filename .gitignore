@@ -36,3 +36,7 @@ __pycache__/
 # Dev-only Supabase credentials for the PPAD fixture. Service role key -
 # never commit. See scripts/ppad/dev-seed.mjs.
 .env.ppad-dev
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+# Playwright run output (traces may embed request/response data)
+test-results/
