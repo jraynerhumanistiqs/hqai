@@ -110,18 +110,53 @@ test.describe('manager', () => {
     await expect(page.getByText('has not been released yet')).toHaveCount(0)
   })
 
-  test('has no Users and access tab', async ({ page, asRole }) => {
+  test('is offered no route to Users and access, in either nav', async ({ page, asRole }) => {
     await asRole('manager')
+    // Not in the top row...
     await expect(page.locator('nav.nav a[href="#access"]')).toHaveCount(0)
+    // ...and not inside Setup either, which is where it lives now. A manager
+    // reaching #access is bounced to the dashboard by route(), so offering
+    // the link would be a visible dead end.
+    await page.locator('nav.nav a[href="#setup"]').click()
+    await expect(page.locator('nav.subnav')).toBeVisible()
+    await expect(page.locator('nav.subnav a[href="#access"]')).toHaveCount(0)
   })
 })
 
 test.describe('admin', () => {
-  test('sees the directory and the Users and access tab', async ({ page, asRole }) => {
+  test('reaches Users and access through Setup, and sees the directory', async ({ page, asRole }) => {
     await asRole('admin')
-    await expect(page.locator('nav.nav a[href="#access"]')).toBeVisible()
+
+    // Setup is a doorway: it opens on the first section rather than being a
+    // screen of its own.
+    await page.locator('nav.nav a[href="#setup"]').click()
+    await expect(page.locator('nav.subnav a[href="#pds"]')).toHaveAttribute('aria-current', 'page')
+
+    // Setup stays lit in the top row while any of its sections is open.
+    await expect(page.locator('nav.nav a[href="#setup"]')).toHaveAttribute('aria-current', 'page')
+
+    // The admin-only section is offered here. Only its presence is asserted:
+    // the screen behind it calls ppad_list_members / ppad_list_allocations,
+    // which this fixture does not stub, and what that screen is allowed to
+    // SHOW is already proved against the real migrations in
+    // tests/ppad/access-matrix.mjs. What matters here is that the grouping
+    // did not lose the only route to it.
+    await expect(page.locator('nav.subnav a[href="#access"]')).toHaveCount(1)
+
     await page.evaluate(() => { location.hash = '#people' })
     await expect(page.locator('table.tbl')).toContainText('Evie Emp')
+  })
+
+  test('deep links into a Setup section still resolve directly', async ({ page, asRole }) => {
+    await asRole('admin')
+    // The four sections stay real routes - bookmarks and in-app links that
+    // predate the grouping must not break.
+    for (const [hash, heading] of [['#pds', 'Position description'], ['#profiles', 'Role profile'], ['#settings', 'Settings']] as const) {
+      await page.evaluate(h => { location.hash = h }, hash)
+      await expect(page.locator('nav.subnav')).toBeVisible()
+      await expect(page.locator(`nav.subnav a[href="${hash}"]`)).toHaveAttribute('aria-current', 'page')
+      await expect(page.locator('main')).toContainText(heading, { ignoreCase: true })
+    }
   })
 
   test('is told the plan cannot be started without an allocation', async ({ page, asRole }) => {
@@ -226,7 +261,10 @@ test.describe('layout', () => {
     expect(r.hits, `header elements overlap ${where}`).toEqual([])
     expect(r.nameWidth, `tool name crushed ${where}`).toBeGreaterThan(60)
     expect(r.nameClipped, `tool name ellipsised ${where}`).toBe(false)
-    expect(r.tabs, `admin should have seven tabs ${where}`).toBe(7)
+    // Four, not seven. The four configuration screens moved behind Setup -
+    // that grouping is what took the nav from 501px to ~290px and ended the
+    // scrolling, so the count is the thing worth pinning.
+    expect(r.tabs, `admin should have four top-level tabs ${where}`).toBe(4)
     expect(r.pageOverflow, `page scrolls sideways ${where}`).toBeLessThanOrEqual(2)
 
     // Only asserted on desktop. At 375px the row wraps and the nav scrolls

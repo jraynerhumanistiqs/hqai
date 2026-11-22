@@ -244,7 +244,23 @@ function applyPreset(){
 
 /* ===== Performance Manager — views ===== */
 const $app = () => document.getElementById('app');
-const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access'];
+const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access','setup'];
+
+/* The four configuration screens, grouped behind one "Setup" tab.
+   They are NOT peers of Overview and People: an admin sets them up during
+   onboarding and rarely returns, yet as top-level tabs they were paying full
+   rent in the most contested row in the app - 4 of 7 tabs, and the reason the
+   nav overflowed at every width.
+   They stay real routes. #pds, #profiles, #settings and #access still resolve
+   directly, so deep links, bookmarks and the in-app links that point at them
+   are untouched; Setup is a way IN, not a wrapper they now live behind. */
+const SETUP_VIEWS = ['pds','pd','profiles','settings','access'];
+const SETUP_TABS = [
+  ['pds','Position descriptions'],
+  ['profiles','Role profiles'],
+  ['settings','Settings'],
+  ['access','Users and access'],
+];
 
 function route(){
   if (!S.ready) return;
@@ -252,6 +268,10 @@ function route(){
   if (h.startsWith('person-')){ const id = h.slice(7); if (S.people[id]){ if (S.ui.personId !== id) S.ui.tab = 'plan'; S.ui.view = 'person'; S.ui.personId = id; } else S.ui.view = 'people'; }
   else if (h.startsWith('pd-') && S.pds[h.slice(3)]){ S.ui.view = 'pd'; S.ui.pdId = h.slice(3); }
   else S.ui.view = VIEWS.includes(h) ? h : 'dashboard';
+  /* "Setup" is a doorway, not a screen of its own - it opens on the first
+     section. Everything below (the admin guard, the employee lock) then
+     applies to the real view, exactly as it did before the grouping. */
+  if (S.ui.view === 'setup') S.ui.view = 'pds';
   /* The screen is admin-only. The RPCs behind it refuse a non-admin anyway,
      so this is to avoid showing a screen that could only ever error. */
   if (S.ui.view === 'access' && !(S.me && S.me.isAdmin)) S.ui.view = 'dashboard';
@@ -268,29 +288,50 @@ function route(){
 window.addEventListener('hashchange', route);
 const go = h => { if (location.hash === '#'+h) route(); else location.hash = h; };
 
+/* The Setup sub-nav.
+   Anchors rather than buttons, so Cmd-click and middle-click open a section
+   in a new tab like every other navigation in this tool, and the active one
+   carries aria-current for screen readers rather than colour alone.
+   "Users and access" is filtered out for non-admins rather than disabled:
+   route() already sends them away from #access, so offering it would be a
+   visible dead end. */
+function setupNav(v){
+  const cur = v === 'pd' ? 'pds' : v;
+  const admin = !!(S.me && S.me.isAdmin);
+  return `<nav class="subnav" aria-label="Setup sections">${SETUP_TABS
+    .filter(([k]) => k !== 'access' || admin)
+    .map(([k,l]) => `<a href="#${k}"${cur===k ? ' class="on" aria-current="page"' : ''}>${esc(l)}</a>`)
+    .join('')}</nav>`;
+}
+
 function render(){
   const b = S.org.brand, c = activeCycle(), v = S.ui.view;
-  const nav = [['dashboard','Overview'],['people','People'],['pds','PDs'],['profiles','Role profiles'],['reports','Reports'],['settings','Settings']];
-  // Tab reads "Access", the page heading stays "Users and access". The long
-  // label cost 130px in a header row that an admin already overruns, and it
-  // was the seventh tab - the one that pushed it over. Prose elsewhere and
-  // the README refer to the page by its heading, which has not changed.
-  if (S.me && S.me.isAdmin) nav.push(['access','Access']);
+  // Four tabs, not seven. Overview and People are where the work happens,
+  // Reports is the output, and the four configuration screens live behind
+  // Setup. The same tabs for everyone - what an admin gets extra is a fourth
+  // section INSIDE Setup, not another tab out here.
+  const nav = [['dashboard','Overview'],['people','People'],['reports','Reports'],['setup','Setup']];
   const showNav = S.org.setup && !employeeOnly();
   // No logo or letter mark in the header. It cost up to 150px of a row that
   // is already over budget, and the tool runs inside the HQ.ai dashboard,
   // whose sidebar already shows whose workspace this is. The uploaded logo is
   // NOT dropped - it still brands the exported appraisal documents (the
   // letterhead and both PDF footers) and its Settings control is unchanged.
-  const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
+  const view = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
+  // The Setup sections get a sub-nav above whatever they already render. No
+  // extra heading: each of those screens owns its own h1, and adding a
+  // "Setup" one above it would put two h1s on the page.
+  // Not during first-run setup - S.org.setup is false there and Settings is
+  // the only reachable screen, so a sub-nav would offer three dead ends.
+  const body = (showNav && SETUP_VIEWS.includes(v)) ? setupNav(v) + view : view;
   const sy = window.scrollY;
   $app().innerHTML = `
   <header class="top"><div class="top-in">
     <div class="brand" data-act="nav" data-h="dashboard"><div class="nm"><b>${esc(b.appName||'Plan, Perform, Assess, Develop')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
-    ${showNav ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
+    ${showNav ? `<nav class="nav" aria-label="Sections">${nav.map(([h,l]) => { const on = (v===h) || (v==='person'&&h==='people') || (h==='setup'&&SETUP_VIEWS.includes(v)); return `<a href="#${h}"${on?' class="on" aria-current="page"':''}>${l}</a>`; }).join('')}</nav>` : ''}
     <div class="spacer"></div>
     ${showNav ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
-    <span class="sync" id="sync">${esc(store.status || '')}</span>
+    <span class="sync" id="sync" role="status" aria-live="polite">${esc(store.status || '')}</span>
     <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
   </div></header>
   <main>${body}</main>
