@@ -230,8 +230,11 @@ function confirmBox(title, body, okLabel, fn, danger){
     (m, close) => m.querySelector('#ok').onclick = () => { close(); fn(); });
 }
 function seg(path, val, max, opts={}){
-  const vals = []; if (opts.n) vals.push(0); for (let i=1;i<=max;i++) vals.push(i);
-  return `<div class="seg ${opts.ro?'ro':''}">${vals.map(v => `<button type="button" class="${val===v?'on':''} ${opts.target===v?'tg':''}" ${opts.ro?'disabled':''} data-act="seg" data-f="${path}" data-v="${v}" title="${opts.titles?esc(opts.titles[v]||''):''}">${v===0?'N':v}</button>`).join('')}</div>`;
+  // opts.n renders the zero button as "N" (not required in this role);
+  // opts.zero renders it as "0" (required, but not demonstrated). Same
+  // stored value, two different things to say about it.
+  const vals = []; if (opts.n || opts.zero) vals.push(0); for (let i=1;i<=max;i++) vals.push(i);
+  return `<div class="seg ${opts.ro?'ro':''}">${vals.map(v => `<button type="button" class="${val===v?'on':''} ${opts.target===v?'tg':''}" ${opts.ro?'disabled':''} data-act="seg" data-f="${path}" data-v="${v}" title="${opts.titles?esc(opts.titles[v]||''):''}">${v===0?(opts.n?'N':'0'):v}</button>`).join('')}</div>`;
 }
 
 function applyPreset(){
@@ -378,7 +381,7 @@ function vWelcome(){
   const b = S.org.brand;
   return `<div style="max-width:620px;margin:20px auto">
   <div class="tag">Set up</div><h1 style="margin-top:4px">Set up your performance cycle</h1>
-  <p class="sub">A simple annual system: agree <b>what</b> each person will deliver (KPIs) and <b>how</b> (competencies), check in during the year, then assess both and plan development. Takes about two minutes.</p>
+  <p class="sub">A simple annual system: agree <b>what</b> each person will deliver (KPAs) and <b>how</b> (competencies), check in during the year, then assess both and plan development. Takes about two minutes.</p>
   <div class="card" style="margin-top:22px"><div class="grid" style="gap:14px">
     <label class="f"><span>Organisation name</span><input class="in" data-f="org.brand.orgName" value="${esc(b.orgName)}" placeholder="e.g. Acme Services Pty Ltd"></label>
     <label class="f"><span>Tool name (shown in the header)</span><input class="in" data-f="org.brand.appName" value="${esc(b.appName)}"></label>
@@ -404,7 +407,7 @@ function vDashboard(){
   const [sy,sm] = c.start.split('-').map(Number);
   const mlabel = i => MONTHS[(sm-1+i)%12];
   const phases = [
-    ['Months 1–2','Plan','Agree KPIs, competency targets and stretch objectives.',[0,1]],
+    ['Months 1–2','Plan','Agree KPAs, competency targets and stretch objectives.',[0,1]],
     ['Months 3–10','Perform','Deliver the plan, with regular check-ins and a formal half-year review.',[2,9]],
     ['Months 11–12','Assess','Self-appraisal, manager review, overall rating.',[10,11]],
     ['Month 12','Develop & close','Development plan, sign-off, roll into next year.',[11,11]]];
@@ -414,7 +417,7 @@ function vDashboard(){
     if (!r) todo.push([p,'Start a plan']);
     else if (!r.planAgreed && mi >= 1) todo.push([p,'Plan not yet agreed']);
     else if (r.planAgreed && mi >= 5 && !(r.checkins||[]).some(x => x.type==='Half-year review')) todo.push([p,'Half-year review due']);
-    else if (riskCount(r)) todo.push([p, riskCount(r) + ' KPI' + (riskCount(r)>1?'s':'') + ' at risk']);
+    else if (riskCount(r)) todo.push([p, riskCount(r) + ' KPA' + (riskCount(r)>1?'s':'') + ' at risk']);
     else if (mi >= 10 && st.i < 4) todo.push([p,'Appraisal due']);
   });
   const total = ppl.length || 1;
@@ -462,7 +465,7 @@ function personForm(p){
     <label class="f"><span>First name</span><input class="in" name="first" value="${esc(p.first)}"></label>
     <label class="f"><span>Surname</span><input class="in" name="last" value="${esc(p.last)}"></label>
     <label class="f"><span>Position</span><input class="in" name="position" value="${esc(p.position)}"></label>
-    <label class="f" style="grid-column:1/-1"><span>Position description (sets the role's KPIs and competency targets)</span><select class="in" name="pdId" data-act-change="person-pd"><option value="">None — no PD linked</option>${pdList().map(d=>`<option value="${d.id}" ${p.pdId===d.id?'selected':''}>${esc(d.title)}${d.department?' · '+esc(d.department):''}</option>`).join('')}</select></label>
+    <label class="f" style="grid-column:1/-1"><span>Position description (sets the role's KPAs and competency targets)</span><select class="in" name="pdId" data-act-change="person-pd"><option value="">None — no PD linked</option>${pdList().map(d=>`<option value="${d.id}" ${p.pdId===d.id?'selected':''}>${esc(d.title)}${d.department?' · '+esc(d.department):''}</option>`).join('')}</select></label>
     <label class="f"><span>Role profile (used if no PD is linked)</span><select class="in" name="profileId"><option value="">None</option>${S.org.profiles.map(r=>`<option value="${r.id}" ${p.profileId===r.id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></label>
     <label class="f"><span>Team / department</span><input class="in" name="dept" value="${esc(p.dept)}"></label>
     <label class="f"><span>Location</span><input class="in" name="location" value="${esc(p.location)}"></label>
@@ -510,20 +513,24 @@ function vPerson(){
   return head + `<div class="steps">${tabs.map(([k,l,d],i) => `<button class="${S.ui.tab===k?'on':''} ${d?'done':''}" data-act="tab" data-v="${k}"><span class="n">${d?'✓':i+1}</span>${l}</button>`).join('')}<span class="spacer"></span><span style="align-self:center" class="pill ${st.cls}">${st.label}</span></div>` + body;
 }
 
-function levelText(comp, lvl){ if (!lvl) return 'Not required for this role.'; const t = comp.levels[lvl-1]||''; const i = t.indexOf(':'); return i>0 ? `<b>${esc(t.slice(0,i))}</b>${esc(t.slice(i))}` : esc(t); }
-function levelTitles(comp){ const o = {0:'N — not required'}; comp.levels.forEach((t,i)=> o[i+1] = (i+1)+'. '+t.split(':')[0]); return o; }
+/* `assessed` distinguishes the two meanings of a zero. On a PLAN, 0/absent
+   means "not required in this role". On an ASSESSMENT it means the opposite:
+   required, and not demonstrated. Same stored value, so the caller has to say
+   which screen it is on. */
+function levelText(comp, lvl, assessed){ if (lvl === 0 && assessed) return '<b>Not shown</b> — required in this role but not demonstrated by the individual.'; if (!lvl) return 'Not required in this role.'; const t = comp.levels[lvl-1]||''; const i = t.indexOf(':'); return i>0 ? `<b>${esc(t.slice(0,i))}</b>${esc(t.slice(i))}` : esc(t); }
+function levelTitles(comp, assessed){ const o = {0: assessed ? '0 — Not shown' : 'N — Not required in this role'}; comp.levels.forEach((t,i)=> o[i+1] = (i+1)+'. '+t.split(':')[0]); return o; }
 
 function tPlan(p, r){
   const locked = !!r.planAgreed;
-  /* The plan - KPIs, competency targets, stretch objectives - belongs to the
+  /* The plan - KPAs, competency targets, stretch objectives - belongs to the
      manager. ppad_save_record refuses an employee writing any of it, so the
      fields render read-only rather than inviting an edit that cannot land. */
   const ro = !canManage(p.id);
   const pd = S.pds[p.pdId]; const areas = pd ? pd.accountabilities.map(a=>a.area).filter(Boolean) : [];
   const gcols = areas.length ? 'style="grid-template-columns:minmax(0,2fr) minmax(0,1.8fr) minmax(0,1.2fr) 80px 34px"' : '';
   const kpis = r.kpis.map((k,i) => `<div class="kpi-grid r" ${gcols}>
-      <input class="in" placeholder="KPI — e.g. Monthly reporting" data-f="rec.kpis.${i}.name" value="${esc(k.name)}" ${ro?'readonly':''}>
-      <input class="in" placeholder="Target / measure" data-f="rec.kpis.${i}.target" value="${esc(k.target)}" ${ro?'readonly':''}>
+      <input class="in" placeholder="KPA — e.g. Monthly reporting" data-f="rec.kpis.${i}.name" value="${esc(k.name)}" ${ro?'readonly':''}>
+      <input class="in" placeholder="KPI (targets/measures)" data-f="rec.kpis.${i}.target" value="${esc(k.target)}" ${ro?'readonly':''}>
       ${areas.length ? `<select class="in" data-f="rec.kpis.${i}.area"><option value="">Accountability…</option>${areas.map(a=>`<option ${k.area===a?'selected':''}>${esc(a)}</option>`).join('')}</select>` : ''}
       <input class="in" type="number" min="0" max="100" placeholder="—" data-f="rec.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}" ${ro?'readonly':''}>
       ${ro?'<span></span>':`<button class="btn icon" title="Remove" data-act="del" data-f="rec.kpis" data-i="${i}">✕</button>`}</div>`).join('');
@@ -533,15 +540,15 @@ function tPlan(p, r){
     return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = r.comps[c.id]?.target ?? 0;
       return `<div class="comp ${t?'':'off'}"><div><span class="nm">${esc(c.name)}</span></div>${seg('rec.comps.'+c.id+'.target', t, c.levels.length, {n:true, titles:levelTitles(c), ro:ro})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('') : `<p class="muted">Competencies are switched off for this person this cycle.</p>`;
   const nReq = Object.values(r.comps).filter(c=>c.target>0).length;
-  const pdBox = pd ? `<div class="card" style="margin-bottom:16px"><div class="card-h" style="margin-bottom:${S.ui.pdOpen?'14px':'0'}"><div><div class="tag">Linked position description</div><h2 style="margin-top:2px"><a href="#pd-${pd.id}" style="text-decoration:none">${esc(pd.title)}</a></h2><p>${pd.kpis.filter(k=>k.name).length} standard KPIs · ${Object.values(pd.targets).filter(v=>v>0).length} competencies · <span class="pill ${pdReviewState(pd).cls}">${pdReviewState(pd).label}</span> Review the PD with the employee during Planning.</p></div>
+  const pdBox = pd ? `<div class="card" style="margin-bottom:16px"><div class="card-h" style="margin-bottom:${S.ui.pdOpen?'14px':'0'}"><div><div class="tag">Linked position description</div><h2 style="margin-top:2px"><a href="#pd-${pd.id}" style="text-decoration:none">${esc(pd.title)}</a></h2><p>${pd.kpis.filter(k=>k.name).length} standard KPAs · ${Object.values(pd.targets).filter(v=>v>0).length} competencies · <span class="pill ${pdReviewState(pd).cls}">${pdReviewState(pd).label}</span> Review the PD with the employee during Planning.</p></div>
       <div class="row"><button class="btn sm ghost" data-act="pd-toggle">${S.ui.pdOpen?'Hide':'Show'} accountabilities</button><button class="btn sm" data-act="pd-apply">Re-apply PD</button></div></div>
-      ${S.ui.pdOpen ? `<table class="tbl"><thead><tr><th style="width:26%">Accountability</th><th>Responsibilities</th><th class="num">KPIs</th></tr></thead><tbody>${pd.accountabilities.map(a=>{ const n = r.kpis.filter(k=>k.area===a.area).length; return `<tr><td><b>${esc(a.area)}</b></td><td class="small" style="white-space:pre-line">${esc(a.responsibilities)}</td><td class="num">${n?n:'<span class="pill warn">0</span>'}</td></tr>`; }).join('') || '<tr><td colspan="3" class="muted">No accountabilities recorded in the PD.</td></tr>'}</tbody></table>${pd.purpose?`<p class="small muted" style="margin:12px 0 0"><b>Purpose:</b> ${esc(pd.purpose)}</p>`:''}` : ''}</div>`
-    : `<div class="note row" style="justify-content:space-between;margin-bottom:16px"><span>No position description linked. Link one to start this plan from the role's KPIs and competency profile.</span><select class="in" style="width:auto" data-act-change="plan-pd"><option value="">Link a PD…</option>${pdList().map(d=>`<option value="${d.id}">${esc(d.title)}</option>`).join('')}</select></div>`;
+      ${S.ui.pdOpen ? `<table class="tbl"><thead><tr><th style="width:26%">Accountability</th><th>Responsibilities</th><th class="num">KPAs</th></tr></thead><tbody>${pd.accountabilities.map(a=>{ const n = r.kpis.filter(k=>k.area===a.area).length; return `<tr><td><b>${esc(a.area)}</b></td><td class="small" style="white-space:pre-line">${esc(a.responsibilities)}</td><td class="num">${n?n:'<span class="pill warn">0</span>'}</td></tr>`; }).join('') || '<tr><td colspan="3" class="muted">No accountabilities recorded in the PD.</td></tr>'}</tbody></table>${pd.purpose?`<p class="small muted" style="margin:12px 0 0"><b>Purpose:</b> ${esc(pd.purpose)}</p>`:''}` : ''}</div>`
+    : `<div class="note row" style="justify-content:space-between;margin-bottom:16px"><span>No position description linked. Link one to start this plan from the role's KPAs and competency profile.</span><select class="in" style="width:auto" data-act-change="plan-pd"><option value="">Link a PD…</option>${pdList().map(d=>`<option value="${d.id}">${esc(d.title)}</option>`).join('')}</select></div>`;
   return `${pdBox}
   ${locked ? `<div class="callout row" style="justify-content:space-between;margin-bottom:16px"><span>Plan agreed on <b>${fmtDate(r.planAgreed)}</b>. Changes are still allowed — they'll be kept with the record.</span><button class="btn sm" data-act="unagree">Reopen plan</button></div>` : ''}
-  <div class="card"><div class="card-h"><div><h2>What — Key Performance Indicators</h2><p>What the person will deliver this year. Keep each one SMART: specific, measurable, attainable, relevant, timely.</p></div><button class="btn sm" data-act="smart-help">SMART guide</button></div>
-    ${r.kpis.length ? `<div class="kpi-grid h" ${gcols}><span>KPI</span><span>Target / measure</span>${areas.length?'<span>Accountability</span>':''}<span>Weight %</span><span></span></div>${kpis}` : '<p class="muted">No KPIs yet.</p>'}
-    <div class="row" style="justify-content:space-between;margin-top:12px">${ro?'<span></span>':'<button class="btn sm" data-act="add-kpi">+ Add KPI</button>'}${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
+  <div class="card"><div class="card-h"><div><h2>What — Key Performance Areas</h2><p>What the person will deliver this year. Keep each one SMART: specific, measurable, attainable, relevant, timely.</p></div><button class="btn sm" data-act="smart-help">SMART guide</button></div>
+    ${r.kpis.length ? `<div class="kpi-grid h" ${gcols}><span>KPA</span><span>KPI (targets/measures)</span>${areas.length?'<span>Accountability</span>':''}<span>Weight %</span><span></span></div>${kpis}` : '<p class="muted">No KPAs yet.</p>'}
+    <div class="row" style="justify-content:space-between;margin-top:12px">${ro?'<span></span>':'<button class="btn sm" data-act="add-kpi">+ Add KPA</button>'}${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
   </div>
   <div class="card"><div class="card-h"><div><h2>How — Competency profile</h2><p>The behaviours expected in the role. Set the target level for each; N means not required. ${nReq} of ${S.org.framework.comps.length} required.</p></div>
     <div class="row"><select class="in" style="width:auto" data-act-change="apply-profile"><option value="">Apply role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
@@ -565,7 +572,7 @@ function tMonitor(p, r){
       ${cis.length ? '' : '<p class="muted">No check-ins yet.</p>'}
       ${cis.map(({c,i}) => `<div class="ci">
         <div class="row" style="justify-content:space-between"><div class="row"><select class="in" style="width:auto" data-f="rec.checkins.${i}.type">${['Check-in','Half-year review','Corrective action plan'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select><input class="in" type="date" style="width:auto" data-f="rec.checkins.${i}.date" data-rr value="${esc(c.date)}"></div><button class="btn icon" data-act="del" data-f="rec.checkins" data-i="${i}">✕</button></div>
-        ${r.kpis.length ? `<div style="margin-top:12px">${r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:6px 0;border-top:1px solid var(--line2)"><span>${esc(k.name||'Untitled KPI')}</span><span class="status3">${[['on','On track',1],['risk','At risk',2],['off','Off track',3]].map(([v,l,n])=>`<button class="${(c.kpi||{})[k.id]===v?'on on'+n:''}" data-act="ci-status" data-i="${i}" data-k="${k.id}" data-v="${v}">${l}</button>`).join('')}</span></div>`).join('')}</div>` : ''}
+        ${r.kpis.length ? `<div style="margin-top:12px">${r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:6px 0;border-top:1px solid var(--line2)"><span>${esc(k.name||'Untitled KPA')}</span><span class="status3">${[['on','On track',1],['risk','At risk',2],['off','Off track',3]].map(([v,l,n])=>`<button class="${(c.kpi||{})[k.id]===v?'on on'+n:''}" data-act="ci-status" data-i="${i}" data-k="${k.id}" data-v="${v}">${l}</button>`).join('')}</span></div>`).join('')}</div>` : ''}
         <div class="grid g2" style="margin-top:10px;gap:10px"><label class="f"><span>Discussion notes (What)</span><textarea class="in" data-f="rec.checkins.${i}.notes">${esc(c.notes)}</textarea></label><label class="f"><span>Behaviours observed (How)</span><textarea class="in" data-f="rec.checkins.${i}.how">${esc(c.how)}</textarea></label></div>
         <label class="f" style="margin-top:10px"><span>Agreed actions</span><input class="in" data-f="rec.checkins.${i}.actions" value="${esc(c.actions)}"></label>
       </div>`).join('')}
@@ -573,7 +580,7 @@ function tMonitor(p, r){
   </div>
   <div>
     <div class="card"><h3>Latest status</h3><p class="small muted" style="margin:2px 0 10px">${last?esc(last.type)+' · '+fmtDate(last.date):'No check-ins yet'}</p>
-      ${r.kpis.length ? r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:5px 0"><span class="small">${esc(k.name||'Untitled KPI')}</span>${st(last&&(last.kpi||{})[k.id])}</div>`).join('') : '<p class="muted small">Add KPIs in the Plan.</p>'}
+      ${r.kpis.length ? r.kpis.map(k => `<div class="row" style="justify-content:space-between;padding:5px 0"><span class="small">${esc(k.name||'Untitled KPA')}</span>${st(last&&(last.kpi||{})[k.id])}</div>`).join('') : '<p class="muted small">Add KPAs in the Plan.</p>'}
     </div>
     <div class="card"><h3>Feedback tools</h3>
       <p class="small" style="margin:8px 0 4px"><b>TACT</b> — Treat others with respect · Actively listen · Care for others · Together find a way.</p>
@@ -595,28 +602,28 @@ function tAssess(p, r){
   const awaiting = isSelf(p.id) && !canManage(p.id) && !canReview(p.id) && !released;
   const banner = awaiting ? `<div class="note" style="margin-bottom:16px"><b>Your manager's assessment has not been released yet.</b> You will see their ratings and comments once they sign off. Record your own self-assessment below in the meantime.</div>` : '';
   const kTitles = {}; for (let i=1;i<=10;i++){ const b = KPI_SCALE.find(x=>i>=x[0]&&i<=x[1]); kTitles[i] = i+' — '+b[2]; }
-  const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPI')}</b><div class="small muted">Target: ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
+  const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPA')}</b><div class="small muted">Target: ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
     <div class="rates"><div class="f"><span>Self-rating</span>${seg('rec.kpis.'+i+'.self', x.self, 10, {titles:kTitles, ro:selfRo})}</div><div class="f"><span>Manager rating${awaiting?' <span class="muted small">(not released)</span>':''}</span>${seg('rec.kpis.'+i+'.mgr', x.mgr, 10, {titles:kTitles, ro:mgrRo})}</div>
     <label class="f"><span>Result achieved</span><input class="in" data-f="rec.kpis.${i}.result" value="${esc(x.result)}" placeholder="Actual result" ${mgrRo?'readonly':''}></label></div>
     ${x.self!=null && x.mgr!=null && Math.abs(x.self-x.mgr)>=3 ? `<p class="small" style="margin:8px 0 0"><span class="pill warn">Ratings differ by ${Math.abs(x.self-x.mgr)} — discuss in the interview</span></p>`:''}</div>`).join('');
   const comps = !r.useComps ? '<p class="muted">Competencies are switched off for this person this cycle.</p>' : S.org.framework.clusters.map(cl => {
     const list = S.org.framework.comps.filter(c => c.cluster===cl && (r.comps[c.id]?.target||0) > 0); if (!list.length) return '';
     return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const v = r.comps[c.id]; const d = v.mgr!=null ? v.mgr - v.target : null;
-      return `<div class="comp-a"><div><div style="font-weight:600">${esc(c.name)}</div><div class="small muted">${levelText(c, v.mgr!=null?v.mgr:v.target)}</div></div>
+      return `<div class="comp-a"><div><div style="font-weight:600">${esc(c.name)}</div><div class="small muted">${levelText(c, v.mgr!=null?v.mgr:v.target, v.mgr!=null)}</div></div>
       <div style="text-align:center"><div class="lbl">Target</div><div class="tgt">${v.target}</div></div>
-      <div><div class="lbl">Self</div>${seg('rec.comps.'+c.id+'.self', v.self, c.levels.length, {target:v.target, titles:levelTitles(c), ro:selfRo})}</div>
-      <div><div class="lbl">Manager</div>${seg('rec.comps.'+c.id+'.mgr', v.mgr, c.levels.length, {target:v.target, titles:levelTitles(c), ro:mgrRo})}</div>
+      <div><div class="lbl">Self</div>${seg('rec.comps.'+c.id+'.self', v.self, c.levels.length, {zero:true, target:v.target, titles:levelTitles(c, true), ro:selfRo})}</div>
+      <div><div class="lbl">Manager</div>${seg('rec.comps.'+c.id+'.mgr', v.mgr, c.levels.length, {zero:true, target:v.target, titles:levelTitles(c, true), ro:mgrRo})}</div>
       <div style="text-align:right">${d==null?'<span class="muted small">—</span>':d>0?`<span class="pill good">+${d} above</span>`:d===0?'<span class="pill acc">Met</span>':`<span class="pill bad">${d} gap</span>`}</div></div>`; }).join('')}</div>`; }).join('') || '<p class="muted">No competencies have a target. Set targets in the Plan.</p>';
   return banner + `<div class="grid g3">
-    <div class="card stat"><div class="k">What · KPI score</div><div class="v">${k!=null?k.toFixed(1):'—'}<span class="muted" style="font-size:14px"> /10</span></div><div class="d">Self ${ks!=null?ks.toFixed(1):'—'} · ${r.kpis.filter(x=>x.mgr!=null).length}/${r.kpis.length} rated</div></div>
+    <div class="card stat"><div class="k">What · KPA score</div><div class="v">${k!=null?k.toFixed(1):'—'}<span class="muted" style="font-size:14px"> /10</span></div><div class="d">Self ${ks!=null?ks.toFixed(1):'—'} · ${r.kpis.filter(x=>x.mgr!=null).length}/${r.kpis.length} rated</div></div>
     <div class="card stat"><div class="k">How · Competencies at target</div><div class="v">${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</div><div class="d">${cs?`${cs.met}/${cs.rated} met · ${cs.above} above · ${cs.below} below`:'Not used'}</div></div>
-    <div class="card stat"><div class="k">Overall</div><div class="v">${r.notAssessed?'N/A':r.overall??'—'}</div><div class="d">${r.notAssessed?'Still learning the role':r.overall?esc(bandName(r.overall)):sug?'Suggested '+sug+' · '+esc(bandName(sug)):'Rate KPIs first'}</div></div>
+    <div class="card stat"><div class="k">Overall</div><div class="v">${r.notAssessed?'N/A':r.overall??'—'}</div><div class="d">${r.notAssessed?'Still learning the role':r.overall?esc(bandName(r.overall)):sug?'Suggested '+sug+' · '+esc(bandName(sug)):'Rate KPAs first'}</div></div>
   </div>
   <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Self-appraisal</h2><p>Completed by the employee before the appraisal interview.</p></div></div>
     <div class="grid g2"><label class="f"><span>Key achievements this year (employee)</span><textarea class="in" rows="4" data-f="rec.achievements" ${selfRo?'readonly':''}>${esc(r.achievements)}</textarea></label>
     <label class="f"><span>Manager's comments on achievements${awaiting?' <span class="muted small">(not released)</span>':''}</span><textarea class="in" rows="4" data-f="rec.achieveComment" ${mgrRo?'readonly':''}>${esc(r.achieveComment)}</textarea></label></div></div>
-  <div class="card"><div class="card-h"><div><h2>What — KPI ratings</h2><p>Rate each KPI 1–10. Self-rating first, then manager.</p></div><button class="btn sm" data-act="kpi-scale">Rating guide</button></div>
-    ${kpis || '<p class="muted">No KPIs in the plan.</p>'}</div>
+  <div class="card"><div class="card-h"><div><h2>What — KPA ratings</h2><p>Rate each KPA 1–10. Self-rating first, then manager.</p></div><button class="btn sm" data-act="kpi-scale">Rating guide</button></div>
+    ${kpis || '<p class="muted">No KPAs in the plan.</p>'}</div>
   <div class="card"><div class="card-h"><div><h2>How — Competency assessment</h2><p>Select the level actually demonstrated across the full year. The underline marks the target.</p></div></div>${comps}</div>
   ${r.stretch.length ? `<div class="card"><div class="card-h"><h2>Stretch objectives</h2></div>${r.stretch.map((s,i)=>`<div class="kpi-a"><b>${esc(s.objective||'Untitled')}</b><div class="small muted">${esc(s.measure||'')}</div><div class="rates" style="grid-template-columns:auto minmax(160px,1fr)"><div class="f"><span>Manager rating</span>${seg('rec.stretch.'+i+'.rating', s.rating, 10)}</div><label class="f"><span>Outcome</span><input class="in" data-f="rec.stretch.${i}.result" value="${esc(s.result)}"></label></div></div>`).join('')}</div>` : ''}
   <div class="card"><div class="card-h"><div><h2>Overall rating</h2><p>Consider both what was achieved and how. Focus on what the band means, not the number.</p></div><button class="btn sm" data-act="overall-guide">Band guide</button></div>
@@ -633,7 +640,7 @@ function tDevelop(p, r){
   const so = r.signoff;
   const sig = (k,l) => `<div class="sig ${so[k].date?'done':''}"><h3>${l}</h3><div class="grid" style="gap:8px;margin-top:8px"><input class="in" placeholder="Name" data-f="rec.signoff.${k}.name" value="${esc(so[k].name)}"><div class="row" style="flex-wrap:nowrap"><input class="in" type="date" data-f="rec.signoff.${k}.date" data-rr value="${esc(so[k].date)}"><button class="btn sm" data-act="sign" data-v="${k}">Today</button></div></div></div>`;
   return `<div class="card"><div class="card-h"><div><h2>Employee Development Plan</h2><p>What the person needs to learn, and the most effective way to develop it. Options in payback order: coaching (fastest), assignment, training (deepest, slowest).</p></div><button class="btn sm" data-act="add-edp">+ Add action</button></div>
-    ${gaps.length || lowK.length ? `<div class="note" style="margin-bottom:12px"><b>Suggested from this year's assessment:</b> ${[...gaps.map(g=>esc(g.c.name)+' ('+g.d+')'), ...lowK.map(k=>esc(k.name||'KPI')+' (KPI '+k.mgr+')')].join(' · ')} <button class="btn sm" style="margin-left:6px" data-act="edp-from-gaps">Add as actions</button></div>`:''}
+    ${gaps.length || lowK.length ? `<div class="note" style="margin-bottom:12px"><b>Suggested from this year's assessment:</b> ${[...gaps.map(g=>esc(g.c.name)+' ('+g.d+')'), ...lowK.map(k=>esc(k.name||'KPA')+' (KPA '+k.mgr+')')].join(' · ')} <button class="btn sm" style="margin-left:6px" data-act="edp-from-gaps">Add as actions</button></div>`:''}
     ${r.edp.items.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Development need</th><th>Approach</th><th>Action</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
     ${r.edp.items.map((e,i)=>`<tr><td><input class="in bare" data-f="rec.edp.items.${i}.need" value="${esc(e.need)}" placeholder="Need"></td>
       <td><select class="in bare" data-f="rec.edp.items.${i}.approach" data-type="num">${[1,2,3].map(a=>`<option value="${a}" ${e.approach===a?'selected':''}>${EDP_APPROACHES[a]}</option>`).join('')}</select></td>
@@ -683,8 +690,8 @@ function vReports(){
     <div class="card"><div class="card-h"><div><h2>Overall rating spread</h2><p>${esc(S.org.bands.low)} 1–3 · ${esc(S.org.bands.mid)} 4–6 · ${esc(S.org.bands.high)} 7–9</p></div></div>
       ${assessed.length ? `<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:6px;align-items:end;height:140px">${hist.map((n,i)=>`<div style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px"><span class="small">${n||''}</span><div style="width:100%;height:${n/hmax*100}%;min-height:${n?4:0}px;background:var(--accent);opacity:${i<3?.45:i<6?.7:1};border-radius:4px 4px 0 0"></div></div>`).join('')}</div><div style="display:grid;grid-template-columns:repeat(9,1fr);gap:6px;text-align:center" class="small muted">${hist.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>` : '<p class="muted">No overall ratings yet.</p>'}
     </div>
-    <div class="card"><div class="card-h"><div><h2>What × How</h2><p>KPI score against competencies at target.</p></div></div>
-      <div class="matrix"><div class="ax">KPI ≥ 7</div>${cell(2,0)}${cell(2,1)}${cell(2,2)}<div class="ax">KPI 5–6</div>${cell(1,0)}${cell(1,1)}${cell(1,2)}<div class="ax">KPI ≤ 4</div>${cell(0,0)}${cell(0,1)}${cell(0,2)}<div></div><div class="axb">&lt;70% at target</div><div class="axb">70–99%</div><div class="axb">All at target</div></div>
+    <div class="card"><div class="card-h"><div><h2>What × How</h2><p>KPA score against competencies at target.</p></div></div>
+      <div class="matrix"><div class="ax">KPA ≥ 7</div>${cell(2,0)}${cell(2,1)}${cell(2,2)}<div class="ax">KPA 5–6</div>${cell(1,0)}${cell(1,1)}${cell(1,2)}<div class="ax">KPA ≤ 4</div>${cell(0,0)}${cell(0,1)}${cell(0,2)}<div></div><div class="axb">&lt;70% at target</div><div class="axb">70–99%</div><div class="axb">All at target</div></div>
     </div>
     <div class="card"><div class="card-h"><div><h2>Competency gaps</h2><p>Share of people assessed below their target level.</p></div></div>
       ${gaps.length ? gaps.slice(0,10).map(g=>`<div class="hbar"><span>${esc(g.cp.name)}</span><div class="bar"><i style="width:${g.below/g.n*100}%"></i></div><b style="text-align:right">${g.below}/${g.n}</b></div>`).join('') : '<p class="muted">No competency assessments yet.</p>'}
@@ -697,7 +704,7 @@ function yoy(){
   const rows = S.org.cycles.map(c => { const rs = peopleList(true).map(p => recOf(p,c.id)).filter(Boolean); const a = rs.filter(r=>r.overall!=null&&!r.notAssessed);
     const ks = rs.map(r=>kpiScore(r)).filter(x=>x!=null);
     return `<tr><td>${esc(c.label)}</td><td class="num">${rs.length}</td><td class="num">${ks.length?(ks.reduce((x,y)=>x+y,0)/ks.length).toFixed(1):'—'}</td><td class="num">${a.length?(a.reduce((x,r)=>x+r.overall,0)/a.length).toFixed(1):'—'}</td><td class="num">${a.length?Math.round(a.filter(r=>r.overall>=7).length/a.length*100)+'%':'—'}</td></tr>`; }).join('');
-  return `<table class="tbl"><thead><tr><th>Cycle</th><th class="num">People</th><th class="num">Avg KPI</th><th class="num">Avg overall</th><th class="num">Exceptional</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="tbl"><thead><tr><th>Cycle</th><th class="num">People</th><th class="num">Avg KPA</th><th class="num">Avg overall</th><th class="num">Exceptional</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 /* ---------- users and access (admin) ---------- */
@@ -780,7 +787,7 @@ function vSettings(){
     </div>
     <label class="chk small" style="margin-top:14px"><input type="checkbox" data-f="org.brand.poweredBy" data-rr ${b.poweredBy?'checked':''}> Show "Powered by Humanistiqs" in the footer and exports</label>
   </div>
-  <div class="card"><div class="card-h"><div><h2>Performance cycles</h2><p>One cycle per performance year. Start the next cycle to roll KPIs, targets and open development actions forward.</p></div><button class="btn sm pri" data-act="new-cycle">Start next cycle</button></div>
+  <div class="card"><div class="card-h"><div><h2>Performance cycles</h2><p>One cycle per performance year. Start the next cycle to roll KPAs, targets and open development actions forward.</p></div><button class="btn sm pri" data-act="new-cycle">Start next cycle</button></div>
     <label class="f" style="max-width:240px;margin-bottom:12px"><span>Performance year starts in</span><select class="in" data-f="org.yearStart" data-type="num">${MONTHS.map((m,i)=>`<option value="${i+1}" ${S.org.yearStart===i+1?'selected':''}>${m}</option>`).join('')}</select></label>
     <table class="tbl"><thead><tr><th>Label</th><th>Period</th><th>Records</th><th></th></tr></thead><tbody>${S.org.cycles.map((c,i)=>`<tr><td><input class="in bare" style="max-width:160px" data-f="org.cycles.${i}.label" data-rr value="${esc(c.label)}"></td><td>${esc(cycleRange(c))}</td><td>${peopleList(true).filter(p=>recOf(p,c.id)).length}</td><td style="text-align:right">${c.id===S.org.activeCycle?'<span class="pill acc">Active</span>':`<button class="btn sm ghost" data-act="set-cycle" data-v="${c.id}">Make active</button>`} ${S.org.cycles.length>1?`<button class="btn sm ghost danger" data-act="del-cycle" data-v="${c.id}">Delete</button>`:''}</td></tr>`).join('')}</tbody></table>
   </div>
@@ -884,7 +891,7 @@ const ACT = {
   'edit-person': () => { const p = curP();
     modal(`<h2>Details</h2><form id="pf" style="margin-top:14px">${personForm(p)}<div class="acts" style="justify-content:space-between"><button type="button" class="btn ghost" id="deact">${p.active===false?'Reactivate':'Mark inactive'}</button><div class="row"><button type="button" class="btn danger ghost" id="delp">Delete</button><button class="btn pri">Save</button></div></div></form>`,
     (m, close) => { m.querySelector('#pf').onsubmit = e => { e.preventDefault(); const oldPd = p.pdId; new FormData(e.target).forEach((v,k) => p[k] = String(v).trim());
-      const r = recOf(p), d = S.pds[p.pdId]; if (d && p.pdId !== oldPd && r){ if (!r.kpis.length && !r.planAgreed){ applyPdToRecord(d, r); toast('Plan started from '+d.title); } else toast('PD linked — use Re-apply PD on the Plan to pull in its KPIs and targets'); }
+      const r = recOf(p), d = S.pds[p.pdId]; if (d && p.pdId !== oldPd && r){ if (!r.kpis.length && !r.planAgreed){ applyPdToRecord(d, r); toast('Plan started from '+d.title); } else toast('PD linked — use Re-apply PD on the Plan to pull in its KPAs and targets'); }
       savePerson(p); close(); rerender(); };
       m.querySelector('#deact').onclick = () => { p.active = p.active === false; savePerson(p); close(); rerender(); };
       m.querySelector('#delp').onclick = () => { close(); confirmBox('Delete '+fullName(p)+'?', 'This removes the person and all of their records in every cycle. It can\'t be undone.', 'Delete', () => { delete S.people[p.id]; store.mark('p_'+p.id); go('people'); }, true); }; }); },
@@ -899,18 +906,18 @@ const ACT = {
   'add-edp': () => { curR().edp.items.push({id:uid(), need:'', approach:1, action:'', by:'', status:'Planned'}); savePerson(curP()); rerender(); },
   'edp-from-gaps': () => { const r = curR(); const have = new Set(r.edp.items.map(i=>i.need));
     Object.entries(r.comps).forEach(([id,c]) => { const cp = compById(id); if (cp && r.useComps && c.target>0 && c.mgr!=null && c.mgr<c.target && !have.has(cp.name)) r.edp.items.push({id:uid(), need:cp.name, approach:c.target-c.mgr>1?3:1, action:'', by:'', status:'Planned'}); });
-    r.kpis.forEach(k => { if (k.mgr!=null && k.mgr<=4 && !have.has(k.name)) r.edp.items.push({id:uid(), need:k.name||'KPI', approach:1, action:'', by:'', status:'Planned'}); });
+    r.kpis.forEach(k => { if (k.mgr!=null && k.mgr<=4 && !have.has(k.name)) r.edp.items.push({id:uid(), need:k.name||'KPA', approach:1, action:'', by:'', status:'Planned'}); });
     savePerson(curP()); rerender(); },
   sign: el => { const s = curR().signoff[el.dataset.v]; s.date = today(); if (!s.name){ const p = curP(); s.name = el.dataset.v==='employee' ? fullName(p) : el.dataset.v==='manager' ? (p.manager||'') : ''; } savePerson(curP()); rerender(); },
   'pd-toggle': () => { S.ui.pdOpen = !S.ui.pdOpen; rerender(); },
-  'smart-help': () => modal(`<h2>Writing SMART KPIs</h2><p class="sub">A good goal statement has an action verb, a single measurable result, a completion date, and a cost (effort, resources or money).</p>
+  'smart-help': () => modal(`<h2>Writing SMART KPAs</h2><p class="sub">A good goal statement has an action verb, a single measurable result, a completion date, and a cost (effort, resources or money).</p>
     <dl class="kv" style="margin-top:14px"><dt><b>S</b>pecific</dt><dd>One clear result, not a list.</dd><dt><b>M</b>easurable</dt><dd>You can tell objectively whether it was met.</dd><dt><b>A</b>ttainable</dt><dd>Challenging but realistic.</dd><dt><b>R</b>elevant</dt><dd>Linked to the business plan and the role.</dd><dt><b>T</b>imely</dt><dd>Has a date.</dd></dl>
     <div class="note" style="margin-top:14px">Keep it to a sentence. State <i>what</i> and <i>when</i>, not how or why.<br><br><b>Example:</b> Deliver monthly management accounts to the CEO by working day 8, every month.</div><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
-  'kpi-scale': () => modal(`<h2>KPI rating guide (1–10)</h2><table class="tbl" style="margin-top:10px">${KPI_SCALE.map(s=>`<tr><td style="white-space:nowrap"><b>${s[0]}–${s[1]}</b></td><td><b>${s[2]}</b><div class="small muted">${s[3]}</div></td></tr>`).join('')}</table><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
+  'kpi-scale': () => modal(`<h2>KPA rating guide (1–10)</h2><table class="tbl" style="margin-top:10px">${KPI_SCALE.map(s=>`<tr><td style="white-space:nowrap"><b>${s[0]}–${s[1]}</b></td><td><b>${s[2]}</b><div class="small muted">${s[3]}</div></td></tr>`).join('')}</table><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
   'overall-guide': () => modal(`<h2>Overall rating bands</h2>
     <div class="grid" style="gap:10px;margin-top:10px">
-    <div class="callout"><b>7–9 · ${esc(S.org.bands.high)}</b><div class="small muted">Contribution significantly exceeds position requirements. Superior results against KPI targets; exceeds the competency levels for the role.</div></div>
-    <div class="callout"><b>4–6 · ${esc(S.org.bands.mid)}</b><div class="small muted">Delivering the required standard and occasionally exceeding it. Achieves required KPI results; consistently meets the competencies.</div></div>
+    <div class="callout"><b>7–9 · ${esc(S.org.bands.high)}</b><div class="small muted">Contribution significantly exceeds position requirements. Superior results against KPIs (targets/measures); exceeds the competency levels for the role.</div></div>
+    <div class="callout"><b>4–6 · ${esc(S.org.bands.mid)}</b><div class="small muted">Delivering the required standard and occasionally exceeding it. Achieves required KPA results; consistently meets the competencies.</div></div>
     <div class="callout"><b>1–3 · ${esc(S.org.bands.low)}</b><div class="small muted">Not meeting position requirements. An improvement action plan and schedule must be agreed.</div></div></div>
     <p class="small muted">People in the role under 6 months, or on extended leave, are not rated on this scale.</p><div class="acts"><button class="btn pri" data-close>Close</button></div>`),
   'new-cycle': () => newCycleDialog(),
@@ -1007,7 +1014,7 @@ function newCycleDialog(){
   const n = peopleList().length;
   modal(`<h2>Start ${esc(label)}</h2><p class="sub">${esc(cycleRange({start}))}. Creates a draft plan for each of the ${n} active people, ready to review and agree.</p>
     <div class="grid" style="gap:10px;margin-top:16px">
-      <label class="chk"><input type="checkbox" id="o1" checked> Carry forward KPIs (ratings cleared)</label>
+      <label class="chk"><input type="checkbox" id="o1" checked> Carry forward KPAs (ratings cleared)</label>
       <label class="chk"><input type="checkbox" id="o2" checked> Carry forward competency targets</label>
       <label class="chk"><input type="checkbox" id="o3" checked> Carry forward unfinished development actions</label>
     </div>
@@ -1052,7 +1059,7 @@ function exportGuard(){
 }
 function csvSummary(){
   if (!exportGuard()) return;
-  const c = activeCycle(); const rows = [['Name','Position','Team','Manager','Role profile','Stage','KPI score (mgr)','KPI score (self)','Competencies at target %','Competencies below target','Overall','Band','Plan agreed','Signed off']];
+  const c = activeCycle(); const rows = [['Name','Position','Team','Manager','Role profile','Stage','KPA score (mgr)','KPA score (self)','Competencies at target %','Competencies below target','Overall','Band','Plan agreed','Signed off']];
   peopleList().forEach(p => { const r = recOf(p); if (!r) return; const cs = compStats(r), st = stageOf(r); const k = kpiScore(r), ks = kpiScore(r,'self');
     rows.push([fullName(p), p.position, p.dept, p.manager, S.org.profiles.find(x=>x.id===p.profileId)?.name||'', st.label, k!=null?k.toFixed(1):'', ks!=null?ks.toFixed(1):'', cs&&cs.pct!=null?Math.round(cs.pct*100):'', cs?cs.below:'', r.notAssessed?'N/A':r.overall??'', r.notAssessed?'Not assessed':bandName(r.overall), r.planAgreed||'', r.signoff.manager.date||'']); });
   download(`${slug()}-${c.label}-summary.csv`, toCsv(rows), 'text/csv');
@@ -1095,9 +1102,9 @@ function exportAppraisal(p, r){
   @media print{body{margin:0}}${exportCss(b)}</style></head><body>
   ${exportHead(b, `<h1>Performance Appraisal · ${esc(c.label)}</h1><div class="m">${esc(cycleRange(c))}</div>`)}
   <h2>1 · Details</h2><div class="g"><div><span class="m">Name</span><br>${esc(fullName(p))}</div><div><span class="m">Position</span><br>${esc(p.position)}</div><div><span class="m">Team / location</span><br>${esc([p.dept,p.location].filter(Boolean).join(' · '))}</div><div><span class="m">Manager</span><br>${esc([p.manager,p.managerPos].filter(Boolean).join(', '))}</div><div><span class="m">Employee no.</span><br>${esc(p.empNo)}</div><div><span class="m">Start date</span><br>${esc(fmtDate(p.startDate))}</div></div>
-  <h2>Summary</h2><div class="sum"><div><span class="m">What · KPI score</span><b>${k!=null?k.toFixed(1)+' / 10':'—'}</b></div><div><span class="m">How · competencies at target</span><b>${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</b></div><div><span class="m">Overall</span><b>${r.notAssessed?'Not assessed':r.overall?r.overall+' · '+esc(bandName(r.overall)):'—'}</b></div></div>
+  <h2>Summary</h2><div class="sum"><div><span class="m">What · KPA score</span><b>${k!=null?k.toFixed(1)+' / 10':'—'}</b></div><div><span class="m">How · competencies at target</span><b>${cs&&cs.pct!=null?Math.round(cs.pct*100)+'%':'—'}</b></div><div><span class="m">Overall</span><b>${r.notAssessed?'Not assessed':r.overall?r.overall+' · '+esc(bandName(r.overall)):'—'}</b></div></div>
   <h2>2 · Self-appraisal — key achievements</h2><div class="box">${esc(r.achievements)}</div><p class="m" style="margin:8px 0 2px">Manager's comments</p><div class="box">${esc(r.achieveComment)}</div>
-  <h2>3 · What — Key Performance Indicators</h2><table><tr><th>KPI</th><th>Target</th><th class="c">Wt %</th><th class="c">Self</th><th class="c">Mgr</th><th>Result</th></tr>${kt||'<tr><td colspan="6" class="m">None</td></tr>'}</table>
+  <h2>3 · What — Key Performance Areas</h2><table><tr><th>KPA</th><th>KPI (targets/measures)</th><th class="c">Wt %</th><th class="c">Self</th><th class="c">Mgr</th><th>Result</th></tr>${kt||'<tr><td colspan="6" class="m">None</td></tr>'}</table>
   ${r.useComps?`<h2>4 · How — Competencies</h2><table><tr><th>Competency</th><th class="c">Target</th><th class="c">Self</th><th class="c">Mgr</th><th class="c">Result</th></tr>${ct||'<tr><td colspan="5" class="m">None</td></tr>'}</table>`:''}
   ${r.stretch.length?`<h2>5 · Stretch objectives</h2><table><tr><th>Objective</th><th>Measure</th><th class="c">Rating</th><th>Outcome</th></tr>${r.stretch.map(s=>`<tr><td>${esc(s.objective)}</td><td>${esc(s.measure)}</td><td class="c">${s.rating??''}</td><td>${esc(s.result)}</td></tr>`).join('')}</table>`:''}
   <h2>6 · Overall rating</h2><div class="box"><b>${r.notAssessed?'Not assessed (under 6 months in role or extended leave)':r.overall?r.overall+' — '+esc(bandName(r.overall)):''}</b>${r.overallComment?'\n'+esc(r.overallComment):''}</div>
@@ -1127,7 +1134,7 @@ function loadSample(){
     const p = {id:uid(), first, last, position, dept, location:'Head office', manager, managerPos:'Chief Executive Officer', empNo:'', startDate:'2022-03-01', pdId:opts.pd?opts.pd.id:'', profileId:prof(profName), active:true, records:{}};
     const r = newRecord(p); if (!opts.pd) r.kpis = kpis.map(([name,target,weight]) => ({id:uid(), name, target, weight, self:null, mgr:null, result:''}));
     if (opts.agreed) r.planAgreed = c.start + '-20';
-    if (opts.checkin) r.checkins.push({id:uid(), type:'Half-year review', date:nextMonth(c.start,6)+'-12', kpi:Object.fromEntries(r.kpis.map((k,i)=>[k.id, i===1?'risk':'on'])), notes:'Good progress overall; one KPI behind plan.', how:'Strong collaboration with operations.', actions:'Weekly cash review until back on track.'});
+    if (opts.checkin) r.checkins.push({id:uid(), type:'Half-year review', date:nextMonth(c.start,6)+'-12', kpi:Object.fromEntries(r.kpis.map((k,i)=>[k.id, i===1?'risk':'on'])), notes:'Good progress overall; one KPA behind plan.', how:'Strong collaboration with operations.', actions:'Weekly cash review until back on track.'});
     if (opts.rate){ r.kpis.forEach((k,i) => { k.self = opts.rate[i]+ (i%2?1:0); k.mgr = opts.rate[i]; k.result = 'See results summary'; });
       Object.keys(r.comps).forEach((id,i) => { const t = r.comps[id].target; if (t>0){ r.comps[id].mgr = Math.max(1, t + ((i*7+opts.rate[0])%4===0 ? -1 : (i%5===0 ? 1 : 0))); r.comps[id].self = r.comps[id].target; } });
       r.overall = suggestOverall(r); r.achievements = 'Delivered the year-end close two weeks early.\nLed the new reporting dashboard rollout.'; }
@@ -1157,14 +1164,14 @@ function pdReviewState(pd){
 
 function vPds(){
   const list = pdList();
-  return `<div class="head"><div><h1>Position descriptions</h1><p class="sub">One PD per role. Each PD sets the role's standard KPIs (What) and competency targets (How), and every plan for a person in that role starts from it.</p></div>
+  return `<div class="head"><div><h1>Position descriptions</h1><p class="sub">One PD per role. Each PD sets the role's standard KPAs (What) and competency targets (How), and every plan for a person in that role starts from it.</p></div>
     <div class="row"><label class="btn">Import PD (Word or PDF)<input type="file" accept=".docx,.pdf" multiple data-act-change="pd-import" hidden></label><button class="btn pri" data-act="pd-new">New PD</button></div></div>
-  <div class="card" style="padding:8px 12px">${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Position</th><th>Department</th><th>Reports to</th><th class="num">KPIs</th><th class="num">Competencies</th><th class="num">People</th><th>Review</th></tr></thead><tbody>
+  <div class="card" style="padding:8px 12px">${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Position</th><th>Department</th><th>Reports to</th><th class="num">KPAs</th><th class="num">Competencies</th><th class="num">People</th><th>Review</th></tr></thead><tbody>
     ${list.map(d => { const rs = pdReviewState(d); return `<tr class="click" data-act="nav" data-h="pd-${d.id}"><td><b>${esc(d.title||'Untitled')}</b><div class="small muted">${esc([d.division,d.location].filter(Boolean).join(' · '))}</div></td><td>${esc(d.department||'—')}</td><td>${esc(d.reportsTo||'—')}</td>
       <td class="num">${d.kpis.filter(k=>k.name).length}</td><td class="num">${Object.values(d.targets||{}).filter(v=>v>0).length}</td><td class="num">${pdPeople(d).length}</td><td><span class="pill ${rs.cls}">${rs.label}</span></td></tr>`; }).join('')}
-    </tbody></table></div>` : `<div class="empty"><h2>No position descriptions yet</h2><p>Import existing Word PDs or create one here. Link people to their PD so each year's plan starts from the role's KPIs and competency profile.</p>
+    </tbody></table></div>` : `<div class="empty"><h2>No position descriptions yet</h2><p>Import existing Word PDs or create one here. Link people to their PD so each year's plan starts from the role's KPAs and competency profile.</p>
       <div class="row" style="justify-content:center"><label class="btn">Import PD (Word or PDF)<input type="file" accept=".docx,.pdf" multiple data-act-change="pd-import" hidden></label><button class="btn pri" data-act="pd-new">New PD</button></div></div>`}</div>
-  <div class="note" style="margin-top:14px"><b>How PDs link to the PPAD cycle:</b> PD → <b>Plan</b> (KPIs and competency targets copied in at the start of each cycle) → <b>Perform</b> (check-ins against those KPIs) → <b>Assess</b> (rated against the PD's targets) → <b>Develop</b>. Review each PD during Planning; if the role has changed, update the PD first, then re-apply it to the plan.</div>`;
+  <div class="note" style="margin-top:14px"><b>How PDs link to the PPAD cycle:</b> PD → <b>Plan</b> (KPAs and competency targets copied in at the start of each cycle) → <b>Perform</b> (check-ins against those KPAs) → <b>Assess</b> (rated against the PD's targets) → <b>Develop</b>. Review each PD during Planning; if the role has changed, update the PD first, then re-apply it to the plan.</div>`;
 }
 
 function rowsEditor(path, rows, cols, addLabel){
@@ -1178,13 +1185,13 @@ function vPd(){
   const ppl = pdPeople(d), rs = pdReviewState(d);
   const areas = d.accountabilities.map(a=>a.area).filter(Boolean);
   const kp = d.kpis.map((k,i)=>`<div class="kpi-grid r" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px">
-    <input class="in" placeholder="KPI" data-f="${P}.kpis.${i}.name" value="${esc(k.name)}"><input class="in" placeholder="Standard target / measure" data-f="${P}.kpis.${i}.target" value="${esc(k.target)}">
+    <input class="in" placeholder="KPA" data-f="${P}.kpis.${i}.name" value="${esc(k.name)}"><input class="in" placeholder="KPI (targets/measures)" data-f="${P}.kpis.${i}.target" value="${esc(k.target)}">
     <select class="in" data-f="${P}.kpis.${i}.area"><option value="">Accountability…</option>${areas.map(a=>`<option ${k.area===a?'selected':''}>${esc(a)}</option>`).join('')}</select>
     <input class="in" type="number" placeholder="Wt %" data-f="${P}.kpis.${i}.weight" data-type="num" value="${esc(k.weight??'')}"><button class="btn icon" data-act="pd-del-row" data-f="${P}.kpis" data-i="${i}">✕</button></div>`).join('');
   const comps = S.org.framework.clusters.map(cl => { const list = S.org.framework.comps.filter(c=>c.cluster===cl); if (!list.length) return '';
     return `<div class="cl"><div class="cl-h">${esc(cl)}</div>${list.map(c => { const t = d.targets[c.id] ?? 0;
       return `<div class="comp ${t?'':'off'}"><span class="nm">${esc(c.name)}</span>${seg(P+'.targets.'+c.id, t, c.levels.length, {n:true, titles:levelTitles(c)})}<div class="ds">${levelText(c,t)}</div></div>`; }).join('')}</div>`; }).join('');
-  const nav = [['pd-details','Details'],['pd-purpose','Purpose & context'],['pd-exp','Expectations'],['pd-rel','Relationships'],['pd-acc','Accountabilities'],['pd-doa','Authority'],['pd-kpi','KPIs (What)'],['pd-how','Competencies (How)'],['pd-people','People']];
+  const nav = [['pd-details','Details'],['pd-purpose','Purpose & context'],['pd-exp','Expectations'],['pd-rel','Relationships'],['pd-acc','Accountabilities'],['pd-doa','Authority'],['pd-kpi','KPAs (What)'],['pd-how','Competencies (How)'],['pd-people','People']];
   return `<a class="back" href="#pds">← Position descriptions</a>
   <div class="head"><div><div class="tag">Position description</div><h1>${esc(d.title||'Untitled')}</h1><p class="sub">${esc([d.department,d.reportsTo?'Reports to '+d.reportsTo:''].filter(Boolean).join(' · '))} <span class="pill ${rs.cls}" style="margin-left:6px">${rs.label}</span></p></div>
     <div class="row"><button class="btn" data-act="pd-dup">Duplicate</button><button class="btn" data-act="pd-export">Export PD</button><button class="btn danger ghost" data-act="pd-delete">Delete</button></div></div>
@@ -1208,20 +1215,20 @@ function vPd(){
   <div class="card" id="pd-rel"><div class="card-h"><div><h2>Working relationships</h2><p>The most important internal and external contacts.</p></div></div>
     <div class="grid" style="gap:20px"><div><h3 style="margin-bottom:6px">Internal</h3>${rowsEditor(P+'.internal', d.internal, [{k:'who',l:'Who',w:'35%'},{k:'reason',l:'Reason for contact',ta:1}], 'Internal contact')}</div>
     <div><h3 style="margin-bottom:6px">External</h3>${rowsEditor(P+'.external', d.external, [{k:'who',l:'Who',w:'35%'},{k:'reason',l:'Reason for contact',ta:1}], 'External contact')}</div></div></div>
-  <div class="card" id="pd-acc"><div class="card-h"><div><h2>Accountabilities & responsibilities</h2><p>Accountability = what the role is designed to cover. Responsibilities = the tasks it undertakes. KPIs below link back to these areas.</p></div></div>
+  <div class="card" id="pd-acc"><div class="card-h"><div><h2>Accountabilities & responsibilities</h2><p>Accountability = what the role is designed to cover. Responsibilities = the tasks it undertakes. KPAs below link back to these areas.</p></div></div>
     ${rowsEditor(P+'.accountabilities', d.accountabilities, [{k:'area',l:'Accountability',w:'26%'},{k:'responsibilities',l:'Responsibilities',ta:1}], 'Accountability')}</div>
   <div class="card" id="pd-doa"><div class="card-h"><h2>Delegation of authority</h2></div>
     ${rowsEditor(P+'.authority', d.authority, [{k:'item',l:'Delegated authority'},{k:'limit',l:'Upper limit',w:'20%'},{k:'escalation',l:'Escalation point',w:'25%'}], 'Authority')}</div>
-  <div class="card" id="pd-kpi"><div class="card-h"><div><h2>Performance expectations & KPIs — What</h2><p>The role's standard KPIs. They're copied into each person's plan at the start of every cycle, where targets can be tailored.</p></div><button class="btn sm" data-act="pd-add-kpi">+ Add KPI</button></div>
-    ${d.kpis.length ? `<div class="kpi-grid h" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px"><span>KPI</span><span>Standard target</span><span>Accountability</span><span>Weight</span><span></span></div>${kp}` : '<p class="muted">No KPIs yet.</p>'}
-    ${areas.length && d.kpis.length ? (() => { const un = areas.filter(a => !d.kpis.some(k=>k.area===a)); return un.length ? `<p class="small" style="margin:10px 0 0"><span class="pill warn">No KPI yet for: ${un.map(esc).join(', ')}</span></p>` : ''; })() : ''}</div>
+  <div class="card" id="pd-kpi"><div class="card-h"><div><h2>Performance expectations & KPAs — What</h2><p>The role's standard KPAs. They're copied into each person's plan at the start of every cycle, where targets can be tailored.</p></div><button class="btn sm" data-act="pd-add-kpi">+ Add KPA</button></div>
+    ${d.kpis.length ? `<div class="kpi-grid h" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px"><span>KPA</span><span>Standard target</span><span>Accountability</span><span>Weight</span><span></span></div>${kp}` : '<p class="muted">No KPAs yet.</p>'}
+    ${areas.length && d.kpis.length ? (() => { const un = areas.filter(a => !d.kpis.some(k=>k.area===a)); return un.length ? `<p class="small" style="margin:10px 0 0"><span class="pill warn">No KPA yet for: ${un.map(esc).join(', ')}</span></p>` : ''; })() : ''}</div>
   <div class="card" id="pd-how"><div class="card-h"><div><h2>Competency profile — How</h2><p>Required level for each competency in this role (N = not required). Used as the target in every plan for this role.</p></div>
     <select class="in" style="width:auto" data-act-change="pd-from-profile"><option value="">Copy from role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>${comps}</div>
-  <div class="card" id="pd-people"><div class="card-h"><div><h2>People in this role</h2><p>Re-apply the PD to push updated KPIs and targets into their ${esc(activeCycle().label)} plan.</p></div>${ppl.length?`<button class="btn sm" data-act="pd-apply-all">Apply to all ${ppl.length} plans</button>`:''}</div>
+  <div class="card" id="pd-people"><div class="card-h"><div><h2>People in this role</h2><p>Re-apply the PD to push updated KPAs and targets into their ${esc(activeCycle().label)} plan.</p></div>${ppl.length?`<button class="btn sm" data-act="pd-apply-all">Apply to all ${ppl.length} plans</button>`:''}</div>
     ${ppl.length ? `<table class="tbl">${ppl.map(p => { const r = recOf(p); const st = stageOf(r); return `<tr class="click" data-act="nav" data-h="person-${p.id}"><td>${esc(fullName(p))}<div class="small muted">${esc(p.manager?'Manager: '+p.manager:'')}</div></td><td style="text-align:right"><span class="pill ${st.cls}">${st.label}</span></td></tr>`; }).join('')}</table>` : '<p class="muted">No one linked yet. Link people from their Details.</p>'}</div>`;
 }
 
-/* apply PD into a record: merge KPIs by name, set competency targets */
+/* apply PD into a record: merge KPAs by name, set competency targets */
 function applyPdToRecord(pd, r){
   let added = 0;
   pd.kpis.filter(k=>k.name).forEach(k => { const ex = r.kpis.find(x => x.name.trim().toLowerCase() === k.name.trim().toLowerCase());
@@ -1248,7 +1255,7 @@ function exportPd(d){
   <h2>Working relationships — external</h2>${tbl(['Who','Reason for contact'], d.external.map(r=>[r.who,r.reason]))}
   <h2>Accountabilities & responsibilities</h2>${tbl(['Accountability','Responsibilities'], d.accountabilities.map(r=>[r.area,r.responsibilities]))}
   <h2>Delegation of authority</h2>${tbl(['Delegated authority','Upper limit','Escalation point'], d.authority.map(r=>[r.item,r.limit,r.escalation]))}
-  <h2>Performance expectations & KPIs — What</h2>${tbl(['KPI','Standard target','Accountability','Weight'], d.kpis.filter(k=>k.name).map(k=>[k.name,k.target,k.area,k.weight?k.weight+'%':'']))}
+  <h2>Performance expectations & KPAs — What</h2>${tbl(['KPA','Standard target','Accountability','Weight'], d.kpis.filter(k=>k.name).map(k=>[k.name,k.target,k.area,k.weight?k.weight+'%':'']))}
   <h2>Competency profile — How</h2>${tbl(['Competency','Level','Expected behaviour'], comps)}
   <div class="ft"><span>${b.logo?`<img src="${b.logo}" alt="" height="18">`:''}${esc(b.orgName)} · ${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''}</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':''}</div></body></html>`;
   download(`${(d.title||'PD').replace(/[^A-Za-z0-9]+/g,'-')}-Position-Description.html`, html, 'text/html');
@@ -1354,7 +1361,7 @@ Object.assign(CHANGE, {
     S.org.framework.comps.forEach(c => d.targets[c.id] = pr.targets[c.id] ?? 0); d.profileId = pr.id; savePd(d); toast('Copied targets from ' + pr.name); rerender(); },
   'person-pd': el => { const d = S.pds[el.value]; if (!d) return; const f = el.closest('form'); if (f && f.position && !f.position.value) f.position.value = d.title;
     if (f && f.dept && !f.dept.value) f.dept.value = d.department || ''; if (f && f.location && !f.location.value) f.location.value = d.location || ''; },
-  'plan-pd': el => { const p = curP(); p.pdId = el.value || ''; savePerson(p); const d = S.pds[p.pdId]; if (d){ const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Linked to ${d.title}${n?` — ${n} KPI${n>1?'s':''} added`:''}`); } rerender(); }
+  'plan-pd': el => { const p = curP(); p.pdId = el.value || ''; savePerson(p); const d = S.pds[p.pdId]; if (d){ const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Linked to ${d.title}${n?` — ${n} KPA${n>1?'s':''} added`:''}`); } rerender(); }
 });
 Object.assign(ACT, {
   'pd-new': () => { const d = newPd('New position'); S.pds[d.id] = d; savePd(d); go('pd-'+d.id); },
@@ -1367,9 +1374,9 @@ Object.assign(ACT, {
       pdPeople(d).forEach(p => { p.pdId = ''; savePerson(p); }); delete S.pds[d.id]; store.mark('d_'+d.id); go('pds'); }, true); },
   'pd-export': () => exportPd(S.pds[S.ui.pdId]),
   'pd-apply-all': () => { const d = S.pds[S.ui.pdId]; const ppl = pdPeople(d);
-    confirmBox('Apply PD to '+ppl.length+' plan'+(ppl.length>1?'s':'')+'?', `Adds any of the PD's KPIs missing from each person's ${esc(activeCycle().label)} plan and resets their competency targets to the PD. Existing KPIs and ratings are kept.`, 'Apply', () => {
+    confirmBox('Apply PD to '+ppl.length+' plan'+(ppl.length>1?'s':'')+'?', `Adds any of the PD's KPAs missing from each person's ${esc(activeCycle().label)} plan and resets their competency targets to the PD. Existing KPAs and ratings are kept.`, 'Apply', () => {
       ppl.forEach(p => { p.records = p.records || {}; let r = recOf(p); if (!r){ r = p.records[activeCycle().id] = newRecord(p); } else applyPdToRecord(d, r); savePerson(p); }); toast('Applied to '+ppl.length+' plan'+(ppl.length>1?'s':'')); rerender(); }); },
-  'pd-apply': () => { const p = curP(), d = S.pds[p.pdId]; if (!d) return; const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Applied ${d.title}${n?` — ${n} KPI${n>1?'s':''} added`:' — targets updated'}`); rerender(); },
+  'pd-apply': () => { const p = curP(), d = S.pds[p.pdId]; if (!d) return; const n = applyPdToRecord(d, curR()); savePerson(p); toast(`Applied ${d.title}${n?` — ${n} KPA${n>1?'s':''} added`:' — targets updated'}`); rerender(); },
   jump: el => { const t = document.getElementById(el.dataset.v); t && t.scrollIntoView({behavior:'smooth', block:'start'}); }
 });
 
