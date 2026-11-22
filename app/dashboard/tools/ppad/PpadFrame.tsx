@@ -1,5 +1,3 @@
-import { PageHeader } from '@/components/dashboard/PageHeader'
-
 /**
  * Frames the HQ Performance app.
  *
@@ -13,47 +11,38 @@ import { PageHeader } from '@/components/dashboard/PageHeader'
  * `allow-same-origin` with `allow-scripts` on our own document is equivalent
  * to no sandbox while reading as though it were hardened.
  *
- * WHY THE IFRAME IS FULL-BLEED AND THE HEADER IS NOT.
+ * WHY THERE IS NO PAGE HEADER HERE ANY MORE.
  *
- * The page keeps the shared DASH-06 PageHeader, so HQ Tools reads as part of
- * the dashboard rather than a different product bolted into the shell. The
- * tool itself gets the whole width below it - no card, no gutters.
+ * This route used to carry the shared DASH-06 PageHeader above the iframe.
+ * That stacked TWO header bands before a single row of content: the
+ * dashboard's eyebrow + title + subtitle, and then the tool's own 60px
+ * sticky header holding the app name, the tabs, the cycle selector and the
+ * save status. The tabs sat in the second band while the first one carried a
+ * wide empty space beside the title - which is exactly what looked unfinished.
  *
- * It was briefly in a bordered card matching HQ Assistant's panels. That is
- * the right treatment for a panel of content and the wrong one for an
- * application: the tool is a dense working surface with its own header, nav,
- * cycle selector and wide tables, and every pixel the frame took was a pixel
- * it could not use. The card cost 48px of gutters plus 2px of border, which is
- * free at 1366px and above (the tool caps its own content at 1180) but bites
- * on a 1280px laptop, exactly where the tool is already tightest.
+ * The fix moves the TITLE DOWN rather than the tabs up. The tool's own header
+ * is now the page header: its app name is set at page-title weight and the
+ * tabs sit on that same line. One band instead of two.
  *
- * So: header grammar from the dashboard, full width for the application. The
- * iframe is edge-to-edge and runs to the bottom of the viewport.
+ * The alternative - rendering the tabs out here in React - was considered and
+ * rejected. The tabs live inside the iframe; lifting them would need a bridge
+ * across the document boundary, would duplicate the role logic out here (an
+ * employee is offered two tabs, an admin five), and would leave the tool with
+ * no navigation when opened directly at /tools/ppad/app.html. That coupling
+ * is the precise thing the iframe was chosen to prevent.
  *
  * Nothing inside the iframe is touched by any of this: same src, same
- * same-origin isolation, same adapter, same access model.
+ * same-origin isolation, same adapter, same access model. PpadUpsell keeps
+ * its PageHeader - that one IS an ordinary dashboard page.
  */
 export default function PpadFrame() {
   return (
-    // Column, not a scroll container. The iframe owns its own scrolling, so
-    // the header stays put and there is never a second scrollbar.
-    <div className="flex min-h-0 flex-1 flex-col bg-bg">
-      {/* The header keeps the dashboard's gutters. The iframe below does not -
-          it is the application, not a panel. */}
-      <div className="px-4 pt-6 sm:px-6">
-        <PageHeader
-          eyebrow="HQ Tools"
-          title="HQ Performance"
-          subtitle="Plan, perform, assess, develop - one cycle a year. You see your own record and anyone you are allocated to, and nothing else."
-          className="mb-4"
-        />
-      </div>
-
-      <iframe
-        src="/tools/ppad/app.html"
-        title="HQ Performance"
-        className="block min-h-0 w-full flex-1 border-0"
-      />
-    </div>
+    // Edge to edge and top to bottom. The tool owns the whole pane and does
+    // its own scrolling, so there is never a second scrollbar.
+    <iframe
+      src="/tools/ppad/app.html"
+      title="HQ Performance"
+      className="block min-h-0 w-full flex-1 border-0 bg-bg"
+    />
   )
 }

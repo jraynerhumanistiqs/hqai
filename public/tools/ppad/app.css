@@ -11,7 +11,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 a{color:inherit}
 /* top bar */
 .top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
-.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:0 24px;height:60px}
+/* This bar IS the page header now - the dashboard route above it no longer
+   renders one, so the two stacked header bands became one. A little more
+   height than the old 60px to carry a page title rather than a toolbar label. */
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:0 24px;height:68px}
 /* The brand block must contain its own children. `overflow:hidden` is the
    backstop: the header is a single flex row and at 1180px an ADMIN view
    genuinely over-demands it (logo + tool name + tagline + org name + seven
@@ -36,7 +39,9 @@ a{color:inherit}
    overflowed .brand by ~150px at every width. min-width:0 is what lets a
    flex child shrink below its content at all. */
 .brand .nm{display:flex;flex-direction:column;line-height:1.15;min-width:6.5rem;flex:0 1 auto}
-.brand .nm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Page-title weight, not toolbar-label weight. 17px keeps the brand block
+   near 250px, which the row still holds comfortably - measured below. */
+.brand .nm b{font-size:17px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .org{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;min-width:0;flex:0 1 auto}
 /* The org name is not shown in the header, at any width.
    It used to be hidden only when a logo was present (`.brand:has(img)`),
@@ -278,7 +283,7 @@ details.acc .body{padding:0 0 14px}
 .tag{font-size:11px;color:var(--ink3);font-weight:550;text-transform:uppercase;letter-spacing:.05em}
 .loading{display:grid;place-items:center;min-height:50vh;color:var(--ink3)}
 
-.card{scroll-margin-top:76px}
+.card{scroll-margin-top:84px}
 
 
 /* ===== Guide and Learn ======================================================
@@ -324,14 +329,14 @@ details.acc .body{padding:0 0 14px}
 
 /* guide */
 .gd-wrap{display:grid;grid-template-columns:210px minmax(0,1fr);gap:18px;align-items:start}
-.gd-toc{position:sticky;top:76px;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.gd-toc{position:sticky;top:84px;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
 .gd-toc a{padding:6px 10px;border-radius:6px;font-size:13px;color:var(--ink2);cursor:pointer}.gd-toc a:hover{background:var(--line2);color:var(--ink)}
 .gd{padding:24px 28px;line-height:1.6;font-size:14px}.gd p{margin:0 0 10px}.gd ul{margin:0 0 10px;padding-left:20px}.gd li{margin-bottom:4px}
-.gd-s{scroll-margin-top:76px;margin-bottom:26px}.gd h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 10px}.gd h3{font-size:15px;margin:0 0 4px}
+.gd-s{scroll-margin-top:84px;margin-bottom:26px}.gd h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 10px}.gd h3{font-size:15px;margin:0 0 4px}
 .gd-cl,.gd-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .gd-cl div,.gd-steps div{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}.gd-cl b,.gd-steps b{display:block;margin-bottom:2px}.gd-cl span,.gd-steps span{color:var(--ink2);font-size:13px}
 .gd-kicker{background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:6px;margin:0 0 14px}
-.gd-comp{scroll-margin-top:76px;margin:0 0 22px}.gd-def{font-style:italic;color:var(--ink2)}
+.gd-comp{scroll-margin-top:84px;margin:0 0 22px}.gd-def{font-style:italic;color:var(--ink2)}
 .gd-t{width:100%;border-collapse:collapse;font-size:13px}.gd-t td{border:1px solid var(--line);padding:7px 10px;vertical-align:top}.gd-t td.lv{width:38px;text-align:center;font-weight:700;color:var(--accent);background:var(--line2)}
 @media(max-width:900px){.gd-wrap{grid-template-columns:1fr}.gd-toc{position:static;flex-direction:row;flex-wrap:wrap}.gd-cl,.gd-steps{grid-template-columns:1fr}.gd{padding:18px}}
 const PRESET = null;
