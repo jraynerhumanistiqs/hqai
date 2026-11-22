@@ -138,7 +138,7 @@ export default function AssistantWorklist() {
     <div className="flex-1 overflow-y-auto bg-bg">
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <PageHeader
-          eyebrow="AI Assistant"
+          eyebrow="HQ Assistant"
           title="What needs doing"
           subtitle="Your day-to-day helper for the admin around people management - keeping track of the dates and the paperwork, from what you have already told us."
         />
@@ -239,7 +239,7 @@ export default function AssistantWorklist() {
             href="/dashboard/people/advisor"
             className="underline decoration-border underline-offset-2 transition-colors hover:text-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            the AI Advisor
+            the HQ Advisor
           </Link>{' '}
           is the place for the question.
         </p>

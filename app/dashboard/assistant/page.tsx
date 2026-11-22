@@ -5,7 +5,7 @@ import AssistantWorklist from '@/components/assistant/AssistantWorklist'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'AI Assistant - HQ.AI',
+  title: 'HQ Assistant - HQ.AI',
 }
 
 // The AI Assistant - a worklist, not a chat.

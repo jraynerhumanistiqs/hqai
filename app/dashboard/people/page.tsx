@@ -24,7 +24,7 @@ const TILES = [
     href: '/dashboard/people/advisor',
     emoji: '💬',
     kicker: 'Chat',
-    title: 'AI Advisor',
+    title: 'HQ Advisor',
     blurb: 'Ask any HR or people question - performance, leave, awards, tricky conversations - and get clear, practical steps. It flags the hard cases for your human advisor.',
   },
   {
@@ -62,7 +62,7 @@ export default async function PeopleLanding({
           Your HR, off your plate.
         </h1>
         <p className="text-body text-ink-soft mb-6 max-w-2xl">
-          Ask your AI Advisor anything - performance, leave, awards, tricky
+          Ask your HQ Advisor anything - performance, leave, awards, tricky
           conversations. Your human advisor steps in when it gets complex.
         </p>
 

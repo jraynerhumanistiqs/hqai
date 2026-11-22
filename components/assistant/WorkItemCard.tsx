@@ -52,9 +52,9 @@ export function resolveAction(action: WorkItemAction): { label: string; href: st
     case 'add_people':
       return { label: 'Add your team', href: TEAM }
     case 'ask_advisor':
-      return { label: 'Ask the AI Advisor', href: `${ADVISOR}?prompt=${encodeURIComponent(action.prompt)}` }
+      return { label: 'Ask the HQ Advisor', href: `${ADVISOR}?prompt=${encodeURIComponent(action.prompt)}` }
     case 'contact_advisor':
-      return { label: 'Ask the AI Advisor', href: ADVISOR }
+      return { label: 'Ask the HQ Advisor', href: ADVISOR }
     case 'write_file_note':
     case 'summarise_record':
     case 'open_record':
