@@ -466,6 +466,9 @@
   // resolve to this at call time via the global object.
   window.store = store;
   window.ppadStore = store;
+  // Kept although the tool no longer has a Sign out button of its own: this
+  // is how the surrounding dashboard can clear the iframe's in-memory state
+  // when it signs the user out. Nothing inside the tool calls it any more.
   window.ppadSignOut = function () { store.signOut(); };
 
   // Bootstrap. The main script used to end with store.loadLocal(); that line

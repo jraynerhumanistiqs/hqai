@@ -251,7 +251,9 @@ test.describe('layout', () => {
     await expect(page.locator('header.top .brand .org')).toBeHidden()
 
     const r = await page.evaluate(() => {
-      const sel = ['.brand .nm', '.brand .org', 'nav.nav', '.cyc', '.sync', 'header.top .btn']
+      // No 'header.top .btn' any more - the tool's Sign out button is gone,
+      // since the dashboard around it owns signing out.
+      const sel = ['.brand .nm', '.brand .org', 'nav.nav', '.cyc', '.sync']
       const boxes = sel
         .map(s => [s, document.querySelector(s)] as const)
         .filter(([, e]) => e && e.getBoundingClientRect().width > 0)

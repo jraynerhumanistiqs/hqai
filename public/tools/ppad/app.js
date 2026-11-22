@@ -367,7 +367,10 @@ function render(){
     <div class="spacer"></div>
     ${showNav && !empOnly ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
     <span class="sync" id="sync" role="status" aria-live="polite">${esc(store.status || '')}</span>
-    <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
+    <!-- No Sign out here. The tool runs inside the HQ.ai dashboard, which
+         already owns signing out; a second control in an iframe header only
+         invites the question of which one is real. Session EXPIRY is still
+         handled - ppad-store.js swaps the whole shell for a sign-in prompt. -->
   </div></header>
   <main>${body}</main>
   <footer><span>${esc(b.orgName||'')} ${b.orgName?'·':''} ${esc(c.label)} · ${esc(cycleRange(c))}</span>${b.poweredBy ? '<span>Powered by Humanistiqs</span>' : ''}</footer>`;
@@ -991,8 +994,7 @@ const ACT = {
     }),
   'acc-end': el => confirmBox('End this allocation?', 'Access ends immediately, including to past cycles. The record of the allocation is kept.', 'End it', async () => {
     try{ await ppadAdmin.endAllocation(el.dataset.v); toast('Allocation ended'); S.ui.access = null; loadAccess(); await ppadAdmin.reload(); }
-    catch(e){ toast(e.message); } }),
-  'sign-out': () => confirmBox('Sign out?', 'Nothing is kept on this device - you will need to sign in again to see any of this.', 'Sign out', () => window.ppadSignOut())
+    catch(e){ toast(e.message); } })
 };
 
 /* ----- cycles / rollover ----- */
