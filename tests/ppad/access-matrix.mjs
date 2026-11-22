@@ -27,6 +27,7 @@ const MIGRATIONS = [
   'ppad_03_rpcs.sql',
   'ppad_04_admin_rpcs.sql',
   'ppad_05_release_gate.sql',
+  'ppad_06_learning.sql',
 ]
 
 let PGlite
@@ -703,5 +704,83 @@ describe('manager ratings are withheld until the manager signs', () => {
     assert.ok(rows.length === 1, 'reviewer can read it')
     // E1's record carries a manager rating from the earlier matrix tests.
     assert.ok(rows[0].data.kpis[0].mgr !== undefined)
+  })
+})
+
+/**
+ * Learning progress (ppad_06).
+ *
+ * The course came from a single-browser build that kept progress in the org
+ * config. Two things made that unusable here, and both are asserted below:
+ * org config is one shared row, and it is admin-write-only - so the people
+ * the course is written FOR could never have saved a result.
+ */
+describe('learning progress is private to the learner', () => {
+  const PROGRESS = { done: { e1: true, e2: true }, score: { e1: 3, e2: 2 }, certs: { emp: '2026-11-22' }, name: 'E1 Test' }
+
+  test('a plain employee can save their own progress', async () => {
+    // The case that was impossible before: E1 is a member, not an admin.
+    await as('E1', `insert into ppad_learning (business_id, user_id, data) values ($1,$2,$3)`,
+      [B.A, U.E1, JSON.stringify(PROGRESS)])
+    const { rows } = await as('E1', `select data from ppad_learning where user_id = $1`, [U.E1])
+    assert.equal(rows.length, 1)
+    assert.equal(rows[0].data.score.e1, 3)
+  })
+
+  test('and can update it', async () => {
+    await as('E1', `update ppad_learning set data = jsonb_set(data, '{score,e2}', '3')
+                     where business_id = $1 and user_id = $2`, [B.A, U.E1])
+    const { rows } = await as('E1', `select data from ppad_learning where user_id = $1`, [U.E1])
+    assert.equal(rows[0].data.score.e2, 3)
+  })
+
+  test('another employee cannot read it', async () => {
+    const { rows } = await as('E2', `select * from ppad_learning where user_id = $1`, [U.E1])
+    assert.deepEqual(rows, [], 'E2 must not see E1 progress')
+  })
+
+  test('the admin cannot read it directly either', async () => {
+    const { rows } = await as('admin', `select * from ppad_learning where user_id = $1`, [U.E1])
+    assert.deepEqual(rows, [], 'admin reads completion through the summary, not the row')
+  })
+
+  test('nobody can write a row for someone else', async () => {
+    await assert.rejects(
+      () => as('E2', `insert into ppad_learning (business_id, user_id, data) values ($1,$2,'{}')`,
+        [B.A, U.E1]),
+      /policy|denied/,
+      'E2 must not be able to write progress as E1')
+  })
+
+  test('org B sees nothing of org A', async () => {
+    const { rows } = await as('bAdmin', `select * from ppad_learning`)
+    assert.deepEqual(rows, [])
+  })
+
+  test('anon reads nothing', async () => {
+    await assert.rejects(() => asAnon(`select * from ppad_learning`), /permission denied|policy/)
+  })
+})
+
+describe('the learning summary is completion only', () => {
+  test('an admin gets counts and certificates', async () => {
+    const { rows } = await as('admin', `select * from ppad_learning_summary() where user_id = $1`, [U.E1])
+    assert.equal(rows.length, 1)
+    assert.equal(rows[0].modules_complete, 2)
+    assert.deepEqual(rows[0].paths_certified, ['emp'])
+  })
+
+  test('and never the scores or the name on the certificate', async () => {
+    const { rows } = await as('admin', `select * from ppad_learning_summary() where user_id = $1`, [U.E1])
+    const cols = Object.keys(rows[0])
+    for (const leak of ['score', 'scores', 'name', 'data']) {
+      assert.ok(!cols.includes(leak), `summary must not expose ${leak}`)
+    }
+    assert.ok(!JSON.stringify(rows[0]).includes('E1 Test'), 'the certificate name must not leak')
+  })
+
+  test('a plain employee gets nothing from it', async () => {
+    const { rows } = await as('E2', `select * from ppad_learning_summary()`)
+    assert.deepEqual(rows, [], 'completion reporting is for admins and HR reporting')
   })
 })
