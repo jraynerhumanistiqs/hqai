@@ -16,20 +16,44 @@ declare const ACT: Record<string, (el?: unknown) => void>
  */
 
 test.describe('employee-only', () => {
-  test('lands on their own record with no navigation out of it', async ({ page, asRole }) => {
+  test('lands on their own record, with a nav offering only that and Learn', async ({ page, asRole }) => {
     await asRole('employee')
-    await expect(page.locator('nav.nav')).toHaveCount(0)
+    await expect(page.locator('.ph h1')).toContainText('Evie Emp')
     await expect(page.locator('#cycsel')).toHaveCount(0)
     await expect(page.locator('a.back')).toHaveCount(0)
-    await expect(page.locator('.ph h1')).toContainText('Evie Emp')
+
+    // They used to get no nav at all. Learn and Guide are now open to them,
+    // so they get exactly two destinations and nothing else - no Overview,
+    // no People, no Reports, no Setup.
+    const links = page.locator('nav.nav a')
+    await expect(links).toHaveCount(2)
+    await expect(links.nth(0)).toHaveText('My record')
+    await expect(links.nth(1)).toHaveText('Learn')
+    for (const h of ['#dashboard', '#people', '#reports', '#setup', '#settings', '#access']) {
+      await expect(page.locator(`nav.nav a[href="${h}"]`)).toHaveCount(0)
+    }
   })
 
-  test('cannot be navigated away by changing the hash', async ({ page, asRole }) => {
+  test('still cannot be navigated away by changing the hash', async ({ page, asRole }) => {
     await asRole('employee')
-    for (const h of ['#dashboard', '#people', '#settings', '#reports', '#access']) {
+    for (const h of ['#dashboard', '#people', '#settings', '#reports', '#access', '#setup', '#pds', '#profiles']) {
       await page.evaluate(h2 => { location.hash = h2 }, h)
       await expect(page.locator('.ph h1')).toContainText('Evie Emp')
     }
+  })
+
+  test('but CAN reach Learn and Guide, which hold nobody else\'s data', async ({ page, asRole }) => {
+    await asRole('employee')
+    await page.evaluate(() => { location.hash = '#learn' })
+    await expect(page.locator('nav.subnav a[href="#learn"]')).toHaveAttribute('aria-current', 'page')
+    await expect(page.locator('.ph h1')).toHaveCount(0)
+
+    await page.evaluate(() => { location.hash = '#guide' })
+    await expect(page.locator('nav.subnav a[href="#guide"]')).toHaveAttribute('aria-current', 'page')
+
+    // And back to their own record, which is still the only record they get.
+    await page.locator('nav.nav a').first().click()
+    await expect(page.locator('.ph h1')).toContainText('Evie Emp')
   })
 
   test('the plan is read-only', async ({ page, asRole }) => {
@@ -261,10 +285,12 @@ test.describe('layout', () => {
     expect(r.hits, `header elements overlap ${where}`).toEqual([])
     expect(r.nameWidth, `tool name crushed ${where}`).toBeGreaterThan(60)
     expect(r.nameClipped, `tool name ellipsised ${where}`).toBe(false)
-    // Four, not seven. The four configuration screens moved behind Setup -
-    // that grouping is what took the nav from 501px to ~290px and ended the
-    // scrolling, so the count is the thing worth pinning.
-    expect(r.tabs, `admin should have four top-level tabs ${where}`).toBe(4)
+    // Five, not seven: Overview, People, Reports, Learn, Setup. The four
+    // configuration screens sit behind Setup and the two course screens
+    // behind Learn. That grouping is what ended the nav scrolling, so the
+    // count is the thing worth pinning - if it creeps back up, the row is
+    // heading for the overlap this test was written for.
+    expect(r.tabs, `admin should have five top-level tabs ${where}`).toBe(5)
     expect(r.pageOverflow, `page scrolls sideways ${where}`).toBeLessThanOrEqual(2)
 
     // Only asserted on desktop. At 375px the row wraps and the nav scrolls

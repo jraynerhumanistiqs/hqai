@@ -280,3 +280,58 @@ details.acc .body{padding:0 0 14px}
 
 .card{scroll-margin-top:76px}
 
+
+/* ===== Guide and Learn ======================================================
+   From the same colleague build as the views in app.js. Taken as written -
+   every selector here is .ln-* or .gd-*, none of which collide with ours, and
+   the modifier classes they reuse (.on, .done, .sel, .right, .wrong, .bad,
+   .good, .n, .t) are all scoped inside those prefixes, so none of them leak
+   onto .pill, .seg button, .steps or .nav/.subnav.
+
+   NOT taken: four unscoped counter-rules they added to .top-in (.brand
+   {flex:none}, .nav{flex:1 1 auto}, .nav a{...}, .spacer{flex:0 0 0}) and
+   their 1320px/1120px breakpoints. Those fight the shared-shortfall model
+   above, which is measured: brand and nav give up space in proportion, and
+   nothing is hidden at any width from 1852px down to 375px. Re-adding them
+   puts the overlap back.
+=========================================================================== */
+/* learn */
+.gd-toc a.on{background:var(--line2);color:var(--ink);font-weight:600}
+.ln-path{text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:18px}
+.ln-path h2{margin:0;font-size:18px}.ln-path p{margin:0 0 6px;color:var(--ink2);font-size:13px;flex:1}
+.ln-path.on{box-shadow:0 0 0 2px var(--accent)}
+.ln-bar{height:6px;background:var(--line2);border-radius:99px;overflow:hidden}.ln-bar span{display:block;height:100%;background:var(--accent)}
+.ln-mods{display:flex;flex-direction:column}
+.ln-mod{display:flex;align-items:center;gap:14px;padding:12px 4px;border:0;border-top:1px solid var(--line2);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.ln-mod:hover{background:var(--line2)}.ln-mod .t{flex:1;display:flex;flex-direction:column}
+.ln-mod .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--line2);font-weight:600;font-size:13px;flex:none}
+.ln-mod.done .n{background:var(--accent);color:var(--accent-ink)}
+.ln-card{padding:26px 30px;min-height:360px;display:flex;flex-direction:column}.ln-card h2{font-size:20px;margin:0 0 12px}
+.ln-body{font-size:15px;line-height:1.65;flex:1}.ln-body p{margin:0 0 12px}.ln-body ul,.ln-body ol{margin:0 0 12px;padding-left:22px}.ln-body li{margin-bottom:5px}
+.ln-two,.ln-cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 14px}
+.ln-two div,.ln-cmp div,.ln-tl div{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 14px}
+.ln-two b,.ln-cmp b,.ln-tl b{display:block}.ln-two span,.ln-cmp span,.ln-tl span{color:var(--ink2);font-size:14px}
+.ln-cmp .bad{border-left-color:#b91c1c}.ln-cmp .good{border-left-color:#15803d}
+.ln-tl{display:grid;gap:8px;margin:4px 0 14px}.ln-st{display:flex;gap:8px;margin:6px 0 12px}
+.ln-t{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:14px}.ln-t th,.ln-t td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.ln-t th{background:var(--line2)}
+.ln-t td.lv{width:52px;text-align:center;font-weight:700;color:var(--accent);background:var(--line2)}
+.ln-q{margin:0 0 18px}.ln-opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ln-opt{text-align:left;font:inherit;font-size:14px;padding:11px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;color:var(--ink)}
+.ln-opt:hover:not([disabled]){border-color:var(--accent)}.ln-opt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--line2)}
+.ln-opt.right{border-color:#15803d;background:#f0fdf4}.ln-opt.wrong{border-color:#b91c1c;background:#fef2f2}.ln-opt[disabled]{cursor:default}
+.ln-fb{margin-top:14px;font-size:14px}.ln-nav{justify-content:space-between;margin-top:22px;padding-top:16px;border-top:1px solid var(--line2)}
+@media(max-width:900px){.ln-two,.ln-cmp{grid-template-columns:1fr}.ln-card{padding:18px}}
+
+/* guide */
+.gd-wrap{display:grid;grid-template-columns:210px minmax(0,1fr);gap:18px;align-items:start}
+.gd-toc{position:sticky;top:76px;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.gd-toc a{padding:6px 10px;border-radius:6px;font-size:13px;color:var(--ink2);cursor:pointer}.gd-toc a:hover{background:var(--line2);color:var(--ink)}
+.gd{padding:24px 28px;line-height:1.6;font-size:14px}.gd p{margin:0 0 10px}.gd ul{margin:0 0 10px;padding-left:20px}.gd li{margin-bottom:4px}
+.gd-s{scroll-margin-top:76px;margin-bottom:26px}.gd h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 10px}.gd h3{font-size:15px;margin:0 0 4px}
+.gd-cl,.gd-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gd-cl div,.gd-steps div{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}.gd-cl b,.gd-steps b{display:block;margin-bottom:2px}.gd-cl span,.gd-steps span{color:var(--ink2);font-size:13px}
+.gd-kicker{background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:6px;margin:0 0 14px}
+.gd-comp{scroll-margin-top:76px;margin:0 0 22px}.gd-def{font-style:italic;color:var(--ink2)}
+.gd-t{width:100%;border-collapse:collapse;font-size:13px}.gd-t td{border:1px solid var(--line);padding:7px 10px;vertical-align:top}.gd-t td.lv{width:38px;text-align:center;font-weight:700;color:var(--accent);background:var(--line2)}
+@media(max-width:900px){.gd-wrap{grid-template-columns:1fr}.gd-toc{position:static;flex-direction:row;flex-wrap:wrap}.gd-cl,.gd-steps{grid-template-columns:1fr}.gd{padding:18px}}
+const PRESET = null;

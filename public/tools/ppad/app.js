@@ -244,7 +244,7 @@ function applyPreset(){
 
 /* ===== Performance Manager — views ===== */
 const $app = () => document.getElementById('app');
-const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access','setup'];
+const VIEWS = ['dashboard','people','pds','profiles','reports','settings','access','setup','learn','guide'];
 
 /* The four configuration screens, grouped behind one "Setup" tab.
    They are NOT peers of Overview and People: an admin sets them up during
@@ -262,6 +262,18 @@ const SETUP_TABS = [
   ['access','Users and access'],
 ];
 
+/* Learn groups the two read-and-understand surfaces the same way Setup groups
+   configuration: one top-level tab, a sub-nav inside it.
+   The tab is "Learn"; the course itself is "PPAD Quiz" so the two are not
+   both called the same thing. Neither screen shows anybody's performance
+   data - the Guide is the org's competency framework and the course is
+   generic - which is why employees can reach them (see route()). */
+const LEARN_VIEWS = ['learn','guide'];
+const LEARN_TABS = [
+  ['learn','PPAD Quiz'],
+  ['guide','Guide'],
+];
+
 function route(){
   if (!S.ready) return;
   const h = (location.hash || '').slice(1);
@@ -276,8 +288,13 @@ function route(){
      so this is to avoid showing a screen that could only ever error. */
   if (S.ui.view === 'access' && !(S.me && S.me.isAdmin)) S.ui.view = 'dashboard';
   /* An employee-only user lands on their own record whatever the hash says.
-     Every other screen is either empty for them or about other people. */
-  if (employeeOnly() && !(S.ui.view === 'person' && S.ui.personId === S.me.personId)){
+     Every other screen is either empty for them or about other people.
+     Learn and Guide are the two exceptions, added when the course came
+     across: neither shows anyone's performance data - the Guide is the org's
+     competency framework and the course is generic - and employees are the
+     people most likely to need them. Everything else still bounces. */
+  if (employeeOnly() && !LEARN_VIEWS.includes(S.ui.view)
+      && !(S.ui.view === 'person' && S.ui.personId === S.me.personId)){
     S.ui.view = 'person'; S.ui.personId = S.me.personId;
     if (!['plan','monitor','assess','develop'].includes(S.ui.tab)) S.ui.tab = 'plan';
   }
@@ -295,42 +312,57 @@ const go = h => { if (location.hash === '#'+h) route(); else location.hash = h; 
    "Users and access" is filtered out for non-admins rather than disabled:
    route() already sends them away from #access, so offering it would be a
    visible dead end. */
-function setupNav(v){
+function subNav(tabs, v, label){
   const cur = v === 'pd' ? 'pds' : v;
-  const admin = !!(S.me && S.me.isAdmin);
-  return `<nav class="subnav" aria-label="Setup sections">${SETUP_TABS
-    .filter(([k]) => k !== 'access' || admin)
+  return `<nav class="subnav" aria-label="${esc(label)} sections">${tabs
     .map(([k,l]) => `<a href="#${k}"${cur===k ? ' class="on" aria-current="page"' : ''}>${esc(l)}</a>`)
     .join('')}</nav>`;
 }
+function setupNav(v){
+  const admin = !!(S.me && S.me.isAdmin);
+  return subNav(SETUP_TABS.filter(([k]) => k !== 'access' || admin), v, 'Setup');
+}
+function learnNav(v){ return subNav(LEARN_TABS, v, 'Learn'); }
 
 function render(){
   const b = S.org.brand, c = activeCycle(), v = S.ui.view;
-  // Four tabs, not seven. Overview and People are where the work happens,
-  // Reports is the output, and the four configuration screens live behind
-  // Setup. The same tabs for everyone - what an admin gets extra is a fourth
-  // section INSIDE Setup, not another tab out here.
-  const nav = [['dashboard','Overview'],['people','People'],['reports','Reports'],['setup','Setup']];
-  const showNav = S.org.setup && !employeeOnly();
+  // Overview and People are where the work happens, Reports is the output,
+  // Learn and Setup are each one tab with a sub-nav behind them. What an
+  // admin gets extra is a fourth section INSIDE Setup, not another tab here.
+  //
+  // An employee-only user gets a nav for the first time. They used to get
+  // none at all, because their one screen was their own record and there was
+  // nowhere else they were allowed to go. Now that Learn and Guide are open
+  // to them they need a way back and forth - but only those two destinations
+  // plus their own record. route() still bounces every other hash.
+  const empOnly = employeeOnly();
+  const myRecord = empOnly && S.me && S.me.personId ? 'person-' + S.me.personId : null;
+  const nav = empOnly
+    ? (myRecord ? [[myRecord,'My record'],['learn','Learn']] : [['learn','Learn']])
+    : [['dashboard','Overview'],['people','People'],['reports','Reports'],['learn','Learn'],['setup','Setup']];
+  const showNav = S.org.setup && (!empOnly || !!myRecord);
   // No logo or letter mark in the header. It cost up to 150px of a row that
   // is already over budget, and the tool runs inside the HQ.ai dashboard,
   // whose sidebar already shows whose workspace this is. The uploaded logo is
   // NOT dropped - it still brands the exported appraisal documents (the
   // letterhead and both PDF footers) and its Settings control is unchanged.
-  const view = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
+  const view = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : v==='learn' ? vLearn() : v==='guide' ? vGuide() : vDashboard();
   // The Setup sections get a sub-nav above whatever they already render. No
   // extra heading: each of those screens owns its own h1, and adding a
   // "Setup" one above it would put two h1s on the page.
   // Not during first-run setup - S.org.setup is false there and Settings is
   // the only reachable screen, so a sub-nav would offer three dead ends.
-  const body = (showNav && SETUP_VIEWS.includes(v)) ? setupNav(v) + view : view;
+  const body = !showNav ? view
+    : SETUP_VIEWS.includes(v) ? setupNav(v) + view
+    : LEARN_VIEWS.includes(v) ? learnNav(v) + view
+    : view;
   const sy = window.scrollY;
   $app().innerHTML = `
   <header class="top"><div class="top-in">
     <div class="brand" data-act="nav" data-h="dashboard"><div class="nm"><b>${esc(b.appName||'Plan, Perform, Assess, Develop')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
-    ${showNav ? `<nav class="nav" aria-label="Sections">${nav.map(([h,l]) => { const on = (v===h) || (v==='person'&&h==='people') || (h==='setup'&&SETUP_VIEWS.includes(v)); return `<a href="#${h}"${on?' class="on" aria-current="page"':''}>${l}</a>`; }).join('')}</nav>` : ''}
+    ${showNav ? `<nav class="nav" aria-label="Sections">${nav.map(([h,l]) => { const on = (v===h) || (!empOnly && v==='person' && h==='people') || (empOnly && v==='person' && h===myRecord) || (h==='setup'&&SETUP_VIEWS.includes(v)) || (h==='learn'&&LEARN_VIEWS.includes(v)); return `<a href="#${h}"${on?' class="on" aria-current="page"':''}>${esc(l)}</a>`; }).join('')}</nav>` : ''}
     <div class="spacer"></div>
-    ${showNav ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
+    ${showNav && !empOnly ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}
     <span class="sync" id="sync" role="status" aria-live="polite">${esc(store.status || '')}</span>
     <button class="btn sm ghost" data-act="sign-out" title="Sign out">Sign out</button>
   </div></header>
@@ -1439,3 +1471,349 @@ function parsePdfPd(lines, fname){
 }
 
 /* Bootstrapping happens in ppad-store.js, which loads next. */
+
+/* ===== Guide and Learn =======================================================
+   Ported from a colleague's standalone build of this tool. The views, the
+   course content and the markup are theirs; what changed on the way in:
+
+     - progress moved from S.org.learn to S.learn, backed by ppad_learning
+       (one row per person) instead of the org config (one row per business,
+       admin-write-only). See lrn() below and ppad-store.js.
+     - saveOrg() -> saveLearn() for the same reason.
+
+   Everything else is as they wrote it. The two exports here are deliberately
+   NOT behind exportGuard(): that guard blocks an employee exporting
+   performance records, and neither the competency guide (the org's framework,
+   nobody's data) nor a certificate carrying the learner's own name is one.
+============================================================================ */
+
+/* Marks progress dirty. Writes to ppad_learning, and is a no-op when that
+   migration is unapplied - ppad-store.js warns once on load instead. */
+const saveLearn = () => store.mark('learn');
+
+
+/* ===== Competency Profile Guide ===== */
+function guideIntro(org){
+  const o = esc(org || 'the organisation');
+  return `
+  <section class="gd-s" id="g-use"><h2>Intended use of this guide</h2>
+    <p>Position Profiling, Performance Review and Job Evaluation for ${o} employees in management and staff roles, across all ${o} services and support functions.</p></section>
+  <section class="gd-s" id="g-purpose"><h2>Purpose of the guide</h2>
+    <p>This guide forms the basis of the Position Competency aspect of ${o}'s Performance Management process, developed with Humanistiqs. Its purpose is to help managers and employees with:</p>
+    <ul><li><b>Position Profiling &amp; Performance Planning</b> — understand the required job competencies and agree planned levels of performance. This also assists the Job Evaluation component of the Salary Management System.</li>
+    <li><b>Individual Performance Review</b> — review and assess an individual's actual performance against the agreed competencies, alongside the KPAs for the role, for the previous year.</li></ul>
+    <p>When these activities have been completed over a full year, comparing the outputs assists in:</p>
+    <ul><li>Identifying development goals</li><li>Determining learning and training activities</li><li>Career and succession planning decisions</li><li>Determining, in conjunction with KPA results, the salary appropriate for the job and the performance of the individual</li><li>Providing a basis for job evaluation</li></ul></section>
+  <section class="gd-s" id="g-who"><h2>Who uses the guide, and when?</h2>
+    <p>When designing a new role or hiring a new employee, the manager first uses the guide to complete the Position Description, then explains the KPAs and competencies of the role to the employee. Employees should be familiar with the guide's content and how it relates to their role, so they can provide appropriate input throughout the year.</p>
+    <p>Because roles change over time, the employee and manager should reach agreement on the role's profile during Performance Planning. Where a role's profile has changed significantly, the manager should discuss this with Humanistiqs / the ${o} HR function before agreeing the new profile. A copy of the profile should be sent to HR for job evaluation purposes.</p>
+    <p>Performance Planning is completed in the fourth quarter of each financial year, following the previous year's Individual Performance Review, to determine expected performance levels for the year ahead — including KPAs, their KPIs (targets/measures) and any additional objectives. Individual Performance Review takes place after 12 months have elapsed, also in the fourth quarter. It looks at the employee's actual performance over the past year, as viewed by the manager and agreed with the individual, who is then assessed against the required output.</p></section>
+  <section class="gd-s" id="g-how"><h2>Instructions for using the guide</h2>
+    <p>The guide consists of the Critical Competencies and the scaled levels of required performance within each. During an Individual Performance Review, the guide also assists in completing the Performance Appraisal.</p>
+    <ul><li><b>Performance Planning:</b> for each competency, copy the scaled level of performance expected from the Position Description into the Appraisal. Where the Position Description shows an “N” (Not required in this role) against a competency, that competency is not assessed.</li>
+    <li><b>Performance Review &amp; Assessment:</b> after discussing the definitions with the individual and agreeing the level of performance actually demonstrated, record the level in the Appraisal alongside the level previously set as the standard. Select the level that best reflects overall performance across the full year — this may be lower, higher, or at the level required. Where a required competency has not been demonstrated at all, record <b>0 — Not shown</b>.</li></ul></section>`;
+}
+function guidePpad(){
+  return `<section class="gd-s" id="g-ppad"><h2>Using this guide in PPAD</h2>
+    <div class="gd-steps">
+      <div><b>1 · Plan</b><span>Competency targets come from the person's PD or role profile. Check each target level against the definitions below and agree them with the employee. “N” means not required in this role.</span></div>
+      <div><b>2 · Perform</b><span>Use the level descriptions in check-ins to give specific, behavioural feedback during the year.</span></div>
+      <div><b>3 · Assess</b><span>The employee records a self-rating, then the manager records the agreed level for each competency — the level that best reflects the full year. Use 0 (Not shown) where a required competency was not demonstrated.</span></div>
+      <div><b>4 · Develop</b><span>Gaps between target and assessed levels feed the Employee Development Plan and career discussion.</span></div>
+    </div></section>`;
+}
+function guideComps(fw){
+  const letter = (c, i) => /^[A-Z]$/.test(c.id) ? c.id : String.fromCharCode(65 + i);
+  const all = fw.comps; let idx = 0;
+  const clusters = fw.clusters.map(cl => ({cl, comps: all.filter(c => c.cluster === cl)})).filter(x => x.comps.length);
+  const overview = `<section class="gd-s" id="g-clusters"><h2>The four competency clusters</h2><div class="gd-cl">${clusters.map(x => `<div><b>${esc(x.cl)}</b><span>${x.comps.map(c => esc(c.name)).join(' · ')}</span></div>`).join('')}</div></section>`;
+  const body = clusters.map((x, ci) => `<section class="gd-s gd-cluster" id="g-c${ci}"><div class="gd-kicker">${esc(x.cl)}</div>${x.comps.map(c => { const L = letter(c, all.indexOf(c));
+    return `<div class="gd-comp" id="g-${esc(c.id)}"><h3>${L}. ${esc(c.name)}</h3>${c.def?`<p class="gd-def">${esc(c.def)}</p>`:''}
+      <table class="gd-t"><tr><td class="lv">N</td><td><b>Not required in this role:</b> This competency is not required in this job and is not assessed.</td></tr><tr><td class="lv">0</td><td><b>Not shown:</b> This competency is required in this role but is not shown by the individual.</td></tr>
+      ${c.levels.map((t, i) => { const k = t.indexOf(':'); return `<tr><td class="lv">${i+1}</td><td>${k > 0 ? `<b>${esc(t.slice(0,k))}:</b>${esc(t.slice(k+1))}` : esc(t)}</td></tr>`; }).join('')}</table></div>`; }).join('')}</section>`).join('');
+  return overview + body;
+}
+function vGuide(){
+  const b = S.org.brand, fw = S.org.framework;
+  const toc = [['g-use','Intended use'],['g-purpose','Purpose'],['g-who','Who uses it, and when'],['g-how','Instructions'],['g-ppad','Using it in PPAD'],['g-clusters','The four clusters']]
+    .concat(fw.clusters.map((cl,i) => ['g-c'+i, cl]));
+  return `<div class="head"><div><div class="tag">For employees and managers</div><h1>Competency Profile Guide</h1><p class="sub">${esc(b.orgName||'')} ${esc(b.appName||'PPAD')} · ${esc(activeCycle().label)} · how competencies are profiled, planned and assessed.</p></div>
+    <div class="row"><button class="btn" data-act="guide-export">Export guide</button></div></div>
+  <div class="gd-wrap"><nav class="gd-toc card">${toc.map(([id,l]) => `<a data-act="guide-jump" data-v="${id}">${esc(l)}</a>`).join('')}</nav>
+  <div class="card gd">${guideIntro(b.orgName)}${guidePpad()}${guideComps(fw)}</div></div>`;
+}
+function exportGuide(){
+  const b = exportBrand(), fw = S.org.framework, c = activeCycle();
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(b.orgName)} — Competency Profile Guide</title><style>
+  body{font-family:Inter,Arial,sans-serif;color:#111827;font-size:12px;max-width:820px;margin:30px auto;padding:0 24px;line-height:1.5}
+  h1{font-size:22px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin:24px 0 8px;color:${b.accent}}h3{font-size:14px;margin:0 0 4px}
+  p{margin:0 0 8px}ul{margin:0 0 8px;padding-left:20px}li{margin-bottom:4px}.m{color:#6b7280;font-size:11px}
+  table{width:100%;border-collapse:collapse}td{border:1px solid #e5e7eb;padding:6px 8px;vertical-align:top}
+  .gd-t td.lv{width:34px;text-align:center;font-weight:700;color:${b.accent};background:#f9fafb}
+  .gd-comp{margin:0 0 18px;page-break-inside:avoid}.gd-def{font-style:italic;color:#4b5563}
+  .gd-kicker{margin:26px 0 10px;padding:6px 10px;background:${b.accent};color:#fff;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .gd-cluster{page-break-before:always}
+  .gd-cl div,.gd-steps div{border:1px solid #e5e7eb;border-left:3px solid ${b.accent};padding:8px 10px;margin-bottom:6px}.gd-cl b,.gd-steps b{display:block}.gd-cl span,.gd-steps span{color:#4b5563}
+  .ft{margin-top:30px;color:#9ca3af;font-size:10px;display:flex;justify-content:space-between}
+  @media print{body{margin:0}}${exportCss(b)}</style></head><body>
+  ${exportHead(b, `<h1>Competency Profile Guide</h1><div class="m">${esc(b.appName)} · ${esc(c.label)} · For employees and managers</div>`)}
+  ${guideIntro(b.orgName)}${guidePpad()}${guideComps(fw)}
+  <div class="ft"><span>${b.logo?`<img src="${b.logo}" alt="" height="18">`:''}${esc(b.orgName)} · ${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''}</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':''}</div></body></html>`;
+  download(`${slug()}-Competency-Profile-Guide.html`, html, 'text/html');
+}
+
+
+/* ===== Learn — self-paced PPAD learning ===== */
+const LEARN = [
+ {id:'emp', name:'Employees', who:'Everyone with a PPAD plan', blurb:'Understand your plan, keep it on track during the year, rate yourself honestly and own your development.', modules:[
+  {id:'e1', title:'Welcome to PPAD', mins:6, learn:[
+   ['What PPAD is', `<p>PPAD stands for <b>Plan ~ Perform ~ Assess ~ Develop</b>. It is how {org} agrees what each person will deliver, supports them through the year, assesses performance fairly and plans their development.</p><p>Every person is assessed on two things, equally important:</p><div class="ln-two"><div><b>What — KPAs</b><span>Key Performance Areas: the results you deliver, each with a KPI (targets/measures).</span></div><div><b>How — Competencies</b><span>The behaviours expected in your role, rated against the Competency Profile Guide.</span></div></div>`],
+   ['The year at a glance', `<div class="ln-tl"><div><b>Months 1–2 · Plan</b><span>Agree KPAs, KPIs (targets/measures), competency targets and stretch objectives.</span></div><div><b>Months 3–10 · Perform</b><span>Do the work. Regular check-ins and a formal half-year review around month 6.</span></div><div><b>Months 11–12 · Assess</b><span>Self-appraisal first, then manager review and an overall rating.</span></div><div><b>Month 12 · Develop</b><span>Agree a development plan, sign off, and roll into next year.</span></div></div>`],
+   ['Your responsibilities', `<ul><li>Know your Position Description (PD) — it sets your role's standard KPAs and competency targets.</li><li>Contribute to your plan; it should be agreed, not imposed.</li><li>Keep notes and evidence during the year so the review has no surprises.</li><li>Complete your self-appraisal honestly before your manager rates you.</li><li>Take ownership of your development actions.</li></ul><div class="note">Tip: the <b>Guide</b> tab holds the full Competency Profile Guide. Keep it handy throughout this course.</div>`]
+  ], practice:{q:'Sam delivered every KPA result this year but often worked alone and rarely shared information with the team. How will PPAD reflect this?', opts:['Only KPA results count, so Sam will be rated highly overall.','Sam will be assessed on both What (KPAs) and How (competencies such as Teamwork), so the overall picture will reflect both.','Competencies are optional and only used for managers.'], a:1, why:'PPAD assesses <b>What</b> and <b>How</b>. Strong results are recognised, but behaviours like Teamwork and Communication are assessed against the role\'s competency targets too.'},
+  quiz:[
+   {q:'What does PPAD stand for?', opts:['Plan, Perform, Assess, Develop','Performance, Pay, Appraisal, Discipline','Plan, Progress, Approve, Deliver'], a:0, why:'Plan ~ Perform ~ Assess ~ Develop — the four stages of the annual cycle.'},
+   {q:'Which document sets your role\'s standard KPAs and competency targets?', opts:['The staff handbook','Your Position Description (PD)','Last year\'s payslip summary'], a:1, why:'Your PD is the starting point for your plan every year.'},
+   {q:'When does the formal half-year review usually happen?', opts:['Month 1','Around month 6','Only at year end'], a:1, why:'Check-ins happen through months 3–10, with a formal half-year review around month 6.'}
+  ]},
+  {id:'e2', title:'Understanding your plan', mins:8, learn:[
+   ['KPAs and KPIs', `<p>A <b>KPA</b> (Key Performance Area) names a result area. Its <b>KPI (targets/measures)</b> says exactly what success looks like.</p><table class="ln-t"><tr><th>KPA</th><th>KPI (targets/measures)</th></tr><tr><td>Customer account reviews</td><td>100% of key accounts reviewed by due date</td></tr><tr><td>Rostering accuracy</td><td>Fewer than 2 unfilled shifts per fortnight</td></tr><tr><td>Incident reporting</td><td>All incidents logged within 24 hours</td></tr></table><p>Each KPA has a <b>weight</b>. Weights across your plan total <b>100%</b>, showing what matters most.</p>`],
+   ['Writing SMART', `<p>Good KPAs and KPIs are <b>SMART</b>: <b>S</b>pecific, <b>M</b>easurable, <b>A</b>ttainable, <b>R</b>elevant, <b>T</b>imely.</p><div class="ln-cmp"><div class="bad"><b>Weak</b><span>Improve communication with customers.</span></div><div class="good"><b>SMART</b><span>Send every key customer a monthly progress update by the 5th of each month.</span></div></div><p>Keep it to one sentence: state <i>what</i> and <i>when</i>, not how or why.</p>`],
+   ['Competency targets', `<p>Your PD sets a target level for each competency. The scale is:</p><table class="ln-t"><tr><td class="lv">N</td><td><b>Not required in this role</b> — not assessed.</td></tr><tr><td class="lv">0</td><td><b>Not shown</b> — required, but not demonstrated (used when assessing).</td></tr><tr><td class="lv">1–5</td><td>Increasing levels of capability, defined in the Guide for each competency.</td></tr></table><p>Higher is not automatically better for a role — the target reflects what the job needs.</p>`],
+   ['Stretch objectives and agreeing the plan', `<p>Stretch objectives are optional extra goals — a project, a new skill, an improvement — with a measure and due date.</p><p>When you and your manager are happy, your manager marks the plan <b>agreed</b>. It can still be changed during the year if the role changes.</p>`]
+  ], practice:{q:'Which is the best KPA + KPI pair?', opts:['KPA: Be a better team player · KPI: Try harder','KPA: Shift handover quality · KPI: Handover notes completed for 100% of shifts, checked weekly','KPA: Do all assigned tasks · KPI: As required'], a:1, why:'It names a clear result area and a specific, measurable, timely target. The others cannot be measured objectively.'},
+  quiz:[
+   {q:'What must KPA weights add up to?', opts:['50%','100%','Any total'], a:1, why:'Weights total 100% so they show relative importance.'},
+   {q:'A competency shown as N in your PD means…', opts:['Not shown','Not required in this role','Needs improvement'], a:1, why:'N = Not required in this role. It is not assessed. 0 = Not shown.'},
+   {q:'Which part of SMART checks that the result can be judged objectively?', opts:['Measurable','Relevant','Attainable'], a:0, why:'Measurable — you can tell objectively whether it was met.'}
+  ]},
+  {id:'e3', title:'Staying on track during the year', mins:6, learn:[
+   ['Check-ins', `<p>Check-ins are short, regular conversations with your manager. For each KPA you agree a status:</p><div class="ln-st"><span class="pill good">On track</span><span class="pill warn">At risk</span><span class="pill bad">Off track</span></div><p>Notes cover <b>What</b> (progress on KPAs) and <b>How</b> (behaviours), plus any agreed actions.</p>`],
+   ['Half-year review', `<p>Around month 6 your manager records a formal <b>half-year review</b>. It is a chance to reset priorities, update KPIs if the role has changed, and flag support you need.</p><p>If performance is well below the required standard, a <b>corrective action plan</b> may be agreed — with clear actions and dates.</p>`],
+   ['Keep your evidence', `<ul><li>Jot down achievements as they happen — dates, numbers, feedback received.</li><li>Raise risks early; “at risk” is a signal for support, not blame.</li><li>Bring examples of behaviours to check-ins, linked to the competency descriptions.</li></ul><div class="note">No surprises: nothing in your year-end review should be raised for the first time.</div>`]
+  ], practice:{q:'Two months in, a key KPA looks unlikely to be met because a system change has been delayed. What should you do?', opts:['Wait until the year-end review and explain then.','Raise it at your next check-in, mark the KPA at risk and agree actions or an updated KPI.','Quietly drop the KPA from your plan.'], a:1, why:'Raise risks early. The check-in records the status and agreed actions, and the KPI can be updated if the situation has changed.'},
+  quiz:[
+   {q:'Which statuses are used for KPAs at a check-in?', opts:['Pass / Fail','On track / At risk / Off track','1–10 rating'], a:1, why:'Check-ins use On track, At risk and Off track. The 1–10 scale is for year-end assessment.'},
+   {q:'What is the main purpose of regular check-ins?', opts:['To replace the year-end review','So there are no surprises at year end','To set pay'], a:1, why:'Regular conversations mean issues are dealt with as they arise.'},
+   {q:'A corrective action plan is used when…', opts:['Performance is well below the required standard','Someone is promoted','The plan is first agreed'], a:0, why:'It sets clear actions and dates to bring performance back to standard.'}
+  ]},
+  {id:'e4', title:'Your self-appraisal', mins:8, learn:[
+   ['Rating your KPAs (1–10)', `<table class="ln-t">${''}<tr><td class="lv">1–2</td><td>Not yet performing to the required level</td></tr><tr><td class="lv">3–4</td><td>Just meeting expectations</td></tr><tr><td class="lv">5–6</td><td>Meeting requirements</td></tr><tr><td class="lv">7–8</td><td>Very good — frequently exceeding</td></tr><tr><td class="lv">9–10</td><td>Exceeding all expectations</td></tr></table><p>Rate against the KPI (targets/measures) you agreed, and record the result achieved.</p>`],
+   ['Rating your competencies', `<p>For each required competency, read the level descriptions in the Guide and choose the one that <b>best reflects the full year</b> — not just recent weeks.</p><ul><li>It may be below, at or above your target.</li><li>Use <b>0 — Not shown</b> if you have not demonstrated a required competency.</li><li>Competencies marked N are not rated.</li></ul>`],
+   ['Key achievements', `<p>List your main achievements with evidence: numbers, dates and feedback. Your manager adds comments alongside.</p><div class="note">Complete your self-appraisal <b>before</b> your manager's ratings. It gives your perspective a fair hearing.</div>`]
+  ], practice:{q:'Your Communication target is 3 (“Integrates information with other communication”). For most of the year you passed on information clearly and confirmed understanding, and you tailored messages for customers a few times. Which rating best fits?', opts:['1 — Passes on information','2 — Adapts or tailors message','4 — Determines wider impact of communication'], a:1, why:'Level 2 (adapting messages for different audiences) reflects the full year. That is a gap of 1 against the target — useful input for your development plan.'},
+  quiz:[
+   {q:'A KPA self-rating of 5–6 means…', opts:['Just meeting expectations','Meeting requirements','Exceeding all expectations'], a:1, why:'5–6 = Meeting requirements: results achieved and desired behaviours demonstrated.'},
+   {q:'When rating competencies, you should consider…', opts:['The last month only','Your best single day','Performance across the full year'], a:2, why:'Choose the level that best reflects overall performance across the full year.'},
+   {q:'Who completes their ratings first?', opts:['The employee (self-appraisal)','The manager','HR'], a:0, why:'Self-rating first, then manager.'}
+  ]},
+  {id:'e5', title:'Development and sign-off', mins:6, learn:[
+   ['Your Employee Development Plan (EDP)', `<p>Gaps from your assessment become development needs. For each, choose the most effective approach — in order of payback:</p><div class="ln-tl"><div><b>1 · Coaching / on-the-job</b><span>Fastest; learn by doing with guidance.</span></div><div><b>2 · Work assignment / project</b><span>Stretch through real work.</span></div><div><b>3 · Training / development program</b><span>Deepest, slowest; formal learning.</span></div></div><p>Each action has an owner, a target month and a status.</p>`],
+   ['Career goals', `<p>Record where you want to be in <b>1–3 years</b>. This supports career and succession planning conversations.</p>`],
+   ['Sign-off', `<p>Three people sign off the completed appraisal:</p><ol><li>Employee</li><li>Manager</li><li>Manager's manager</li></ol><p>Signing confirms the discussion took place — if you disagree with a rating, note it in the comments before signing.</p>`]
+  ], practice:{q:'You need to improve at Planning & Co-ordinating and your manager runs a project that starts next month. What is the best first approach?', opts:['Wait for a formal course next year','Work assignment — take on co-ordinating part of the project, with check-ins','Nothing — note it for next year'], a:1, why:'A real assignment builds the skill quickly and can be reviewed at check-ins. Training can follow if needed.'},
+  quiz:[
+   {q:'Which development approach usually gives the fastest payback?', opts:['Training program','Coaching / on-the-job','External conference'], a:1, why:'Coaching / on-the-job is fastest; training is deepest but slowest.'},
+   {q:'Who signs off the appraisal?', opts:['Employee only','Employee, manager and manager\'s manager','HR only'], a:1, why:'Three sign-offs: employee, manager, manager\'s manager.'},
+   {q:'Career goals in the EDP look ahead…', opts:['1–3 years','10 years','To the next check-in'], a:0, why:'Career goals cover the next 1–3 years.'}
+  ]}
+ ]},
+ {id:'mgr', name:'Managers', who:'Anyone who manages people in PPAD', blurb:'Set clear plans from PDs, coach through the year, assess fairly and lead development conversations.', modules:[
+  {id:'m1', title:'Your role as a PPAD manager', mins:6, learn:[
+   ['What managers own', `<ul><li>Setting each person's plan from their PD and agreeing it with them.</li><li>Holding regular check-ins and the half-year review.</li><li>Assessing KPAs and competencies fairly, with evidence.</li><li>Recommending the overall rating and leading the development plan.</li></ul>`],
+   ['Your dashboard', `<p>The <b>Overview</b> shows where the year is up to, progress by person, and a <b>Needs attention</b> list — plans not agreed, KPAs at risk, reviews due.</p><p>Each person's record has four tabs: <b>Plan</b>, <b>Perform</b>, <b>Assess</b>, <b>Develop &amp; sign off</b>.</p>`],
+   ['Principles', `<div class="ln-two"><div><b>No surprises</b><span>Anything in the year-end review has been discussed before.</span></div><div><b>Evidence, not impressions</b><span>Ratings are backed by results and observed behaviour.</span></div></div>`]
+  ], practice:{q:'Your Needs attention list shows two people whose plans are not agreed in month 3. What should you do?', opts:['Leave it until year end','Meet both people this week, finalise and mark their plans agreed','Copy last year\'s plans without discussion'], a:1, why:'Plans should be agreed in months 1–2. Agreeing them now gives both people a clear basis for the rest of the year.'},
+  quiz:[
+   {q:'Which tab do you use to record check-ins?', opts:['Plan','Perform','Develop & sign off'], a:1, why:'Check-ins and the half-year review sit on the Perform tab.'},
+   {q:'“No surprises” means…', opts:['Ratings are kept secret until year end','Issues are raised as they happen, not first at the review','Everyone gets the same rating'], a:1, why:'Feedback is continuous so the review confirms what is already known.'},
+   {q:'Who is responsible for agreeing each person\'s plan?', opts:['The manager, with the employee','HR alone','The employee alone'], a:0, why:'The manager sets and agrees the plan with the employee.'}
+  ]},
+  {id:'m2', title:'Setting the plan', mins:9, learn:[
+   ['Start from the PD', `<p>Link each person to their <b>Position Description</b>. Their plan then starts with the PD's standard KPAs, KPIs (targets/measures) and competency targets.</p><p>If the PD is updated mid-year, use <b>Re-apply PD</b> to bring in new KPAs and reset competency targets — existing KPAs and ratings are kept.</p>`],
+   ['Tailor the KPAs', `<ul><li>Adjust KPIs (targets/measures) to the person and the year.</li><li>Link each KPA to an accountability area from the PD.</li><li>Set weights to total 100%.</li><li>Use the <b>SMART guide</b> button when wording KPAs.</li></ul>`],
+   ['Competency targets and stretch', `<p>Check each competency target against the Guide's definitions. Use <b>N</b> where the competency is not required in the role.</p><p>Add stretch objectives where they make sense — for growth, not as hidden extra KPAs.</p>`],
+   ['Agree it', `<p>Walk through the plan with the employee and mark it <b>agreed</b>. If a role profile has changed significantly, discuss with HR before agreeing it.</p>`]
+  ], practice:{q:'A team leader\'s plan has KPA weights of 40%, 30% and 20%. What is the issue?', opts:['Nothing — weights are guidance only','Weights total 90%; they must total 100% before the plan is agreed','There must be exactly five KPAs'], a:1, why:'Weights must total 100%. Rebalance, or add the missing KPA.'},
+  quiz:[
+   {q:'What does Re-apply PD do?', opts:['Deletes all ratings','Adds missing PD KPAs and resets competency targets, keeping existing KPAs and ratings','Signs off the plan'], a:1, why:'It brings the plan back in line with the PD without losing existing work.'},
+   {q:'Where should a competency that the role does not need be set?', opts:['0','N','1'], a:1, why:'N = Not required in this role.'},
+   {q:'When should plans be agreed?', opts:['Months 1–2','Month 6','Month 12'], a:0, why:'Planning happens in months 1–2 of the cycle.'}
+  ]},
+  {id:'m3', title:'Coaching through the year', mins:7, learn:[
+   ['Running a good check-in', `<ol><li>Review each KPA and agree a status: on track, at risk, off track.</li><li>Discuss behaviours (How) with specific examples.</li><li>Agree actions and record them.</li></ol><p>Keep it short and regular — monthly works well.</p>`],
+   ['Half-year review', `<p>Record a formal <b>Half-year review</b> around month 6. Reset priorities, update KPIs if the role has changed, and confirm development actions are underway.</p>`],
+   ['When performance is off track', `<p>Use a <b>Corrective action plan</b> check-in type: name the gap, the standard required, the support provided and the review date. Involve HR early for serious or repeated issues.</p><div class="note">Feedback is specific and behavioural: what happened, the impact, and what good looks like — using the level descriptions in the Guide.</div>`]
+  ], practice:{q:'Which feedback is most useful?', opts:['“You need to communicate better.”','“In Tuesday\'s handover you didn\'t mention the change to the customer\'s order, so the next shift missed it. Next time, cover changes first and confirm they\'re understood.”','“Everyone thinks you\'re not a team player.”'], a:1, why:'Specific, behavioural and forward-looking — it states what happened, the impact and what good looks like.'},
+  quiz:[
+   {q:'Which check-in type should you use for a significant performance gap?', opts:['Check-in','Half-year review','Corrective action plan'], a:2, why:'A corrective action plan records the gap, support and review dates.'},
+   {q:'Good feedback is…', opts:['General and occasional','Specific, behavioural and timely','Saved for the year-end review'], a:1, why:'Specific, behavioural and timely feedback changes behaviour.'},
+   {q:'What should a half-year review include?', opts:['Final ratings','Resetting priorities and updating KPIs if the role changed','Salary decisions'], a:1, why:'It is a mid-point reset, not the final assessment.'}
+  ]},
+  {id:'m4', title:'Assessing performance fairly', mins:9, learn:[
+   ['KPAs (1–10)', `<p>Rate each KPA against its KPI (targets/measures) after the employee's self-rating. Use the <b>Rating guide</b> button on the Assess tab. Record the result achieved.</p>`],
+   ['Competencies (N, 0, 1–5)', `<p>For each required competency, choose the level that best reflects the <b>full year</b>. The target is underlined on the scale.</p><ul><li><b>0 — Not shown</b>: required but not demonstrated.</li><li>N competencies are not assessed.</li><li>PPAD shows the gap or surplus against the target automatically.</li></ul>`],
+   ['Avoiding rating bias', `<table class="ln-t"><tr><td><b>Recency</b></td><td>Over-weighting the last few weeks. Use check-in notes from the whole year.</td></tr><tr><td><b>Halo / horns</b></td><td>Letting one strength or weakness colour every rating. Rate each item on its own evidence.</td></tr><tr><td><b>Central tendency</b></td><td>Rating everyone in the middle. Use the full scale when evidence supports it.</td></tr><tr><td><b>Leniency</b></td><td>Avoiding hard conversations by rating high. It denies people useful feedback.</td></tr></table>`]
+  ], practice:{q:'An employee was excellent for nine months then struggled for the last six weeks during a staffing crisis. What should you rate?', opts:['Their last six weeks only','The level that best reflects the full year, noting the recent dip in comments','The highest level they ever showed'], a:1, why:'Assess the full year. Note the recent context and address it through check-ins and development.'},
+  quiz:[
+   {q:'A required competency the person did not demonstrate at all should be rated…', opts:['N','0 — Not shown','1'], a:1, why:'0 = Not shown. N is only for competencies not required in the role.'},
+   {q:'Over-weighting recent events is called…', opts:['Recency bias','Halo effect','Central tendency'], a:0, why:'Recency bias — counter it with notes from the whole year.'},
+   {q:'KPAs are rated on which scale?', opts:['1–5','1–9','1–10'], a:2, why:'KPAs use the 1–10 scale; competencies use N, 0, 1–5; overall uses 1–9.'}
+  ]},
+  {id:'m5', title:'The overall rating', mins:7, learn:[
+   ['The 1–9 scale and bands', `<table class="ln-t"><tr><td class="lv">7–9</td><td><b>{high}</b> — significantly exceeds position requirements.</td></tr><tr><td class="lv">4–6</td><td><b>{mid}</b> — delivers the required standard and occasionally exceeds it.</td></tr><tr><td class="lv">1–3</td><td><b>{low}</b> — not meeting requirements; an improvement plan must be agreed.</td></tr></table>`],
+   ['Suggested rating', `<p>PPAD suggests an overall rating from the weighted KPA score, adjusted for competencies at target. The suggestion is underlined on the scale — <b>you make the final call</b> and explain it in the comments.</p><p>Reports show a <b>What × How</b> matrix (KPA score against competencies at target) to check consistency across your team.</p>`],
+   ['Not assessed', `<p>People in the role <b>under 6 months</b>, or on <b>extended leave</b>, are marked <b>Not assessed</b> rather than rated. They still have a plan and development actions.</p>`]
+  ], practice:{q:'A person joined 4 months before year end. What should you do at assessment?', opts:['Rate them 1–3 because they are new','Mark them Not assessed and agree development actions','Give them the team average'], a:1, why:'Under 6 months in role: Not assessed. Keep their plan and development plan active.'},
+  quiz:[
+   {q:'An overall rating of 1–3 requires…', opts:['No action','An agreed improvement action plan and schedule','Promotion review'], a:1, why:'Ratings of 1–3 require an improvement action plan.'},
+   {q:'The suggested overall rating is…', opts:['Final and cannot be changed','A guide — the manager decides and explains','Set by HR'], a:1, why:'It is a suggestion based on KPAs and competencies; the manager decides.'},
+   {q:'The overall rating uses which scale?', opts:['1–9','1–10','N, 0, 1–5'], a:0, why:'Overall rating is 1–9 in three bands.'}
+  ]},
+  {id:'m6', title:'Development, sign-off and close', mins:7, learn:[
+   ['Build the EDP', `<p>On the <b>Develop &amp; sign off</b> tab PPAD suggests development needs from competency gaps and low KPA ratings — use <b>Add as actions</b>, then tailor them.</p><p>Choose approaches in payback order: coaching, assignment, then training.</p>`],
+   ['Sign-off and export', `<p>Collect sign-offs from the employee, yourself and your manager. Use <b>Export</b> to produce a branded appraisal for the employee file.</p>`],
+   ['Close the year', `<p>Make sure every person is assessed (or marked Not assessed) and signed off before HR starts the next cycle. Open development actions carry forward.</p>`]
+  ], practice:{q:'The assessment shows a gap of -2 on Holding People Accountable for a new supervisor. Which EDP action fits best?', opts:['Send them on a two-day course next year and review at year end','Coaching: monthly sessions with their manager on setting expectations and monitoring performance, reviewed at check-ins','No action — it will improve with time'], a:1, why:'Coaching gives fast, practical improvement and can be reviewed regularly. Training can be added if the gap persists.'},
+  quiz:[
+   {q:'Where do suggested development needs come from?', opts:['Competency gaps and low KPA ratings','Random selection','The employee\'s pay level'], a:0, why:'PPAD suggests needs from competency gaps and KPAs rated 4 or below.'},
+   {q:'Which button produces the branded appraisal document?', opts:['Export','Re-apply PD','Start next cycle'], a:0, why:'Export on the person\'s record creates the appraisal document.'},
+   {q:'Before HR starts the next cycle, each person should be…', opts:['Assessed (or Not assessed) and signed off','Given a pay rise','Moved to a new PD'], a:0, why:'Close each record properly before rolling forward.'}
+  ]}
+ ]},
+ {id:'adm', name:'HR / administrators', who:'People who set up and run PPAD', blurb:'Configure PPAD, maintain PDs and role profiles, run the cycle and keep data safe.', modules:[
+  {id:'a1', title:'Setting up PPAD', mins:6, learn:[
+   ['Settings', `<p>In <b>Settings</b> you control:</p><ul><li><b>Branding</b> — organisation name, logo, colour, and the “Powered by Humanistiqs” footer.</li><li><b>Performance cycles</b> — the financial year start month and cycle labels.</li><li><b>Rating labels</b> — the names of the three overall bands.</li><li><b>Competency framework</b> — clusters, competencies, definitions and level descriptions.</li></ul>`],
+   ['The framework drives everything', `<p>The competency framework feeds role profiles, PDs, plans, assessments and the <b>Guide</b>. Change it carefully, ideally between cycles, and tell managers what changed.</p>`]
+  ], practice:{q:'Mid-cycle, a manager asks you to rewrite the level descriptions for Teamwork. What is the best approach?', opts:['Change them immediately without telling anyone','Agree the change, apply it between cycles where possible, and brief managers','Delete the competency'], a:1, why:'The framework affects every plan and the Guide, so changes should be planned and communicated.'},
+  quiz:[
+   {q:'Where are the overall band names changed?', opts:['Settings — rating labels','A person\'s Plan tab','Reports'], a:0, why:'Band names are set under Settings.'},
+   {q:'The Guide tab content comes from…', opts:['A separate document upload','The competency framework in Settings','Each person\'s ratings'], a:1, why:'The Guide reads the framework directly, so it always matches.'},
+   {q:'When is the best time to change the framework?', opts:['Between cycles','During assessment','The day before sign-off'], a:0, why:'Changing it between cycles avoids moving targets mid-year.'}
+  ]},
+  {id:'a2', title:'Position descriptions', mins:8, learn:[
+   ['One PD per role', `<p>Each PD holds the role details, purpose, environment, qualifications, working relationships, accountabilities, delegations, <b>KPAs with KPIs (targets/measures)</b> and the <b>competency profile</b>.</p>`],
+   ['Creating PDs', `<ul><li><b>New PD</b> to start from scratch, or <b>Duplicate</b> a similar role.</li><li>Import an existing Word (.docx) PD to pre-fill the fields, then review.</li><li>Link every KPA to an accountability area — PPAD flags areas with no KPA.</li><li>Use <b>Export PD</b> for a branded copy.</li></ul>`],
+   ['Keeping plans in step', `<p>The PD screen lists people in the role. After updating a PD, apply it to everyone's current plan in one step — missing KPAs are added and competency targets reset; existing KPAs and ratings are kept.</p>`]
+  ], practice:{q:'A PD has accountabilities for Rostering, Compliance and People, but KPAs only cover Rostering and People. What will PPAD show?', opts:['Nothing','A warning that Compliance has no KPA yet','It deletes the Compliance accountability'], a:1, why:'PPAD flags accountability areas with no linked KPA, so the gap can be fixed.'},
+  quiz:[
+   {q:'How can you pre-fill a PD from an existing document?', opts:['Import a Word (.docx) PD','Paste a screenshot','It cannot be done'], a:0, why:'PPAD can import a Word PD and fill the fields for review.'},
+   {q:'Applying a PD to people in the role will…', opts:['Delete their ratings','Add missing KPAs and reset competency targets, keeping existing KPAs and ratings','Sign off their plans'], a:1, why:'It updates plans without losing work.'},
+   {q:'Each KPA in a PD should link to…', opts:['An accountability area','A pay grade','A manager\'s name'], a:0, why:'Linking KPAs to accountabilities shows every area is measured.'}
+  ]},
+  {id:'a3', title:'People and role profiles', mins:6, learn:[
+   ['Adding people', `<p>Use <b>Add person</b> and complete their details: position, team, location, manager, employee number and start date. Link them to their PD so their plan starts correctly.</p>`],
+   ['Role profiles', `<p>Role profiles (e.g. Senior leader, Manager, Team leader, Specialist, Team member) hold <b>target competency levels by role type</b>. Use them where a person has no PD yet — a PD always gives the more specific targets.</p>`]
+  ], practice:{q:'A new team member starts before their PD is finalised. What should you do?', opts:['Wait until the PD is ready to add them','Add them, assign the Team member role profile for interim targets, then link the PD when ready','Give them a manager\'s targets'], a:1, why:'A role profile gives sensible interim targets; linking the PD later updates the plan.'},
+  quiz:[
+   {q:'Which gives the most specific competency targets?', opts:['A role profile','The person\'s PD','The default framework'], a:1, why:'A PD is specific to the role; role profiles are by role type.'},
+   {q:'Why does the start date matter?', opts:['It decides whether someone is under 6 months in role at assessment','It sets their pay','It is not used'], a:0, why:'People under 6 months in role are marked Not assessed.'},
+   {q:'Role profiles hold…', opts:['Target competency levels by role type','KPA results','Sign-off dates'], a:0, why:'They provide default competency targets by role type.'}
+  ]},
+  {id:'a4', title:'Running the cycle', mins:7, learn:[
+   ['Monitor progress', `<p>The <b>Overview</b> shows plans agreed, people assessed and signed off, and a Needs attention list. Follow up with managers whose teams fall behind the timeline.</p>`],
+   ['Reports', `<ul><li><b>Export summary (CSV)</b> — one row per person: stage, KPA scores, competencies at target, overall rating and band.</li><li><b>Export training needs (CSV)</b> — every EDP action, for learning and development planning.</li><li><b>What × How matrix</b> — check rating consistency across teams.</li></ul>`],
+   ['Calibration', `<p>Before ratings are finalised, review the distribution with senior managers. Look for teams rated all high or all middle, and check ratings are backed by evidence.</p>`]
+  ], practice:{q:'One team has every person rated 8 overall, while similar teams average 5. What is the best next step?', opts:['Accept it — managers know best','Hold a calibration discussion and ask the manager for the evidence behind the ratings','Lower everyone in that team to 5'], a:1, why:'Calibration tests ratings against evidence; it does not force a distribution.'},
+  quiz:[
+   {q:'Which report helps plan training budgets?', opts:['Export training needs (CSV)','Export backup (JSON)','Export PD'], a:0, why:'It lists every EDP action across the organisation.'},
+   {q:'Calibration means…', opts:['Forcing a fixed distribution','Reviewing ratings across teams for consistency and evidence','Changing the framework'], a:1, why:'It checks fairness and consistency, using evidence.'},
+   {q:'The What × How matrix compares…', opts:['KPA score with competencies at target','Pay with tenure','Check-ins with sign-offs'], a:0, why:'It plots What (KPA score) against How (competencies at target).'}
+  ]},
+  {id:'a5', title:'Year end and data care', mins:6, learn:[
+   ['Start the next cycle', `<p><b>Start next cycle</b> creates the new year. You can carry forward KPAs (ratings cleared), KPIs (targets/measures) and open development actions, so planning starts from last year's work.</p>`],
+   ['Backups', `<p>Use <b>Export backup (JSON)</b> in Settings at least once per cycle and before major changes. <b>Import backup</b> restores it. Store backups securely — they contain personal information.</p>`],
+   ['Privacy', `<p>Performance records are confidential. Share exports only with the employee, their managers and HR, and follow {org}'s records and privacy policies.</p>`]
+  ], practice:{q:'You are about to delete an old cycle to tidy up. What should you do first?', opts:['Nothing — just delete it','Export a backup (JSON) and store it securely','Email the cycle to all staff'], a:1, why:'Deleting a cycle removes all its records. Back up first.'},
+  quiz:[
+   {q:'What carries forward into a new cycle?', opts:['KPAs (ratings cleared), KPIs and open development actions','Last year\'s final ratings as this year\'s ratings','Nothing'], a:0, why:'Plans roll forward; ratings start fresh.'},
+   {q:'How often should you export a backup?', opts:['At least once per cycle and before major changes','Never','Only when asked'], a:0, why:'Regular backups protect against data loss.'},
+   {q:'Who should see performance exports?', opts:['The employee, their managers and HR','Everyone in the organisation','External contacts'], a:0, why:'Records are confidential.'}
+  ]}
+ ]}
+];
+const LEARN_PASS = 2; // of 3 questions
+function lrn(){
+  /* S.learn, NOT S.org.learn. The course arrived storing progress in the org
+     config, which here is ONE ROW PER BUSINESS - every member would overwrite
+     everyone else's scores - and whose write policy is admin-only, so the
+     employees this course is written for would simply have been refused.
+     ppad-store.js loads this from ppad_learning, one row per person. */
+  S.learn = S.learn || {done:{}, score:{}, certs:{}, name:''};
+  return S.learn;
+}
+function lText(t){ const b = S.org.bands || {}; return t.replace(/\{org\}/g, esc(S.org.brand.orgName || 'the organisation')).replace(/\{high\}/g, esc(b.high||'')).replace(/\{mid\}/g, esc(b.mid||'')).replace(/\{low\}/g, esc(b.low||'')); }
+function pathProg(p){ const L = lrn(); const n = p.modules.filter(m => L.done[m.id]).length; return {n, t:p.modules.length, pct: Math.round(100*n/p.modules.length)}; }
+function vLearn(){
+  const L = lrn(), ui = S.ui;
+  const path = LEARN.find(p => p.id === ui.lPath) || LEARN[0];
+  if (ui.lMod){ const m = path.modules.find(x => x.id === ui.lMod); if (m) return vLearnModule(path, m); }
+  const all = LEARN.flatMap(p => p.modules), tot = all.filter(m => L.done[m.id]).length;
+  return `<div class="head"><div><div class="tag">Self-paced learning</div><h1>Learn PPAD</h1><p class="sub">Short modules with practice scenarios and knowledge checks. Complete a path to download your certificate. ${tot} of ${all.length} modules complete.</p></div></div>
+  <div class="grid g3 ln-paths">${LEARN.map(p => { const g = pathProg(p); return `<button class="card ln-path ${p.id===path.id?'on':''}" data-act="l-path" data-v="${p.id}">
+    <div class="tag">${esc(p.who)}</div><h2>${esc(p.name)}</h2><p>${esc(p.blurb)}</p>
+    <div class="ln-bar"><span style="width:${g.pct}%"></span></div><div class="small muted">${g.n} of ${g.t} modules · ${p.modules.reduce((a,m)=>a+m.mins,0)} min${L.certs[p.id]?' · <b>Certificate earned</b>':''}</div></button>`; }).join('')}</div>
+  <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>${esc(path.name)} path</h2><p>Work through in order, or jump to any module. Pass mark: ${LEARN_PASS} of 3 in each knowledge check.</p></div>
+    ${pathProg(path).n === path.modules.length ? `<button class="btn pri" data-act="l-cert" data-v="${path.id}">Download certificate</button>` : ''}</div>
+    <div class="ln-mods">${path.modules.map((m,i) => { const d = L.done[m.id], sc = L.score[m.id];
+      return `<button class="ln-mod ${d?'done':''}" data-act="l-open" data-v="${m.id}"><span class="n">${d?'✓':i+1}</span><span class="t"><b>${esc(m.title)}</b><span class="small muted">${m.mins} min · ${m.learn.length} topics${sc!=null?` · last check ${sc}/3`:''}</span></span><span class="pill ${d?'good':''}">${d?'Complete':sc!=null?'Retry':'Start'}</span></button>`; }).join('')}</div></div>`;
+}
+function vLearnModule(path, m){
+  const ui = S.ui, L = lrn(), step = ui.lStep || 0, nL = m.learn.length, last = nL + 1; // steps: 0..nL-1 learn, nL practice, nL+1 check
+  const idx = path.modules.indexOf(m), ans = ui.lAns || {};
+  const steps = m.learn.map(x => x[0]).concat(['Practice scenario','Knowledge check']);
+  let body = '';
+  if (step < nL) body = `<h2>${esc(m.learn[step][0])}</h2><div class="ln-body">${lText(m.learn[step][1])}</div>`;
+  else if (step === nL){ const pr = m.practice, a = ans.p;
+    body = `<div class="tag">Practice scenario</div><h2 style="margin-top:4px">${lText(pr.q)}</h2><div class="ln-opts">${pr.opts.map((o,i) => `<button class="ln-opt ${a==null?'':i===pr.a?'right':i===a?'wrong':''}" data-act="l-prac" data-v="${i}" ${a!=null?'disabled':''}>${lText(o)}</button>`).join('')}</div>
+    ${a!=null?`<div class="callout ln-fb"><b>${a===pr.a?'Good choice.':'Not quite.'}</b> ${lText(pr.why)}</div>`:''}`; }
+  else { const qs = m.quiz, sub = ui.lSub, sc = qs.filter((q,i) => ans['q'+i] === q.a).length; const pass = sc >= LEARN_PASS;
+    body = `<div class="tag">Knowledge check · pass mark ${LEARN_PASS} of ${qs.length}</div>${qs.map((q,qi) => { const a = ans['q'+qi];
+      return `<div class="ln-q"><b>${qi+1}. ${lText(q.q)}</b><div class="ln-opts">${q.opts.map((o,i) => `<button class="ln-opt ${!sub?(a===i?'sel':''):pass?(i===q.a?'right':i===a?'wrong':''):(i===a?(a===q.a?'right':'wrong'):'')}" data-act="l-ans" data-q="${qi}" data-v="${i}" ${sub?'disabled':''}>${lText(o)}</button>`).join('')}</div>${sub&&(pass||a===q.a)?`<div class="small muted" style="margin-top:6px">${lText(q.why)}</div>`:''}</div>`; }).join('')}
+    ${sub ? `<div class="callout ln-fb"><b>${sc}/${qs.length} — ${sc>=LEARN_PASS?'Module complete.':'Not passed yet.'}</b> ${sc>=LEARN_PASS?(idx<path.modules.length-1?'Move on to the next module when ready.':'You have finished the '+esc(path.name)+' path — download your certificate from the path page.'):'Review the topics and try again.'}</div>`
+      : `<div class="row" style="margin-top:14px"><button class="btn pri" data-act="l-submit" ${qs.every((q,i)=>ans['q'+i]!=null)?'':'disabled'}>Submit answers</button></div>`}`; }
+  const sub = ui.lSub, passed = (L.score[m.id]||0) >= LEARN_PASS;
+  const next = step < last ? `<button class="btn pri" data-act="l-step" data-v="${step+1}" ${step===nL && ans.p==null?'disabled':''}>Next</button>`
+    : sub && !passed ? `<button class="btn pri" data-act="l-retry">Try again</button>`
+    : sub && idx < path.modules.length-1 ? `<button class="btn pri" data-act="l-open" data-v="${path.modules[idx+1].id}">Next module →</button>`
+    : sub ? `<button class="btn pri" data-act="l-home">Back to path</button>` : '';
+  return `<a class="back" data-act="l-home" href="#learn">← ${esc(path.name)} path</a>
+  <div class="head"><div><div class="tag">Module ${idx+1} of ${path.modules.length} · ${m.mins} min</div><h1>${esc(m.title)}</h1></div>${L.done[m.id]?'<span class="pill good">Complete</span>':''}</div>
+  <div class="gd-wrap"><nav class="gd-toc card">${steps.map((t,i) => `<a class="${i===step?'on':''}" data-act="l-step" data-v="${i}">${i<nL?i+1+'. ':''}${esc(t)}</a>`).join('')}</nav>
+  <div class="card ln-card">${body}<div class="row ln-nav">${step>0?`<button class="btn" data-act="l-step" data-v="${step-1}">Back</button>`:'<span></span>'}<span class="small muted">${step+1} / ${last+1}</span>${next||'<span></span>'}</div></div></div>`;
+}
+function exportCert(pid){
+  const p = LEARN.find(x => x.id === pid), L = lrn(), b = exportBrand();
+  const nm = (L.name || '').trim(); const dt = L.certs[pid] || today();
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Certificate — ${esc(nm)} — PPAD ${esc(p.name)}</title><style>
+  @page{size:A4 landscape;margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;font-family:Inter,Arial,sans-serif;color:#111827;background:#f3f4f6}
+  .c{width:297mm;height:210mm;box-sizing:border-box;margin:0 auto;background:#fff;padding:18mm 22mm;border-top:10mm solid ${b.accent};position:relative;text-align:center}
+  .c img{height:70px;width:auto}.k{color:${b.accent};font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:13px;margin-top:16px}
+  h1{font-size:40px;margin:10px 0 6px}.n{font-size:34px;font-weight:700;margin:26px 0 6px;border-bottom:2px solid #e5e7eb;display:inline-block;padding:0 30px 8px;min-width:320px}
+  p{font-size:15px;color:#4b5563;margin:6px 0}.m{margin:18px auto 0;max-width:640px;font-size:13px;color:#4b5563;line-height:1.6}
+  .f{position:absolute;left:22mm;right:22mm;bottom:16mm;display:flex;justify-content:space-between;font-size:12px;color:#6b7280;border-top:2px solid ${b.accent};padding-top:8px}
+  @media print{body{background:#fff}}</style></head><body><div class="c">
+  ${b.logo?`<img src="${b.logo}" alt="${esc(b.orgName)}" height="70">`:''}<div class="k">${esc(b.orgName)} · ${esc(b.appName)}</div>
+  <h1>Certificate of Completion</h1><p>This certifies that</p><div class="n">${esc(nm)||'&nbsp;'}</div>
+  <p>has completed the self-paced learning path</p><p style="font-size:20px;color:#111827;font-weight:700;margin-top:10px">${esc(b.appName)} for ${esc(p.name)}</p>
+  <div class="m">${p.modules.map(m => esc(m.title)).join(' · ')}</div>
+  <div class="f"><span>Completed ${esc(fmtDate(dt))}</span><span>${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''}</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':'<span></span>'}</div></div></body></html>`;
+  download(`${slug()}-PPAD-${p.name.replace(/[^A-Za-z]+/g,'-')}-certificate.html`, html, 'text/html');
+}
+Object.assign(ACT, {
+  'l-path': el => { S.ui.lPath = el.dataset.v; S.ui.lMod = null; rerender(); },
+  'l-home': () => { S.ui.lMod = null; if (location.hash !== '#learn') location.hash = 'learn'; else render(); },
+  'l-open': el => { const id = el.dataset.v; const p = LEARN.find(x => x.modules.some(m => m.id === id)); S.ui.lPath = p.id; S.ui.lMod = id; S.ui.lStep = 0; S.ui.lAns = {}; S.ui.lSub = false; render(); },
+  'l-step': el => { S.ui.lStep = Number(el.dataset.v); render(); },
+  'l-prac': el => { S.ui.lAns = S.ui.lAns || {}; S.ui.lAns.p = Number(el.dataset.v); rerender(); },
+  'l-ans': el => { S.ui.lAns = S.ui.lAns || {}; S.ui.lAns['q'+el.dataset.q] = Number(el.dataset.v); rerender(); },
+  'l-submit': () => { const path = LEARN.find(p => p.id === S.ui.lPath), m = path.modules.find(x => x.id === S.ui.lMod), L = lrn();
+    const sc = m.quiz.filter((q,i) => S.ui.lAns['q'+i] === q.a).length; L.score[m.id] = sc;
+    if (sc >= LEARN_PASS){ L.done[m.id] = true; if (path.modules.every(x => L.done[x.id]) && !L.certs[path.id]){ L.certs[path.id] = today(); toast(path.name + ' path complete — certificate ready'); } }
+    S.ui.lSub = true; saveLearn(); rerender(); },
+  'l-retry': () => { const pr = S.ui.lAns.p; S.ui.lAns = {p:pr}; S.ui.lSub = false; rerender(); },
+  'l-cert': el => { const L = lrn(); modal(`<h2>Download certificate</h2><p class="sub">Enter your name as it should appear on the certificate.</p><label class="f" style="margin-top:12px"><span>Full name</span><input class="in" id="cname" value="${esc(L.name||'')}"></label><div class="acts"><button class="btn" data-close>Cancel</button><button class="btn pri" id="cok">Download</button></div>`,
+    (mo, close) => { const i = mo.querySelector('#cname'); i.focus(); mo.querySelector('#cok').onclick = () => { if (!i.value.trim()){ i.focus(); return; } L.name = i.value.trim(); saveLearn(); close(); exportCert(el.dataset.v); }; }); }
+});
+

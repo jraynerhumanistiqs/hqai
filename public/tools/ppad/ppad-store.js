@@ -141,6 +141,32 @@
     var allocs = await rest('ppad_allocations?select=person_id,type&ended_at=is.null&allocated_user_id=eq.' + cfg.user.id);
     S.me.manages = (allocs || []).filter(function (a) { return a.type === 'manager'; }).map(function (a) { return a.person_id; });
     S.me.reviews = (allocs || []).filter(function (a) { return a.type === 'reviewer'; }).map(function (a) { return a.person_id; });
+
+    // Learn course progress. Its own table, NOT S.org - org config is one row
+    // per business, so keeping progress there would have every member
+    // overwriting everyone else's scores, and its write policy is admin-only,
+    // which would refuse the very people the course is written for.
+    //
+    // RLS returns only this user's row, so no filter is needed here either.
+    // If ppad_06_learning.sql has not been applied the request fails; the
+    // repo convention is to retry-without and soft-degrade rather than break
+    // the whole load, so progress simply stays in memory for the session and
+    // the flag below lets the UI say so.
+    S.learn = { done: {}, score: {}, certs: {}, name: '' };
+    S.learnPersists = true;
+    try {
+      var lrows = await rest('ppad_learning?select=data&user_id=eq.' + cfg.user.id);
+      if (lrows && lrows[0] && lrows[0].data) {
+        var d = lrows[0].data;
+        S.learn = {
+          done: d.done || {}, score: d.score || {},
+          certs: d.certs || {}, name: d.name || '',
+        };
+      }
+    } catch (e) {
+      S.learnPersists = false;
+      console.warn('[ppad] ppad_learning unavailable, progress will not be saved:', e && e.message);
+    }
   }
 
   // ── the store ────────────────────────────────────────────────────────────
@@ -236,6 +262,8 @@
       // Drop everything in memory before leaving, so a back button cannot
       // paint the previous user's data.
       S.org = null; S.people = {}; S.pds = {}; S.me = null;
+      // Progress carries a name and results, so it goes with everything else.
+      S.learn = { done: {}, score: {}, certs: {}, name: '' };
       updatedAt = {}; peopleUpdatedAt = {}; cfg = null;
       try { localStorage.removeItem('pm-tool-v1'); } catch (e) {}
       location.replace('/login');
@@ -245,6 +273,25 @@
   // ── writes ───────────────────────────────────────────────────────────────
 
   async function writeKey(key) {
+    // Learn progress. Its own row, keyed on the signed-in user - the RLS
+    // policy also insists user_id = auth.uid(), so a tampered body cannot
+    // write someone else's progress. Silently a no-op when the migration is
+    // unapplied, because load() already told the user it would not persist
+    // and failing every autosave after that adds nothing.
+    if (key === 'learn') {
+      if (!S.learnPersists) return null;
+      return api('/rest/v1/ppad_learning?on_conflict=business_id,user_id', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          business_id: cfg.user.businessId,
+          user_id: cfg.user.id,
+          data: S.learn,
+          updated_at: new Date().toISOString(),
+        }),
+      });
+    }
+
     if (key === 'org') {
       return api('/rest/v1/ppad_org_config?on_conflict=business_id', {
         method: 'POST',
