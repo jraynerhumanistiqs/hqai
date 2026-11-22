@@ -550,7 +550,7 @@ function tPlan(p, r){
     ${r.kpis.length ? `<div class="kpi-grid h" ${gcols}><span>KPA</span><span>KPI (targets/measures)</span>${areas.length?'<span>Accountability</span>':''}<span>Weight %</span><span></span></div>${kpis}` : '<p class="muted">No KPAs yet.</p>'}
     <div class="row" style="justify-content:space-between;margin-top:12px">${ro?'<span></span>':'<button class="btn sm" data-act="add-kpi">+ Add KPA</button>'}${wsum?`<span class="small ${wsum===100?'muted':'pill warn'}">Weights total ${wsum}%</span>`:'<span class="small muted">Weights optional — leave blank for equal weighting</span>'}</div>
   </div>
-  <div class="card"><div class="card-h"><div><h2>How — Competency profile</h2><p>The behaviours expected in the role. Set the target level for each; N means not required. ${nReq} of ${S.org.framework.comps.length} required.</p></div>
+  <div class="card"><div class="card-h"><div><h2>How — Competency profile</h2><p>The behaviours expected in the role. Set the target level for each; N = not required in this role. ${nReq} of ${S.org.framework.comps.length} required.</p></div>
     <div class="row"><select class="in" style="width:auto" data-act-change="apply-profile"><option value="">Apply role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
     <label class="chk small"><input type="checkbox" data-f="rec.useComps" data-rr ${r.useComps?'checked':''}> Use competencies</label></div></div>
     ${comps}
@@ -602,7 +602,7 @@ function tAssess(p, r){
   const awaiting = isSelf(p.id) && !canManage(p.id) && !canReview(p.id) && !released;
   const banner = awaiting ? `<div class="note" style="margin-bottom:16px"><b>Your manager's assessment has not been released yet.</b> You will see their ratings and comments once they sign off. Record your own self-assessment below in the meantime.</div>` : '';
   const kTitles = {}; for (let i=1;i<=10;i++){ const b = KPI_SCALE.find(x=>i>=x[0]&&i<=x[1]); kTitles[i] = i+' — '+b[2]; }
-  const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPA')}</b><div class="small muted">Target: ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
+  const kpis = r.kpis.map((x,i) => `<div class="kpi-a"><div class="top2"><div><b>${esc(x.name||'Untitled KPA')}</b><div class="small muted">KPI (targets/measures): ${esc(x.target||'—')}${x.weight?' · '+x.weight+'%':''}${x.area?' · '+esc(x.area):''}</div></div></div>
     <div class="rates"><div class="f"><span>Self-rating</span>${seg('rec.kpis.'+i+'.self', x.self, 10, {titles:kTitles, ro:selfRo})}</div><div class="f"><span>Manager rating${awaiting?' <span class="muted small">(not released)</span>':''}</span>${seg('rec.kpis.'+i+'.mgr', x.mgr, 10, {titles:kTitles, ro:mgrRo})}</div>
     <label class="f"><span>Result achieved</span><input class="in" data-f="rec.kpis.${i}.result" value="${esc(x.result)}" placeholder="Actual result" ${mgrRo?'readonly':''}></label></div>
     ${x.self!=null && x.mgr!=null && Math.abs(x.self-x.mgr)>=3 ? `<p class="small" style="margin:8px 0 0"><span class="pill warn">Ratings differ by ${Math.abs(x.self-x.mgr)} — discuss in the interview</span></p>`:''}</div>`).join('');
@@ -1220,9 +1220,9 @@ function vPd(){
   <div class="card" id="pd-doa"><div class="card-h"><h2>Delegation of authority</h2></div>
     ${rowsEditor(P+'.authority', d.authority, [{k:'item',l:'Delegated authority'},{k:'limit',l:'Upper limit',w:'20%'},{k:'escalation',l:'Escalation point',w:'25%'}], 'Authority')}</div>
   <div class="card" id="pd-kpi"><div class="card-h"><div><h2>Performance expectations & KPAs — What</h2><p>The role's standard KPAs. They're copied into each person's plan at the start of every cycle, where targets can be tailored.</p></div><button class="btn sm" data-act="pd-add-kpi">+ Add KPA</button></div>
-    ${d.kpis.length ? `<div class="kpi-grid h" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px"><span>KPA</span><span>Standard target</span><span>Accountability</span><span>Weight</span><span></span></div>${kp}` : '<p class="muted">No KPAs yet.</p>'}
+    ${d.kpis.length ? `<div class="kpi-grid h" style="grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr) 70px 34px"><span>KPA</span><span>KPI (targets/measures)</span><span>Accountability</span><span>Weight</span><span></span></div>${kp}` : '<p class="muted">No KPAs yet.</p>'}
     ${areas.length && d.kpis.length ? (() => { const un = areas.filter(a => !d.kpis.some(k=>k.area===a)); return un.length ? `<p class="small" style="margin:10px 0 0"><span class="pill warn">No KPA yet for: ${un.map(esc).join(', ')}</span></p>` : ''; })() : ''}</div>
-  <div class="card" id="pd-how"><div class="card-h"><div><h2>Competency profile — How</h2><p>Required level for each competency in this role (N = not required). Used as the target in every plan for this role.</p></div>
+  <div class="card" id="pd-how"><div class="card-h"><div><h2>Competency profile — How</h2><p>Required level for each competency in this role (N = not required in this role). Used as the target in every plan for this role.</p></div>
     <select class="in" style="width:auto" data-act-change="pd-from-profile"><option value="">Copy from role profile…</option>${S.org.profiles.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>${comps}</div>
   <div class="card" id="pd-people"><div class="card-h"><div><h2>People in this role</h2><p>Re-apply the PD to push updated KPAs and targets into their ${esc(activeCycle().label)} plan.</p></div>${ppl.length?`<button class="btn sm" data-act="pd-apply-all">Apply to all ${ppl.length} plans</button>`:''}</div>
     ${ppl.length ? `<table class="tbl">${ppl.map(p => { const r = recOf(p); const st = stageOf(r); return `<tr class="click" data-act="nav" data-h="person-${p.id}"><td>${esc(fullName(p))}<div class="small muted">${esc(p.manager?'Manager: '+p.manager:'')}</div></td><td style="text-align:right"><span class="pill ${st.cls}">${st.label}</span></td></tr>`; }).join('')}</table>` : '<p class="muted">No one linked yet. Link people from their Details.</p>'}</div>`;
@@ -1255,7 +1255,7 @@ function exportPd(d){
   <h2>Working relationships — external</h2>${tbl(['Who','Reason for contact'], d.external.map(r=>[r.who,r.reason]))}
   <h2>Accountabilities & responsibilities</h2>${tbl(['Accountability','Responsibilities'], d.accountabilities.map(r=>[r.area,r.responsibilities]))}
   <h2>Delegation of authority</h2>${tbl(['Delegated authority','Upper limit','Escalation point'], d.authority.map(r=>[r.item,r.limit,r.escalation]))}
-  <h2>Performance expectations & KPAs — What</h2>${tbl(['KPA','Standard target','Accountability','Weight'], d.kpis.filter(k=>k.name).map(k=>[k.name,k.target,k.area,k.weight?k.weight+'%':'']))}
+  <h2>Performance expectations & KPAs — What</h2>${tbl(['KPA','KPI (targets/measures)','Accountability','Weight'], d.kpis.filter(k=>k.name).map(k=>[k.name,k.target,k.area,k.weight?k.weight+'%':'']))}
   <h2>Competency profile — How</h2>${tbl(['Competency','Level','Expected behaviour'], comps)}
   <div class="ft"><span>${b.logo?`<img src="${b.logo}" alt="" height="18">`:''}${esc(b.orgName)} · ${esc(b.appName)}${b.tagline?' — '+esc(b.tagline):''}</span>${b.poweredBy?'<span>Powered by Humanistiqs</span>':''}</div></body></html>`;
   download(`${(d.title||'PD').replace(/[^A-Za-z0-9]+/g,'-')}-Position-Description.html`, html, 'text/html');
