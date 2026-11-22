@@ -161,22 +161,35 @@ test.describe('sign-out leaves nothing behind', () => {
 
 test.describe('layout', () => {
   /**
-   * The header is one flex row and an ADMIN overruns it: seven tabs plus a
-   * client wordmark plus the org name plus the cycle, status and Sign out.
-   * It shipped with the tool name and tagline painted over the nav, because
-   * .brand .nm was flex:none - so the text-overflow:ellipsis already set on
-   * it could never fire and it overflowed instead.
+   * The header is one flex row and an ADMIN is what overruns it: seven tabs
+   * plus the brand block plus the cycle, status and Sign out. It shipped with
+   * the tool name and tagline painted over the nav, because .brand .nm was
+   * flex:none - so the text-overflow:ellipsis already set on it could never
+   * fire and it overflowed instead.
    *
-   * The conditions matter: the default fixture has logo:null and renders a
-   * 30px letter mark, so every other test in this file passed throughout.
-   * This one gives the org a real wide logo and a long name, as a client has.
+   * The brand block has since been cut to just the tool name: no logo, no
+   * letter mark, no org name, no tagline. This test still sets a wide logo
+   * and a long org name on the org deliberately - they are the two things
+   * that used to land in this row, and the point is that NEITHER reaches it
+   * now however the org is configured. The uploaded logo is not discarded; it
+   * brands the exported documents, which this suite does not render.
+   *
+   * It also pins the gain: at desktop widths all seven tabs must be reachable
+   * without the nav scrolling. That was false before - the nav scrolled at
+   * every width, hiding Settings and Access behind a scroll with no
+   * affordance.
    */
-  test('an admin header with a client logo and long org name has nothing overlapping', async ({ page, asRole }, testInfo) => {
+  test('an admin header keeps the logo and org name out of the row, and fits all seven tabs', async ({ page, asRole }, testInfo) => {
     await asRole('admin', { logo: WIDE_LOGO, orgName: 'Carlingford Scaffold & Building Services' })
-    await expect(page.locator('header.top .brand img')).toBeVisible()
+    await expect(page.locator('header.top .brand .nm b')).toBeVisible()
+
+    // Configured on the org, deliberately absent from the header.
+    await expect(page.locator('header.top .brand img')).toHaveCount(0)
+    await expect(page.locator('header.top .brand .mark')).toHaveCount(0)
+    await expect(page.locator('header.top .brand .org')).toBeHidden()
 
     const r = await page.evaluate(() => {
-      const sel = ['.brand img', '.brand .nm', '.brand .org', 'nav.nav', '.cyc', '.sync', 'header.top .btn']
+      const sel = ['.brand .nm', '.brand .org', 'nav.nav', '.cyc', '.sync', 'header.top .btn']
       const boxes = sel
         .map(s => [s, document.querySelector(s)] as const)
         .filter(([, e]) => e && e.getBoundingClientRect().width > 0)
@@ -195,24 +208,33 @@ test.describe('layout', () => {
         }
       }
 
-      const brand = document.querySelector('.brand')!.getBoundingClientRect()
-      const img = document.querySelector('.brand img')!.getBoundingClientRect()
       const name = document.querySelector('.brand .nm b') as HTMLElement
+      const nav = document.querySelector('nav.nav') as HTMLElement
       return {
         hits,
-        // The logo must not be cut off by the brand box.
-        logoPastBrand: Math.round(img.right - brand.right),
-        // ...and the tool name must stay readable rather than crush to a sliver.
+        // The tool name must stay readable rather than crush to a sliver,
+        // and must not be quietly ellipsised into "Plan, Perform, Ass...".
         nameWidth: Math.round(name.getBoundingClientRect().width),
+        nameClipped: name.scrollWidth > name.clientWidth + 1,
+        navScrolls: nav.scrollWidth > nav.clientWidth + 1,
+        tabs: nav.querySelectorAll('a').length,
         pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       }
     })
 
     const where = `at ${testInfo.project.name}`
     expect(r.hits, `header elements overlap ${where}`).toEqual([])
-    expect(r.logoPastBrand, `client logo is clipped ${where}`).toBeLessThanOrEqual(1)
     expect(r.nameWidth, `tool name crushed ${where}`).toBeGreaterThan(60)
+    expect(r.nameClipped, `tool name ellipsised ${where}`).toBe(false)
+    expect(r.tabs, `admin should have seven tabs ${where}`).toBe(7)
     expect(r.pageOverflow, `page scrolls sideways ${where}`).toBeLessThanOrEqual(2)
+
+    // Only asserted on desktop. At 375px the row wraps and the nav scrolls
+    // within its own line by design - that is the mobile treatment, not a
+    // regression.
+    if (testInfo.project.name === 'desktop') {
+      expect(r.navScrolls, `nav scrolls, hiding tabs ${where}`).toBe(false)
+    }
   })
 
   test('the record is usable and does not scroll sideways', async ({ page, asRole }, testInfo) => {

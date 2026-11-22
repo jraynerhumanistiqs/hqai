@@ -58,7 +58,7 @@ function newOrg(){
   const c = {id:'c'+uid(), start, label:cycleLabel(start)};
   return {
     v:1,
-    brand:{orgName:'', appName:'HQ Performance', tagline:'Plan ~ Perform ~ Assess ~ Develop', accent:'#111827', logo:null, poweredBy:true},
+    brand:{orgName:'', appName:'Plan, Perform, Assess, Develop', tagline:'', accent:'#111827', logo:null, poweredBy:true},
     yearStart:7,
     bands:{low:'Under Review', mid:'Positive Contributor', high:'Exceptional Contributor'},
     cycles:[c], activeCycle:c.id,
@@ -129,7 +129,14 @@ function finishLoad(){
     S.org.profiles = PROFILE_SEED.map(([name,t]) => ({id:'r'+uid(), name, targets:{...t}}));
     store.mark('org');
   }
-  if (['Performance Manager','PPA','PPAD','PPA – Plan · Perform · Assess','PPA – Plan – Perform – Assess'].includes(S.org.brand.appName)) { S.org.brand.appName = 'HQ Performance'; S.org.brand.tagline = 'Plan ~ Perform ~ Assess ~ Develop'; store.mark('org'); }
+  // Canonical header name, migrated in place for orgs that stored an older
+  // one. It spells out what PPAD stands for rather than naming a product,
+  // and it REPLACES the tagline rather than sitting above it - the tagline
+  // said the same four words and was the single widest thing in the header
+  // (191px, wider than the name it was explaining).
+  // 'HQ Performance' is in this list on purpose: it is what every existing
+  // org has stored, so it migrates on next load like the names before it.
+  if (['Performance Manager','PPA','PPAD','PPA – Plan · Perform · Assess','PPA – Plan – Perform – Assess','HQ Performance'].includes(S.org.brand.appName)) { S.org.brand.appName = 'Plan, Perform, Assess, Develop'; S.org.brand.tagline = ''; store.mark('org'); }
   if (S.org.brand.tagline == null) { S.org.brand.tagline = ''; }
   if (PRESET && PRESET.brand){ let fixed = false; const sb = S.org.brand;
     ['orgName','logo','accent'].forEach(k => { const v = sb[k]; if (PRESET.brand[k] && (!v || (k==='accent' && v==='#111827'))){ sb[k] = PRESET.brand[k]; fixed = true; } });
@@ -270,12 +277,16 @@ function render(){
   // the README refer to the page by its heading, which has not changed.
   if (S.me && S.me.isAdmin) nav.push(['access','Access']);
   const showNav = S.org.setup && !employeeOnly();
-  const logo = b.logo ? `<img src="${b.logo}" alt="">` : `<div class="mark">${esc((b.orgName||b.appName||'P').trim().slice(0,1).toUpperCase())}</div>`;
+  // No logo or letter mark in the header. It cost up to 150px of a row that
+  // is already over budget, and the tool runs inside the HQ.ai dashboard,
+  // whose sidebar already shows whose workspace this is. The uploaded logo is
+  // NOT dropped - it still brands the exported appraisal documents (the
+  // letterhead and both PDF footers) and its Settings control is unchanged.
   const body = v==='welcome' ? vWelcome() : v==='people' ? vPeople() : v==='person' ? vPerson() : v==='pds' ? vPds() : v==='pd' ? vPd() : v==='profiles' ? vProfiles() : v==='reports' ? vReports() : v==='settings' ? vSettings() : v==='access' ? vAccess() : vDashboard();
   const sy = window.scrollY;
   $app().innerHTML = `
   <header class="top"><div class="top-in">
-    <div class="brand" data-act="nav" data-h="dashboard">${logo}<div class="nm"><b>${esc(b.appName||'HQ Performance')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
+    <div class="brand" data-act="nav" data-h="dashboard"><div class="nm"><b>${esc(b.appName||'Plan, Perform, Assess, Develop')}</b>${b.tagline?`<span>${esc(b.tagline)}</span>`:''}</div>${b.orgName?`<div class="org">${esc(b.orgName)}</div>`:''}</div>
     ${showNav ? `<nav class="nav">${nav.map(([h,l]) => `<a href="#${h}" class="${(v===h || (v==='person'&&h==='people') || (v==='pd'&&h==='pds'))?'on':''}">${l}</a>`).join('')}</nav>` : ''}
     <div class="spacer"></div>
     ${showNav ? `<div class="cyc"><label for="cycsel">Cycle</label><select id="cycsel" data-act="cycle">${S.org.cycles.map(x => `<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.label)}</option>`).join('')}</select></div>` : ''}

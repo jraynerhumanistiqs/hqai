@@ -28,10 +28,9 @@ a{color:inherit}
       visible, so adding it silently cancels (1) and the brand crushes again.
       That is exactly how this bug was first written. */
 .brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex:0 1 auto}
-/* flex:none on the LOGO, not on the text. Reversed, a client wordmark got
-   squashed while the text block kept its full width and overflowed. */
-.brand img{max-height:30px;max-width:140px;object-fit:contain;flex:none}
-.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+/* The logo and letter-mark rules that lived here are gone with the header
+   logo. The uploaded logo still brands the exported documents, which carry
+   their own stylesheet, so nothing here serves it any more. */
 /* ONE rule. There were two, and the first set flex:none, which meant the
    ellipsis below could never fire - the block kept its natural width and
    overflowed .brand by ~150px at every width. min-width:0 is what lets a
@@ -39,19 +38,19 @@ a{color:inherit}
 .brand .nm{display:flex;flex-direction:column;line-height:1.15;min-width:6.5rem;flex:0 1 auto}
 .brand .nm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .org{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;min-width:0;flex:0 1 auto}
-@media(max-width:1100px){.brand .org{display:none}}
-/* An org that has uploaded a logo does not need its name printed next to it -
-   that is the same information twice, and it costs ~198px in a row that is
-   already short by about that much. Drop it and all seven admin tabs fit
-   without the nav scrolling.
-   Orgs with NO logo render the letter mark instead, and for them the name is
-   the only thing identifying the tenant, so they keep it. Browsers without
-   :has() simply show the name and get the scrolling nav, which is the
-   behaviour either way - nothing breaks. */
-.brand:has(img) .org{display:none}
-/* Shed the decorative tagline before the tool NAME has to ellipsise. An
-   org name and a tool name carry information; "Plan ~ Perform ~ Assess ~
-   Develop" does not, and "Plan ~ Perfo..." reads like a bug. */
+/* The org name is not shown in the header, at any width.
+   It used to be hidden only when a logo was present (`.brand:has(img)`),
+   because the logo already said whose workspace this was. The header logo is
+   now gone, so that rule stopped matching and the name would have reappeared
+   - adding clutter to the row we were trying to free up. It stays hidden for
+   the same reason the logo went: the tool runs inside the HQ.ai dashboard,
+   whose sidebar already names the business, and the org name is still on the
+   tool's own footer and on every exported document.
+   The markup is untouched, so this single line is all there is to revert. */
+.brand .org{display:none}
+/* Kept for an org that sets a tagline of its own. The default no longer has
+   one: the four stages now ARE the name, so a tagline repeating them was the
+   widest thing in the header at 191px - wider than the name it explained. */
 @media(max-width:1280px){.brand .nm span{display:none}}
 .brand .nm b{letter-spacing:.02em}
 .brand .nm span{font-size:11.5px;letter-spacing:.03em;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
