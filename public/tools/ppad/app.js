@@ -1750,16 +1750,55 @@ function lrn(){
   return S.learn;
 }
 function lText(t){ const b = S.org.bands || {}; return t.replace(/\{org\}/g, esc(S.org.brand.orgName || 'the organisation')).replace(/\{high\}/g, esc(b.high||'')).replace(/\{mid\}/g, esc(b.mid||'')).replace(/\{low\}/g, esc(b.low||'')); }
+/* Which of the three course paths this person is offered.
+
+   Employees get theirs. A manager gets the employee path as well, because
+   they run the conversation at both ends - they are assessed on their own
+   record and they assess other people's. HR and admins get only their own:
+   they administer the cycle, they do not run assessments unless they also
+   hold an allocation.
+
+   A REVIEWER, which the rule does not name, is grouped with managers. They
+   sign off other people's assessments, so the manager path is the one that
+   describes what they actually do; leaving them with the employee path alone
+   would teach them nothing about the half of the job they perform.
+
+   This is a VISIBILITY rule, not a security boundary, and nothing here
+   pretends otherwise: the whole course ships inside app.js to every user, so
+   anyone who opens devtools can read all three paths. What IS protected is
+   progress - ppad_learning is one row per person behind RLS, so no one sees
+   anyone else's scores or certificates whatever they can read. */
+function visiblePaths(){
+  const me = S.me || {};
+  if (me.isAdmin || me.isHrReporting) return ['adm'];
+  if ((me.manages || []).length || (me.reviews || []).length) return ['emp', 'mgr'];
+  return ['emp'];
+}
+const pathVisible = id => visiblePaths().indexOf(id) !== -1;
+/* The paths this person may work through, in course order. Never empty: the
+   employee path is the floor, so a member with no role at all still has one. */
+function myPaths(){
+  const allowed = visiblePaths();
+  const ps = LEARN.filter(p => allowed.indexOf(p.id) !== -1);
+  return ps.length ? ps : LEARN.filter(p => p.id === 'emp');
+}
+
 function pathProg(p){ const L = lrn(); const n = p.modules.filter(m => L.done[m.id]).length; return {n, t:p.modules.length, pct: Math.round(100*n/p.modules.length)}; }
 function vLearn(){
   const L = lrn(), ui = S.ui;
-  const path = LEARN.find(p => p.id === ui.lPath) || LEARN[0];
+  // Only the paths this role is offered, and the default has to come from
+  // that list rather than LEARN[0] - which is the employee path, and would
+  // open an admin on a course they are not shown.
+  const paths = myPaths();
+  const path = paths.find(p => p.id === ui.lPath) || paths[0];
   if (ui.lMod){ const m = path.modules.find(x => x.id === ui.lMod); if (m) return vLearnModule(path, m); }
-  const all = LEARN.flatMap(p => p.modules), tot = all.filter(m => L.done[m.id]).length;
+  // Counted across the visible paths only. Against all three it would tell a
+  // manager they are "4 of 16" done on a course that is 11 modules for them.
+  const all = paths.flatMap(p => p.modules), tot = all.filter(m => L.done[m.id]).length;
   return `<div class="head"><div><div class="tag">Self-paced learning</div><h1>Learn PPAD</h1><p class="sub">Short modules with practice scenarios and knowledge checks. Complete a path to download your certificate. ${tot} of ${all.length} modules complete.</p></div></div>
-  <div class="grid g3 ln-paths">${LEARN.map(p => { const g = pathProg(p); return `<button class="card ln-path ${p.id===path.id?'on':''}" data-act="l-path" data-v="${p.id}">
+  ${paths.length < 2 ? '' : `<div class="grid g3 ln-paths">${paths.map(p => { const g = pathProg(p); return `<button class="card ln-path ${p.id===path.id?'on':''}" data-act="l-path" data-v="${p.id}">
     <div class="tag">${esc(p.who)}</div><h2>${esc(p.name)}</h2><p>${esc(p.blurb)}</p>
-    <div class="ln-bar"><span style="width:${g.pct}%"></span></div><div class="small muted">${g.n} of ${g.t} modules · ${p.modules.reduce((a,m)=>a+m.mins,0)} min${L.certs[p.id]?' · <b>Certificate earned</b>':''}</div></button>`; }).join('')}</div>
+    <div class="ln-bar"><span style="width:${g.pct}%"></span></div><div class="small muted">${g.n} of ${g.t} modules · ${p.modules.reduce((a,m)=>a+m.mins,0)} min${L.certs[p.id]?' · <b>Certificate earned</b>':''}</div></button>`; }).join('')}</div>`}
   <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>${esc(path.name)} path</h2><p>Work through in order, or jump to any module. Pass mark: ${LEARN_PASS} of 3 in each knowledge check.</p></div>
     ${pathProg(path).n === path.modules.length ? `<button class="btn pri" data-act="l-cert" data-v="${path.id}">Download certificate</button>` : ''}</div>
     <div class="ln-mods">${path.modules.map((m,i) => { const d = L.done[m.id], sc = L.score[m.id];
@@ -1809,18 +1848,22 @@ function exportCert(pid){
   download(`${slug()}-PPAD-${p.name.replace(/[^A-Za-z]+/g,'-')}-certificate.html`, html, 'text/html');
 }
 Object.assign(ACT, {
-  'l-path': el => { S.ui.lPath = el.dataset.v; S.ui.lMod = null; rerender(); },
+  // Every entry point checks the rule, not just the cards that render it -
+  // a data-act handler is one console line away, and a path the role is not
+  // offered should not open however it is reached.
+  'l-path': el => { if (!pathVisible(el.dataset.v)) return; S.ui.lPath = el.dataset.v; S.ui.lMod = null; rerender(); },
   'l-home': () => { S.ui.lMod = null; if (location.hash !== '#learn') location.hash = 'learn'; else render(); },
-  'l-open': el => { const id = el.dataset.v; const p = LEARN.find(x => x.modules.some(m => m.id === id)); S.ui.lPath = p.id; S.ui.lMod = id; S.ui.lStep = 0; S.ui.lAns = {}; S.ui.lSub = false; render(); },
+  'l-open': el => { const id = el.dataset.v; const p = LEARN.find(x => x.modules.some(m => m.id === id)); if (!p || !pathVisible(p.id)) return; S.ui.lPath = p.id; S.ui.lMod = id; S.ui.lStep = 0; S.ui.lAns = {}; S.ui.lSub = false; render(); },
   'l-step': el => { S.ui.lStep = Number(el.dataset.v); render(); },
   'l-prac': el => { S.ui.lAns = S.ui.lAns || {}; S.ui.lAns.p = Number(el.dataset.v); rerender(); },
   'l-ans': el => { S.ui.lAns = S.ui.lAns || {}; S.ui.lAns['q'+el.dataset.q] = Number(el.dataset.v); rerender(); },
-  'l-submit': () => { const path = LEARN.find(p => p.id === S.ui.lPath), m = path.modules.find(x => x.id === S.ui.lMod), L = lrn();
+  'l-submit': () => { const path = LEARN.find(p => p.id === S.ui.lPath); if (!path || !pathVisible(path.id)) return;
+    const m = path.modules.find(x => x.id === S.ui.lMod); if (!m) return; const L = lrn();
     const sc = m.quiz.filter((q,i) => S.ui.lAns['q'+i] === q.a).length; L.score[m.id] = sc;
     if (sc >= LEARN_PASS){ L.done[m.id] = true; if (path.modules.every(x => L.done[x.id]) && !L.certs[path.id]){ L.certs[path.id] = today(); toast(path.name + ' path complete — certificate ready'); } }
     S.ui.lSub = true; saveLearn(); rerender(); },
   'l-retry': () => { const pr = S.ui.lAns.p; S.ui.lAns = {p:pr}; S.ui.lSub = false; rerender(); },
-  'l-cert': el => { const L = lrn(); modal(`<h2>Download certificate</h2><p class="sub">Enter your name as it should appear on the certificate.</p><label class="f" style="margin-top:12px"><span>Full name</span><input class="in" id="cname" value="${esc(L.name||'')}"></label><div class="acts"><button class="btn" data-close>Cancel</button><button class="btn pri" id="cok">Download</button></div>`,
+  'l-cert': el => { if (!pathVisible(el.dataset.v)) return; const L = lrn(); modal(`<h2>Download certificate</h2><p class="sub">Enter your name as it should appear on the certificate.</p><label class="f" style="margin-top:12px"><span>Full name</span><input class="in" id="cname" value="${esc(L.name||'')}"></label><div class="acts"><button class="btn" data-close>Cancel</button><button class="btn pri" id="cok">Download</button></div>`,
     (mo, close) => { const i = mo.querySelector('#cname'); i.focus(); mo.querySelector('#cok').onclick = () => { if (!i.value.trim()){ i.focus(); return; } L.name = i.value.trim(); saveLearn(); close(); exportCert(el.dataset.v); }; }); }
 });
 

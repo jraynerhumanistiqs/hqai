@@ -5,6 +5,9 @@ import { test, expect, WIDE_LOGO } from './fixture'
 // appears as a window property - window.ACT is undefined. A bare reference
 // inside a page function resolves to it.
 declare const ACT: Record<string, (el?: unknown) => void>
+/** The app's state object. Same story as ACT - a top-level const, reachable
+ *  lexically inside a page function but never present on window. */
+declare const S: { ui: { lPath?: string, lMod?: string } }
 
 /**
  * What the UI actually shows each role, in a real browser.
@@ -310,5 +313,75 @@ test.describe('layout', () => {
       document.documentElement.scrollWidth - document.documentElement.clientWidth)
     // A few pixels of rounding is not a horizontal scrollbar.
     expect(overflow, `horizontal overflow at ${testInfo.project.name}`).toBeLessThanOrEqual(2)
+  })
+})
+
+/**
+ * Which course paths each role is offered.
+ *
+ * Employees get theirs. Managers get the employee path as well, because they
+ * sit at both ends of the conversation. HR and admins get only their own.
+ * A reviewer is grouped with managers - they sign off other people's
+ * assessments, so that is the path describing what they do.
+ *
+ * Visibility only, and the tests say so: the course ships inside app.js to
+ * everyone. What is actually protected is progress, which lives one row per
+ * person behind RLS and is covered in tests/ppad/access-matrix.mjs.
+ */
+test.describe('Learn paths are role-based', () => {
+  const open = async (page: import('./fixture').Page) => {
+    await page.evaluate(() => { location.hash = '#learn' })
+    await expect(page.locator('nav.subnav a[href="#learn"]')).toHaveAttribute('aria-current', 'page')
+  }
+
+  test('an employee is offered their path only, with no chooser', async ({ page, asRole }) => {
+    await asRole('employee')
+    await open(page)
+    // One path means no choice to present, so the cards are not rendered.
+    await expect(page.locator('.ln-path')).toHaveCount(0)
+    await expect(page.locator('main')).toContainText('Employees path')
+    await expect(page.locator('main')).not.toContainText('HR / administrators path')
+  })
+
+  test('a manager is offered the employee path and their own', async ({ page, asRole }) => {
+    await asRole('manager')
+    await open(page)
+    const cards = page.locator('.ln-path')
+    await expect(cards).toHaveCount(2)
+    await expect(cards.nth(0)).toContainText('Employees')
+    await expect(cards.nth(1)).toContainText('Managers')
+    await expect(page.locator('.ln-paths')).not.toContainText('HR / administrators')
+  })
+
+  test('a reviewer is grouped with managers', async ({ page, asRole }) => {
+    await asRole('reviewer')
+    await open(page)
+    await expect(page.locator('.ln-path')).toHaveCount(2)
+  })
+
+  test('an admin is offered only the HR path', async ({ page, asRole }) => {
+    await asRole('admin')
+    await open(page)
+    await expect(page.locator('.ln-path')).toHaveCount(0)
+    await expect(page.locator('main')).toContainText('HR / administrators path')
+    await expect(page.locator('main')).not.toContainText('Employees path')
+  })
+
+  test('a path the role is not offered will not open from the handler', async ({ page, asRole }) => {
+    await asRole('employee')
+    await open(page)
+    // Hiding a card is not a rule. ACT is reachable from the console, so the
+    // handlers check too - this drives them exactly as a curious user would.
+    // ACT and S are top-level `const`s, so they live in the global LEXICAL
+    // environment and never appear on window - a bare reference inside a page
+    // function resolves to them, the same trick the export test uses.
+    const after = await page.evaluate(() => {
+      ACT['l-path']({ dataset: { v: 'adm' } })
+      ACT['l-open']({ dataset: { v: 'a1' } })
+      return { lPath: S.ui.lPath, lMod: S.ui.lMod }
+    })
+    expect(after.lPath, 'must not switch to a path this role is not offered').not.toBe('adm')
+    expect(after.lMod, 'must not open a module from that path').not.toBe('a1')
+    await expect(page.locator('main')).not.toContainText('HR / administrators path')
   })
 })
