@@ -30,6 +30,7 @@ import {
 import { SettingsSection } from './SettingsSection'
 import { StatusPill, type PillTone } from '@/components/ui/StatusPill'
 import { InlineActionButton } from '@/components/ui/inline-action'
+import { TAX } from '@/lib/pricing-config'
 import {
   CHECKOUT_PLANS,
   amountDueToday,
@@ -221,8 +222,12 @@ export function BillingSection({
                 {sub?.cancelAtPeriodEnd && <StatusPill tone="warning" label="Ends at period end" />}
               </div>
               <p className="mt-1.5 text-sm text-ink-muted">
+                {/* The charge is GST inclusive, like every figure in
+                    lib/pricing-config.ts - said here because the renewal
+                    amount is the number a customer checks against their
+                    statement. */}
                 {sub?.amount !== null && sub?.amount !== undefined
-                  ? `${money(sub.amount)} ${sub.cycle === 'annual' ? 'a year' : 'a month'}`
+                  ? `${money(sub.amount)} ${sub.cycle === 'annual' ? 'a year' : 'a month'}, incl. ${TAX.name}`
                   : 'No charge on this plan'}
                 {renewalDate && (
                   <>
@@ -310,7 +315,7 @@ export function BillingSection({
           </ul>
 
           <p className="mt-3 text-xs leading-relaxed text-ink-muted">
-            Every plan has unlimited logins and no lock-in. Need a dedicated advisor on call?{' '}
+            All prices include {TAX.name}. Every plan has unlimited logins and no lock-in. Need a dedicated advisor on call?{' '}
             <Link href="/outsourcing" className={`text-accent underline-offset-4 hover:underline ${FOCUS}`}>
               HR365 and Recruit365
             </Link>{' '}

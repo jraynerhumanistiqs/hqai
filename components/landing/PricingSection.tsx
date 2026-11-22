@@ -10,7 +10,7 @@
 
 import Link from 'next/link'
 import { useEffect, useId, useRef, useState } from 'react'
-import { PRICING, C10_SELF_SERVE } from '@/lib/pricing-config'
+import { PRICING, C10_SELF_SERVE, TAX } from '@/lib/pricing-config'
 import { trackFunnelEvent } from '@/lib/analytics'
 
 // The section renders on both the landing page and /pricing - derive the
@@ -185,8 +185,12 @@ export default function PricingSection() {
           />
         </div>
 
+        {/* Every figure above is a GST-inclusive AUD total (TAX in
+            lib/pricing-config.ts), which is also the single price
+            Australian Consumer Law expects a consumer to be quoted. Said
+            once for the whole grid rather than on each card. */}
         <p className="mt-5 text-xs leading-relaxed text-ink-muted">
-          Three minutes from here: create your account, answer a few questions about your business, start your plan. Unlimited logins on every plan - you are never charged per person.
+          All prices in Australian dollars and include {TAX.name}. Three minutes from here: create your account, answer a few questions about your business, start your plan. Unlimited logins on every plan - you are never charged per person.
         </p>
 
         {/* Bottom row: the HR365 / RECRUIT365 done-for-you teaser. One
