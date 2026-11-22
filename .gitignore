@@ -40,3 +40,10 @@ __pycache__/
 .playwright-cli/
 # Playwright run output (traces may embed request/response data)
 test-results/
+
+# Next.js regenerates this on every `next dev`/`next build`, and it points
+# at ./.next/types/routes.d.ts - a committed copy goes stale and fights
+# the generator. CLAUDE.md requires it stay untracked; nothing was
+# enforcing that, so every session that ran a dev server and staged
+# broadly re-committed it. Ignored here so the rule holds by itself.
+next-env.d.ts

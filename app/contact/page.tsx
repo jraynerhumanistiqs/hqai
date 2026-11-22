@@ -20,28 +20,30 @@ export default function ContactPage() {
     <>
       <MarketingHeader />
       <main className="min-h-screen bg-bg text-ink antialiased">
-        <section className="mx-auto max-w-3xl px-6 py-16 md:px-10 md:py-24">
-          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
-            <span aria-hidden className="h-px w-5 bg-clay" />
-            Contact
-          </p>
-          <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[48px]">
-            Talk to the team behind HQ.ai.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
-            Got a question about HQ People, HQ Recruit, or pricing? Not sure if it suits your business?
-            Send us a note. A real person reads every message.
-          </p>
-          <p className="mt-3 text-sm text-ink-muted">
-            Want a dedicated advisor on call?{' '}
-            <Link href="/outsourcing" className="font-semibold text-accent hover:underline">
-              See outsourced HR &amp; recruitment
-            </Link>{' '}
-            and book a call.
-          </p>
+        <section className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
+          <div className="max-w-3xl">
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-clay">
+              <span aria-hidden className="h-px w-5 bg-clay" />
+              Contact
+            </p>
+            <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[48px]">
+              Talk to the team behind HQ.ai.
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+              Got a question about HQ People, HQ Recruit, or pricing? Not sure if it suits your business?
+              Send us a note. A real person reads every message.
+            </p>
+            <p className="mt-3 text-sm text-ink-muted">
+              Want a dedicated advisor on call?{' '}
+              <Link href="/outsourcing" className="font-semibold text-accent hover:underline">
+                See outsourced HR &amp; recruitment
+              </Link>{' '}
+              and book a call.
+            </p>
 
-          <div className="mt-10">
-            <ContactForm />
+            <div className="mt-10">
+              <ContactForm />
+            </div>
           </div>
         </section>
       </main>

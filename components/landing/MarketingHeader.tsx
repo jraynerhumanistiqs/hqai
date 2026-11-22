@@ -13,6 +13,8 @@ import { useEffect, useRef, useState } from 'react'
 // (inverted) marketing palette lives under [data-app="marketing"] in
 // globals.css, so it applies only to pages with this nav - login,
 // onboarding and the dashboard are unaffected.
+//
+
 function useMarketingScope() {
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -44,6 +46,8 @@ export default function MarketingHeader() {
   const [open, setOpen] = useState(false)
   const [productOpen, setProductOpen] = useState(false)
   const productRef = useRef<HTMLDivElement | null>(null)
+  const productBtnRef = useRef<HTMLButtonElement | null>(null)
+  const menuBtnRef = useRef<HTMLButtonElement | null>(null)
 
   // Close the product dropdown on outside click.
   useEffect(() => {
@@ -62,8 +66,18 @@ export default function MarketingHeader() {
     if (!productOpen && !open) return
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
-      setProductOpen(false)
-      setOpen(false)
+      // Return focus to whichever trigger owns the menu being closed.
+      // Without this the focused node inside the panel is unmounted
+      // underneath the user, focus falls to <body>, and the next Tab
+      // restarts from the top of the page.
+      if (productOpen) {
+        setProductOpen(false)
+        productBtnRef.current?.focus()
+      }
+      if (open) {
+        setOpen(false)
+        menuBtnRef.current?.focus()
+      }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
@@ -71,9 +85,14 @@ export default function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
         <Link href="/" aria-label="HQ.ai home" className="flex items-center">
-          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={1047} height={272} className="h-7 w-auto" priority />
+          {/* The lockup renders at 28px tall (about 108px wide), so the
+              declared 1047x272 had Next preloading a 1080px-wide PNG for
+              it on every marketing page. These are the same 3.85:1 ratio
+              at 2x the painted size, which is what the srcset should be
+              choosing from. */}
+          <Image src="/logo/png/hqai-lockup-white.png" alt="HQ.ai" width={216} height={56} className="h-7 w-auto" priority />
         </Link>
 
         {/* Desktop nav */}
@@ -81,6 +100,7 @@ export default function MarketingHeader() {
           <div className="relative" ref={productRef}>
             <button
               type="button"
+              ref={productBtnRef}
               onClick={() => setProductOpen((v) => !v)}
               aria-expanded={productOpen}
               aria-haspopup="true"
@@ -127,6 +147,7 @@ export default function MarketingHeader() {
         {/* Mobile toggle */}
         <button
           type="button"
+          ref={menuBtnRef}
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}

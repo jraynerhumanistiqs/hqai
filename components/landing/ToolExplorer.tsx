@@ -1,40 +1,28 @@
 'use client'
 
 // "Explore the tools" - the homepage centerpiece (qase-modelled tabbed
-// switcher). Two tabs (HQ People / HQ Recruit); picking a tab swaps the
-// copy AND an animated in-browser preview.
+// switcher). Two tabs (HQ People / HQ Recruit); clicking a tab swaps the
+// copy AND an in-browser preview.
 //
-// The tabs are VISITOR-DRIVEN ONLY - do not reintroduce auto-advance.
-// It rotated every 6.5s, which WCAG 2.2.2 treats as moving content that
-// needs a pause, stop or hide mechanism once it runs past five seconds.
-// Pausing on hover and focus covered pointer and keyboard users but not
-// touch, where the panel swapped under a reader mid-sentence - including
-// out from under the CTA they were reaching for. With only two tabs, both
-// visible and labelled, the rotation was competing with the reader rather
-// than inviting exploration, so it is gone rather than wrapped in a pause
-// control. Nov 2026, after the Web Interface Guidelines audit - see
-// docs/audits/web-interface-guidelines.md.
+// The panel used to advance itself every 6.5s, pausing on hover and
+// focus. That is a timed tab: the copy a reader is halfway through
+// swaps itself out, and hover-to-pause is no help on a touch screen,
+// where most of this traffic is. WCAG 2.2.2 wants a real pause control
+// for anything that moves on its own, and the honest version of that
+// here is not to move on its own - the section's own line already says
+// "Tap through to see each one in action". The reveal inside each
+// preview is CSS, so there is no motion state left to hold.
 //
-// The previews still honour prefers-reduced-motion by rendering in their
-// final state (the `reduced` prop below).
+// The tablist carries the full WAI-ARIA keyboard pattern (arrow keys,
+// Home/End, roving tabindex). That is load-bearing: this one really is a
+// tablist - role="tab" with aria-controls and a real tabpanel - so unlike
+// PersonaBand's dots the right fix was to implement the pattern, not drop
+// the role.
 //
 // Copy rules: Australian English, plain hyphens only, ASCII apostrophes.
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduced(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener?.('change', handler)
-    return () => mq.removeEventListener?.('change', handler)
-  }, [])
-  return reduced
-}
+import { useRef, useState } from 'react'
 
 interface ToolItem {
   name: string
@@ -55,10 +43,14 @@ const TABS: Tab[] = [
   {
     id: 'people',
     tag: 'HQ People',
-    title: 'Answers to your everyday HR questions, in plain English. Built for Australian workplaces only.',
+    // The heading was three lines of display type that re-stated the
+    // sentence under it ("in plain English" twice in adjacent blocks)
+    // and the scope line. It is a heading again; the scope fact moved
+    // down into the bullets, where nothing else was saying it.
+    title: 'Answers to your everyday HR questions',
     desc: 'Ask anything about your staff, pay or the rules. You get the right answer for your business in under a minute, in plain English.',
     bullets: [
-      'Clear answers to your everyday HR questions',
+      'Built for Australian workplaces only',
       'Answers that fit your business, your industry and your staff',
       'A real human advisor steps in when it gets tricky',
     ],
@@ -91,7 +83,6 @@ const TABS: Tab[] = [
 
 export default function ToolExplorer() {
   const [active, setActive] = useState(0)
-  const reduced = usePrefersReducedMotion()
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   // Tabs pattern keyboard support (WAI-ARIA): Left/Right wrap through the
@@ -170,7 +161,7 @@ export default function ToolExplorer() {
           id={`tool-panel-${tab.id}`}
           role="tabpanel"
           aria-labelledby={`tool-tab-${tab.id}`}
-          className="mt-8 grid items-center gap-10 rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
+          className="mt-8 grid items-start gap-10 rounded-3xl border border-border bg-bg-elevated p-6 shadow-card md:grid-cols-2 md:gap-14 md:p-10"
         >
           {/* LEFT: copy (re-keys per tab so it fades on switch) */}
           <div key={tab.id} className="tool-fade">
@@ -216,8 +207,8 @@ export default function ToolExplorer() {
 
           {/* RIGHT: animated preview (re-keys per tab so it replays) */}
           <div key={`preview-${tab.id}`} className="tool-fade">
-            {tab.id === 'people' && <PeoplePreview reduced={reduced} />}
-            {tab.id === 'recruit' && <RecruitPreview reduced={reduced} />}
+            {tab.id === 'people' && <PeoplePreview />}
+            {tab.id === 'recruit' && <RecruitPreview />}
           </div>
         </div>
       </div>
@@ -248,31 +239,15 @@ export default function ToolExplorer() {
 
 /* ---------------------------------------------------------------- previews */
 
-// HQ People - a question, then an answer fades in with a citation chip.
-function PeoplePreview({ reduced }: { reduced: boolean }) {
-  const [phase, setPhase] = useState(0)
-  useEffect(() => {
-    if (reduced) return
-    const t1 = setTimeout(() => setPhase(1), 600)
-    const t2 = setTimeout(() => setPhase(2), 1400)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
-  }, [reduced])
-
-  // Nov 2026 - the resting state is DERIVED, not stored.
-  // usePrefersReducedMotion starts false and only learns the truth in an
-  // effect, so the old `useState(reduced ? 2 : 0)` always captured 0.
-  // This component is not re-keyed when `reduced` flips, so the effect's
-  // early return left phase at 0 forever and the answer bubble - which
-  // starts at opacity-0 - never appeared at all for anyone with
-  // reduce-motion on. Deriving it cannot go stale and needs no
-  // setState-in-effect to resync. This is the failure mode CLAUDE.md
-  // already records three times: content must never depend on an
-  // animation to become visible.
-  const shown = reduced ? 2 : phase
-
+// HQ People - a question, then an answer arrives with a citation chip.
+//
+// The staging is CSS (.hq-reveal + --hq-delay in globals.css), not React
+// state. It used to be state seeded from `reduced`, which meant the
+// answer's resting state was opacity 0 and anything that broke the timer
+// chain hid the answer permanently - including, as shipped, every visitor
+// who asks for reduced motion. Keyframes with `both` rest on the
+// finished frame instead, so the answer is always readable.
+function PeoplePreview() {
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float">
       <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -288,19 +263,15 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
           Can I let someone go during probation?
         </div>
         <div
-          className={[
-            'mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5 transition-[opacity,transform] duration-500',
-            shown >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0',
-          ].join(' ')}
+          className="hq-reveal mt-2 w-fit max-w-[92%] rounded-2xl rounded-tl-sm bg-bg px-3 py-2.5"
+          style={{ '--hq-delay': '600ms' } as React.CSSProperties}
         >
           <p className="text-xs leading-relaxed text-ink">
             Yes, with notice. Usually one week if they have been with you under a year. Your award may add to that - we will flag it.
           </p>
           <div
-            className={[
-              'mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-2.5 py-1 text-[10px] font-medium text-clay transition-opacity duration-500',
-              shown >= 2 ? 'opacity-100' : 'opacity-0',
-            ].join(' ')}
+            className="hq-reveal mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-clay bg-clay-soft px-2.5 py-1 text-[10px] font-medium text-clay"
+            style={{ '--hq-delay': '1400ms' } as React.CSSProperties}
           >
             <svg aria-hidden viewBox="0 0 12 12" className="h-3 w-3">
               <circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -315,25 +286,18 @@ function PeoplePreview({ reduced }: { reduced: boolean }) {
 }
 
 // HQ Recruit - a CV scorecard whose bars fill on mount.
-function RecruitPreview({ reduced }: { reduced: boolean }) {
+//
+// Same change as PeoplePreview: the fill is a CSS keyframe, so each bar
+// rests at its real score and the verdict chip rests visible. Before
+// this, `useState(reduced)` started every bar at 0% width and the chip at
+// opacity 0, so a reader on reduced motion saw an empty scorecard - the
+// AdaptiveSlider bug in CLAUDE.md, in a second place.
+function RecruitPreview() {
   const rows = [
     { label: 'Relevant experience', score: 86 },
     { label: 'Communication', score: 80 },
     { label: 'Role fit', score: 74 },
   ]
-  const [animated, setAnimated] = useState(false)
-  useEffect(() => {
-    if (reduced) return
-    const t = setTimeout(() => setAnimated(true), 80)
-    return () => clearTimeout(t)
-  }, [reduced])
-
-  // Derived for the same reason as PeoplePreview above: seeding state with
-  // `useState(reduced)` captured false on the first render, and the
-  // effect's early return then left it there - so the score bars stayed at
-  // width 0% and the "Strong yes" badge at opacity-0 for reduce-motion
-  // users. Reduced motion means "skip to the end", never "never arrive".
-  const fill = reduced || animated
 
   return (
     <div className="rounded-3xl border border-border bg-bg-elevated p-5 shadow-float md:p-6">
@@ -347,17 +311,15 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
             4.2<span className="text-base font-normal text-ink-muted"> / 5</span>
           </p>
           <span
-            className={[
-              'mt-1 inline-flex rounded-full border border-border bg-bg-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft transition-opacity duration-700',
-              fill ? 'opacity-100' : 'opacity-0',
-            ].join(' ')}
+            className="hq-reveal mt-1 inline-flex rounded-full border border-border bg-bg-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft"
+            style={{ '--hq-delay': '700ms' } as React.CSSProperties}
           >
             Strong yes
           </span>
         </div>
       </div>
       <div className="mt-6 space-y-4">
-        {rows.map((row) => (
+        {rows.map((row, i) => (
           <div key={row.label}>
             <div className="flex items-center justify-between text-xs text-ink-soft">
               <span className="font-medium text-ink">{row.label}</span>
@@ -365,8 +327,8 @@ function RecruitPreview({ reduced }: { reduced: boolean }) {
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-bg-soft">
               <div
-                className="h-full rounded-full bg-ink-muted transition-[width] duration-[900ms] ease-out"
-                style={{ width: fill ? `${row.score}%` : '0%' }}
+                className="hq-bar-fill h-full rounded-full bg-ink-muted"
+                style={{ width: `${row.score}%`, '--hq-delay': `${i * 90}ms` } as React.CSSProperties}
               />
             </div>
           </div>

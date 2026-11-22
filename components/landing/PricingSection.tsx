@@ -192,7 +192,7 @@ export default function PricingSection() {
         {/* Bottom row: the HR365 / RECRUIT365 done-for-you teaser. One
             full-width panel: copy on the left, the conceptual graphic on
             the right from md up. */}
-        <aside className="mt-10 flex flex-col gap-8 rounded-2xl border border-border bg-bg-soft p-7 md:flex-row md:items-center md:justify-between md:gap-12 md:p-8">
+        <aside className="mt-10 flex flex-col gap-8 rounded-2xl border border-border bg-bg-soft p-7 md:flex-row md:items-start md:justify-between md:gap-12 md:p-8">
           <div className="max-w-xl">
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Want a human on call?</p>
             <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
@@ -238,9 +238,6 @@ export default function PricingSection() {
               </g>
               <path d="M180 112h32" className="text-ink-muted" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="1 8" opacity="0.7" />
             </svg>
-            <p className="mt-3 text-center text-[11px] leading-relaxed text-ink-muted">
-              One advisor who knows you - the AI just does the admin.
-            </p>
           </div>
         </aside>
 
