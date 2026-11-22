@@ -125,3 +125,11 @@ export function effectiveCycle(plan: CheckoutPlan, requested: 'monthly' | 'annua
 export function money(amount: number): string {
   return `$${amount.toLocaleString('en-AU')}`
 }
+
+/**
+ * "$244.55" - AUD to the cent. Plan prices are whole dollars, but the GST
+ * component of one rarely is, so a tax line needs its own formatter.
+ */
+export function moneyExact(amount: number): string {
+  return `$${amount.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}

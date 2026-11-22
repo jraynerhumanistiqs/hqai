@@ -29,13 +29,14 @@ import {
   RiLock2Line,
   RiSubtractLine,
 } from '@remixicon/react'
-import { ADVISORY_HOURS } from '@/lib/pricing-config'
+import { ADVISORY_HOURS, TAX, gstComponent } from '@/lib/pricing-config'
 import {
   CHECKOUT_PLANS,
   amountDueToday,
   effectiveCycle,
   getCheckoutPlan,
   money,
+  moneyExact,
   type CheckoutPlan,
   type CheckoutPlanId,
 } from '@/lib/checkout-plans'
@@ -362,6 +363,13 @@ export default function CheckoutClient({
                   {money(total)}
                 </p>
               </div>
+
+              {/* Every published price already has the tax in it, so the GST
+                  is named as a COMPONENT of the total above - never a line
+                  added to it. See TAX in lib/pricing-config.ts. */}
+              <p className="mt-2 text-xs text-ink-muted">
+                Includes {moneyExact(gstComponent(total))} {TAX.name}
+              </p>
 
               <p className="mt-3 text-xs leading-relaxed text-ink-muted">
                 {cycle === 'annual'

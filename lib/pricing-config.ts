@@ -724,3 +724,32 @@ export const ADVISORY_HOURS = {
   // "talk to the team" stay available at every hour count.
   maxHours: 20,
 } as const
+
+// -------------------------------------------------------------------------
+// Tax. Every price in this file is a GST-INCLUSIVE Australian dollar figure
+// (founder's call, Nov 2026), which is also what Australian Consumer Law
+// requires of a price advertised to a consumer: one total, tax in.
+//
+// So the GST is a COMPONENT of the published price, never added on top. For
+// a 10% rate the component of a tax-inclusive total is total / 11, which is
+// what gstComponent() returns - do not compute it as total * 0.10, which
+// over-states it by 10%.
+//
+// NB this describes OUR figures. It does not claim anything about what a
+// Stripe invoice itemises: Stripe only breaks GST out on a receipt when
+// Stripe Tax is configured for the account. Nothing in the app should tell
+// a customer their Stripe receipt shows a GST line until that is switched
+// on and verified.
+// -------------------------------------------------------------------------
+export const TAX = {
+  country: 'AU' as const,
+  name: 'GST',
+  rate: 0.1,
+  /** True when every published price already has the tax in it. */
+  inclusive: true,
+} as const
+
+/** The GST contained within a tax-inclusive total, in dollars. */
+export function gstComponent(inclusiveTotal: number): number {
+  return inclusiveTotal - inclusiveTotal / (1 + TAX.rate)
+}
