@@ -110,7 +110,7 @@ export default function HeroSection({ backgroundImage }: Props) {
             style={{ animationDelay: D.heading }}
             className="hq-hero-lead font-display text-[34px] font-semibold leading-[1.06] tracking-[-0.02em] text-ink sm:text-[42px] md:text-[52px]"
           >
-            HR and hiring are complicated. HQ.ai makes it{' '}
+            HR and hiring is complicated. HQ.ai makes it{' '}
             <span className="text-clay">easy, quick and accurate.</span>
           </h1>
 

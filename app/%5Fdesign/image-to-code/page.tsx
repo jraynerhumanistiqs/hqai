@@ -89,7 +89,7 @@ function Hero() {
             style={{ animationDelay: '40ms' }}
             className="hq-hero-lead font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.025em] text-ink sm:text-[40px] md:text-[42px] lg:text-[46px]"
           >
-            HR and hiring are complicated. HQ.ai makes it{' '}
+            HR and hiring is complicated. HQ.ai makes it{' '}
             <span className="text-clay">easy, quick and accurate.</span>
           </h1>
 
