@@ -361,6 +361,19 @@ The server-side validation is untouched and still the real gate.
 > This is the clearest vindication of the audit's own thesis in the document.
 > Reading the source proves an Escape handler exists; only running it shows
 > that half of it strands the keyboard user.
+>
+> **A fix exists, but not on `main` - this status has a known expiry.**
+> `origin/integrate/skill-branches` carries `087b63f` "fix(a11y): Escape now
+> returns focus to the menu's trigger", which adds `productBtnRef` and
+> `menuBtnRef` and calls `.focus()` on whichever trigger owns the menu being
+> closed - so it covers the mobile menu as well as the Products dropdown.
+>
+> Verified for this note: `087b63f` is **not** an ancestor of `origin/main`,
+> and `MarketingHeader.tsx` on `main` still carries only `productRef` (the
+> outside-click container ref) with no trigger ref and no `.focus()` call
+> anywhere. **So STILL OPEN is correct for `main` and for production as this
+> is written** - but re-status this finding the moment that branch lands,
+> rather than re-measuring from scratch and re-opening it.
 
 **Pages:** every marketing page (shared `MarketingHeader`)
 **Viewport:** 1440x900
