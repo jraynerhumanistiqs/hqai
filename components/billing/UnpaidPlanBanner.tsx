@@ -20,7 +20,6 @@ export default function UnpaidPlanBanner({ planId }: { planId: string }) {
   // Start hidden to avoid an SSR flash; reveal after the session check.
   const [dismissed, setDismissed] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
 
   useEffect(() => {
     let hidden = false
@@ -36,26 +35,15 @@ export default function UnpaidPlanBanner({ planId }: { planId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function startPlan() {
+  // The banner used to POST straight to Stripe, so a customer went from a
+  // one-line strip to a card form having never seen a price, a cycle or a
+  // total. It now opens /checkout, which reviews the order on HQ.ai first
+  // and hands Stripe only the card entry. Nothing can fail here any more,
+  // so the old error state goes with it.
+  function startPlan() {
     setLoading(true)
-    setError(false)
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, cycle: 'monthly', returnTo: 'onboarding' }),
-      })
-      const json = await res.json().catch(() => ({} as { url?: string }))
-      if (res.ok && (json as { url?: string }).url) {
-        trackFunnelEvent('checkout_started', { plan: planId, cycle: 'monthly', source: 'unpaid_banner' })
-        window.location.href = (json as { url: string }).url
-        return
-      }
-      setError(true)
-    } catch {
-      setError(true)
-    }
-    setLoading(false)
+    trackFunnelEvent('upsell_clicked', { plan: planId, cycle: 'monthly', source: 'unpaid_banner' })
+    window.location.assign(`/checkout?plan=${encodeURIComponent(planId)}&cycle=monthly`)
   }
 
   function dismiss() {
@@ -79,7 +67,6 @@ export default function UnpaidPlanBanner({ planId }: { planId: string }) {
       <p className="min-w-0 flex-1 truncate text-sm text-ink">
         <span className="hidden sm:inline">Your workspace is saved but your plan isn&apos;t active yet.</span>
         <span className="sm:hidden">Your plan isn&apos;t active yet.</span>
-        {error && <span className="ml-2 text-danger">Checkout didn&apos;t start - try again.</span>}
       </p>
       <button
         type="button"
