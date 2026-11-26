@@ -23,11 +23,13 @@ console error" class the audit itself authorised fixing.
 > independently on `main`** - by the web-design-guidelines and taste-skill
 > work, not by this audit. Findings 3 and 5 were partly fixed there.
 >
-> **Four are still open in some form: finding 3 strands keyboard focus,
-> finding 5 leaves one control below the WCAG floor (now split out as finding
-> 8), finding 7 is untouched, and finding 8 is the only outright WCAG
-> conformance failure found.** Every status here is measured in a
-> browser, not read from source - see the table below.
+> **Three are still open, and none is a keyboard trap: finding 5's remaining
+> half (PersonaBand controls clear WCAG but miss the house 44px rule),
+> finding 7 (mobile menu 40x40, house rule only), and finding 8 - the only
+> outright WCAG conformance failure found.** Finding 3 was open as recently
+> as 2026-11-21 and has since been fixed and re-verified; see its section.
+> Every status here is measured in a browser, not read from source - see the
+> table below.
 >
 > **The live re-run has now been done** (2026-11-21, against production after
 > PR #9 merged as `f095567` - production *is* the merged tree, so no dev server
@@ -36,7 +38,7 @@ console error" class the audit itself authorised fixing.
 >
 > | Finding | Source-read status | **Measured status** |
 > |---|---|---|
-> | 3 Dropdown Escape | fixed | **mostly** - Escape from inside the panel closes it but does NOT return focus to the trigger |
+> | 3 Dropdown Escape | fixed | **was mostly** - panel-Escape stranded focus; fixed on main since, re-verified 2026-11-26 |
 > | 4 ToolExplorer selection | fixed | **fixed** - selection held 10s with no pointer, auto-advance gone |
 > | 5 Tap targets | partly | **partly** - and one control measures 20x20, below even WCAG 2.5.8's 24px |
 > | 6 Arrow keys | fixed | **fixed** - roving tabindex confirmed, Arrow/Home/End all move focus AND selection |
@@ -76,7 +78,7 @@ The bugs are all in behaviour, and all of them were invisible to static review:
 |---|----------|---------|------|
 | 1 | High - **FIXED** | `/privacy`, `/terms`, `/careers` render on the wrong palette - white, not the marketing dark slab - because nothing sets `data-app` | 3 pages |
 | 2 | High - **FIXED** | Enterprise inquiry form POSTs a completely empty payload to the live endpoint; `required` is decorative | `/outsourcing` |
-| 3 | Medium-high - **MOSTLY FIXED ON MAIN** (measured) | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
+| 3 | Medium-high - **FIXED ON MAIN** (measured) | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
 | 4 | Medium-high - **FIXED ON MAIN** (measured) | ToolExplorer discards the tab the user picked after 6.5s | `/` |
 | 5 | Medium - **PARTLY FIXED ON MAIN** (measured) | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
 | 8 | Medium - **STILL OPEN** (measured 20x20) | "HQ People subscriber add-on" info button is 20x20 px - below WCAG 2.5.8's 24px floor, and the only outright conformance failure on either page | `/`, `/pricing` |
@@ -338,42 +340,35 @@ The server-side validation is untouched and still the real gate.
 
 ---
 
-## 3. Products dropdown cannot be dismissed by keyboard (Medium-high - MOSTLY FIXED ON MAIN, one gap)
+## 3. Products dropdown cannot be dismissed by keyboard (Medium-high - FIXED ON MAIN, measured)
 
-> **Mostly fixed on `origin/main`, not by this audit - but re-measured live
-> against the merged tree (production, post-`f095567`) and one gap remains.**
-> `MarketingHeader` now has an Escape keydown handler that closes both menus,
-> plus `aria-haspopup="true"` and `aria-controls="marketing-products-menu"`.
-> The earlier source-read note here said this was fully fixed and suggested
-> "a live check that Escape also returns focus to the trigger". That check was
-> run. It does not:
+> **CLOSED - fixed on `main` and verified live on production (2026-11-26).**
+> `MarketingHeader` has an Escape keydown handler, `aria-haspopup="true"` and
+> `aria-controls="marketing-products-menu"`, and `087b63f` "fix(a11y): Escape
+> now returns focus to the menu's trigger" added `productBtnRef` /
+> `menuBtnRef` and focuses whichever trigger owns the menu being closed. That
+> commit has since landed on `main` and deployed.
+>
+> Re-measured on production, including the case that previously failed:
 >
 > | Measured live | Closes? | Focus returns to trigger? |
 > |---|---|---|
-> | Escape, focus on the trigger | yes | **yes** |
-> | Escape, focus on a link inside the panel | yes | **no** |
+> | Escape, focus on the trigger | yes | **yes** - Products button |
+> | **Escape, focus on a link inside the panel** | yes | **yes** - Products button |
+> | Escape, focus inside the mobile menu (390px) | yes | **yes** - Open menu button |
 >
-> Closing the menu while focus sits on a link inside it leaves focus on an
-> element that is no longer rendered, so the next Tab restarts from the top of
-> the document. The remaining fix is one line in the Escape handler: return
-> focus to the trigger before closing, in both paths, not just the first.
+> The middle row is the finding. Before the fix it closed the menu and left
+> `document.activeElement` on `<body>`, so the next Tab restarted from the top
+> of the document. The fix also covers the mobile menu, which this audit never
+> raised - broader than the one-line remedy recommended here.
 >
-> This is the clearest vindication of the audit's own thesis in the document.
-> Reading the source proves an Escape handler exists; only running it shows
-> that half of it strands the keyboard user.
->
-> **A fix exists, but not on `main` - this status has a known expiry.**
-> `origin/integrate/skill-branches` carries `087b63f` "fix(a11y): Escape now
-> returns focus to the menu's trigger", which adds `productBtnRef` and
-> `menuBtnRef` and calls `.focus()` on whichever trigger owns the menu being
-> closed - so it covers the mobile menu as well as the Products dropdown.
->
-> Verified for this note: `087b63f` is **not** an ancestor of `origin/main`,
-> and `MarketingHeader.tsx` on `main` still carries only `productRef` (the
-> outside-click container ref) with no trigger ref and no `.focus()` call
-> anywhere. **So STILL OPEN is correct for `main` and for production as this
-> is written** - but re-status this finding the moment that branch lands,
-> rather than re-measuring from scratch and re-opening it.
+> **This finding is the document's own thesis in miniature, and worth keeping
+> for that reason.** Three statuses were recorded for it in sequence:
+> source reading on `origin/main` said "fixed"; a browser run said "mostly -
+> one path strands focus"; a second browser run, after the real fix landed,
+> says "fixed" for the right reason. Only the middle step was capable of
+> finding the defect, and only re-running turned the status honest again
+> rather than leaving a stale OPEN behind.
 
 **Pages:** every marketing page (shared `MarketingHeader`)
 **Viewport:** 1440x900
