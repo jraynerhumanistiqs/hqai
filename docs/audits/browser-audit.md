@@ -23,13 +23,19 @@ console error" class the audit itself authorised fixing.
 > independently on `main`** - by the web-design-guidelines and taste-skill
 > work, not by this audit. Findings 3 and 5 were partly fixed there.
 >
-> **Three are still open, and none is a keyboard trap: finding 5's remaining
-> half (PersonaBand controls clear WCAG but miss the house 44px rule),
-> finding 7 (mobile menu 40x40, house rule only), and finding 8 - the only
-> outright WCAG conformance failure found.** Finding 3 was open as recently
-> as 2026-11-21 and has since been fixed and re-verified; see its section.
-> Every status here is measured in a browser, not read from source - see the
-> table below.
+> **Two are still open, both house-rule only, and NO WCAG conformance failure
+> remains: finding 5's remaining half (PersonaBand controls clear WCAG at 24px
+> but miss the documented 44px) and finding 7 (mobile menu 40x40, same).**
+> Finding 3 was open as recently as 2026-11-21 and has since been fixed and
+> re-verified. Finding 8 was **withdrawn on 2026-11-26 as a measurement error
+> of mine** - see its section, which is worth reading before trusting any tap
+> target number here.
+>
+> Every status is measured in a browser, not read from source. But finding 8
+> is the reminder that measuring in a browser is not sufficient on its own:
+> the measurement has to be of the right thing. Sizing controls with
+> `getBoundingClientRect()` misses pointer area added by a pseudo-element,
+> which is the standard way to enlarge a small target.
 >
 > **The live re-run has now been done** (2026-11-21, against production after
 > PR #9 merged as `f095567` - production *is* the merged tree, so no dev server
@@ -81,7 +87,7 @@ The bugs are all in behaviour, and all of them were invisible to static review:
 | 3 | Medium-high - **FIXED ON MAIN** (measured) | Products dropdown cannot be closed by keyboard - Escape does nothing, and it stays open when focus leaves | all |
 | 4 | Medium-high - **FIXED ON MAIN** (measured) | ToolExplorer discards the tab the user picked after 6.5s | `/` |
 | 5 | Medium - **PARTLY FIXED ON MAIN** (measured) | Carousel/pagination dots are 6x6 px tap targets, 12px apart | `/` |
-| 8 | Medium - **STILL OPEN** (measured 20x20) | "HQ People subscriber add-on" info button is 20x20 px - below WCAG 2.5.8's 24px floor, and the only outright conformance failure on either page | `/`, `/pricing` |
+| 8 | ~~Medium~~ - **WITHDRAWN** | ~~"HQ People subscriber add-on" info button is 20x20 px, below WCAG 2.5.8's floor~~ - measurement error. Its pointer target is 26x26 via a `::before` inset that `getBoundingClientRect()` cannot see. No conformance failure | `/`, `/pricing` |
 | 6 | Low-medium - **FIXED ON MAIN** (measured) | ToolExplorer is `role="tablist"` but has no arrow-key support | `/` |
 | 7 | Low - **STILL OPEN** (measured 40x40) | Mobile menu button is 40x40 px, under the project's own documented 44px rule | all |
 
@@ -650,9 +656,13 @@ particular key handling.
 > 44px the project documents. This is the one finding of 3-7 that nobody has
 > picked up. **Re-measured live on the merged tree: 40x40.** It clears WCAG
 > 2.5.8's 24px floor, so this remains a house-rule gap rather than a
-> conformance failure - unlike the 20x20 info button in
-> [finding 8](#8-hq-people-subscriber-add-on-info-button-is-20x20-px-medium---still-open),
-> which fails both. If only one of the two gets fixed, fix that one first.
+> conformance failure. (An earlier version of this note pointed at finding 8
+> as the more urgent of the two; finding 8 has since been withdrawn as a
+> measurement error, so this is now the only open tap-target item.)
+>
+> Measured by hit test as well as border box on 2026-11-26: 40x40 either way,
+> with no pseudo-element enlarging it - so unlike finding 8, this number is
+> real. Fixing it is a `min-h-touch` swap, not a conformance obligation.
 
 **Pages:** every marketing page
 **Viewport:** 390x844
@@ -681,35 +691,68 @@ Also under 44px in the header/footer: the LinkedIn link (36x36). The
 
 ---
 
-## 8. "HQ People subscriber add-on" info button is 20x20 px (Medium - STILL OPEN)
+## 8. "HQ People subscriber add-on" info button is 20x20 px (WITHDRAWN - measurement error)
 
-> **Found in the post-merge browser re-run, not in the original sweep**, and
-> split out of finding 5 because it is a different kind of problem. Numbered 8
-> to keep the original 1-7 references valid; by severity it belongs beside
-> finding 5, which is where the summary table puts it.
+> **WITHDRAWN 2026-11-26. This finding was wrong, and the error was mine.**
+>
+> The button's border box is 20x20, but its POINTER TARGET is 26x26. The
+> control already carries `before:absolute before:-inset-[3px]` - a
+> pseudo-element with `pointer-events: auto` extending the target 3px on every
+> side - added by `07f0ecd`, the Web Interface Guidelines pass, and present on
+> production at the moment I measured it. It clears WCAG 2.5.8's 24x24
+> minimum and always did.
+>
+> **Why the measurement lied.** I sized every control with
+> `getBoundingClientRect()`, which returns the element's border box and cannot
+> see a pseudo-element. Enlarging a small target with a negative-inset
+> `::before` is a standard technique precisely because it adds hit area
+> without disturbing layout - so the method I used is blind to the most common
+> fix for the thing I was looking for.
+>
+> **How it was settled.** Geometry cannot answer this; hit testing can.
+> `document.elementFromPoint()` at 2px OUTSIDE the border box returns the
+> button itself, and the computed `::before` reads
+> `position: absolute; top/left/right/bottom: -3px; pointer-events: auto`.
+> Verified on production at 390px.
+>
+> The lesson generalises past this one control: **a tap-target audit that
+> measures border boxes produces false positives wherever a target has been
+> enlarged properly.** Any WCAG 2.5.8 claim in this document that rests on
+> `getBoundingClientRect()` alone should be re-checked by hit testing before
+> being acted on. The 44px house-rule counts are not affected in the same way
+> - `min-h-touch` is a rule about the element's own box - but they are not
+> conformance failures either.
+>
+> Retained rather than deleted, because a withdrawn finding and its cause are
+> more useful to the next audit than a quietly shortened list.
 
-**Pages:** `/` and `/pricing` - the same control, measured 20x20 on both
+**Pages:** `/` and `/pricing` - the same control
 **Viewport:** 390x844
-**Measured:** against production after PR #9 merged (`f095567`)
+**Measured:** against production, 2026-11-21 (border box) and 2026-11-26 (hit test)
 
-Every other non-exempt interactive control on either page clears WCAG 2.5.8's
-24x24 minimum. This one does not:
+The original, incorrect table follows. The first row is the error: the
+"Size" column is the border box, not the pointer target, which is 26x26.
 
 | Control | Size | WCAG 2.5.8 (24px) | House rule (44px) |
 |---------|------|-------------------|-------------------|
-| **"HQ People subscriber add-on" info button** | **20 x 20** | **FAIL** | fail |
+| ~~"HQ People subscriber add-on" info button~~ | 20 x 20 box, **26 x 26 target** | **PASS** (was reported FAIL) | fail |
 | Industries dots 2-5 | 24 x 24 | pass | fail |
 | Industries dot 1 (active pill) | 42 x 24 | pass | fail |
 | Previous / Next industries | 36 x 36 | pass | fail |
 | Mobile menu button (finding 7) | 40 x 40 | pass | fail |
 
-Across the home page at 390px: **1 control below the WCAG floor, 19 below the
-documented 44px.** The footer and nav text links measure 18px tall, but those
-are inline links inside list items and are exempt under WCAG 2.5.8's inline
-exception, so they are not counted here.
+Across the home page at 390px, by border box: 19 controls below the documented
+44px, and - as originally reported - 1 below the WCAG floor. **That second
+figure was wrong**: the one control it counted is this one, whose real target
+is 26x26. Corrected: **0 controls below the WCAG floor, 19 below the
+documented 44px**, with the 44px figure still measured by border box and so
+still a house-rule count rather than a conformance one. The footer and nav
+text links measure 18px tall but are inline links inside list items, exempt
+under WCAG 2.5.8's inline exception, so they are not counted either way.
 
-**Why this is separated from finding 7.** The two look like the same complaint
-and are not. Finding 7's 40x40 button clears the accessibility floor and misses
+**Why this was separated from finding 7** (the reasoning at the time, now moot
+since the finding is withdrawn). The two looked like the same complaint and
+were not. Finding 7's 40x40 button clears the accessibility floor and misses
 only the project's own stricter 44px rule - a house-style gap, fixable at
 leisure. This one fails WCAG 2.5.8 outright, which is a Level AA success
 criterion in WCAG 2.2. It is the only such failure left on the home page, and
