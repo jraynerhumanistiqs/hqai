@@ -279,7 +279,7 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
           between items inside a group. Top-level items are h-9, px-3,
           rounded-full at 13px - the premium-minimal nav pattern. */}
       {/* Scroll area: Workspace fills the top, Account + Support pinned
-          via mt-auto to the bottom so the Contact HQ Advisor button
+          via mt-auto to the bottom so the Contact your advisor button
           doesn't push off-screen when Workspace is tall. Tightened
           gap from 7 to 4 to keep the three groups visually grouped
           without needing to scroll. */}
@@ -372,7 +372,7 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
         </div>{/* end Workspace group */}
 
         {/* Account + Support are pinned to the bottom of the scroll
-            area via mt-auto so the Contact HQ Advisor button is
+            area via mt-auto so the Contact your advisor button is
             always visible without scrolling, regardless of how many
             workspace items are above. The internal gap between
             Account and Support is tight (gap-3) so they read as one
@@ -411,12 +411,19 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
             <p className="text-[11px] text-ink-soft leading-snug mb-1.5">
               Need more specific support from a human?
             </p>
+            {/* Nov 2026 - was "Contact HQ Advisor", which became the name of
+                the CHAT two tabs above it in the same sidebar. This button
+                reaches a person, so it cannot share a name with the AI. The
+                human is your Humanistiqs advisor; the button says "your
+                advisor" because the line above it has already said human and
+                the rail is too narrow for the full name. The modal it opens
+                carries it in full. */}
             <button
               type="button"
               onClick={handleContactPartner}
               className="block w-full text-center h-9 rounded-full bg-accent text-ink-on-accent text-[12px] font-semibold px-4 hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
-              Contact HQ Advisor
+              Contact your advisor
             </button>
           </div>
         </div>
@@ -435,11 +442,11 @@ export default function Sidebar({ bizName, bizLogoUrl, role, onClose, onRailWidt
         <p className="px-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted sidebar-collapsible-hide">v0.4 preview</p>
       </div>
 
-      {/* Contact HQ Advisor - HR / Recruitment decision-tree modal */}
+      {/* Contact your advisor - HR / Recruitment decision-tree modal */}
       <Modal
         open={showPartnerPopup}
         onClose={() => !supportSending && setShowPartnerPopup(false)}
-        title="Contact HQ Advisor"
+        title="Contact your Humanistiqs advisor"
         eyebrow="Human support"
         size="max-w-md"
         dismissable={!supportSending}
