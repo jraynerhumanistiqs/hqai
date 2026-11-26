@@ -60,32 +60,23 @@ const TOPICS: Topic[] = [
 ]
 
 interface Props {
-  userName?: string
-  greeting: string
-  bizName?: string
   onPick: (question: string) => void
   onSkip: () => void
 }
 
-export default function TopicPicker({ userName, greeting, onPick, onSkip }: Props) {
+// The picker is a panel under the hero composer, not a screen of its own.
+// It used to carry a full page header - an "HQ People - AI Advisor" eyebrow,
+// its own greeting and a standfirst - from when it WAS the first screen. The
+// hero owns all three now, so the panel keeps one quiet label and nothing
+// else. That took `userName`, `greeting` and `bizName` with it.
+export default function TopicPicker({ onPick, onSkip }: Props) {
   const [selected, setSelected] = useState<Topic | null>(null)
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-2 pt-2 pb-2">
-      <div className="text-center mb-5">
-        {/* Shared page header (eyebrow + sans h1 + body). */}
-        <p className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
-          HQ People - AI Advisor
-        </p>
-        <h2 className="font-sans text-2xl sm:text-3xl font-bold text-ink tracking-tight mb-2">
-          {userName ? `${greeting}, ${userName}` : greeting}
-        </h2>
-        <p className="text-sm text-ink-soft max-w-lg mx-auto leading-relaxed">
-          {selected
-            ? 'Pick the question that fits, or describe your situation below.'
-            : 'I work best when you share the specific situation, who is involved, and what you have tried so far.'}
-        </p>
-      </div>
+    <div className="w-full">
+      <p className="mb-3 text-center text-xs font-bold uppercase tracking-wider text-ink-muted">
+        {selected ? 'Pick the question that fits' : 'Browse by topic'}
+      </p>
 
       {!selected ? (
         <>
@@ -94,36 +85,36 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
               <button
                 key={t.id}
                 onClick={() => setSelected(t)}
-                // Intentional always-light override: these four pre-loaded
-                // category cards stay white with fixed dark text in BOTH
-                // light and dark mode (per request). Deliberately NOT the
-                // bg-bg-elevated/text-charcoal tokens, which would flip
-                // these to dark panels in dark mode. Scoped to these four
-                // only - the per-question bullets below keep the tokens.
-                className="bg-white shadow-card hover:shadow-modal rounded-2xl p-5 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                // Tokenised Nov 2026. These four used to be a hardcoded
+                // bg-white / #1F1F1F pair that stayed light in BOTH themes.
+                // That held while the picker was the whole first screen;
+                // under the dark hero it reads as a white slab dropped into
+                // the page. Same card family as the composer above it now:
+                // elevated surface, hairline border, border lifts on hover.
+                className="rounded-2xl border border-border bg-bg-elevated p-5 text-left shadow-card transition-all hover:border-border-strong hover:shadow-modal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
-                <p className="text-sm font-bold text-[#1F1F1F] leading-tight">{t.title}</p>
+                <p className="text-sm font-bold leading-tight text-ink">{t.title}</p>
               </button>
             ))}
           </div>
           <div className="text-center mt-6">
             <button
               onClick={onSkip}
-              className="text-sm font-bold text-mid hover:text-charcoal underline underline-offset-2"
+              className="rounded text-sm font-bold text-ink-soft underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
-              Something else - let me write my own question
+              Close topics
             </button>
           </div>
         </>
       ) : (
         <>
-          <div className="bg-light rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
-            <p className="text-sm font-bold text-charcoal">
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-bg-soft px-4 py-3">
+            <p className="text-sm font-bold text-ink">
               {selected.title}
             </p>
             <button
               onClick={() => setSelected(null)}
-              className="text-xs text-mid hover:text-charcoal underline"
+              className="shrink-0 text-xs text-ink-soft underline hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded"
             >
               Back to topics
             </button>
@@ -133,14 +124,14 @@ export default function TopicPicker({ userName, greeting, onPick, onSkip }: Prop
               <button
                 key={i}
                 onClick={() => onPick(q)}
-                className="w-full bg-bg-elevated shadow-card hover:shadow-modal rounded-2xl px-4 py-3 text-left text-sm text-charcoal transition-shadow"
+                className="w-full rounded-2xl border border-border bg-bg-elevated px-4 py-3 text-left text-sm text-ink shadow-card transition-all hover:border-border-strong hover:shadow-modal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
               >
                 {q}
               </button>
             ))}
             <button
               onClick={onSkip}
-              className="w-full bg-bg-elevated border border-dashed border-border hover:border-charcoal rounded-2xl px-4 py-3 text-left text-sm text-mid transition-colors"
+              className="w-full rounded-2xl border border-dashed border-border bg-bg-elevated px-4 py-3 text-left text-sm text-ink-soft transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
             >
               Other - let me write my own question
             </button>

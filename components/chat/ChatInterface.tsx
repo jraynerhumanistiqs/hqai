@@ -1,7 +1,8 @@
 'use client'
 import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
-import { RiAddLine, RiCheckLine, RiCloseLine, RiDeleteBin6Line, RiFileCopyLine, RiPencilLine, RiRefreshLine, RiThumbDownLine, RiThumbUpLine, RiTimeLine } from '@remixicon/react'
+import { RiAddLine, RiBuilding2Line, RiCheckLine, RiCloseLine, RiCompass3Line, RiCornerDownLeftLine, RiDeleteBin6Line, RiFileCopyLine, RiPencilLine, RiRefreshLine, RiThumbDownLine, RiThumbUpLine, RiTimeLine } from '@remixicon/react'
+import { cn } from '@/lib/utils'
 import { parseCitations, type Citation } from '@/lib/parse-citations'
 import TopicPicker from './TopicPicker'
 import TierNotice, { type Tier } from './TierNotice'
@@ -113,7 +114,10 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [skipTopicPicker, setSkipTopicPicker] = useState(false)
+  // The empty state is the hero (headline + the composer as the centrepiece).
+  // Topics are opt-in from the hero's primary CTA rather than a wall the user
+  // has to get past before they can type.
+  const [topicsOpen, setTopicsOpen] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [showAdvisorModal, setShowAdvisorModal] = useState(false)
   const [showContextInput, setShowContextInput] = useState(false)
@@ -496,6 +500,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     await sendMessageDirect(content)
   }, [input, isLoading, sendMessageDirect])
 
+  // The composer lives in the hero while the thread is empty and docks to the
+  // bottom once it is not, so it remounts on the first send. Put the caret
+  // back where the user left it.
+  const heroComposer = useRef(true)
+  useEffect(() => {
+    if (heroComposer.current && messages.length > 0) {
+      heroComposer.current = false
+      requestAnimationFrame(() => inputRef.current?.focus())
+    }
+  }, [messages.length])
+
   // Auto-send initial prompt (e.g. from templates page "Customise" button)
   const initialPromptSent = useRef(false)
   useEffect(() => {
@@ -522,13 +537,79 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
   const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'
   const greeting = getGreeting()
   const composerStatus = isLoading ? 'streaming' : 'ready'
+  const isEmpty = messages.length === 0
+  // What the model is already being told about them. Stated on the composer
+  // so nobody re-types their own business details into the box.
+  const contextLabel = [bizName, state].filter(Boolean).join(' \u00b7 ') || 'Your business'
+
+  // One composer, two sizes. `hero` is the centred empty-state version: a tall
+  // box with its toolbar inside it and a soft gold wash behind. The docked
+  // version is the same control, trimmed.
+  const renderComposer = (hero: boolean) => (
+    <div className={hero ? 'relative isolate' : undefined}>
+      {hero && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-x-8 -bottom-12 -top-8 -z-10 blur-2xl"
+          style={{
+            backgroundImage:
+              'radial-gradient(52% 58% at 50% 55%, rgb(var(--accent-clay) / 0.20), transparent 72%)',
+          }}
+        />
+      )}
+      {/* Reactive hook: when what they are typing touches a dated process,
+          surface the relevant facts from their own team records. Silent
+          when there is nothing to say. People module only - the register
+          is an HQ People concept. */}
+      {module === 'people' && <PeopleContextHint text={input} />}
+      <PromptInput
+        onSubmit={onComposerSubmit}
+        className={cn(
+          'gap-2 rounded-2xl border-border bg-bg-elevated transition-shadow',
+          'focus-within:border-border-strong focus-within:shadow-float',
+          hero ? 'px-4 py-3.5 shadow-card sm:px-5 sm:py-4' : 'px-3.5 py-2.5 shadow-sm',
+        )}
+      >
+        <PromptInputTextarea
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder={module === 'recruit'
+            ? 'Ask HQ Recruit about ads, screening, candidates...'
+            : 'Describe the situation - who is involved and what you have tried so far...'
+          }
+          className={hero ? 'min-h-[84px] py-1.5 text-[15px] sm:min-h-[104px]' : undefined}
+        />
+        <PromptInputToolbar>
+          <PromptInputTools>
+            <span
+              title="Answers are tailored to your business profile."
+              className="inline-flex max-w-[12rem] items-center gap-1.5 rounded-full bg-bg-soft px-2.5 py-1 text-[11px] font-bold text-ink-soft sm:max-w-[18rem]"
+            >
+              <RiBuilding2Line className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate">{contextLabel}</span>
+            </span>
+          </PromptInputTools>
+          <div className="flex items-center gap-2">
+            <span className="hidden items-center gap-1 text-[11px] font-medium text-ink-muted sm:inline-flex">
+              <RiCornerDownLeftLine className="h-3 w-3" aria-hidden="true" />
+              to send
+            </span>
+            <PromptInputSubmit status={composerStatus} disabled={!input.trim()} />
+          </div>
+        </PromptInputToolbar>
+      </PromptInput>
+    </div>
+  )
 
   return (
-    <div className="flex h-full bg-bg-elevated">
+    <div className="flex h-full bg-bg">
       {/* Main chat column */}
       <div className={`flex flex-col flex-1 min-w-0 ${historyOpen ? 'hidden sm:flex' : ''}`}>
-        {/* Topbar */}
-        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border bg-bg-elevated flex-shrink-0">
+        {/* Topbar. Borderless over the hero so the empty state reads as one
+            uninterrupted page; the rule returns once there is a transcript
+            scrolling underneath it. */}
+        <div className={`flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 bg-bg flex-shrink-0 ${isEmpty ? '' : 'border-b border-border'}`}>
           <div className="min-w-0">
             <h1 className="font-sans text-base sm:text-lg font-bold text-ink uppercase tracking-wider truncate">{moduleLabel}</h1>
           </div>
@@ -551,40 +632,71 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           </div>
         </div>
 
-        {/* Messages - AI Elements Conversation (auto-sticks to bottom while streaming) */}
-        <Conversation className="bg-bg-elevated">
-          <ConversationContent className={`max-w-3xl mx-auto w-full ${messages.length === 0 ? 'py-4 sm:py-6' : 'py-6 sm:py-10'}`}>
-            {messages.length === 0 && (
-              module === 'people' && !skipTopicPicker ? (
-                <TopicPicker
-                  userName={userName}
-                  greeting={greeting}
-                  bizName={bizName}
-                  onPick={(q) => { setSkipTopicPicker(true); sendMessage(q) }}
-                  onSkip={() => setSkipTopicPicker(true)}
-                />
-              ) : (
-                <div className="max-w-2xl mx-auto">
-                  <div className="text-center pt-8 sm:pt-16 pb-8">
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight mb-2">
-                      {userName ? `${greeting}, ${userName}` : greeting}
-                    </h2>
-                    <p className="text-sm text-ink-soft max-w-md mx-auto leading-relaxed">
-                      {module === 'recruit'
-                        ? "Ask me anything about hiring - I'll help you write ads, screen candidates, and shortlist faster."
-                        : "Tell me the specific situation, who is involved, and what you have tried so far - I'll give you the right guidance."
-                      }
-                    </p>
-                  </div>
-                  <Suggestions className="justify-center">
-                    {suggestions.map((s, i) => (
-                      <Suggestion key={i} suggestion={s} onClick={(q) => sendMessage(q)} />
-                    ))}
-                  </Suggestions>
+        {/* Empty state - the hero. Headline, two routes in, then the composer
+            itself as the centre of the page rather than a strip pinned to the
+            bottom of an empty room. Topics and the prompt chips sit under it. */}
+        {isEmpty ? (
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-4 py-8 sm:px-6 sm:py-12">
+              <div className="mx-auto w-full max-w-[42rem] text-center">
+                <h2 className="text-balance font-display text-[30px] font-bold leading-[1.06] tracking-tight text-ink sm:text-[42px]">
+                  {userName ? `${greeting}, ${userName}` : greeting}
+                </h2>
+                {/* No standfirst under the headline. The placeholder in the
+                    composer already says what to type, so a paragraph saying
+                    it again only pushed the box the user came here for
+                    further down the page. */}
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                  {module === 'people' && (
+                    <button
+                      type="button"
+                      onClick={() => setTopicsOpen(v => !v)}
+                      aria-expanded={topicsOpen}
+                      className="inline-flex min-h-touch items-center gap-2 rounded-full bg-accent px-6 text-sm font-bold text-ink-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                    >
+                      <RiCompass3Line className="h-4 w-4" aria-hidden="true" />
+                      {topicsOpen ? 'Hide topics' : 'Browse topics'}
+                    </button>
+                  )}
+                  <Link
+                    href="/dashboard/booking"
+                    className="inline-flex min-h-touch items-center gap-2 rounded-full border border-border-strong bg-bg-elevated px-6 text-sm font-bold text-ink transition-colors hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                  >
+                    Talk to a Humanistiqs advisor
+                  </Link>
                 </div>
-              )
-            )}
+              </div>
 
+              <div className="mt-9 w-full sm:mt-11">
+                {renderComposer(true)}
+              </div>
+
+              {module === 'people' && topicsOpen ? (
+                <div className="mt-8">
+                  <TopicPicker
+                    onPick={(q) => { setTopicsOpen(false); sendMessage(q) }}
+                    onSkip={() => setTopicsOpen(false)}
+                  />
+                </div>
+              ) : (
+                <Suggestions className="mt-6 justify-center">
+                  {suggestions.map((s, i) => (
+                    <Suggestion key={i} suggestion={s} onClick={(q) => sendMessage(q)} />
+                  ))}
+                </Suggestions>
+              )}
+
+              <p className="mx-auto mt-8 max-w-md text-center text-xs leading-relaxed text-ink-muted">
+                General guidance only - not legal advice.{' '}
+                <Link href="/dashboard/booking" className="font-semibold text-ink-soft underline underline-offset-2 hover:text-ink">
+                  Talk to a Humanistiqs advisor
+                </Link>
+              </p>
+            </div>
+          </div>
+        ) : (
+        <Conversation className="bg-bg">
+          <ConversationContent className="max-w-3xl mx-auto w-full py-6 sm:py-10">
             <div className="space-y-5">
               {messages.map((msg, i) => {
                 const isStreamingThis = isLoading && i === messages.length - 1
@@ -734,40 +846,17 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
+        )}
 
-        {/* Composer - AI Elements PromptInput */}
-        <div className="flex-shrink-0 px-3 sm:px-6 pb-3 sm:pb-4 pt-2.5 sm:pt-3 bg-bg-elevated pb-safe">
-          <div className="max-w-3xl mx-auto">
-            {/* Reactive hook: when what they are typing touches a dated process,
-                surface the relevant facts from their own team records. Silent
-                when there is nothing to say. People module only - the register
-                is an HQ People concept. */}
-            {module === 'people' && <PeopleContextHint text={input} />}
-            <PromptInput onSubmit={onComposerSubmit}>
-              <PromptInputTextarea
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={module === 'recruit'
-                  ? 'Ask HQ Recruit about ads, screening, candidates...'
-                  : 'Describe the situation - who is involved and what you have tried so far...'
-                }
-              />
-              <PromptInputToolbar>
-                <PromptInputTools />
-                <PromptInputSubmit status={composerStatus} disabled={!input.trim()} />
-              </PromptInputToolbar>
-            </PromptInput>
-            {messages.length === 0 && (
-              <p className="text-xs text-ink-muted text-center mt-2 leading-relaxed px-4">
-                General guidance only - not legal advice.{' '}
-                <Link href="/dashboard/booking" className="text-ink-soft font-semibold hover:text-ink underline underline-offset-2">
-                  Talk to an HQ Advisor
-                </Link>
-              </p>
-            )}
+        {/* Docked composer - only once there is a transcript above it. While
+            the thread is empty the same control is the hero, above. */}
+        {!isEmpty && (
+          <div className="flex-shrink-0 bg-bg px-3 pb-3 pt-2 sm:px-6 sm:pb-4 sm:pt-3 pb-safe">
+            <div className="max-w-3xl mx-auto">
+              {renderComposer(false)}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Chat History sidebar */}
@@ -1004,9 +1093,13 @@ function AdvisorModalContent({
       className="bg-bg-elevated rounded-2xl p-7 w-full max-w-md shadow-modal"
       onClick={e => e.stopPropagation()}
     >
-      <h3 id={headingId} className="font-display text-xl font-bold text-ink uppercase tracking-wider mb-2">Talk to an HQ Advisor</h3>
+      {/* "HQ Advisor" is the CHAT (/dashboard/people/advisor). The human is
+          your Humanistiqs advisor, which is what the rest of the product -
+          the escalation notices, the timeout copy, the booking page - has
+          always called them. These three labels were the stragglers. */}
+      <h3 id={headingId} className="font-display text-xl font-bold text-ink uppercase tracking-wider mb-2">Talk to a Humanistiqs advisor</h3>
       <p className="text-sm text-ink-soft mb-4 leading-relaxed">
-        HQ.ai has prepared a summary of your conversation. Your HQ Advisor will have full context before your call - no repeating yourself.
+        HQ.ai has prepared a summary of your conversation. Your Humanistiqs advisor will have full context before your call - no repeating yourself.
       </p>
       <div className="bg-bg-soft rounded-xl p-4 mb-4 text-sm text-ink-soft leading-relaxed space-y-1">
         <p><strong className="font-bold text-ink">Business:</strong> {bizName}</p>
@@ -1027,7 +1120,7 @@ function AdvisorModalContent({
         </button>
         <Link href="/dashboard/booking" onClick={onClose}
           className="flex-1 py-2.5 bg-accent hover:bg-accent-hover text-ink-on-accent rounded-full text-sm font-bold text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-          Book a call with an HQ Advisor
+          Book a call with your advisor
         </Link>
       </div>
     </div>

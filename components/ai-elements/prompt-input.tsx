@@ -113,7 +113,12 @@ export const PromptInputSubmit = ({ status = 'ready', className, disabled, ...pr
         'inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-full',
         'bg-accent text-ink-on-accent transition-all',
         'hover:bg-accent-hover',
-        'disabled:cursor-not-allowed disabled:bg-muted',
+        // Empty-box resting state. This used to be `bg-muted` (#666666 in
+        // light) under the near-black accent label - a dark disc with a
+        // darker arrow, 1.4:1. The resting send button is now the inset
+        // surface with muted ink on it, which reads as "not yet" rather
+        // than as a second, broken-looking primary.
+        'disabled:cursor-not-allowed disabled:bg-bg-soft disabled:text-ink-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30',
         className,
       )}
