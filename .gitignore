@@ -6,8 +6,9 @@ out/
 *.log
 .DS_Store
 
-# Build artifacts
-tsconfig.tsbuildinfo
+# Build artifacts. Glob, not a single name - every tsconfig.*.json emits its
+# own, e.g. tsconfig.e2e.tsbuildinfo from `npm run typecheck:e2e`.
+*.tsbuildinfo
 
 # Eval judge cache (per-run, regenerated automatically)
 tests/eval/.cache/

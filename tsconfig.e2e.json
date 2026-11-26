@@ -1,0 +1,28 @@
+// Type-checking for the Playwright surface, kept OUT of `npm run build`.
+//
+// The app tsconfig includes `**/*.ts`, which swept up playwright.config.ts and
+// tests/ppad/e2e. That made `next build` - the deploy gate - depend on the e2e
+// suite type-checking and on @playwright/test being installed. A type error in
+// a spec, or a checkout without devDependencies, failed the production build
+// for a reason that has nothing to do with what ships.
+//
+// Those paths are excluded there and checked here instead:
+//   npm run typecheck:e2e
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // The app config sets this for Next; Playwright specs are not Next
+    // modules and each spec re-exports its fixture, which isolatedModules
+    // rejects.
+    "isolatedModules": false,
+    "types": ["node"]
+  },
+  "include": [
+    "playwright.config.ts",
+    "tests/ppad/e2e/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

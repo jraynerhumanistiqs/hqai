@@ -23,7 +23,8 @@
     "test:assistant": "tsx --test tests/assistant/",
     "test:ppad": "node --test \"tests/ppad/**/*.mjs\"",
     "ppad:seed": "node scripts/ppad/dev-seed.mjs",
-    "test:ppad:e2e": "playwright test"
+    "test:ppad:e2e": "tsc -p tsconfig.e2e.json --noEmit && playwright test",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json --noEmit"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.37",
