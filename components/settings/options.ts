@@ -1,5 +1,5 @@
 // Shared option lists for the settings form. Kept in one place so the
-// multi-selects, the awards editor and the AI Advisor prefs stay in sync.
+// multi-selects, the awards editor and the HQ Advisor prefs stay in sync.
 
 export const STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'ACT', 'NT'] as const
 

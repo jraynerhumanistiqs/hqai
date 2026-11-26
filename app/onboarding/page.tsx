@@ -595,9 +595,9 @@ export default function OnboardingPage() {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-mid mb-1.5">Name your AI Advisor</label>
+                  <label className="block text-xs font-bold text-mid mb-1.5">Name your HQ Advisor</label>
                   <input className={inputCls} value={form.advisorName} onChange={e => update('advisorName', e.target.value)} placeholder="Hugo, Sarah, anything you like" />
-                  <p className="text-[10px] text-muted mt-1">Pick something friendly - this is what shows up in chat when your AI Advisor talks to you. You can change it any time in Settings.</p>
+                  <p className="text-[10px] text-muted mt-1">Pick something friendly - this is what shows up in chat when your HQ Advisor talks to you. You can change it any time in Settings.</p>
                 </div>
                 <ProductPicker
                   needs={needs}

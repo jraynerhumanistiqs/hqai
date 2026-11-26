@@ -11,12 +11,12 @@ export const dynamic = 'force-dynamic'
 //
 // Unlike Recruit (a sequential funnel with numbered steps), HQ People is a
 // set of PARALLEL tools, so there are no "Step N" labels - just a short
-// descriptor per tile. The AI Advisor is the only tool in the pillar today;
+// descriptor per tile. The HQ Advisor is the only tool in the pillar today;
 // the hub stays in place so the ?prompt= deep-link and the pillar nav keep
 // one stable entry point as more tools land.
 //
 // The ?prompt= passthrough is preserved: seed prompts from elsewhere in the
-// product still deep-link past the hub straight into the AI Advisor chat, so
+// product still deep-link past the hub straight into the HQ Advisor chat, so
 // those flows keep working exactly as they did when this route was a plain
 // redirect.
 const TILES = [
@@ -42,7 +42,7 @@ export default async function PeopleLanding({
   searchParams: Promise<{ prompt?: string }>
 }) {
   const params = await searchParams
-  // Preserve the ?prompt= deep-link into the AI Advisor chat (seed prompts
+  // Preserve the ?prompt= deep-link into the HQ Advisor chat (seed prompts
   // from elsewhere in the product bypass the hub).
   if (params.prompt) {
     redirect(`/dashboard/people/advisor?prompt=${encodeURIComponent(params.prompt)}`)

@@ -1,6 +1,6 @@
-// AI Advisor - the chat-first HR advisory surface.
+// HQ Advisor - the chat-first HR advisory surface.
 //
-// The AI Advisor is the HQ People pillar. This page hosts the existing
+// The HQ Advisor is the HQ People pillar. This page hosts the existing
 // ChatInterface (RAG-grounded, citation-emitting, escalation-aware).
 // It answers questions in prose; it does not generate documents.
 

@@ -1,6 +1,6 @@
 'use client'
 
-// AI Advisor settings. Customises the in-app AI advisor only (the human
+// HQ Advisor settings. Customises the in-app chat only (the human
 // Humanistiqs advisor is assigned, not self-set, so it no longer lives here).
 // Name, tone, response detail and custom instructions are threaded into the
 // chat system prompt (lib/prompts.ts) so they actually change how the advisor
@@ -28,8 +28,8 @@ export function AdvisorSection({
   return (
     <SettingsSection
       id="advisor"
-      title="AI Advisor"
-      description="Customise the AI advisor you chat with. These settings change how it talks to you."
+      title="HQ Advisor"
+      description="Customise the HQ Advisor you chat with. These settings change how it talks to you."
     >
       <div className="space-y-4">
         <Field

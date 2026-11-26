@@ -534,7 +534,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
     sendMessage()
   }
 
-  const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'
+  const moduleLabel = module === 'recruit' ? 'HQ Recruit' : 'HQ Advisor'
   const greeting = getGreeting()
   const composerStatus = isLoading ? 'streaming' : 'ready'
   const isEmpty = messages.length === 0
@@ -921,7 +921,7 @@ export default function ChatInterface({ module, userName, bizName, advisorName, 
                           </button>
                         )}
                         <p className="text-xs text-ink-muted mt-0.5">
-                          {c.module === 'recruit' ? 'HQ Recruit' : 'AI Advisor'}
+                          {c.module === 'recruit' ? 'HQ Recruit' : 'HQ Advisor'}
                           {' - '}
                           {formatHistoryDate(c.created_at)}
                         </p>

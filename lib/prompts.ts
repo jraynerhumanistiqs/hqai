@@ -449,7 +449,7 @@ interface BusinessPromptContext {
   empTypes: string
   advisorName: string
   userName?: string
-  // AI Advisor customisation (Settings > AI Advisor). Optional - empty means
+  // HQ Advisor customisation (Settings > HQ Advisor). Optional - empty means
   // use defaults.
   tone?: string           // Formal | Balanced | Friendly
   detail?: string         // Concise | Standard | Detailed

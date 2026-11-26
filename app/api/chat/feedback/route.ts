@@ -12,7 +12,7 @@ interface Body {
   assistantText?: string
 }
 
-// Fire-and-forget capture endpoint for the AI Advisor quality loop.
+// Fire-and-forget capture endpoint for the HQ Advisor quality loop.
 //
 // The per-message thumbs (Actions in ChatInterface) POST here. This feeds the
 // same eval/quality loop as chat_audit_log / chat_telemetry - it is a

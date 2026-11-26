@@ -65,7 +65,7 @@ export function ChatComposer({ firstName: _firstName }: { firstName?: string }) 
         onKeyDown={onKeyDown}
         rows={2}
         placeholder="Leave, performance, awards, a tricky conversation..."
-        aria-label="Ask your AI Advisor a question"
+        aria-label="Ask your HQ Advisor a question"
         className="min-h-[56px] w-full flex-1 resize-none bg-transparent text-sm leading-relaxed text-ink outline-none placeholder-ink-muted"
       />
 
@@ -74,7 +74,7 @@ export function ChatComposer({ firstName: _firstName }: { firstName?: string }) 
         <button
           type="submit"
           disabled={!canSend}
-          aria-label="Send to AI Advisor"
+          aria-label="Send to HQ Advisor"
           className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-ink-on-accent transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Ask HQ

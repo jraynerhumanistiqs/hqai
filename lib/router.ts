@@ -47,7 +47,7 @@ export const MODELS: Record<Tier, string> = {
 // `tool` tags every outbound model call so credit ledger, telemetry,
 // and the cache_control system-prompt id can all be split per surface.
 export type Tool =
-  | 'advisor'        // AI Advisor (HR chat, Fair Work grounded)
+  | 'advisor'        // HQ Advisor (HR chat, Fair Work grounded)
   | 'administrator'  // document engine (multi-format render pipeline)
   | 'recruit'        // CV scoring + Shortlist Agent scoring
   | 'shared'         // util calls that don't belong to one tool
@@ -92,7 +92,7 @@ export function routeTask(input: RoutingSignals): Tier {
   if (input.forceEscalation) return 'complex'
 
   switch (input.intent) {
-    // AI Advisor ----------------------------------------------------
+    // HQ Advisor ----------------------------------------------------
     case 'advisor-chat-reply':
       // Short, no-RAG, no escalation -> Haiku. Once the conversation
       // gets deep or the RAG retrieval gets fat, drop to Sonnet so

@@ -16,7 +16,7 @@ export const metadata = {
 // route-level revalidate. All data access is business-scoped through that
 // route, and RLS enforces the same boundary at the database.
 //
-// Questions belong to the AI Advisor (/dashboard/people/advisor), which is
+// Questions belong to the HQ Advisor (/dashboard/people/advisor), which is
 // RAG-grounded. This surface only works on the user's own register, and
 // deliberately makes no model call at all.
 export default async function AssistantPage() {

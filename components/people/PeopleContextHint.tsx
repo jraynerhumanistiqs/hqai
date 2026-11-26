@@ -2,7 +2,7 @@
 
 // The reactive hook, rendered.
 //
-// Sits above the composer in the AI Advisor and surfaces facts from the user's
+// Sits above the composer in the HQ Advisor and surfaces facts from the user's
 // own employee register when what they are typing about touches a dated
 // process. Quiet by default, and silent when there is nothing to say.
 //

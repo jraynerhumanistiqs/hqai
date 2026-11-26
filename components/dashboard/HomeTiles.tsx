@@ -59,13 +59,13 @@ const TILES: Tile[] = [
   },
   {
     href: '/dashboard/people/advisor',
-    label: 'AI Advisor',
+    label: 'HQ Advisor',
     blurb: 'Ask any people question and get clear, practical steps.',
     icon: RiChat3Line,
   },
   {
     href: '/dashboard/assistant',
-    label: 'AI Assistant',
+    label: 'HQ Assistant',
     blurb: 'Your day-to-day helper for the admin around people management.',
     icon: RiRobot2Line,
   },
