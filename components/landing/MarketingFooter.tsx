@@ -118,7 +118,18 @@ export default function MarketingFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-ink-muted transition-colors hover:text-ink"
+                  // The visible circle stays 36px - growing it to 44 would
+                  // restyle the footer - so the pointer target is extended
+                  // instead: before: with -inset-1.5 adds 6px a side, giving a
+                  // 48x48 target behind an unchanged 36x36 ring. Same
+                  // technique as PricingInfoDot. `relative` anchors it.
+                  //
+                  // 6px not 4px deliberately. 4px is 44 exactly, and hit
+                  // testing an exact-44 target on a fractional x returns 42 -
+                  // the boundary pixel resolves to the parent. 6px clears 44
+                  // with margin. Nothing else is within 12px, so the larger
+                  // target cannot steal a neighbour's.
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border text-ink-muted transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:text-ink"
                 >
                   <SocialIcon icon={s.icon} />
                 </a>

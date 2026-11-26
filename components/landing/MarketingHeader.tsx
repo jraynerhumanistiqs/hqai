@@ -152,7 +152,12 @@ export default function MarketingHeader() {
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           aria-controls="marketing-mobile-menu"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink md:hidden"
+          // min-h-touch / min-w-touch (44px) rather than h-10 w-10 (40px):
+          // tailwind.config.ts documents 44px as the minimum for icon-only
+          // buttons, and this one was 40. Nothing visible changes - the button
+          // has no border or background, only the 20px glyph - so this grows
+          // the target, not the look.
+          className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-full text-ink md:hidden"
         >
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
