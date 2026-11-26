@@ -177,7 +177,7 @@ export const PRICING: PricingShape = {
       stripePriceIdMonthly: 'STRIPE_PRICE_ID_SOLO_MONTHLY',
       stripePriceIdAnnual: 'STRIPE_PRICE_ID_SOLO_ANNUAL',
       features: [
-        'AI HR assistant for everyday questions',
+        'HQ Advisor for your everyday HR questions',
         'HQ Recruit (1 active role)',
         '500 AI credits/month',
         'Pay-as-you-go advisor escalation ($80/session)',
@@ -629,13 +629,13 @@ export const C10_SELF_SERVE = {
   people: {
     name: 'HQ People',
     kicker: 'HR help',
-    desc: 'The AI HR assistant for your everyday HR questions and the everyday HR jobs handled. The everyday HR product, used all year.',
+    desc: 'HQ Advisor answers your everyday HR questions, and the everyday HR jobs are handled for you. The everyday HR product, used all year.',
     bands: [
       { label: 'up to 25', monthly: 59, annualTotal: 590, credits: 400 },
       { label: 'up to 150', monthly: 179, annualTotal: 1790, credits: 1500 },
     ] as C10Band[],
     features: [
-      'AI HR assistant for everyday questions',
+      'HQ Advisor for your everyday HR questions',
       'Answers grounded in Australian workplace rules',
       'Set up around your industry and your award',
       'Team register with a dated record for each person',

@@ -184,7 +184,48 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[stripe/checkout] session create failed', err)
-    return NextResponse.json({ error: 'Could not start checkout', detail: message }, { status: 502 })
+    const code = (err as { code?: string })?.code
+    console.error('[stripe/checkout] session create failed', {
+      plan: planId,
+      cycle,
+      advisoryHours: totalAdvisoryHours,
+      code,
+      message,
+    })
+
+    // "Could not start checkout" told the buyer nothing and told us less.
+    // Classify the way the portal route already does: a catalogue problem
+    // is permanent and ours to fix, a card problem is the buyer's, and
+    // everything else is worth retrying. The buyer always gets a plain
+    // sentence; `detail` and `reason` carry the real Stripe error for us.
+    const missingPrice =
+      code === 'resource_missing' || /no such price|no such plan/i.test(message)
+    const intervalClash = /recurring (prices|intervals)|same interval|interval/i.test(message)
+    const cardProblem = code === 'card_declined' || /card/i.test(message)
+
+    const friendly = missingPrice
+      ? 'That plan is not switched on for online payment yet. Please contact support at hq.ai@humanistiqs.com.au and we will sort it.'
+      : intervalClash
+      ? 'That combination cannot be billed together yet. Try again without the advisor hours, or contact support at hq.ai@humanistiqs.com.au.'
+      : cardProblem
+      ? 'Your bank would not accept that card. Please try another one.'
+      : 'Could not start checkout. Please try again, or contact support at hq.ai@humanistiqs.com.au.'
+
+    return NextResponse.json(
+      {
+        error: friendly,
+        // A stable tag the UI can branch on without string matching, and
+        // the one thing worth reading in a bug report.
+        reason: missingPrice
+          ? 'price_missing'
+          : intervalClash
+          ? 'interval_clash'
+          : cardProblem
+          ? 'card'
+          : 'unknown',
+        detail: message,
+      },
+      { status: 502 },
+    )
   }
 }

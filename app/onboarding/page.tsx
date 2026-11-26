@@ -578,9 +578,9 @@ export default function OnboardingPage() {
                 <span aria-hidden className="h-px w-5 bg-clay" />
                 Your AI advisor
               </p>
-              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Meet your AI Advisor</h2>
+              <h2 ref={headingRef} tabIndex={-1} className={headingCls}>Meet your HQ Advisor</h2>
               <p className="text-sm text-mid mb-6">
-                This is the assistant that handles your day-to-day HR questions. Give it a name you like - you can change it any time in Settings.
+                This is the HQ Advisor that handles your day-to-day HR questions. Give it a name you like - you can change it any time in Settings.
                 <span
                   className="group relative ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-ink/30 align-middle text-[10px] font-bold text-ink-muted"
                   tabIndex={0}

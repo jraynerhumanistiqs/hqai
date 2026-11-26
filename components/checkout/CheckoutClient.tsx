@@ -135,10 +135,21 @@ export default function CheckoutClient({
           advisoryHours: { hr: hrHours, recruit: recruitHours },
         }),
       })
-      const data = await res.json().catch(() => ({} as { url?: string; error?: string }))
+      const data = await res.json().catch(() => ({} as { url?: string; error?: string; reason?: string; detail?: string }))
       if (res.ok && data.url) {
         url = data.url
       } else {
+        // The banner stays a plain sentence; the real Stripe error goes to
+        // the console, where whoever is debugging a failed checkout can
+        // read it without opening the Network tab.
+        console.error('[checkout] could not start', {
+          status: res.status,
+          reason: data.reason,
+          detail: data.detail,
+          plan: planId,
+          cycle,
+          advisoryHours,
+        })
         setError(data.error || `We could not open the payment page (HTTP ${res.status}). Please try again, or email hq.ai@humanistiqs.com.au and we will sort it.`)
       }
     } catch {

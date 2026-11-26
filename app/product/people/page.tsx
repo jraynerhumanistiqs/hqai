@@ -63,7 +63,7 @@ export default function ProductPeoplePage() {
             HQ People
           </p>
           <h1 className="mx-auto max-w-3xl font-display text-[36px] font-bold leading-[1.05] tracking-tight text-ink md:text-[56px]">
-            An HR assistant that does the everyday work for you.
+            An HR advisor that does the everyday work for you.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft md:text-xl">
             Ask anything about your staff, pay or the rules. HQ People answers in plain English, shows

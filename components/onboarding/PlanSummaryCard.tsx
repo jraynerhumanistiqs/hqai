@@ -42,13 +42,13 @@ export const PLANS: Array<{ id: CheckoutPlanId; label: string; price: string; de
     id: 'people-solo',
     label: `${people.name} (${people.bands[0].label})`,
     price: `$${people.bands[0].monthly}/month`,
-    desc: `HR only - the AI HR assistant and document library, for teams ${people.bands[0].label}.`,
+    desc: `HR only - HQ Advisor and the document library, for teams ${people.bands[0].label}.`,
   },
   {
     id: 'people-business',
     label: `${people.name} (${people.bands[1].label})`,
     price: `$${people.bands[1].monthly}/month`,
-    desc: `HR only - the AI HR assistant and document library, for teams ${people.bands[1].label}.`,
+    desc: `HR only - HQ Advisor and the document library, for teams ${people.bands[1].label}.`,
   },
   {
     id: recruit.standalonePlanId,

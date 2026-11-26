@@ -17,7 +17,7 @@ const PRODUCT_OPTIONS: Array<{ key: keyof ProductNeeds; label: string; desc: str
   {
     key: 'people',
     label: `HR help - ${people.name}`,
-    desc: 'The AI HR assistant, a full document library and the everyday HR jobs handled.',
+    desc: 'HQ Advisor, a full document library and the everyday HR jobs handled.',
   },
   {
     key: 'recruit',
