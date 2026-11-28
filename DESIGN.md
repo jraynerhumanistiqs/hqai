@@ -46,6 +46,8 @@ colors-marketing:
   ink-on-clay: "#111111"      # inherited from :root
   border: "#2A2D32"
   border-strong: "#3D4148"
+  danger: "#FF8A8D"           # declared here Nov 2026, was inherited
+  warning: "#FFA14D"          # declared here Nov 2026, was inherited
 
 # Product surface, light - [data-app="product"] without .dark
 colors-product-light:
@@ -72,8 +74,8 @@ colors-product-light:
   input: "#E5E5E5"
   ring: "#A1A1A1"
   focus-ring: "#7A6010"
-  danger: "#D0000A"
-  warning: "#A84600"
+  danger: "#A80008"
+  warning: "#8A3600"
   success: "#016630"
   info: "#193CB8"
   sidebar: "#FAFAFA"
@@ -104,8 +106,8 @@ colors-product-dark:
   input: "#FFFFFF @ 15%"
   ring: "#737373"
   focus-ring: "#E8B23A"
-  danger: "#FF6467"
-  warning: "#FF6900"
+  danger: "#FF8A8D"
+  warning: "#FFA14D"
   sidebar: "#101010"          # RECESSED below the page, not lifted
   sidebar-accent: "#343434"
 
@@ -130,8 +132,8 @@ colors-root:
   ink-on-clay: "#111111"      # declared here, inherited everywhere
   border: "#E6E5E0"
   border-strong: "#C9C8C0"
-  danger: "#C5483A"
-  warning: "#B8770F"
+  danger: "#A80008"
+  warning: "#8A3600"
   success: "#016630"
   info: "#193CB8"
 
@@ -474,9 +476,14 @@ answers, and because `accent` is not the same colour on every surface
 
 ### Semantic
 
-Product light: `danger` #D0000A, `warning` #A84600, `success` #016630,
-`info` #193CB8. Product dark: `danger` #FF6467, `warning` #FF6900,
-`success` #05DF72, `info` #8EC5FF - and the same dark pair on marketing.
+Light surfaces (`:root` and product light): `danger` #A80008, `warning`
+#8A3600, `success` #016630, `info` #193CB8. Dark surfaces (product dark
+and marketing): `danger` #FF8A8D, `warning` #FFA14D, `success` #05DF72,
+`info` #8EC5FF.
+
+All four are declared in all four scopes. Nothing inherits across a
+lightness boundary any more - that was the bug behind every semantic
+contrast failure in this system.
 
 All four follow one shape: a deep 700/800 on light surfaces, a bright 400
 on dark ones. **Tune any of them against its own tint, not the bare
@@ -484,11 +491,16 @@ surface.** These render as `bg-x/10 text-x` pills, and a tint of the same
 hue drags the background toward the text, so the tinted pair is always
 the worst one - typically 0.4-0.9 worse than the plain reading.
 
-All three warm colours are tuned **against the gold**, which is the real risk -
-gold, warning and danger are all warm. Light `warning` is deepened to #A84600
-so it separates from gold by lightness as well as hue. Dark `warning` stays
-#FF6900: it sits between gold and danger, and anything redder collides with
-`danger` #FF6467.
+The warm colours are tuned **against the gold**, which is the real risk -
+gold, warning and danger are all warm, and contrast alone will not tell you
+whether they are distinguishable. Check the hue gap too. The gold is hue 41;
+light `warning` is hue 23 and dark `warning` hue 28, so both stay clear of
+it. The previous dark candidate #FF8904 cleared AA at 4.98:1 but sat at hue
+32 - nine degrees off the gold - and the two visibly crowded. #FFA14D is
+both further away (thirteen degrees) and higher contrast (5.74:1).
+
+The lesson: **do not stop at the first value that passes.** The apparent
+trade-off between contrast and hue separation only binds near the minimum.
 
 ### Contrast, measured
 
@@ -920,14 +932,19 @@ a component that spans both surfaces.
    3.0:1 and 4.1:1 on dark. Light is now #016630 / #193CB8 and dark
    #05DF72 / #8EC5FF, worst case 4.72:1 anywhere.
 
-5. **`danger` and `warning` still fail against their own tints.** Not
-   fixed. On a tinted pill: product light `danger` 3.76:1 and `warning`
-   4.07:1; product dark `danger` 4.40:1 and `warning` 4.44:1. All four clear
-   AA on the bare surface, which is what the comments in `app/globals.css`
-   quote, and all four miss it under the `/10` they actually ship with.
-   Marketing inherits the `:root` pair (#C5483A, #B8770F) and is tighter
-   again. Deepening them is a live design call, because `warning` is
-   already tuned to sit between the gold accent and `danger`.
+5. **A semantic colour can clear AA and still be the wrong colour.**
+   Contrast is necessary, not sufficient - on a palette this warm, check
+   the hue gap to the gold accent as well.
+
+   *Fixed Nov 2026, completing the pass that `success` and `info` began.*
+   `danger` and `warning` were also tuned against the bare surface, which
+   is what the old comments in `app/globals.css` quoted, and also missed
+   under the `/10` they ship with: product light 3.65:1 and 3.96:1,
+   product dark 4.27:1 both. Marketing was worse on both counts, because
+   it inherited the `:root` pair: `danger` #C5483A at **3.17:1**, the
+   lowest pair in the system, and `warning` #B8770F at hue 37 against the
+   gold accent's 41 - **four degrees**, so a warning there read as the
+   brand colour. Marketing declares its own dark pair now.
 
 6. **A triplet is not a colour.** `style={{ color: 'var(--ink)' }}` renders
    nothing. Wrap it: `rgb(var(--ink))`.

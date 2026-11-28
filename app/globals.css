@@ -20,7 +20,7 @@
 
    COLOUR TOKENS ARE CHANNEL TRIPLETS, NOT COLOURS (Nov 2026)
    -----------------------------------------------------------------
-   `--warning: 168 70 0`, never `--warning: #a84600`. tailwind.config.ts
+   `--warning: 138 54 0`, never `--warning: #8a3600`. tailwind.config.ts
    maps each one through `rgb(var(--token) / <alpha-value>)`, which is the
    only form Tailwind v3 can apply an opacity modifier to. While these were
    bare `var()` hexes, `bg-warning/10` and the other ~380 `token/NN`
@@ -147,8 +147,21 @@
     --border-strong:     201 200 192;
 
     /* ── Semantic ──────────────────────────────────────────── */
-    --danger:            197 72 58;
-    --warning:           184 119 15;
+    /* Nov 2026: deepened to clear AA against their OWN tint. Both render
+       as `bg-x/10 text-x` pills, and a tint of the same hue pulls the
+       background toward the text, so the tinted pair always reads lower
+       than the bare surface - which is what the old values were tuned
+       against. On a :root page they were 3.2:1 (danger) and 4.0:1
+       (warning) tinted; they are 5.8:1 and 6.2:1 now.
+
+       These are the light values, matching [data-app="product"] below.
+       Marketing used to inherit them and should not: it is a DARK
+       surface, so it now declares its own bright pair. The old warning
+       #B8770F was hue 37 against the gold accent's 41 - four degrees -
+       so on marketing it read as the brand colour rather than a warning.
+       The light warning is hue 23, eighteen degrees clear. */
+    --danger:            168 0 8;
+    --warning:           138 54 0;
     /* Nov 2026: success and info were the only two semantic tokens never
        tuned per surface - they kept their original mid-tone values while
        danger and warning were deepened for light and brightened for dark.
@@ -243,15 +256,24 @@
     --border:           42 45 50;
     --border-strong:    61 65 72;
 
-    /* This surface is dark too, so it takes the dark success / info -
-       it was inheriting the light mid-tones and rendering them at 3.6:1
-       and 5.8:1 on a card. Marketing still inherits --danger and
-       --warning from :root; those clear AA here (4.1:1 and 5.4:1) but
-       only just, and they are a warm red and a warm amber on a surface
-       whose accent is already warm gold. Worth revisiting if this
-       surface ever shows real status chrome - today it does not. */
+    /* This surface is dark, so it takes the dark semantic set rather than
+       inheriting the light mid-tones from :root. Nov 2026 finished the job
+       success and info started: danger and warning are declared here now
+       too, with the same values the product dark block uses.
+
+       Inheriting them was worse here than anywhere. Against its own 10%
+       tint on a card, the :root danger #C5483A measured 3.17:1 - the
+       lowest pair in the system - and the :root warning #B8770F was
+       3.95:1. Worse than the contrast, #B8770F is hue 37 and the gold
+       accent is hue 41: four degrees apart, so a warning on this surface
+       read as the brand colour rather than as a warning. The dark pair is
+       6.07:1 and 6.70:1, and the warning sits thirteen degrees off the
+       gold. --ink-on-danger is still undeclared here and falls back to
+       --ink-on-accent #111111, which is 8.3:1 on the new danger fill. */
     --success:          5 223 114;
     --info:             142 197 255;
+    --danger:           255 138 141;
+    --warning:          255 161 77;
 
     --shadow-hairline:  0 0 0 1px rgba(255,255,255,0.06);
     --shadow-card:      0 0 0 1px rgba(255,255,255,0.06);
@@ -366,16 +388,17 @@
     --chart-4:          20 71 230;
     --chart-5:          25 60 184;
 
-    --danger:           208 0 10;   /* deepened for AA on the darker card */
+    /* Nov 2026: #D0000A -> #A80008. The 5.4:1 the old comment quoted was
+       the BARE card; on the #E4E4E4 inset under its own 12% tint it was
+       3.65:1. Tuned against the tint now: 4.98:1 at worst. */
+    --danger:           168 0 8;
     /* The preset has no warning token - shadcn's only negative-state
        colour is destructive. Warning has to stay clearly separable from
-       the gold accent, which is the risk here - both are warm. Aug 2026,
-       with the accent unified on Wattle Gold #E8B23A, light warning was
-       deepened again to #A84600: further from gold in lightness as well
-       as hue, 5.4:1 on the card. Dark stays #FF6900 - it already sits
-       between gold and danger, and moving it any redder walks it into
-       --danger #FF6467. */
-    --warning:          168 70 0;      /* deepened, further from gold */
+       the gold accent, which is the risk here - both are warm.
+       Nov 2026: #A84600 -> #8A3600, same reason as danger (3.96:1 tinted
+       on the inset, 5.26:1 now). Hue 23, eighteen degrees clear of the
+       gold's 41, so it separates by hue as well as lightness. */
+    --warning:          138 54 0;
     /* Light success / info. Deep enough to clear AA on the #E4E4E4 inset
        under their own 10-12% tint, which is the worst case the pills hit:
        5.6:1 plain on the inset, 4.7:1 tinted. Hues sit at 145 and 221
@@ -490,13 +513,18 @@
     --sidebar-primary:      232 178 58;
     --sidebar-primary-ink:  17 17 17;
 
-    --danger:           255 100 103;   /* preset destructive */
-    /* Dark warning. The light amber-700 only reaches 3.94:1 on the dark
-       background, so dark steps up the same ramp to orange-500: 74 units
-       off the gold accent, 103 off danger, 6.86:1 on the dark surface.
-       Previously the dark block never declared --warning at all and
-       silently inherited the light value. */
-    --warning:          255 105 0;
+    /* Nov 2026: #FF6467 -> #FF8A8D. The preset destructive was 4.27:1 on
+       a tinted card; this is 5.15:1. The label on a solid danger fill
+       (--ink-on-danger #0A0A0A) improves too, 6.9:1 -> 8.7:1. */
+    --danger:           255 138 141;
+    /* Dark warning. Has to stay clear of BOTH the gold accent and danger.
+       Nov 2026: #FF6900 -> #FFA14D. The obvious brighten was orange-400
+       #FF8904, but that is hue 32 against the gold's 41 - nine degrees,
+       and the two visibly crowd. #FFA14D is lighter still, so it clears
+       more contrast (5.74:1 against 4.98:1) AND sits thirteen degrees
+       off the gold. Better on both axes; the trade-off only binds if you
+       stop at the first value that passes. */
+    --warning:          255 161 77;
     /* Dark success / info. Same story --warning had: this block never
        declared either, so both silently inherited the light mid-tones and
        landed at 3.0:1 and 4.1:1 on a tinted card - under AA. These are the

@@ -27,7 +27,7 @@
     --ink-on-clay:#111111;
     --border:#2A2D32; --border-strong:#3D4148;
     /* Not redeclared on marketing - these INHERIT the :root light values. */
-    --danger:#C5483A; --warning:#B8770F; --success:#05DF72; --info:#8EC5FF;
+    --danger:#FF8A8D; --warning:#FFA14D; --success:#05DF72; --info:#8EC5FF;
     --radius-2xl:20px; --radius-3xl:24px;
     --shadow-card:0 0 0 1px rgba(255,255,255,.06);
     --shadow-float:0 8px 24px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
@@ -44,7 +44,7 @@
     --ink-on-clay:#111111;
     --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.20);
     --input:rgba(255,255,255,.15); --ring:#737373; --focus-ring:#E8B23A;
-    --danger:#FF6467; --warning:#FF6900;
+    --danger:#FF8A8D; --warning:#FFA14D;
     /* Not redeclared in the dark block - these INHERIT the light values. */
     --success:#05DF72; --info:#8EC5FF;
     --radius-2xl:18px; --radius-3xl:22px;
@@ -203,8 +203,8 @@
       <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">clay-ink</div><div class="sw-val">#E8B23A</div><div class="sw-role">Gold AS text, 10.23:1</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#2A2D32"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#2A2D32</div><div class="sw-role">Hairline</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#3D4148"></div><div class="sw-meta"><div class="sw-name">border-strong</div><div class="sw-val">#3D4148</div><div class="sw-role">Stronger line</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#C5483A"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#C5483A</div><div class="sw-role">Inherited - 4.11:1, fails tinted</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#B8770F"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#B8770F</div><div class="sw-role">Inherited - close to gold</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FF8A8D"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#FF8A8D</div><div class="sw-role">Declared here Nov 2026. 6.07:1 tinted</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FFA14D"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#FFA14D</div><div class="sw-role">Was hue 37 vs gold 41. Now 28</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#05DF72"></div><div class="sw-meta"><div class="sw-name">success</div><div class="sw-val">#05DF72</div><div class="sw-role">Dark value, 7.5:1 tinted</div></div></div>
     </div>
     <div class="warn"><strong>Not warm greys.</strong> <code>CLAUDE.md</code> calls this surface "dark, warm", but #0A0A0B / #131417 / #1B1D21 are neutral-to-slightly-cool. The warmth is the gold alone. Do not add warm greys to "match".</div>
@@ -297,8 +297,8 @@
       <div class="sw"><div class="sw-chip" style="background:rgba(255,255,255,.10)"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-val">#FFFFFF @ 10%</div><div class="sw-role">Alpha - works on page AND card</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:rgba(255,255,255,.20)"></div><div class="sw-meta"><div class="sw-name">border-strong</div><div class="sw-val">#FFFFFF @ 20%</div><div class="sw-role">Alpha hairline</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#E8B23A"></div><div class="sw-meta"><div class="sw-name">focus-ring</div><div class="sw-val">#E8B23A</div><div class="sw-role">2px outline, 2px offset</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#FF6467"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#FF6467</div><div class="sw-role">Label inverts to #0A0A0A</div></div></div>
-      <div class="sw"><div class="sw-chip" style="background:#FF6900"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#FF6900</div><div class="sw-role">Sits between gold and danger</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FF8A8D"></div><div class="sw-meta"><div class="sw-name">danger</div><div class="sw-val">#FF8A8D</div><div class="sw-role">Label inverts to #0A0A0A. 5.15:1</div></div></div>
+      <div class="sw"><div class="sw-chip" style="background:#FFA14D"></div><div class="sw-meta"><div class="sw-name">warning</div><div class="sw-val">#FFA14D</div><div class="sw-role">13 deg off gold, 5.74:1 tinted</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#05DF72"></div><div class="sw-meta"><div class="sw-name">success</div><div class="sw-val">#05DF72</div><div class="sw-role">Retuned Nov 2026, 6.4:1 tinted</div></div></div>
       <div class="sw"><div class="sw-chip" style="background:#8EC5FF"></div><div class="sw-meta"><div class="sw-name">info</div><div class="sw-val">#8EC5FF</div><div class="sw-role">Retuned Nov 2026, 6.2:1 tinted</div></div></div>
     </div>
